@@ -1,8 +1,6 @@
 \name{algo.farrington.threshold}
 \alias{algo.farrington.threshold}
-\encoding{latin1}
-
-\title{Compute prediction interval for a new observation}
+\title{Threshold computations using a two sided confidence interval}
 \description{
 Depending on the current transformation \eqn{h(y)= \{y, \sqrt{y}, y^{2/3}\}},
 
@@ -13,25 +11,20 @@ Depending on the current transformation \eqn{h(y)= \{y, \sqrt{y}, y^{2/3}\}},
   observation and a prediction variance.  }
 
 \usage{
-algo.farrington.threshold(pred,phi,alpha=0.01,skewness.transform="none",y)
+algo.farrington.threshold(pred,phi,alpha=0.01,skewness.transform="none")
 }
 \arguments{
 \item{pred}{A GLM prediction object}
-\item{phi}{Current overdispersion parameter (superflous?)}
-\item{alpha}{Quantile level in Gaussian based CI, i.e. an \eqn{(1-\alpha)\cdot 100\%}
+\item{phi}{Current overdispersion (superflous?)}
+\item{alpha}{Quantile level in Gaussian based CI, i.e. an \eqn{(1-\alpha)\%}
     confidence interval is computed. }
 \item{skewness.transform}{Skewness correction, i.e. one of
-    \code{"none"}, \code{"1/2"}, or \code{"2/3"}.}
-\item{y}{Observed number}
+    \code{"none"}, \code{"sqrt"}, or \code{"2/3"}.}
 }
-\value{
-  %
-  Vector of length four with lower and upper bounds of an
-  \eqn{(1-\alpha)\cdot 100\%} confidence interval (first two
-  arguments) and corresponding quantile of observation \code{y}
-  together with the median of the predictive distribution.
-  %
+\value{\item{vector}{
+        Vector of length 2 with lower and upper bounds of an \eqn{(1-\alpha)\%} confidence interval.
+        }
 }
-\keyword{regression}
+\keyword{}
 
 

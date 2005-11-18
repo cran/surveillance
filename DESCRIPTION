@@ -1,77 +1,15 @@
 Package: surveillance
-Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
-        Phenomena
-Version: 1.7-0
-Date: 2013-11-19
-Authors@R: c(person("Michael", "Höhle",
-                    email = "Michael.Hoehle@stat.uni-muenchen.de",
-                    role = c("aut", "cre", "ths")),
-             person("Sebastian", "Meyer",
-                    email = "Sebastian.Meyer@ifspm.uzh.ch",
-                    role = "aut"),
-             person("Michaela", "Paul",
-                    email = "Michaela.Paul@ifspm.uzh.ch",
-                    role = "aut"),
-             person("Leonhard", "Held",
-                    email = "Leonhard.Held@ifspm.uzh.ch",
-                    role = c("ctb", "ths")),
-             person("T.", "Correa", role = "ctb"),
-             person("M.", "Hofmann", role = "ctb"),
-             person("C.", "Lang", role = "ctb"),
-             person("A.", "Riebler", role = "ctb"),
-             person("D.", "Sabanés Bové", role = "ctb"),
-             person("M.", "Salmon", role = "ctb"),
-             person("S.", "Steiner", role = "ctb"),
-             person("M.", "Virtanen", role = "ctb"),
-             person("V.", "Wimmer", role = "ctb"),
-             person("R Core Team", role = "ctb",
-                    comment = "A few code segments are modified versions of
-                               code from base R"))
-Author: Michael Höhle [aut, cre, ths], Sebastian Meyer [aut],
-        Michaela Paul [aut], Leonhard Held [ctb, ths],
-        T. Correa [ctb], M. Hofmann [ctb], C. Lang [ctb], A. Riebler [ctb],
-        D. Sabanés Bové [ctb], M. Salmon [ctb], S. Steiner [ctb],
-        M. Virtanen [ctb], V. Wimmer [ctb], R Core Team [ctb]
-        (A few code segments are modified versions of code from base R)
-Maintainer: Michael Höhle <Michael.Hoehle@stat.uni-muenchen.de>
-Depends: R (>= 2.15.2), methods, grDevices, graphics, stats, utils,
-        Rcpp, sp (>= 1.0-6), xtable, polyCub (>= 0.4-0)
-Imports: MASS, Matrix, spatstat (>= 1.34-0)
-LinkingTo: Rcpp
-Suggests: msm, spc, colorspace, animation, quadprog, parallel, memoise,
-        polyclip, rgeos, gpclib, maptools, intervals, spdep, numDeriv,
-        maxLik, RUnit, digest, coda, splancs, gamlss
-Description: A package implementing statistical methods for the modeling and
-        change-point detection in time series of counts, proportions and
-        categorical data, as well as for the modeling of continuous-time
-        epidemic phenomena, e.g. discrete-space setups such as the spatially
-        enriched Susceptible-Exposed-Infectious-Recovered (SEIR) models for
-        surveillance data, or continuous-space point process data such as the
-        occurrence of disease or earthquakes. Main focus is on outbreak
-        detection in count data time series originating from public health
-        surveillance of infectious diseases, but applications could just as well
-        originate from environmetrics, reliability engineering, econometrics or
-        social sciences.
-        Currently the package contains implementations of typical outbreak
-        detection procedures such as Stroup et. al (1989), Farrington et al
-        (1996), Rossi et al (1999), Rogerson and Yamada (2001), a Bayesian
-        approach, negative binomial CUSUM methods and a detector based on
-        generalized likelihood ratios.
-        Furthermore, inference methods for the retrospective infectious disease
-        model in Held et al (2005), Held et al (2006), Paul et al (2008) and
-        Paul and Held (2011) are provided. A novel CUSUM approach combining
-        logistic and multinomial logistic modelling is also included.
-        Continuous self-exciting spatio-temporal point processes are modeled
-        through additive-multiplicative conditional intensities as described in
-        Höhle (2009) ("twinSIR", discrete space) and Meyer et al (2012)
-        ("twinstim", continuous space).
-        The package contains several real-world datasets, the ability to
-        simulate outbreak data, visualize the results of the monitoring in
-        temporal, spatial or spatio-temporal fashion.
-License: GPL-2
-URL: http://surveillance.r-forge.r-project.org/
-Encoding: latin1
-Packaged: 2013-11-19 11:29:57 UTC; sebastian
-NeedsCompilation: yes
-Repository: CRAN
-Date/Publication: 2013-11-19 16:57:55
+Title: Outbreak detection algorithms for surveillance data
+Version: 0.9
+Author: Höhle, Lang, Riebler
+Description: A framework for the development and the evaluation
+	of outbreak detection algorithms in in routine collected public health surveillance
+	data. Currently the package contains an implementation of the procedures 
+	described in Stroup et. al (1989), Farrington et. al (1996),
+        a Bayesian approach and the method used at the Robert Koch Institute,
+	Germany. The package contains several real-world datasets and the ability to 
+	simulate outbreak data.
+Maintainer: Michael Höhle <hoehle@stat.uni-muenchen.de> 
+License: GPL version 2 (http://www.gnu.org/licenses/gpl.html) 
+URL: http://www.stat.uni-muenchen.de/~hoehle/software/surveillance
+Packaged: Fri Nov 18 16:20:47 2005; hoehle

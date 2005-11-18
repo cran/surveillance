@@ -32,7 +32,7 @@ sim.pointSource <- function(p = 0.99, r = 0.01, length = 400, A = 1, alpha = 1, 
   if(is.null(state)){
         # create a markov-chain
     state <- matrix(data = 0, ncol = 1, nrow = length)
-    state[1] <- 0 #hoehle - fix: rbinom(1,1,0.5) # always begin with a zero
+    state[1] <- rbinom(1,1,0.5) # begin with a random value
 
         # create the transition matrix
     transitionMatrix <- matrix(data = c(p, (1-r),(1-p), r), nrow = 2, ncol = 2)
@@ -50,7 +50,7 @@ sim.pointSource <- function(p = 0.99, r = 0.01, length = 400, A = 1, alpha = 1, 
   length <- length(state)
   observed <-sim.seasonalNoise(A, alpha, beta, phi, length, frequency, state, K)$seasonalBackground
 
-  result <- list(observed = observed, state = state, A = A, alpha = alpha, beta = beta, K = K, p = p, r = r, freq=52, start=c(2001,1))
+  result <- list(observed = observed, state = state, A = A, alpha = alpha, beta = beta, K = K, p = p, r = r)
   class(result) = "disProg" # for disease progress
 
   return(result)

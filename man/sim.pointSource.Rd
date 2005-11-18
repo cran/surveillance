@@ -1,7 +1,5 @@
 \name{sim.pointSource}
 \alias{sim.pointSource}
-\encoding{latin1}
-
 \title{Generation of Simulated Point Source Epidemy}
 \description{Simulation of epidemies which were introduced by point sources.
         The basis of this proagramme is a combination of a Hidden Markov Modell
@@ -36,7 +34,7 @@
 }
 \seealso{\code{\link{sim.seasonalNoise}}
 }
-\author{M. \enc{Höhle}{Hoehle}, A. Riebler, C. Lang}
+\author{M. Höhle, A. Riebler, C. Lang}
 \examples{
     # Plotting of simulated data
     disProgObj <- sim.pointSource(p = 0.99, r = 0.5, length = 208,
@@ -50,5 +48,5 @@
     plot(disProgObj)
 }
 
-\keyword{datagen}
+\keyword{}
 

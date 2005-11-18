@@ -3,13 +3,13 @@
 \title{Print quality value object}
 \description{Print a single qualitity value object in a nicely formatted way}
 \usage{
-  \method{print}{algoQV}(x,...)
+print.algoQV(x,...)
 }
 \arguments{
 \item{x}{Quality Values object generated with \code{quality}}
 \item{...}{Further arguments (not reall used)}
 }
-\keyword{print}
+\keyword{}
 \examples{
     # Create a test object
     disProgObj <- sim.pointSource(p = 0.99, r = 0.5, length = 200, A = 1,

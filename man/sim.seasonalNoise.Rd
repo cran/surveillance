@@ -1,14 +1,8 @@
 \name{sim.seasonalNoise}
 \alias{sim.seasonalNoise}
-\encoding{latin1}
-
-\title{Generation of Background Noise for Simulated Timeseries}
-\description{Generation of a cyclic model of a Poisson distribution
+\title{Generation of Background Noise for Simulated Timeserieses}
+\description{Generation of a cyclic model of a poisson distribution
 as background data for a simulated timevector.
-
-The mean of the Poisson distribution is modelled as:
-\deqn{\mu = \exp(A \sin( frequency \cdot \omega \cdot (t + \phi)) + \alpha  + \beta * t +  K * state)}{%
-mu = exp(A * sin( frequency * omega * (t + phi)) + alpha  + beta * t +  K * state)}
 }
 \usage{
     sim.seasonalNoise(A = 1, alpha = 1, beta = 0, phi = 0,
@@ -35,7 +29,7 @@ mu = exp(A * sin( frequency * omega * (t + phi)) + alpha  + beta * t +  K * stat
 }
 \seealso{\code{\link{sim.pointSource}}
 }
-\author{M. \enc{Höhle}{Hoehle}, A. Riebler, C. Lang}
+\author{M. Höhle, A. Riebler, C. Lang}
 \examples{
 
     season <- sim.seasonalNoise(length = 300)
@@ -47,5 +41,5 @@ mu = exp(A * sin( frequency * omega * (t + phi)) + alpha  + beta * t +  K * stat
 
 }
 
-\keyword{datagen}
+\keyword{}
 

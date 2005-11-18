@@ -2,20 +2,20 @@
 \alias{xtable.algoQV}
 \title{Xtable quality value object}
 \description{Xtable a single qualitity value object in a nicely formatted way}
-\usage{
-  \method{xtable}{algoQV}(x,caption = NULL, label = NULL, 
-             align = NULL, digits = NULL, display = NULL, ...)
-}
 \arguments{
 \item{x}{Quality Values object generated with \code{quality}}
         \item{caption}{See \code{\link[xtable]{xtable}}}
         \item{label}{See \code{\link[xtable]{xtable}}}
         \item{align}{See \code{\link[xtable]{xtable}}}
+        \item{vsep}{See \code{\link[xtable]{xtable}}}
         \item{digits}{See \code{\link[xtable]{xtable}}}
         \item{display}{See \code{\link[xtable]{xtable}}}
         \item{...}{Further arguments (see \code{\link[xtable]{xtable})}}
 }
-\keyword{print}
+\usage{
+xtable.algoQV(x,caption = NULL, label = NULL, align = NULL, vsep = NULL, digits = NULL, display = NULL, ...)
+}
+\keyword{}
 \seealso{ \code{\link[xtable]{xtable}}}
 \examples{
     # Create a test object
@@ -27,7 +27,9 @@
     survResObj <- algo.rki1(disProgObj, control = list(range = 50:200))
 
     # Compute the quality values in a nice formatted way
+    library(xtable)
     xtable(algo.quality(survResObj))
+
 }
 
 

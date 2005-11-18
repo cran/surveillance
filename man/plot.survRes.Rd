@@ -1,85 +1,44 @@
 \name{plot.survRes}
 \alias{plot.survRes}
-\alias{plot.survRes.one}
-\encoding{latin1}
-
-\title{Plot a survRes object}
-\description{Plotting of a (multivariate) \code{survRes} object. The function \code{plot.survRes.one} is used as a helper function to plot a univariate time series.
+\title{Plot Generation}
+\description{Plotting of a survRes object.
 }
 \usage{
-  \method{plot}{survRes}(x, method=x$control$name, disease=x$control$data, 
-  xaxis.years=TRUE,startyear = 2001, firstweek = 1, same.scale=TRUE,\dots)
-  \method{plot}{survRes.one}(x, method=x$control$name, disease=x$control$data,
-   domany=FALSE,ylim=NULL,xaxis.years=TRUE,startyear = 2001, firstweek = 1, 
-   xlab="time", ylab="No. infected", main=NULL, type="hhs",
-   lty=c(1,1,2),col=c(1,1,4), 
-   outbreak.symbol = list(pch=3,col=3),alarm.symbol=list(pch=24,col=2),
-   legend.opts=list(x="top",
-   legend=c("Infected", "Upperbound", "Alarm", "Outbreak"),
-   lty=NULL,col=NULL,pch=NULL), ...)
+    plot.survRes(x, method="", disease="",
+                        startyear = 2001, firstweek = 1, legend=TRUE, ...)
 }
 \arguments{
-        \item{x}{object of class \code{survRes}}
-        \item{method}{surveillance method to be used in title}
-        \item{disease}{name of disease in title}
-        \item{xaxis.years}{Boolean indicating whether to show a year based x-axis for weekly data} 
-        \item{domany}{Boolean telling the function whether it is called for a multivariate (\code{TRUE}) or univariate (\code{FALSE}) \code{survRes} object. In case of \code{TRUE} no titles are drawn.}
-        \item{ylim}{range of y axis}
-        \item{startyear}{year to begin the axis labeling (the year where
+        \item{x}{Object of class \code{survRes}}
+        \item{method}{Surveillance method to be used in title}
+        \item{disease}{Name of disease in title}
+        \item{startyear}{Year to begin the axis labeling (the year where
                 the oldest data come from)}
-        \item{firstweek}{number of the first week of January in the first year (just for axis labeling reasons)}
-        \item{xlab}{label of the x-axis}
-        \item{ylab}{label of the y-axis}
-        \item{main}{the title of the graphics is generated from the \code{method} and \code{disease} arguments if not specified otherwise}
-        \item{same.scale}{plot all time series with the same \code{ylim}? Defaults to \code{true}}.
-        \item{type}{line type of the observed counts (first two elements) and the upper bound (third element)}
-        \item{lty}{vector of size 3 speciying the line type of the observed counts (left, right) and the upperbound line}
-        \item{col}{vector with three elements: color of left bar and color of top bar, color of right bar, col of the upperbound line.}
-        \item{outbreak.symbol}{list with entries \code{pch} and \code{col} specifying the plot symbol}
-        \item{alarm.symbol}{list with entries \code{pch} and \code{col} specifying the plot symbol}
-        \item{legend.opts}{a list containing the entries to be sent to the \code{\link{legend}} function. If no legend is requested use \code{legend.opts=NULL}. Otherwise, the following arguments are default
-            \describe{
-            \item{\code{x}}{\code{top}}
-            \item{\code{legend}}{The names infected and outbreak.}
-            \item{\code{lty}}{If \code{NULL} the \code{lty} argument will be used}
-            \item{\code{pch}}{If \code{NULL} the \code{pch} argument is used}
-            \item{\code{col}}{If \code{NULL} the \code{col} argument is
-                used}  
-            }
-            
-            Any further arguments to the \code{legend} function are
-            just provided as additional elements of this list,
-            e.g. \code{horiz=TRUE}.  
-          }
-        \item{...}{further arguments for the function \code{matplot}. If e.g. \code{xlab} or \code{main} are provided they overwrite the default values.}
+        \item{firstweek}{Number of the first week of January in the first year (just for axis labeling reasons)}
+        \item{legend}{Boolean indicating whether to add a legend}
+        \item{...}{further arguments for the function \code{matplot}}
 }
 \value{
-  none. A plot showing the number of infected, the threshold for recognizing an
-  outbreak, the alarm status and the outbreak status is generated.
+        \item{a plot}{showing the number of infected, the threshold for recognizing an
+                outbreak, the computed alarm status and the defined alarm status.
+        }
 }
-\details{
-  The \code{plot.survRes.one} is intended for internal use. At the moment none of the surveillance methods support multivariate \code{survRes} objects. New versions of the packages currently under development will handle this.
-}
-\author{M. \enc{Höhle}{Hoehle}}
+\author{M. Höhle, A. Riebler, C. Lang}
 \examples{
-data(ha)
-ctrl <- list(range = 209:290, b = 2, w = 6, alpha = 0.005)
-plot(algo.bayes(aggregate(ha), control = ctrl))
+
+    # Plotting of simulated data
+    disProgObj <- sim.pointSource(p = 0.99, r = 0.5, length = 400,
+                                    A = 1, alpha = 1, beta = 0, phi = 0,
+                                    frequency = 1, state = NULL, K = 5)
+    # evaluate the timepoints defined by range using RKI 1
+    control <- list(list(funcName = "rki1", range = 200:400))
+    survResults <- algo.call(disProgObj, control = control)
+    # plot the result
+    plot(survResults[[1]], "RKI 1", "Simulation")
+    plot(survResults[[1]], "RKI 1", "Simulation",
+                                firstweek = 13, startyear = 2002)
+    plot(survResults[[1]], "RKI 1", "Simulation", firstweek = 14)
 }
 
-\keyword{hplot}
+\keyword{}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-% magic.dim

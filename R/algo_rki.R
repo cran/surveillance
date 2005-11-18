@@ -1,8 +1,5 @@
-### R code from vignette source 'Rnw/algo_rki.Rnw'
-### Encoding: ISO8859-1
-
 ###################################################
-### code chunk number 1: algo_rki.Rnw:96-214
+### chunk number 1: 
 ###################################################
 
 
@@ -16,7 +13,6 @@
 algo.rkiLatestTimepoint <- function(disProgObj, timePoint = NULL, control = list(b = 2, w = 4, actY = FALSE)){
 
   observed <- disProgObj$observed
-  freq <- disProgObj$freq
 
   # If there is no value in timePoint, then take the last value in observed
   if(is.null(timePoint)){
@@ -24,11 +20,11 @@ algo.rkiLatestTimepoint <- function(disProgObj, timePoint = NULL, control = list
   }
 
   # check if the vector observed includes all necessary data.
-  if((timePoint-(control$b*freq)-control$w) < 1){
+  if((timePoint-(control$b*52)-control$w) < 1){
         stop("The vector of observed is too short!")
   }
 
-  # Extract the reference values from the historic time series
+  # construct the reference values
   basevec <- c()
   # if actY == TRUE use also the values of the year of timepoint
   if(control$actY){
@@ -37,7 +33,7 @@ algo.rkiLatestTimepoint <- function(disProgObj, timePoint = NULL, control = list
   # check if you need more referencevalues of the past
   if(control$b >= 1){
     for(i in 1:control$b){
-        basevec <- c(basevec, observed[(timePoint-(i*freq)-control$w):(timePoint-(i*freq)+control$w)])
+        basevec <- c(basevec, observed[(timePoint-(i*52)-control$w):(timePoint-(i*52)+control$w)])
     }
   }
 
@@ -52,9 +48,6 @@ algo.rkiLatestTimepoint <- function(disProgObj, timePoint = NULL, control = list
   }
   else{ # use the poisson distribution.
     # take the upper limit of the 95% CI from the table CIdata.txt.
-    #data("CIdata", envir=environment())   # only local assignment -> SM: however, should not use data() here
-    #CIdata <- read.table(system.file("data", "CIdata.txt", package="surveillance"), header=TRUE)
-    #SM: still better: use R/sysdata.rda (internal datasets being lazy-loaded into the namespace environment)
     # for the table-lookup mu must be rounded down.
     mu <- floor(mu)
     # we need the third column in the row mu + 1
@@ -71,6 +64,9 @@ algo.rkiLatestTimepoint <- function(disProgObj, timePoint = NULL, control = list
 # 'algo.rki' calls 'algo.bayesLatestTimepoint' for data points given by range.
 
 algo.rki <- function(disProgObj, control = list(range = range, b = 2, w = 4, actY = FALSE)){
+  # Load CIdata for algo.rkiLatestTimePoint, if it isn't loaded from .First.Lib() (zzz.Rnw)
+  data(CIdata)
+
   # Set the default values if not yet set
   if(is.null(control$b)){
     # value from rki 3

@@ -13,7 +13,6 @@
 algo.bayesLatestTimepoint <- function(disProgObj, timePoint = NULL, control = list(b = 0, w = 6, actY = TRUE, alpha=0.05)){
 
   observed <- disProgObj$observed
-  freq <- disProgObj$freq
 
   # If there is no value in timePoint, then take the last value in observed
   if(is.null(timePoint)){
@@ -23,7 +22,7 @@ algo.bayesLatestTimepoint <- function(disProgObj, timePoint = NULL, control = li
   #If no level specified.
   
   # check if the vector observed includes all necessary data.
-  if((timePoint-(control$b*freq)-control$w) < 1){
+  if((timePoint-(control$b*52)-control$w) < 1){
         stop("The vector of observed is too short!")
   }
 
@@ -36,15 +35,13 @@ algo.bayesLatestTimepoint <- function(disProgObj, timePoint = NULL, control = li
   # check if you need more referencevalues of the past
   if(control$b >= 1){
     for(i in 1:control$b){
-        basevec <- c(basevec, observed[(timePoint-(i*freq)-control$w):(timePoint-(i*freq)+control$w)])
+        basevec <- c(basevec, observed[(timePoint-(i*52)-control$w):(timePoint-(i*52)+control$w)])
     }
   }
 
   # get the parameter for the negative binomial distribution
-  # Modification on 13 July 2009 after comment by C. W. Ryan on NAs in the
-  # time series
-  sumBasevec <- sum(basevec, na.rm=TRUE)
-  lengthBasevec <- sum(!is.na(basevec))
+  sumBasevec <- sum(basevec)
+  lengthBasevec <- length(basevec)
 
   # compute the upper limit of the 95% CI.
   upCi <- qnbinom(1-control$alpha, sumBasevec + 1/2, (lengthBasevec)/(lengthBasevec + 1))
@@ -70,10 +67,6 @@ algo.bayes <- function(disProgObj, control = list(range = range, b = 0, w = 6, a
   if(is.null(control$w)){
     # value from bayes 1
     control$w <- 6
-  }
-  if(is.null(control$alpha)){
-    # value from bayes 1
-    control$alpha <- 0.05
   }
   if(is.null(control$actY)){
     # value from bayes 1

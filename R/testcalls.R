@@ -50,7 +50,7 @@ makePlot <- function(outputpath, data = "k1", method = "rki1", name, disease, ra
         disProgObj <- readData(data,week53to52=TRUE)
         disProgObj <- enlargeData(disProgObj)
         res <- algo.call(disProgObj, control = list(list(funcName = method, range = range)))
-        pdf(paste(outputpath, data, "_", method, "_plot.pdf", sep=""), width = 10)
+        pdf(paste(outputpath, data, "_", method, "_plot.pdf", sep=""), horizontal = TRUE, width = 10)
                 plot(res[[1]],name,disease)
         dev.off()
 }

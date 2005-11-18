@@ -1,7 +1,5 @@
 \name{compMatrix.writeTable}
 \alias{compMatrix.writeTable}
-\encoding{latin1}
-
 \title{Latex Table Generation}
 \description{generates a latex table
 }
@@ -17,7 +15,7 @@
         Latex table of the entered matrix.
         }
 }
-\author{M. \enc{Höhle}{Hoehle}, A. Riebler, C. Lang}
+\author{M. Höhle, A. Riebler, C. Lang}
 \examples{
     ### First creates some tables ###
 
@@ -55,5 +53,5 @@
     compMatrix.writeTable(sumCompMatrix)
 }
 
-\keyword{print}
+\keyword{}
 

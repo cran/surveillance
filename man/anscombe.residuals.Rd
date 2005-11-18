@@ -1,7 +1,5 @@
 \name{anscombe.residuals}
 \alias{anscombe.residuals}
-\encoding{latin1}
-
 \title{Compute Anscombe residuals}
 \description{
   The residuals of \code{m} are transformed to form Anscombe residuals.
@@ -16,7 +14,7 @@ anscombe.residuals(m, phi)
 }
 \value{Standardized Anscombe residuals of \code{m}}
 \references{McCullagh & Nelder, Generalized Linear Models, 1989}
-\keyword{regression}
+\keyword{}
 
 
 

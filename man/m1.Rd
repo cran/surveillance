@@ -13,8 +13,6 @@
 \alias{s1}
 \alias{s2}
 \alias{s3}
-\encoding{latin1}
-
 \title{RKI SurvStat Data}
 \description{14 datasets for different diseases beginning in
 	2001 to the 3rd Quarter of 2004 including their defined outbreaks.
@@ -40,8 +38,9 @@
 \usage{data(m1)
 }
 \format{
-  \code{disProg} objects each containing 209 observations (weekly on 52 weeks)
+  A data frame with 212 observations on the following 3 variables.
   \describe{
+    \item{week}{weeknumber}
     \item{observed}{Number of counts in the corresponding week}
     \item{state}{Boolean whether there was an outbreak.}
   }
@@ -53,10 +52,12 @@
         }
 \seealso{\code{\link{readData}}}
 \examples{
-    data(k1)
-    survResObj <- algo.rki1(k1, control=list(range=27:192))
-    plot(survResObj, "RKI 1", "k1", firstweek=27, startyear=2002)
+    require(surveillance)
+    disProgObj <- readData("k1")
+        disProgObj <- correct53to52(disProgObj)
+        survResObj <- algo.rki1(disProgObj, control=list(range=27:192))
+        plot(survResObj, "RKI 1", "k1", firstweek=27, startyear=2002)
 }
-\keyword{datasets}
+\keyword{}
 
 

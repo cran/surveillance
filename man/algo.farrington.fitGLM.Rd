@@ -1,9 +1,5 @@
 \name{algo.farrington.fitGLM}
 \alias{algo.farrington.fitGLM}
-\alias{algo.farrington.fitGLM.fast}
-\alias{algo.farrington.fitGLM.populationOffset}
-\encoding{latin1}
-
 \title{Fit the Poisson GLM of the Farrington procedure for a single
   time point}
 \description{
@@ -18,49 +14,20 @@
 }
 \usage{
   algo.farrington.fitGLM(response, wtime, timeTrend = TRUE, 
-                         reweight = TRUE, ...)
-  algo.farrington.fitGLM.fast(response, wtime, timeTrend = TRUE, 
-                         reweight = TRUE, ...)
-  algo.farrington.fitGLM.populationOffset(response, wtime, population,
-                         timeTrend=TRUE,reweight=TRUE, ...) 
+                         reweight = TRUE)
 }
 \arguments{
-\item{response}{The vector of observed base counts}
-\item{wtime}{Vector of week numbers corresponding to \code{response}}
-\item{timeTrend}{Boolean whether to fit the \eqn{\beta t}{beta*t} or not}
-\item{reweight}{Fit twice -- 2nd time with Anscombe residuals}
-\item{population}{Population size. Possibly used as offset, i.e. in
-    \code{algo.farrington.fitGLM.populationOffset} the value 
-    \code{log(population)} is used as offset in the linear
-    predictor of the GLM:   
-    \deqn{\log \mu_t = \log(\texttt{population}) + \alpha + \beta w_t}{
-      log mu_t = log(population) alpha + beta * w}
-    This provides a way to adjust the Farrington procedure to the case
-    of greatly varying populations. Note: This is an experimental implementation with methodology not covered by the original paper.
-  }
-\item{\dots}{Used to catch additional arguments, currently not used.}
+  \item{response}{The vector of observed base counts}
+  \item{wtime}{Vector of week numbers corresponding to \code{response}}
+  \item{timeTrend}{Boolean whether to fit the \eqn{\beta t}{beta*t} or not}
+  \item{reweight}{Fit twice -- 2nd time with Anscombe residuals}
 }
-%
-\details{Compute weights from an initial fit and rescale using
-  Anscombe based residuals as described in the
-  \code{\link{anscombe.residuals}} function.
-
-  Note that \code{algo.farrington.fitGLM} uses the \code{glm} routine
-  for fitting. A faster alternative is provided by
-  \code{algo.farrington.fitGLM.fast} which uses the \code{glm.fit}
-  function directly (thanks to Mikko Virtanen). This saves
-  computational overhead and increases speed for 500 monitored time
-  points by a factor of approximately two. However, some of the
-  routine \code{glm} functions might not work on the output of this
-  function. Which function is used for \code{algo.farrington} can be
-  controlled by the \code{control$fitFun} argument.
+\details{Compute weights from an initial fit and rescale
+  using Anscombe based residuals as described in the \code{\link{anscombe.residuals}} function.}
 }
-%
 \value{An object of class GLM with additional fields \code{wtime},
-  \code{response} and \code{phi}. If the \code{glm} returns without
-  convergence \code{NULL} is returned.}
-%
-\seealso{\code{\link{anscombe.residuals}},\code{\link{algo.farrington}}}
-\keyword{regression}
+  \code{response} and \code{phi}}
+\seealso{\code{\link{anscombe.residuals}}}
+\keyword{}
 
 
