@@ -1,0 +1,15 @@
+Package: surveillance
+Title: Outbreak detection algorithms for surveillance data
+Version: 0.9
+Author: Höhle, Lang, Riebler
+Description: A framework for the development and the evaluation
+	of outbreak detection algorithms in in routine collected public health surveillance
+	data. Currently the package contains an implementation of the procedures 
+	described in Stroup et. al (1989), Farrington et. al (1996),
+        a Bayesian approach and the method used at the Robert Koch Institute,
+	Germany. The package contains several real-world datasets and the ability to 
+	simulate outbreak data.
+Maintainer: Michael Höhle <hoehle@stat.uni-muenchen.de> 
+License: GPL version 2 (http://www.gnu.org/licenses/gpl.html) 
+URL: http://www.stat.uni-muenchen.de/~hoehle/software/surveillance
+Packaged: Fri Nov 18 16:20:47 2005; hoehle
