@@ -11,31 +11,32 @@
 #       abb : abbreviation of the disease
 #       week53to52: Boolean indicating whether to convert RKI 53 Weeks System to 52 weeks a year
 readData <- function(abb,week53to52=TRUE,sysPath=TRUE){
-
+  #Read depending on which path is requested
   if (sysPath) {
-    dataPath <- paste( searchpaths()[search() == "package:surveillance"], "/data/", sep="")
+    #Prepend the systempath/data to the filename
+    file <- file.path(.path.package('surveillance'),'data',paste(abb,".txt",sep=""))
   } else {
-    dataPath <- ""
+    file <- file.path(paste(abb,".txt",sep=""))
   }
 
-        # read the data from four years and write it to a table
-        file <- paste( dataPath, abb , ".txt" , sep="" )
-        fileTable <- read.table( file=file, header=TRUE )
-        observed <- fileTable$observed
-        state <- fileTable$state
-
-        result = list(observed=observed, state=state)
-
-        class(result) = "disProg" # for disease progress
-
-        #Convert to 52 week system...
-        if (week53to52) {
-          result <- correct53to52(result)
-        }
-
-          
-
-        return(result)
+  # read the data from four years and write it to a table
+  #file <- paste( dataPath, abb , ".txt" , sep="" )
+  fileTable <- read.table( file=file, header=TRUE )
+  observed <- fileTable$observed
+  state <- fileTable$state
+  
+  result = list(observed=observed, state=state)
+  
+  class(result) = "disProg" # for disease progress
+  
+  #Convert to 52 week system...
+  if (week53to52) {
+    result <- correct53to52(result)
+  }
+  
+  
+  
+  return(result)
 }
 
 
