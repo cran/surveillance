@@ -68,6 +68,10 @@ algo.bayes <- function(disProgObj, control = list(range = range, b = 0, w = 6, a
     # value from bayes 1
     control$w <- 6
   }
+  if(is.null(control$alpha)){
+    # value from bayes 1
+    control$alpha <- 0.05
+  }
   if(is.null(control$actY)){
     # value from bayes 1
     control$actY <- TRUE
