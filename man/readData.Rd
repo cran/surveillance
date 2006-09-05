@@ -16,6 +16,7 @@
         \item{disProg}{a object \code{disProg} (disease progress) including a list of the observed and the state chain.}
 }
 \details{
+  This function is only kept for backwards compability. As of 0.9-2 all data should be read with \code{data}.
 }
 \seealso{\code{\link{m1}}, \code{\link{m2}}, \code{\link{m3}}, \code{\link{m4}}, \code{\link{m5}},
         \code{\link{q1_nrwh}}, \code{\link{q2}}, \code{\link{s1}}, \code{\link{s2}}, \code{\link{s3}},

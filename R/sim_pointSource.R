@@ -32,7 +32,7 @@ sim.pointSource <- function(p = 0.99, r = 0.01, length = 400, A = 1, alpha = 1, 
   if(is.null(state)){
         # create a markov-chain
     state <- matrix(data = 0, ncol = 1, nrow = length)
-    state[1] <- rbinom(1,1,0.5) # begin with a random value
+    state[1] <- 0 #hoehle - fix: rbinom(1,1,0.5) # always begin with a zero
 
         # create the transition matrix
     transitionMatrix <- matrix(data = c(p, (1-r),(1-p), r), nrow = 2, ncol = 2)

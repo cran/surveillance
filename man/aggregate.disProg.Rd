@@ -1,0 +1,26 @@
+\name{aggregate.disProg}
+\alias{aggregate.disProg}
+\title{Aggregate the observed counts}
+\description{
+       Aggregates the observed counts for a multivariate
+       \code{disProgObj} over the units. Future versions 
+       of \code{surveillance} will also allow for time aggregations etc. 
+}
+\usage{
+  aggregate.disProg(x,...)
+}
+\arguments{
+        \item{x}{Object of class \code{disProg}}
+        \item{...}{not used at the moment}
+}
+\value{\item{x}{univariate \code{disProg} object with aggregated 
+     counts and respective states for each time point.}
+}
+\keyword{}
+\examples{
+data(ha)
+plot(aggregate(ha))
+}
+
+
+% plot.disProg
