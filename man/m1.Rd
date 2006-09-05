@@ -38,9 +38,8 @@
 \usage{data(m1)
 }
 \format{
-  A data frame with 212 observations on the following 3 variables.
+  \code{disProg} objects each containing 209 observations (weekly on 52 weeks)
   \describe{
-    \item{week}{weeknumber}
     \item{observed}{Number of counts in the corresponding week}
     \item{state}{Boolean whether there was an outbreak.}
   }
@@ -52,11 +51,9 @@
         }
 \seealso{\code{\link{readData}}}
 \examples{
-    require(surveillance)
-    disProgObj <- readData("k1")
-        disProgObj <- correct53to52(disProgObj)
-        survResObj <- algo.rki1(disProgObj, control=list(range=27:192))
-        plot(survResObj, "RKI 1", "k1", firstweek=27, startyear=2002)
+    data(k1)
+    survResObj <- algo.rki1(k1, control=list(range=27:192))
+    plot(survResObj, "RKI 1", "k1", firstweek=27, startyear=2002)
 }
 \keyword{}
 

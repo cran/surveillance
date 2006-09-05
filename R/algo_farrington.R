@@ -220,10 +220,16 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
 
     #Compute exceedance score unless less than 5 reports during last 4 weeks.
     enoughCases <- (sum(observed[(k-4):(k-1)])>=5)
-    #No buggy historical material (like SK Frankfurt am Main)
-    okHistory <- (pred$fit>1)
-    X <- ifelse(enoughCases && okHistory,
-                (observed[k] - pred$fit) / (max(lu) - pred$fit),0)
+
+    #18 May 2006: Bug/unexpected feature deteced by Y. Le Strat. 
+    #the okHistory variable meant to protect against zero count problems,
+    #but instead it resulted in exceedance score == 0 for low counts. 
+    #Now removed to be concordant with the Farrington 1996 paper.
+    #REMOVEDokHistory <- (pred$fit>1)
+    #X <- ifelse(enoughCases && okHistory,
+    #            (observed[k] - pred$fit) / (max(lu) - pred$fit),0)
+    X <- ifelse(enoughCases,(observed[k] - pred$fit) / (max(lu) - pred$fit),0)
+
     #Do we have an alarm -- i.e. is observation beyond CI??
     trend[k-min(control$range)+1] <- doTrend
     alarm[k-min(control$range)+1] <- (X>1)
@@ -235,7 +241,7 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
   control$data <- paste(deparse(substitute(disProgObj)))
 
   # return alarm and upperbound vectors 
-  result <- list(alarm = alarm, upperbound = upperbound, ,trend=trend, 
+  result <- list(alarm = alarm, upperbound = upperbound, trend=trend, 
                  disProgObj=disProgObj, control=control) 
   class(result) <- "survRes" 
 
