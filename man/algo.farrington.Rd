@@ -22,6 +22,7 @@
     \item{verbose}{show extra debugging information}
     \item{plot}{shows the final GLM model fit graphically (use History|Recording to see all pictures)}
     \item{alpha}{An approximate (two-sided) \eqn{(1-\alpha)\%}\ confidence interval is calculated}
+    \item{limit54}{to avoid alarms in scenarios going from zero to 1-2 cases the algorithm uses the following criterion (see Section 3.8 of the Farrington paper): no alarm is sounded if fewer than \eqn{cases=5} reports were received in the past \eqn{period=4} weeks. \code{o54=c(cases,perior)} is a vector allowing the user to change these numbers}
     }}
 }
 \details{
@@ -45,8 +46,7 @@ An object of class \code{SurvRes}.
 
 \examples{
 #Read Salmonella Agona data
-library(xtable)
-salmonella.agona <- readData("salmonella.agona",week53to52=FALSE)
+data("salmonella.agona")
 
 #Do surveillance for the last 100 weeks.
 n <- length(salmonella.agona$observed)

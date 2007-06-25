@@ -9,7 +9,7 @@ algo.hhh <- function(disProgObj, control=list(linear=FALSE, nseason=0, period=52
   if(is.null(control$nseason))
     control$nseason <- 0
   if(is.null(control$period))
-    control$period <- 52
+    control$period <- disProgObj$freq #52
   if(is.null(control$neighbours))
     control$neighbours <- FALSE
   if(is.null(control$negbin))
@@ -53,7 +53,7 @@ algo.hhh <- function(disProgObj, control=list(linear=FALSE, nseason=0, period=52
   # maximize loglikelihood
   mycontrol <- list(fnscale=-1, type=3, maxit=1000)
   suppressWarnings(myoptim <- optim(theta, loglikelihood, control=mycontrol, method="BFGS", hessian=TRUE, designRes=designRes))
-  
+
   if(myoptim$convergence==0){
     convergence <- TRUE
   } else {
@@ -67,7 +67,10 @@ algo.hhh <- function(disProgObj, control=list(linear=FALSE, nseason=0, period=52
   loglikelihood <- myoptim$value
   thetahat <- myoptim$par
   fisher <- -myoptim$hessian
-  
+
+  #Added by M.Paul.
+  fitted <- meanResponse(thetahat,designRes)     
+
   #cat("loglik\n")
   #print(loglikelihood)
   #cat("theta\n")
@@ -157,7 +160,13 @@ algo.hhh <- function(disProgObj, control=list(linear=FALSE, nseason=0, period=52
   if(convergence & verbose)
     cat("Algorithm claims to have converged \n")
   
-  result <- list(thetahat=thetahat, se=se, cov=cov, loglikelihood=loglikelihood, convergence=convergence)
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #result <- list(thetahat=thetahat, se=se, cov=cov, loglikelihood=loglikelihood, convergence=convergence)
+  result <- list(coefficients=thetahat, se=se, cov=cov,
+                 loglikelihood=loglikelihood, convergence=convergence,
+                 fitted.values=fitted,control=control,disProgObj=disProgObj)
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
   class(result) <- "ah"
   return(result)
 }
@@ -167,7 +176,10 @@ print.ah <- function(x,digits = max(3, getOption("digits") - 3), ...){
     cat('Results are not reliable! Try different starting values. \n')
   else {
     cat('\nEstimated parameters and standard errors: \n\n')
-    print(rbind("Estimates"=x$thetahat, "Std.Error"=x$se),digits=digits)
+#~~~~~~~~~~~~~~~~~~~~~~~~
+#    print(rbind("Estimates"=x$thetahat, "Std.Error"=x$se),digits=digits)
+    print(rbind("Estimates"=coefficients(x), "Std.Error"=x$se),digits=digits)
+#~~~~~~~~~~~~~~~~~~~~~~~
     cat('\nloglikelihood:',round(x$loglik,digits=digits-2),'\n\n')
   }
       
@@ -177,6 +189,52 @@ print.ah <- function(x,digits = max(3, getOption("digits") - 3), ...){
 ###################################################
 ### chunk number 2: 
 ###################################################
+#~~~~~~~~~~~~~~~~~~~~
+#################################
+# obtain predictions from the fitted algo.hhh model
+#
+# params:
+#  object - a fitted object of class "ah" 
+#  newdata - optionally, a disProgObject with which to predict; 
+#            if omitted, the fitted mean is returned. 
+#  type - the type of prediction required. The default is on the scale of the response 
+#         variable (endemic and epidemic part) 
+#         the alternative "endemic" returns only the endemic part (i.e. n_it * \nu_it)  
+################################
+predict.ah<-function(object,newdata=NULL, type=c("response","endemic"),...) {
+  type <- match.arg(type,c("response","endemic"))
+  control <- object$control
+
+  if(is.null(newdata))
+    newdata <- object$disProgObj
+  if(!inherits(newdata, "disProg"))
+    stop("data must be an object of class disProg\n")
+
+  coefs <- coefficients(object)
+  if(type=="endemic"){
+    control$lambda <- FALSE
+    coefs["lambda"] <- NA
+    control$neighbours <- FALSE
+    coefs["phi"] <- NA
+  }
+
+  design <- make.design(newdata,control=control)
+
+  # in meanResponse the params lambda, phi are "exp()'ed"
+  # log() them  to obtain the correct predictions
+  coefs["lambda"] <- log(coefs["lambda"])
+  coefs["phi"] <- log(coefs["phi"])
+  predicted <- meanResponse(coefs[!is.na(coefs)],design)
+
+  return(predicted)
+}
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+###################################################
+### chunk number 3: 
+###################################################
 algo.hhh.grid <- function(disProgObj, control=list(linear=FALSE, nseason=0, period=52, neighbours=FALSE, negbin=FALSE, lambda=TRUE), thetastartMatrix, maxTime=1800, verbose=FALSE){
 
   #set default values (if not provided in control)
@@ -185,7 +243,7 @@ algo.hhh.grid <- function(disProgObj, control=list(linear=FALSE, nseason=0, peri
   if(is.null(control$nseason))
     control$nseason <- 0
   if(is.null(control$period))
-    control$period <- 52
+    control$period <- disProgObj$freq #52
   if(is.null(control$neighbours))
     control$neighbours <- FALSE
   if(is.null(control$negbin))
@@ -257,7 +315,7 @@ algo.hhh.grid <- function(disProgObj, control=list(linear=FALSE, nseason=0, peri
   
   #algo.hhh did not converge or produced useless results for all starting values, 
   #i.e. there is no result
-  if(is.null(bestLoglik$theta)) {
+  if(is.null(coef(bestLoglik))) {
     #convergence <- FALSE
     #cat('Algorithms did not converge, please try different starting values! \n')
     bestLoglik <- list(loglikelihood=NULL,convergence=FALSE)
@@ -288,7 +346,7 @@ print.ahg <- function(x, digits = max(3, getOption("digits") - 3),...){
 
 
 ###################################################
-### chunk number 3: 
+### chunk number 4: 
 ###################################################
 create.grid <- function(params=list(lambda=c(0.1,0.9,5), phi=c(0.1,0.9,5), psi=c(0.3,12,10), beta=c(-0.5,0.5,3), gammaDelta=c(-0.5,0.5,3), nseason=1)){
   
@@ -357,7 +415,7 @@ create.grid <- function(params=list(lambda=c(0.1,0.9,5), phi=c(0.1,0.9,5), psi=c
 
 
 ###################################################
-### chunk number 4: 
+### chunk number 5: 
 ###################################################
 loglikelihood <- function(theta, designRes){
   control <- designRes$control
@@ -384,7 +442,7 @@ loglikelihood <- function(theta, designRes){
 
 
 ###################################################
-### chunk number 5: 
+### chunk number 6: 
 ###################################################
 meanResponse <- function(theta, designRes){
 
@@ -460,7 +518,7 @@ meanResponse <- function(theta, designRes){
 
 
 ###################################################
-### chunk number 6: 
+### chunk number 7: 
 ###################################################
 make.design<-function(disProgObj, control=list(linear=FALSE,nseason=0,period=52,neighbours=FALSE,negbin=FALSE,lambda=TRUE)){
 
@@ -470,7 +528,7 @@ make.design<-function(disProgObj, control=list(linear=FALSE,nseason=0,period=52,
   if(is.null(control$nseason))
     control$nseason <- 0
   if(is.null(control$period))
-    control$period <- 52
+    control$period <- disProgObj$freq #52
   if(is.null(control$neighbours))
     control$neighbours <- FALSE
   if(is.null(control$negbin))
@@ -512,7 +570,10 @@ make.design<-function(disProgObj, control=list(linear=FALSE,nseason=0,period=52,
   
   #trend
   t <- c(1:n)
-  t <- t - mean(t)
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #t <- t - mean(t)
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 
   # season design matrix
   season <- NULL

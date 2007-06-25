@@ -1,7 +1,7 @@
 ###################################################
 ### chunk number 1: 
 ###################################################
-create.disProg <- function(week, observed, state, neighbourhood=NULL, populationFrac=NULL){
+create.disProg <- function(week, observed, state, start=c(2001,1), freq=52, neighbourhood=NULL, populationFrac=NULL){
   namesObs <-colnames(observed)
   namesState <- colnames(observed)
   
@@ -47,7 +47,7 @@ create.disProg <- function(week, observed, state, neighbourhood=NULL, population
   dimnames(observed) <- list(NULL,namesObs)
   dimnames(state) <- list(NULL,namesState)
   
-  res <- list("week"=week, "observed"=observed, "state"=state, "neighbourhood"=neighbourhood, "populationFrac"=populationFrac)
+  res <- list("week"=week, "observed"=observed, "state"=state, "start"=start, "freq"=freq,  "neighbourhood"=neighbourhood, "populationFrac"=populationFrac)
   class(res) <- "disProg"
   return(res)
 }
@@ -84,7 +84,7 @@ aggregate.disProg <- function(x,...){
   state[state > 1] <- 1
   
   #create univariate disProg object
-  x <- create.disProg(week=x$week, observed=observed, state=state)
+  x <- create.disProg(week=x$week, observed=observed, state=state, freq=x$freq)
   return(x)
 }
 
@@ -93,85 +93,84 @@ aggregate.disProg <- function(x,...){
 ### chunk number 4: 
 ###################################################
 
-plot.disProg.one <- function(x, title = "", xaxis.years=TRUE, startyear = 2001, firstweek = 1, ylim=NULL, legend=TRUE, xlegpos = 1/4, ylegpos = 1,...){
+plot.disProg.one <- function(x, title = "", xaxis.years=TRUE, startyear = 2001, firstweek = 1, ylim=NULL, xlab="time", ylab="No. infected",type="hh",lty=c(1,1),col=c(1,1), outbreak.symbol = list(pch=3, col=3),legend.opts=list(x="top", legend=c("Infected", "Outbreak"),lty=NULL,pch=NULL,col=NULL), ...) {
 
-        observed <- x$observed
-        state    <- x$state
 
-        # width of the column
-        tab <- 0.5
+  observed <- x$observed
+  state    <- x$state
 
-        # left/right help for constructing the columns
-        observedxl <- (1:length(observed))-tab
-        observedxr <- (1:length(observed))+tab
+  # width of the column
+  tab <- 0.5
+
+  # left/right help for constructing the columns
+  observedxl <- (1:length(observed))-tab
+  observedxr <- (1:length(observed))+tab
         
-        # control where the highest value is
-        max <- max(observed)
+  # control where the highest value is
+  max <- max(observed)
         
-        #if ylim is not specified
-        if(is.null(ylim)){
-          ylim <- c(-1/20*max, max)
-        }
+  #if ylim is not specified
+  if(is.null(ylim)){
+    ylim <- c(-1/20*max, max)
+  }
 
-        #plot observed counts
-        matplot(cbind(observedxl, observedxr), cbind(observed, observed),
-                t="hh", lty=c(1,1), col=c(1,1), ylim=ylim,
-                xlab = "time", ylab = "No. of infected", axes = !(xaxis.years), ...)
-                
-        for(i in 1:length(observed)){
-                matlines( c(i-tab, i+tab), c(observed[i],observed[i]) )
-                if(state[i] == 1)
-                        matpoints( i, ylim[1], pch=24, col=3)
-        }
+  #Plot the results using one Large plot call
+  matplot(x=cbind(observedxl, observedxr),y=cbind(observed, observed),xlab=xlab,ylab=ylab,
+          type=type,lty=lty, col=col, ylim=ylim,axes = !(xaxis.years),...)
+  
+  #Show the outbreaks
+  if (!is.null(outbreak.symbol)) {
+    for(i in 1:length(observed)){
+      matlines( c(i-tab, i+tab), c(observed[i],observed[i]) )
+      if(state[i] == 1)
+        matpoints( i, ylim[1], pch=outbreak.symbol$pch, col=outbreak.symbol$col)
+    }
+  }
         
-        title(title)
-        cex <- par()$cex.axis
+  title(title)
+  cex <- par()$cex.axis
         
-        #Label of x-axis 
-        if(xaxis.years){        
-          # get the number of quarters lying in range for getting the year and quarter order
-          myat.week <- seq(ceiling((52-firstweek+1)/13) * 13 + 1, length(observed)+(floor((52-firstweek + 1)/13) * 13 +1), by=13)
-          # get the right year order
-          year <- (myat.week - 52) %/% 52 + startyear
-          # function to define the quarter order
-          quarterFunc <- function(i) { switch(i+1,"I","II","III","IV")}
-          # get the right number and order of quarter labels
-          quarter <- sapply( (myat.week-1) %/% 13 %% 4, quarterFunc)
-          # get the positions for the axis labels
-          myat.week <- myat.week - (52 - firstweek + 1)
+  #Label of x-axis 
+  if(xaxis.years){        
+    # get the number of quarters lying in range for getting the year and quarter order
+    myat.week <- seq(ceiling((52-firstweek+1)/13) * 13 + 1, length(observed)+(floor((52-firstweek + 1)/13) * 13 +1), by=13)
+    # get the right year order
+    year <- (myat.week - 52) %/% 52 + startyear
+    # function to define the quarter order
+    quarterFunc <- function(i) { switch(i+1,"I","II","III","IV")}
+    # get the right number and order of quarter labels
+    quarter <- sapply( (myat.week-1) %/% 13 %% 4, quarterFunc)
+    # get the positions for the axis labels
+    myat.week <- myat.week - (52 - firstweek + 1)
 
-          # construct the computed axis labels
-          #cex <- par()$cex.axis
-          if (cex == 1) {
-            mylabels.week <- paste(year,"\n\n",quarter,sep="")
-          } else {
-            mylabels.week <- paste(year,"\n",quarter,sep="")
-          }
+    # construct the computed axis labels
+    if (cex == 1) {
+      mylabels.week <- paste(year,"\n\n",quarter,sep="")
+    } else {
+      mylabels.week <- paste(year,"\n",quarter,sep="")
+    }
         
-          axis( at=myat.week , labels=mylabels.week , side=1, line = 1 )
-          axis( side=2 )
-        }
+    axis( at=myat.week , labels=mylabels.week , side=1, line = 1 )
+    axis( side=2 )
+  }
         
-        #should there be a legend?
-        if(legend){
-          # parameters for the legend placement to the right upper side
-          
+  #should there be a legend? 
+  if(!is.null(legend.opts)) {
+    #Fill empty (mandatory) slots in legend.opts list
+    if (is.null(legend.opts$lty)) legend.opts$lty = c(lty[1],NA)
+    if (is.null(legend.opts$col)) legend.opts$col = c(col[1],outbreak.symbol$col)
+    if (is.null(legend.opts$pch)) legend.opts$pch = c(NA,outbreak.symbol$pch)
+    if (is.null(legend.opts$x))   legend.opts$x = "top"
+    if (is.null(legend.opts$legend)) legend.opts$legend = c("Infected", "Outbreak")
 
-          # check where to place the legend. If the left upper side is free place it there
-          if (max * 2/3 >= max(observed[1:floor(1/4 * length(observed))])){
-            xlegpos <- 0
-          }
-
-          legend(xlegpos*length(observed), ylegpos*max,
-                legend=c("Infected", "Defined Alarm"),
-                lty=c(1,NA), col=c(1,3), pch=c(NA,24),cex=cex)
-        }
-
-        invisible()
+    #Create the legend
+    do.call("legend",legend.opts)
+  }
+  
+  invisible()
 }
 
-plot.disProg <- function(x, title = "", xaxis.years=TRUE, startyear = 2001, firstweek = 1, as.one=TRUE, same.scale=TRUE, legend=TRUE, ...){
-
+plot.disProg <- function(x, title = "", xaxis.years=TRUE, startyear = 2001, firstweek = 1, as.one=TRUE, same.scale=TRUE, ...){
   observed <- x$observed
   state    <- x$state
   
@@ -188,18 +187,26 @@ plot.disProg <- function(x, title = "", xaxis.years=TRUE, startyear = 2001, firs
   
   #multivariate time series
   if(nAreas > 1){
-    #all areas in one plot 
+    #all areas in one plot -- not supported in sts
     if(as.one){
-      par(mfrow=c(1,1))
-                                                         #
       matplot(observed,type="l",lty=1:nAreas,col=1:nAreas,ylim=c(0, 1.1*max),xlab="time",ylab="No. of Infected", axes=!xaxis.years)
-      
-      if(legend)                                                                             
-        legend("topleft",legend=colnames(observed),col=1:nAreas,lty=1:nAreas,ncol=5, bty="n")
-        
+      #If no legend.opts is specified or not set to null
+      if ((is.na(pmatch("legend.opts",names(list(...))))) | 
+          (!is.na(pmatch("legend.opts",names(list(...)))) & (!is.null(list(...)$legend.opts)))) {
+        legend.opts <- list(...)$legend.opts
+        if (is.null(legend.opts$x)) legend.opts$x = "topleft"
+        if (is.null(legend.opts$legend)) legend.opts$legend = colnames(observed)
+        if (is.null(legend.opts$col)) legend.opts$col = 1:nAreas
+        if (is.null(legend.opts$lty)) legend.opts$lty = 1:nAreas
+        if (is.null(legend.opts$ncol)) legend.opts$ncol = 5
+        if (is.null(legend.opts$bty)) legend.opts$bty = "n"
+
+        do.call("legend",legend.opts)
+      }
+
       title(title)
       
-      if(xaxis.years){        
+      if(xaxis.years){  #todo: move this as output of ONE function
           # get the number of quarters lying in range for getting the year and quarter order
           myat.week <- seq(ceiling((52-firstweek+1)/13) * 13 + 1, length(observed)+(floor((52-firstweek + 1)/13) * 13 +1), by=13)
           # get the right year order
@@ -237,14 +244,14 @@ plot.disProg <- function(x, title = "", xaxis.years=TRUE, startyear = 2001, firs
       sapply(k, function(k) {
          plot.disProg.one(create.disProg(x$week, observed[,k], state[,k]), 
                           title = "", startyear = startyear, firstweek = firstweek, 
-                          xaxis.years=xaxis.years, ylim=ylim, legend=FALSE,... )   
+                          xaxis.years=xaxis.years, ylim=ylim, legend.opts=NULL, ... )   
          mtext(colnames(observed)[k],line=-1.3)     
          })
       #reset graphical params
       par(mfrow=c(1,1), mar=c(5, 4, 4, 2)+0.1)
     }
   } else {  #univariate time series
-    plot.disProg.one(x=x, title = title, startyear = startyear, firstweek = firstweek, xaxis.years=xaxis.years, legend=legend, ...)
+    plot.disProg.one(x=x, title = title, startyear = startyear, firstweek = firstweek, xaxis.years=xaxis.years, ...)
   }
   invisible()
 }
@@ -254,103 +261,120 @@ plot.disProg <- function(x, title = "", xaxis.years=TRUE, startyear = 2001, firs
 ### chunk number 5: 
 ###################################################
 
-plot.survRes.one <- function(x, method=x$control$name, disease=x$control$data, domany=FALSE,ylim=NULL,xaxis.years=TRUE,startyear = 2001, firstweek = 1, legend=TRUE, xlegpos =1/4, ylegpos = 1,...){
+plot.survRes.one <- function(x, method=x$control$name, disease=x$control$data, domany=FALSE,ylim=NULL,xaxis.years=TRUE,startyear = 2001, firstweek = 1, xlab="time", ylab="No. infected", main=NULL, type="hhs",lty=c(1,1,2),col=c(1,1,4), outbreak.symbol = list(pch=3, col=3),alarm.symbol=list(pch=24, col=2),legend.opts=list(x="top",legend=c("Infected", "Threshold", "Alarm", "Outbreak"),lty=NULL,col=NULL,pch=NULL), ...) {
 
-        survResObj <- x
-        observed <- survResObj$disProgObj$observed[survResObj$control$range]
-        state    <- survResObj$disProgObj$state[survResObj$control$range]
+  ################## Handle the NULL arguments ########################################################
+  if (is.null(main)) main = paste("Analysis of ", as.character(disease), " using ", as.character(method),sep="") 
+  #No titles are drawn when more than one is plotted.
+  if (domany) main = ""
+
+  survResObj <- x
+  observed <- survResObj$disProgObj$observed[survResObj$control$range]
+  state    <- survResObj$disProgObj$state[survResObj$control$range]
         
-        # width of the column
-        tab <- 0.5
+  #print(list(...))
+  # width of the column
+  tab <- 0.5
 
-        # left/right help for constructing the columns
-        observedxl <- (1:length(observed))-tab
-        observedxr <- (1:length(observed))+tab
-        upperboundx <- (1:length(survResObj$upperbound))-0.5
+  # left/right help for constructing the columns
+  observedxl <- (1:length(observed))-tab 
+  observedxr <- (1:length(observed))+tab
+  upperboundx <- (1:length(survResObj$upperbound)) #-0.5 
+  
+  # control where the highest value is
+  max <- max(max(observed),max(survResObj$upperbound))
+  
+  #if ylim is not specified
+  #if(is.null(ylim)){
+  #  ylim <- c(-1/20*max, max)
+  #}
 
-        # control where the highest value is
-        max <- max(max(observed),max(survResObj$upperbound))
+#~~~~~~~~~~~~~~~~~~~~~~~~~~
+  if (is.null(ylim)) {
+    max <- max(max(observed), max(survResObj$upperbound))
+    ylim <- c(-1/20 * max, max)
+  } else
+  max <- ylim[2]
+  
+  #ensure that there is enough space for the alarm/outbreak symbols   
+  if(ylim[1]>=0)
+    ylim[1] <- -1/20*max
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
 
-        #if ylim is not specified
-        if(is.null(ylim)){
-          ylim <- c(-1/20*max, max)
-        }
-
-        #Generate the matrices to plot
-        xstuff <- cbind(observedxl, observedxr, upperboundx)
-        ystuff <-cbind(observed, observed, survResObj$upperbound)
+  #Generate the matrices to plot
+  xstuff <- cbind(observedxl, observedxr, upperboundx) #no adjusting + min(x$control$range) - 1
+  ystuff <- cbind(observed, observed, survResObj$upperbound)
         
 
-        #Plot the results using one Large plot call
-        matplot(xstuff,ystuff ,
-                t="hhs", lty=c(1,1,1), col=c(1,1,4), ylim=ylim,
-                xlab = "time", ylab = "No. of infected", axes = !(xaxis.years),...) #FALSE, ...)
+  #Plot the results using one Large plot call (we do this by modifying
+  #the call). 
+  matplot(x=xstuff,y=ystuff,xlab=xlab,ylab=ylab,main=main,ylim=ylim,axes = !(xaxis.years),type=type,lty=lty,col=col,...)
 
-        if (!is.null(survResObj$aggr)) {
-          points(upperboundx+tab,survResObj$aggr,col=1)
-        }
-        
-        for(i in 1:length(observed)){
-                matlines( c(i-tab, i+tab), c(observed[i],observed[i]) )
-                if(survResObj$alarm[i] == 1)
-                        matpoints( i, -1/40*max, pch=24, col=2)
-                if(state[i] == 1)
-                        matpoints( i, -1/20*max, pch=24, col=3)
-        }
-        
-        if (!domany) {
-          if (disease != "") { disease <- paste("of ",disease," ",sep="") }
-          title(paste("Analysis ", as.character(disease), "using ", as.character(method),sep=""))
-        }
+  
+  if (!is.null(survResObj$aggr)) {
+    points(upperboundx+tab,survResObj$aggr,col=1)
+  }
+  
+  for(i in 1:length(observed)){
+    matlines( c(i-tab, i+tab), c(observed[i],observed[i]),col=col[1])
+    if(survResObj$alarm[i] == 1)
+      matpoints( i, -1/40*max, pch=alarm.symbol$pch, col=alarm.symbol$col)
+    if(state[i] == 1)
+      matpoints( i, -1/20*max, pch=outbreak.symbol$pch, col=outbreak.symbol$col)
+  }
 
+  # check where to place the legend. If the left upper side is free place it there
+  if (max * 2/3 >= max(
+                max(observed[1:floor(1/4 * length(observed))]),
+                max(survResObj$upperbound[1:floor(1/4 * length(survResObj$upperbound))])
+                )) {
+    xlegpos <- 0
+  }
 
-        cex <- par()$cex.axis
+  #Label of x-axis 
+  if(xaxis.years){        
+    # get the number of quarters lying in range for getting the year and quarter order
+    myat.week <- seq(ceiling((52-firstweek+1)/13) * 13 + 1, length(observed)+(floor((52-firstweek + 1)/13) * 13 +1), by=13)
+    # get the right year order
+    year <- (myat.week - 52) %/% 52 + startyear
+    # function to define the quarter order
+    quarterFunc <- function(i) { switch(i+1,"I","II","III","IV")}
+    # get the right number and order of quarter labels
+    quarter <- sapply( (myat.week-1) %/% 13 %% 4, quarterFunc)
+    # get the positions for the axis labels
+    myat.week <- myat.week - (52 - firstweek + 1)
 
-        # check where to place the legend. If the left upper side is free place it there
-        if (max * 2/3 >= max(
-                      max(observed[1:floor(1/4 * length(observed))]),
-                      max(survResObj$upperbound[1:floor(1/4 * length(survResObj$upperbound))])
-                      )) {
-          xlegpos <- 0
-        }
-        #Label of x-axis 
-        if(xaxis.years){        
-          # get the number of quarters lying in range for getting the year and quarter order
-          myat.week <- seq(ceiling((52-firstweek+1)/13) * 13 + 1, length(observed)+(floor((52-firstweek + 1)/13) * 13 +1), by=13)
-          # get the right year order
-          year <- (myat.week - 52) %/% 52 + startyear
-          # function to define the quarter order
-          quarterFunc <- function(i) { switch(i+1,"I","II","III","IV")}
-          # get the right number and order of quarter labels
-          quarter <- sapply( (myat.week-1) %/% 13 %% 4, quarterFunc)
-          # get the positions for the axis labels
-          myat.week <- myat.week - (52 - firstweek + 1)
+    # construct the computed axis labels
+    #cex <- par()$cex.axis
+    #if (cex == 1) {
+    mylabels.week <- paste(year,"\n\n",quarter,sep="")
+    #} else {
+    #  mylabels.week <- paste(year,"\n",quarter,sep="")
+    #}
+    
+    axis( at=myat.week , labels=mylabels.week , side=1, line = 1 )
+    axis( side=2 )
+  }
+  
+  if(!is.null(legend.opts)) {
+    #Fill empty (mandatory) slots in legend.opts list
+    if (is.null(legend.opts$lty)) legend.opts$lty = c(lty[1],lty[3],NA,NA)
+    if (is.null(legend.opts$col)) legend.opts$col = c(col[1],col[3],alarm.symbol$col,outbreak.symbol$col)
+    if (is.null(legend.opts$pch)) legend.opts$pch = c(NA,NA,alarm.symbol$pch,outbreak.symbol$pch)
+    if (is.null(legend.opts$x))   legend.opts$x = "top"
+    if (is.null(legend.opts$legend)) 
+      legend.opts$legend = c("Infected", "Threshold", "Alarm", "Outbreak")
 
-          # construct the computed axis labels
-          #cex <- par()$cex.axis
-          if (cex == 1) {
-            mylabels.week <- paste(year,"\n\n",quarter,sep="")
-          } else {
-            mylabels.week <- paste(year,"\n",quarter,sep="")
-          }
-        
-          axis( at=myat.week , labels=mylabels.week , side=1, line = 1 )
-          axis( side=2 )
-        }
-
-
-        if (legend) {
-          legend(xlegpos*length(observed)/sqrt(cex), ylegpos*max,
-                 legend=c("Infected", "Threshold", "Computed Alarm", "Defined Alarm"),
-                 lty=c(1,1,NA,NA), col=c(1,4,2,3), pch=c(NA,NA,24,24),cex=cex)
-        }
-        
-        
-        invisible()
+    do.call("legend",legend.opts)
+  }
+  
+  
+  invisible()
 }
 
 
-plot.survRes <- function(x, method=x$control$name, disease=x$control$data, xaxis.years=TRUE,startyear = 2001, firstweek = 1, legend=TRUE,same.scale=TRUE,...) {
+#the main function -- cant we do better than this?
+plot.survRes <- function(x, method=x$control$name, disease=x$control$data, xaxis.years=TRUE,startyear = 2001, firstweek = 1, same.scale=TRUE,...) {
   observed <- x$disProgObj$observed
   state <- x$disProgObj$state
   alarm <- x$alarm
@@ -385,14 +409,14 @@ plot.survRes <- function(x, method=x$control$name, disease=x$control$data, xaxis
         obj <- list(alarm=alarm[,k],disProgObj=dP,control=x$control,upperbound=x$upperbound[,k])
         class(obj) <- "survRes"
         plot.survRes.one(obj,startyear = startyear, firstweek = firstweek, 
-                         xaxis.years=xaxis.years, ylim=ylim, legend=FALSE,domany=TRUE,... )   
+                         xaxis.years=xaxis.years, ylim=ylim, legend.opts=NULL,domany=TRUE,... )   
          mtext(colnames(observed)[k],line=-1.3)     
          })
       #reset graphical params
       par(mfrow=c(1,1), mar=c(5, 4, 4, 2)+0.1)
     }
   else {  #univariate time series
-    plot.survRes.one(x=x, startyear = startyear, firstweek = firstweek, xaxis.years=xaxis.years, legend=legend, domany=FALSE,...)
+    plot.survRes.one(x=x, startyear = startyear, firstweek = firstweek, xaxis.years=xaxis.years, domany=FALSE,...)
   }
   invisible()
 }

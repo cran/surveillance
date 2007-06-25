@@ -50,7 +50,7 @@ sim.pointSource <- function(p = 0.99, r = 0.01, length = 400, A = 1, alpha = 1, 
   length <- length(state)
   observed <-sim.seasonalNoise(A, alpha, beta, phi, length, frequency, state, K)$seasonalBackground
 
-  result <- list(observed = observed, state = state, A = A, alpha = alpha, beta = beta, K = K, p = p, r = r)
+  result <- list(observed = observed, state = state, A = A, alpha = alpha, beta = beta, K = K, p = p, r = r, freq=52)
   class(result) = "disProg" # for disease progress
 
   return(result)

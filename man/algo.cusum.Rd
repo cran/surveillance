@@ -20,7 +20,23 @@
             \item{\code{range}}{determines the desired time points which should be evaluated}
             \item{\code{k}}{is the reference value}
             \item{\code{h}}{the decision boundary}
-            \item{\code{m}}{expected number of cases -- if \code{NULL} then estimated from the data}
+            \item{\code{m}}{how to determine the expected number of cases -- 
+                the following arguments are possible
+                \describe{
+                \item{\code{numeric}}{a vector of values having the
+                    same length as \code{range}. If a single numeric
+                    value is specified then this value is replicated
+                    \code{length(range)} times.}
+                \item{\code{NULL}}{A single value is estimated by
+                    taking the mean of all observations previous to
+                    the first \code{range} value.}
+                \item{\code{"glm"}}{ A GLM of the form \deqn{\log(m_t)
+                      = \alpha + \beta t + \sum_{s=1}^S (\gamma_s
+                      \sin(\omega_s t) + \delta_s \cos(\omega_s t))},
+                    where \eqn{\omega_s = \frac{2\pi}{52}s} are the
+                    Fourier frequencies is fitted. Then this model is
+                    used to predict the \code{range} values.}
+                }}
             \item{\code{trans}}{one of the following transformations (warning: anscombe and negbin transformations are experimental)
                 \describe{
                 \item{\code{rossi}}{compute standardized variables z3 as proposed by Rossi}
@@ -43,11 +59,19 @@
     of cumulative sums for every timepoint in \code{range} for the system 
     specified by \code{k} and \code{h}, the range and the input object of 
     class disProg.
+
+    The \code{upperbound} entry shows for each time instance the number of diseased individuals
+    it would have taken the cusum to signal. Once the CUSUM signals no resetting is applied, i.e.
+    signals occurs until the CUSUM statistic again returns below the threshold.
+
+    The \code{control$m.glm} entry contains the fitted glm object, if
+    the original argument was "glm".
+
   }
 }
-\details{The implementation is still experimental}
+\details{This implementation is still experimental}
 \seealso{}
-\author{}
+\author{M. Paul and M. Höhle}
 \examples{
 
     # Xi ~ Po(5), i=1,...,500

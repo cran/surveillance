@@ -1,0 +1,58 @@
+\name{wrap.algo}
+\alias{wrap.algo}
+\alias{bayes}
+\alias{cdc}
+\alias{rki}
+\alias{cusum}
+\alias{farrington}
+\alias{glrpois}
+\alias{rogerson}
+
+
+\title{Multivariate Surveillance through independent univariate algorithms}
+\description{
+
+  This function takes an \code{sts} object and applies an univariate
+  surveillance algorithm to the time series of each observational unit.
+
+  
+}
+\usage{
+%This is the main function
+wrap.algo(sts, algo, control,control.hook=function(k) return(control),...)
+%Derived functions fixing the control object and the "algo" argument
+farrington(sts, control=list(range=NULL, b=3, w=3,reweight=TRUE,verbose=FALSE,alpha=0.01))
+cdc(sts, control= list(range = range,alpha=0.025))
+bayes(sts, control = list(range = range, b = 0, w = 6, actY = TRUE,alpha=0.05))
+rki(sts, control = list(range = range, b = 2, w = 4, actY = FALSE))
+cusum(sts,  control = list(range=range, k=1.04, h=2.26,m=NULL, trans="standard",alpha=NULL))
+glrpois(sts, control = list(range=range,c.ARL=5, S=1,beta=NULL, Mtilde=1, M=-1, change="intercept",theta=NULL))
+}
+\arguments{
+  \item{sts}{Object of class \code{sts}}
+  \item{algo}{Character string giving the function name of the algorithm
+    to call, e.g. \code{"algo.farrington"}. Calling is done using
+    \code{do.call}.} 
+  \item{control}{Control object as list. Depends on each algorithm.}
+  \item{control.hook}{This is a function for handling multivariate
+    objects. This argument is a function function of integer k, which
+    returns the appropriate control object for region k}
+  \item{...}{Additional arguments sent to the \code{algo} function.}
+}
+\value{
+  An \item{sts} object with the \code{alarm}, \code{upperbound},
+  etc. slots filled with the results of independent and univariate
+  surveillance algorithm.
+}
+\seealso{
+  \code{\link{algo.bayes}}, \code{\link{algo.cdc}},
+  \code{\link{algo.rki}}, \code{\link{algo.farrington}},
+  \code{\link{algo.cusum}}, \code{\link{algo.glrpois}}
+  for the exact form of the \code{control} object.
+}
+\author{M. Höhle}
+\examples{
+}
+
+\keyword{}
+

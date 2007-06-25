@@ -20,7 +20,7 @@
              \itemize{
              \item{linear}{if \code{true} a linear trend is included.}
              \item{nseason}{number of Fourier frequencies to be used}
-             \item{period}{period length (defaults to 52 for weekly data)}
+             \item{period}{period length (defaults to \code{disProgObj$freq}, i.e. 52 for weekly data)}
              \item{neighbours}{if \code{true} a autoregressive parameter for 
                  adjacent areas is included.}
              \item{negbin}{if \code{true} negative binomial rather than poisson is used.}
@@ -42,7 +42,7 @@
         }} 
 }
 \details{}
-\seealso{\code{\link{meanResponse}},\code{\link{create.grid}}}
+\seealso{\code{\link{meanResponse}},\code{\link{create.grid}},\code{\link{algo.hhh}}}
 \author{M. Paul, L. Held}
 \examples{
     
