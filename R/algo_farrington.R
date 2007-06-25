@@ -38,8 +38,17 @@ algo.farrington.fitGLM <- function(response,wtime,timeTrend=TRUE,reweight=TRUE) 
     
  #Check convergence - if no convergence we return empty handed.
   if (!model$converged) {
-    cat("Warning: No convergence in this case.\n")
-    return(NULL)
+    #Try without time dependence
+    if (timeTrend) {
+     model <- glm(response ~ 1, family = quasipoisson(link="log"))
+     cat("Warning: No convergence with timeTrend -- trying without.\n")
+    } 
+
+    if (!model$converged) {
+      cat("Warning: No convergence in this case.\n")
+      print(cbind(response,wtime))
+      return(NULL)
+    }
   }
 
   #Overdispersion parameter phi
@@ -96,12 +105,13 @@ algo.farrington.threshold <- function(pred,phi,alpha=0.01,skewness.transform="no
 algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, reweight=TRUE, verbose=FALSE,alpha=0.01)) { 
   #Fetch observed
   observed <- disProgObj$observed
+  freq <- disProgObj$freq
 
   ######################################################################
   # Fix missing control options
   ######################################################################
   if (is.null(control$range)) {
-    control$range <- (52*control$b - control$w):length(observed)
+    control$range <- (freq*control$b - control$w):length(observed)
   }
   if (is.null(control$b))        {control$b=5}
   if (is.null(control$w))        {control$w=3}
@@ -110,6 +120,12 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
   if (is.null(control$alpha))    {control$alpha=0.05}
   if (is.null(control$trend))    {control$trend=TRUE}
   if (is.null(control$plot))     {control$plot=FALSE}
+  if (is.null(control$limit54))  {control$limit54=c(5,4)}
+
+  #check options
+  if (!((control$limit54[1] >= 0) &  (control$limit54[2] > 0))) {
+    stop("The limit54 arguments are out of bounds: cases >= 0 and perior > 0.")
+  }
 
   # initialize the necessary vectors
   alarm <- matrix(data = 0, nrow = length(control$range), ncol = 1)
@@ -132,13 +148,13 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
     #in the years (current year)-1,...,(current year)-b
     wtime <- NULL
     for (i in control$b:1){
-      wtime <- append(wtime,seq(k-52*i-control$w,k-52*i+control$w,by=1))
+      wtime <- append(wtime,seq(k-freq*i-control$w,k-freq*i+control$w,by=1))
     }
     response <- NULL # die Responsespalte
     for (i in (control$b:1)) {
-      if (control$verbose) {cat("b=",i,"\trange=",((k-i*52)-control$w):((k-i*52)+control$w),"\n")}
+      if (control$verbose) {cat("b=",i,"\trange=",((k-i*freq)-control$w):((k-i*freq)+control$w),"\n")}
 
-      for (j in (((k-i*52)-control$w):((k-i*52)+control$w))){
+      for (j in (((k-i*freq)-control$w):((k-i*freq)+control$w))){
         if (j<1) {
           cat("Warning: Selection index less than 1!\n")
         }
@@ -219,9 +235,9 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
     ######################################################################
 
     #Compute exceedance score unless less than 5 reports during last 4 weeks.
-    enoughCases <- (sum(observed[(k-4):(k-1)])>=5)
+    enoughCases <- (sum(observed[(k-control$limit54[2]):(k-1)])>=control$limit54[1])
 
-    #18 May 2006: Bug/unexpected feature deteced by Y. Le Strat. 
+    #18 May 2006: Bug/unexpected feature found by Y. Le Strat. 
     #the okHistory variable meant to protect against zero count problems,
     #but instead it resulted in exceedance score == 0 for low counts. 
     #Now removed to be concordant with the Farrington 1996 paper.
@@ -231,9 +247,10 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
     X <- ifelse(enoughCases,(observed[k] - pred$fit) / (max(lu) - pred$fit),0)
 
     #Do we have an alarm -- i.e. is observation beyond CI??
+    #upperbound only relevant if we can have an alarm (enoughCases)
     trend[k-min(control$range)+1] <- doTrend
     alarm[k-min(control$range)+1] <- (X>1)
-    upperbound[k-min(control$range)+1] <- lu[2]
+    upperbound[k-min(control$range)+1] <- ifelse(enoughCases,lu[2],0)
   }#done looping over all time points
 
   #Add name and data name to control object.

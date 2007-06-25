@@ -23,9 +23,25 @@ algo.cusum <- function(disProgObj, control = list(range=range, k=1.04, h=2.26, m
   # poisson distribution based on time points 1:t-1
   if(is.null(control$m)) {
     m <- mean(observed[1:(timePoint-1)])
-  } else {
+  } else if (is.numeric(control$m)) {
     m <- control$m
+  } else if (control$m == "glm") {
+    #Fit a glm to the first observations
+    training <- 1:(timePoint-1)
+    #Set the time index 
+    t <- disProgObj$start[2] + training - 1
+    #Set the observations
+    x <- observed[training]
+    #Set period
+    p <- disProgObj$freq
+    df <- data.frame(x=x,t=t)
+    control$m.glm<- glm(x ~ 1 + cos(2*pi/p*t) + sin(2*pi/p*t) ,family=poisson(),data=df)
+
+    #predict the values in range
+    t.new <- disProgObj$start[2] + control$range - 1
+    m <- predict(control$m.glm,newdata=data.frame(t=t.new),type="response")
   }
+
 
   #No transformation 
   #standObs <- observed[control$range]  

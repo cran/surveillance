@@ -22,11 +22,15 @@
   \item{timeTrend}{Boolean whether to fit the \eqn{\beta t}{beta*t} or not}
   \item{reweight}{Fit twice -- 2nd time with Anscombe residuals}
 }
-\details{Compute weights from an initial fit and rescale
-  using Anscombe based residuals as described in the \code{\link{anscombe.residuals}} function.}
-}
+%
+\details{Compute weights from an initial fit and rescale using
+  Anscombe based residuals as described in the
+  \code{\link{anscombe.residuals}} function.}  }
+%
 \value{An object of class GLM with additional fields \code{wtime},
-  \code{response} and \code{phi}}
+  \code{response} and \code{phi}. If the \code{glm} returns without
+  convergence \code{NULL} is returned.}
+%
 \seealso{\code{\link{anscombe.residuals}}}
 \keyword{}
 

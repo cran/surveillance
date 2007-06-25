@@ -7,13 +7,12 @@
         \item{caption}{See \code{\link[xtable]{xtable}}}
         \item{label}{See \code{\link[xtable]{xtable}}}
         \item{align}{See \code{\link[xtable]{xtable}}}
-        \item{vsep}{See \code{\link[xtable]{xtable}}}
         \item{digits}{See \code{\link[xtable]{xtable}}}
         \item{display}{See \code{\link[xtable]{xtable}}}
         \item{...}{Further arguments (see \code{\link[xtable]{xtable})}}
 }
 \usage{
-xtable.algoQV(x,caption = NULL, label = NULL, align = NULL, vsep = NULL, digits = NULL, display = NULL, ...)
+xtable.algoQV(x,caption = NULL, label = NULL, align = NULL, digits = NULL, display = NULL, ...)
 }
 \keyword{}
 \seealso{ \code{\link[xtable]{xtable}}}

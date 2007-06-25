@@ -1,0 +1,107 @@
+\keyword{ts}
+\name{display-methods}
+\alias{plot}
+\alias{plot,sts,missing-method}
+%\alias{print}
+%\alias{print,sts-method}
+\alias{show,sts-method}
+\alias{plot.sts.time}
+\alias{plot.sts.time.one}
+\alias{plot.sts.spacetime}
+
+\title{Display Methods for Surveillance Time-Series Objects}
+\description{
+  Display methods for objects of class \code{"sts"}.
+}
+
+\section{Usage}{
+  plot(x,y,type,...)
+  print(x,...)
+}
+
+\section{Arguments}{
+\describe{
+  \item{x}{an object of class \code{"sts"}}
+  \item{y}{missing}
+  \item{type}{a formula specifying the plot type, several options are
+    possible:
+    \describe{
+	\item{\code{observed ~ time}}{The observations in \code{x} are
+	  aggregated over units and the resulting univariate time-series
+	  is plotted. The plotting is done by the function
+	  \code{plot.time.sts}, which takes the same arguments as the
+	  \code{\link{plot.survRes}} function.}
+	\item{\code{observed ~ time | unit}}{shows \code{dim(x)} plots
+	  with each showing the time-series of one observational
+	  unit. The actual plotting is done by the function 
+	  \code{plot.time.sts.one}}
+	\item{\code{observed ~ 1 | unit}}{for each unit the counts are
+	  aggregated over time and a map illustrating the counts is
+	  shown. The column names of the \code{x@observed} object are
+	  used to label the entries of the \code{x@map}. Regions with an
+	  alarm are shaded.}
+	\item{\code{observed ~ 1 | unit * time}}{an animation consisting
+	  of \code{nrow(x)} frames is generated. Each frame contains the
+	  number of counts per region for the current row in the
+	  \code{observed} matrix. It is possible to redirect the output
+	  into files, e.g. to generate an animated GIF. See the
+	  examples.}
+      }
+    }
+    \item{\dots}{further arguments passed to or from other methods:
+      in case of plotting these are passed to \code{\link{plot}},
+      in case of printing these are passed to \code{\link{print.default}}}
+  }
+}
+\details{
+  The plotting of time-series plots relies on two internal functions
+  with \code{plot.sts.time.one} being the work-horse. Its arguments are
+  (almost) similiar to \code{\link{plot.survRes}}. \code{k} is the
+  column to plot.
+
+  \preformatted{plot.sts.time(x, type,method=x@control$name,disease=x@control$data,same.scale=TRUE,...)}
+  \preformatted{plot.sts.time.one(x, k=1,domany=FALSE,ylim=NULL,xaxis.years=TRUE, xaxis.unit=TRUE, xlab="time", ylab="No. infected", main=NULL,type="hhs",lty=c(1,1,2),col=c(1,1,4), outbreak.symbol = list(pch=3,col=3, cex=1),alarm.symbol=list(pch=24, col=2, cex=1),cex=1,legend.opts=list(x="top", legend=NULL,lty=NULL,pch=NULL,col=NULL),...)}
+  
+  For spacetime plots the following internal function does all the work:
+  \preformatted{plot.sts.spacetime(x,type,legend=NULL,opts.col=NULL,labels=TRUE,wait.ms=250,cex.lab=0.7,verbose=FALSE,dev.printer=NULL,...)}
+    
+  \code{print} is the method for printing \code{sts} objects.
+
+}
+
+\value{
+
+The methods are called for their side-effects.
+
+}
+
+\seealso{
+  \code{\link{plot.survRes}}
+}
+
+\examples{
+data(ha)
+shp <- system.file("shapes/berlin.shp",package="surveillance")
+has4 <- disProg2sts(ha, map=readShapePoly(shp,IDvar="SNAME"))
+
+print(has4)
+plot(has4, type= observed ~ time)
+plot(has4, type= observed ~ time | unit)
+plot(has4, type= observed ~ 1 | unit)
+plot(has4[1:20,1:2], type= observed ~ 1 | unit)
+plot(aggregate(has4,nfreq=13), type= observed ~ 1 | unit * time)
+
+
+\dontrun{
+#Configure a png device printer for the plot command
+dev.printer <-
+list(device=png,extension=".png",width=640,height=480,name="/tmp/berlin")
+
+#Do the animation
+plot(aggregate(has4,nfreq=13), type = observed ~ 1 | unit * time, dev.printer=dev.printer)
+
+#Use ImageMagick -- replace /sw/bin/convert by your path to convert
+system(paste("/sw/bin/convert -delay 50 ",dev.printer$name,"*.png /tmp/animated.gif",sep=""))
+}
+
+}

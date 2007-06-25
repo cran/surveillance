@@ -34,7 +34,8 @@ readData <- function(abb,week53to52=TRUE,sysPath=TRUE){
     result <- correct53to52(result)
   }
   
-  
+  result$freq <- 52
+  result$start <- c(2001,1)
   
   return(result)
 }

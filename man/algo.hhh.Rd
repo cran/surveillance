@@ -13,25 +13,25 @@
       verbose=TRUE)
 }
 \arguments{
-        \item{disProgObj}{object of class \code{disProg}} 
-        \item{control}{Control object:
-             \itemize{
-             \item{linear}{if \code{true} a linear trend is included.}
-             \item{nseason}{number of Fourier frequencies to be used}
-             \item{period}{period length (defaults to 52 for weekly data)}
-             \item{neighbours}{if \code{true} a autoregressive parameter for 
-                 adjacent units is included.}
-             \item{negbin}{if \code{true} negative binomial rather than poisson is used.}
-             \item{lambda}{if \code{true} a autoregressive parameter is included.}
-             }}
-        \item{thetastart}{vector with starting values for all parameters specified
-             in the control object (for \code{optim}).  } 
-        \item{verbose}{if \code{true} information about convergence is printed}
+\item{disProgObj}{object of class \code{disProg}} 
+\item{control}{Control object:
+    \itemize{
+    \item{linear}{if \code{true} a linear trend is included.}
+    \item{nseason}{number of Fourier frequencies to be used}
+    \item{period}{period length (defaults to \code{disProgObj$freq}, i.e. 52 for weekly data)}
+    \item{neighbours}{if \code{true} a autoregressive parameter for 
+        adjacent units is included.}
+    \item{negbin}{if \code{true} negative binomial rather than poisson is used.}
+    \item{lambda}{if \code{true} a autoregressive parameter is included.}
+    }}
+\item{thetastart}{vector with starting values for all parameters specified
+    in the control object (for \code{optim}).  } 
+\item{verbose}{if \code{true} information about convergence is printed}
 }
 \value{\item{list}{
-      Returns a list with estimated parameters, standard errors, 
-      covariance matrix and the value of the loglikelihood as elements. 
-      }
+    Returns a list with estimated parameters, standard errors, 
+    covariance matrix and the value of the loglikelihood as elements. 
+  }
 }
 \details{Note that for the time being this function is not a surveillance algorithm, but only a modelling approach as described in the Held et. al (2005) paper.}
 \seealso{\code{\link{meanResponse}}}
@@ -40,7 +40,7 @@
 
     # univariate time series: salmonella agona cases
     data(salmonella.agona)
-    salmonella <- create.disProg(week=1:nrow(salmonella.agona),
+    salmonella <- create.disProg(week=1:length(salmonella.agona),
                  observed=salmonella.agona$observed, state=salmonella.agona$state)
     
     model1 <- list(lambda=TRUE, linear=TRUE, nseason=1, negbin=TRUE)
@@ -68,4 +68,4 @@
     Modelling, 5, p. 187-199.}
 
 
-% algo.hhh.grid
+% predict.ah
