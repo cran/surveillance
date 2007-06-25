@@ -13,6 +13,7 @@
 algo.rkiLatestTimepoint <- function(disProgObj, timePoint = NULL, control = list(b = 2, w = 4, actY = FALSE)){
 
   observed <- disProgObj$observed
+  freq <- disProgObj$freq
 
   # If there is no value in timePoint, then take the last value in observed
   if(is.null(timePoint)){
@@ -20,7 +21,7 @@ algo.rkiLatestTimepoint <- function(disProgObj, timePoint = NULL, control = list
   }
 
   # check if the vector observed includes all necessary data.
-  if((timePoint-(control$b*52)-control$w) < 1){
+  if((timePoint-(control$b*freq)-control$w) < 1){
         stop("The vector of observed is too short!")
   }
 
@@ -33,7 +34,7 @@ algo.rkiLatestTimepoint <- function(disProgObj, timePoint = NULL, control = list
   # check if you need more referencevalues of the past
   if(control$b >= 1){
     for(i in 1:control$b){
-        basevec <- c(basevec, observed[(timePoint-(i*52)-control$w):(timePoint-(i*52)+control$w)])
+        basevec <- c(basevec, observed[(timePoint-(i*freq)-control$w):(timePoint-(i*freq)+control$w)])
     }
   }
 

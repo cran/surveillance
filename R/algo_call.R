@@ -119,13 +119,13 @@ print.algoQV <- function(x,...) {
 ###################################################
 ### chunk number 3: 
 ###################################################
-xtable.algoQV <- function(x, caption = NULL, label = NULL, align = NULL, vsep = NULL, 
+xtable.algoQV <- function(x, caption = NULL, label = NULL, align = NULL,  
     digits = NULL, display = NULL, ...)  {
 
   n <- names(x)
   x <- matrix(x,nrow=1)
   dimnames(x)[[2]] <- n
-  xtable(x,caption, label, align, vsep, digits, display, ...)
+  xtable(x,caption, label, align, digits, display, ...)
 }
 
 

@@ -2,30 +2,46 @@
 \alias{plot.disProg}
 \alias{plot.disProg.one}
 \title{Plot Generation of the Observed and the defined Outbreak States of a 
-         (multivariate) time series}
+  (multivariate) time series}
 \description{Plotting of a disProg object.
 }
 \usage{
-    plot.disProg(x, title = "", xaxis.years=TRUE, startyear = 2001, 
-         firstweek = 1, as.one=TRUE, same.scale=TRUE, legend=TRUE, ...)
-    plot.disProg.one(x, title = "", xaxis.years=TRUE, startyear = 2001, firstweek = 1, ylim=NULL, legend=TRUE, xlegpos = 1/4, ylegpos = 1,...)
+  plot.disProg(x, title = "", xaxis.years=TRUE, startyear = 2001, firstweek = 1, as.one=TRUE, same.scale=TRUE, ...)
+  plot.disProg.one(x, title = "", xaxis.years=TRUE, startyear = 2001, firstweek = 1, ylim=NULL, xlab="time", ylab="No. infected",type="hh",lty=c(1,1),col=c(1,1), outbreak.symbol = list(pch=3, col=3), legend.opts=list(x="top", legend=c("Infected", "Outbreak"),lty=NULL,pch=NULL,col=NULL), ...)
 }
 \arguments{
         \item{x}{Object of class \code{disProg}}
         \item{title}{Plot title}
-        \item{xaxis.years}{if \code{true}, the x axis is labeled}
+        \item{xaxis.years}{if \code{TRUE}, the x axis is labeled using years}
         \item{startyear}{Year to begin the axis labeling (the year where
-                the oldest data come from)}
+                the oldest data come from). This arguments will be obsolete in \code{sts}.}
         \item{firstweek}{Number of the first week of January in the first year 
                 (just for axis labeling grounds)}
-        \item{as.one}{if \code{true} all individual time series are shown in 
+        \item{as.one}{if \code{TRUE} all individual time series are shown in 
               one plot}
-        \item{same.scale}{if \code{true} all plots have same scale}
+        \item{same.scale}{if \code{TRUE} all plots have same scale}
         \item{ylim}{range of y axis}
-        \item{legend}{if \code{true} a legend is shown}
-        \item{xlegpos}{x position of the legend as fraction of \code{max(xlim)}}
-        \item{ylegpos}{y position of legend as fraction of \code{max(ylim)}}
-        \item{...}{further arguments for the function \code{matplot}}
+        \item{xlab}{label of the x-axis}
+        \item{ylab}{label of the y-axis}
+        \item{type}{line type of the observed counts (should be \code{hh})}
+        \item{lty}{line type of the observed counts}
+        \item{col}{color of the observed count lines}
+        \item{outbreak.symbol}{list with entries \code{pch} and \code{col} specifying the plot symbol}
+        \item{legend.opts}{a list containing the entries to be sent to the \code{\link{legend}} function. If no legend is requested use \code{legend.opts=NULL}. Otherwise, the following arguments are default
+            \describe{
+            \item{x}{\code{top}}
+            \item{legend}{The names infected and outbreak.}
+            \item{lty}{If \code{NULL} the \code{lty} argument will be used.}
+            \item{pch}{If \code{NULL} the \code{pch} argument is used.}
+            \item{col}{If \code{NULL} the \code{col} argument is
+                used.}  
+            }
+            
+            An further arguments to the \code{legend} function are
+            just provided as additional elements of this list,
+            e.g. \code{horiz=TRUE}.  
+          }
+        \item{...}{further arguments for the function \code{matplot}.}
 }
 \value{
         \item{a plot}{showing the number of infected and the defined alarm status
@@ -33,7 +49,7 @@
                 either in one single plot or in several plots for each individual
                 time series. }
 }
-\author{M. Höhle, A. Riebler, C. Lang}
+\author{M. Höhle with contributions by A. Riebler and C. Lang}
 \examples{
 
     # Plotting of simulated data
