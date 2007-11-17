@@ -3,11 +3,12 @@
 \alias{bayes}
 \alias{cdc}
 \alias{rki}
+\alias{hmm}
 \alias{cusum}
 \alias{farrington}
 \alias{glrpois}
 \alias{rogerson}
-
+\encoding{latin1}
 
 \title{Multivariate Surveillance through independent univariate algorithms}
 \description{
@@ -19,14 +20,14 @@
 }
 \usage{
 %This is the main function
-wrap.algo(sts, algo, control,control.hook=function(k) return(control),...)
+wrap.algo(sts, algo, control,control.hook=function(k) return(control),verbose=TRUE,...)
 %Derived functions fixing the control object and the "algo" argument
-farrington(sts, control=list(range=NULL, b=3, w=3,reweight=TRUE,verbose=FALSE,alpha=0.01))
-cdc(sts, control= list(range = range,alpha=0.025))
-bayes(sts, control = list(range = range, b = 0, w = 6, actY = TRUE,alpha=0.05))
-rki(sts, control = list(range = range, b = 2, w = 4, actY = FALSE))
-cusum(sts,  control = list(range=range, k=1.04, h=2.26,m=NULL, trans="standard",alpha=NULL))
-glrpois(sts, control = list(range=range,c.ARL=5, S=1,beta=NULL, Mtilde=1, M=-1, change="intercept",theta=NULL))
+farrington(sts, control=list(range=NULL, b=3, w=3,reweight=TRUE,verbose=FALSE,alpha=0.01),...)
+cdc(sts, control= list(range = range,alpha=0.025),...)
+bayes(sts, control = list(range = range, b = 0, w = 6, actY = TRUE,alpha=0.05),...)
+rki(sts, control = list(range = range, b = 2, w = 4, actY = FALSE),...)
+cusum(sts,  control = list(range=range, k=1.04, h=2.26,m=NULL, trans="standard",alpha=NULL),...)
+glrpois(sts, control = list(range=range,c.ARL=5, S=1,beta=NULL, Mtilde=1, M=-1, change="intercept",theta=NULL),...)
 }
 \arguments{
   \item{sts}{Object of class \code{sts}}
@@ -37,6 +38,8 @@ glrpois(sts, control = list(range=range,c.ARL=5, S=1,beta=NULL, Mtilde=1, M=-1, 
   \item{control.hook}{This is a function for handling multivariate
     objects. This argument is a function function of integer k, which
     returns the appropriate control object for region k}
+  \item{verbose}{Boolean, if \code{TRUE} then textual information about the
+    process is given}
   \item{...}{Additional arguments sent to the \code{algo} function.}
 }
 \value{
@@ -51,8 +54,8 @@ glrpois(sts, control = list(range=range,c.ARL=5, S=1,beta=NULL, Mtilde=1, M=-1, 
   for the exact form of the \code{control} object.
 }
 \author{M. Höhle}
-\examples{
-}
+%\examples{
+%}
 
-\keyword{}
+%\keyword{}
 

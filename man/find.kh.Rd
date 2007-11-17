@@ -22,13 +22,13 @@
         Functions from the spc package are used in a simple univariate
         root finding problem.
 }
-\seealso{}
-\author{}
+%\seealso{}
+%\author{}
 \examples{
 
     find.kh(ARLa=500,ARLr=7,sided="one")
     find.kh(ARLa=500,ARLr=3,sided="one")
 }
-\keyword{}
-\source{}
+%\keyword{}
+%\source{}
 

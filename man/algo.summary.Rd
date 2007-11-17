@@ -47,5 +47,5 @@
     algo.summary( list(a=compMatrix1, b=compMatrix2, c=compMatrix3) )
 }
 
-\keyword{}
+%\keyword{}
 

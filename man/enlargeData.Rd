@@ -7,15 +7,14 @@
     enlargeData(disProgObj, range = 1:156, times = 1)
 }
 \arguments{
-        \item{disProgObj}{object of class disProg (including the observed and the state chain).}
-        \item{range}{range of already existing data (\code{state}, \code{observed})
-                        which should be used for enlargement.}
-        \item{times}{number of times to enlarge.}
+\item{disProgObj}{object of class disProg (including the observed and the state chain).}
+\item{range}{range of already existing data (\code{state}, \code{observed})
+    which should be used for enlargement.}
+\item{times}{number of times to enlarge.}
 }
 \value{
-        \item{disProg}{a object \code{disProg} (disease progress) including a list of the observed
-                 and the state chain (extended with cyclic data generation)}
-        }
+\item{disProg}{a object \code{disProg} (disease progress) including a list of the observed
+    and the state chain (extended with cyclic data generation)}
 }
 \details{
         \code{observed} and \code{state} are enlarged in the way that the part \code{range}
@@ -34,5 +33,5 @@
     enlargeData(obj, 33:36, 10) # enlarge 10 times with part 33:36
 }
 
-\keyword{}
+%\keyword{}
 

@@ -40,6 +40,6 @@
     algo.compare(survRes)
 }
 
-\keyword{}
+%\keyword{}
 
 

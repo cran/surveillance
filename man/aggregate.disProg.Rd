@@ -7,7 +7,7 @@
        of \code{surveillance} will also allow for time aggregations etc. 
 }
 \usage{
-  aggregate.disProg(x,...)
+  \method{aggregate}{disProg}(x,...)
 }
 \arguments{
         \item{x}{Object of class \code{disProg}}
@@ -16,7 +16,7 @@
 \value{\item{x}{univariate \code{disProg} object with aggregated 
      counts and respective states for each time point.}
 }
-\keyword{}
+%\keyword{}
 \examples{
 data(ha)
 plot(aggregate(ha))

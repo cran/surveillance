@@ -14,6 +14,7 @@
         \item{file}{The file with the disease data}
 }
 \details{
+  Writing of \code{disProg} object into a file as illustrated in the example.
 }
 \seealso{\code{\link{readData}}, \code{\link{sim.pointSource}}}
 \examples{
@@ -22,6 +23,6 @@
     mydisProgObj <- readData("./simulation",sysPath=FALSE)
 }
 
-\keyword{}
+%\keyword{}
 
 
