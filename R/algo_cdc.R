@@ -59,7 +59,7 @@ algo.cdc <- function(disProgObj, control = list(range = range, b=5, m=1, alpha=0
 
   #Set control options (standard CDC options)
   if (is.null(control$range)) {
-    control$range <- (freq*control$b - control$w):length(observed)
+    control$range <- (disProgObj$freq*control$b - control$w):length(disProgObj$observed)
   }
   if (is.null(control$b))        {control$b=5}
   if (is.null(control$w))        {control$m=1}

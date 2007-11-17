@@ -12,7 +12,8 @@
 
 #Wrapper function to call algo.farrington for each time series in an sts object
 wrap.algo <- function(sts, algo, control,
-                      control.hook=function(k) return(control),...) {
+                      control.hook=function(k) return(control),
+                      verbose=TRUE,...) {
   #Number of time series
   nAreas <- ncol(sts@observed)
   nAlarm <- length(control$range)
@@ -22,7 +23,9 @@ wrap.algo <- function(sts, algo, control,
 
   #Loop
   for (k in 1:nAreas) {
-    cat("Running ",algo," on area ",k," out of ",nAreas,"\n")
+    if (verbose) {
+      cat("Running ",algo," on area ",k," out of ",nAreas,"\n")
+    }
     
     ##Create an old S4 disProg object
     disProg.k <- create.disProg(sts@week, sts@observed[,k], sts@state[,k], freq=sts@freq, start=sts@start)
@@ -60,34 +63,40 @@ wrap.algo <- function(sts, algo, control,
 }
 
 #Farrington wrapper
-farrington <- function(sts, control=list(range=NULL, b=3, w=3, reweight=TRUE, verbose=FALSE,alpha=0.01)) {
-  wrap.algo(sts,algo="algo.farrington",control=control)
+farrington <- function(sts, control=list(range=NULL, b=3, w=3, reweight=TRUE, verbose=FALSE,alpha=0.01),...) {
+  wrap.algo(sts,algo="algo.farrington",control=control,...)
 }
 
 #CDC wrapper
-cdc <- function(sts, control= list(range = range,alpha=0.025)) {
-  wrap.algo(sts,algo="algo.cdc",control=control)
+cdc <- function(sts, control= list(range = range,alpha=0.025),...) {
+  wrap.algo(sts,algo="algo.cdc",control=control,...)
 }
 
 #Bayes wrapper (this can be implemented more efficiently)
-bayes <- function(sts, control = list(range = range, b = 0, w = 6, actY = TRUE,alpha=0.05)) {
+bayes <- function(sts, control = list(range = range, b = 0, w = 6, actY = TRUE,alpha=0.05),...) {
   wrap.algo(sts,algo="algo.bayes",control=control)
 }
 
 #RKI wrapper
-rki <- function(sts, control = list(range = range, b = 2, w = 4, actY = FALSE)) {
-  wrap.algo(sts,algo="algo.rki",control=control)
+rki <- function(sts, control = list(range = range, b = 2, w = 4, actY = FALSE),...) {
+  wrap.algo(sts,algo="algo.rki",control=control,...)
 }
 
+#HMM wrapper
+hmm <- function(sts, control=list(range=NULL, noStates=2, trend=TRUE, noHarmonics=1,covEffectEqual=FALSE),...) {
+  wrap.algo(sts,algo="algo.hmm",control=control,...)
+}
+
+
 #Cusum wrapper
-cusum <- function(sts,  control = list(range=range, k=1.04, h=2.26, m=NULL, trans="standard",alpha=NULL)) {
-  wrap.algo(sts,algo="algo.cusum",control=control)
+cusum <- function(sts,  control = list(range=range, k=1.04, h=2.26, m=NULL, trans="standard",alpha=NULL),...) {
+  wrap.algo(sts,algo="algo.cusum",control=control,...)
 }
 
 #GLRpois wrapper
 glrpois <- function(sts, control = list(range=range,c.ARL=5, S=1,
-                           beta=NULL, Mtilde=1, M=-1, change="intercept",theta=NULL)) {
-  wrap.algo(sts,algo="algo.glrpois",control=control)
+                           beta=NULL, Mtilde=1, M=-1, change="intercept",theta=NULL),...) {
+  wrap.algo(sts,algo="algo.glrpois",control=control,...)
 }
 
 #### this code definitely needs some more documentation -- wrap.algo atm is
@@ -101,7 +110,7 @@ glrpois <- function(sts, control = list(range=range,c.ARL=5, S=1,
 rogerson <- function(sts, control = list(range=range, theta0t=NULL,
                             ARL0=NULL, s=NULL, hValues=NULL,
                             distribution=c("poisson","binomial"),
-                            nt=NULL, FIR=FALSE,limit=NULL, digits=1)) {
+                            nt=NULL, FIR=FALSE,limit=NULL, digits=1),...) {
   #Hook function to find right theta0t vector
   control.hook = function(k) {
     control$hValues <- hValues(theta0 = control$theta0t[,k], ARL0=control$ARL0, control$s , distr = control$distribution)$hValues
@@ -110,7 +119,7 @@ rogerson <- function(sts, control = list(range=range, theta0t=NULL,
     return(control)
   }
   #WrapIt
-  wrap.algo(sts,algo="algo.rogerson",control=control,control.hook=control.hook)
+  wrap.algo(sts,algo="algo.rogerson",control=control,control.hook=control.hook,...)
 }
 
 

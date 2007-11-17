@@ -1,48 +1,56 @@
 \name{algo.glrpois}
 \alias{algo.glrpois}
+\encoding{latin1}
+
 \title{Poisson regression charts}
 \description{
- Poisson regression charts for the monitoring of surveillance time series
+ Poisson regression charts for the monitoring of surveillance time series.
 }
 \usage{
-algo.glrpois(disProgObj,control = list(range=range,c.ARL=5, S=1,
-         mu0=NULL, Mtilde=1, M=-1, change="intercept",theta=NULL))
+algo.glrpois(disProgObj,control = list(range=range,c.ARL=5, 
+         mu0=NULL, Mtilde=1, M=-1, change="intercept",theta=NULL,dir="inc"))
 }
 \arguments{
-  \item{disProgObj}{object of class \code{disProg} to do surveillance
-  for}
-  \item{control}{A list controlling the behaviour of the algorithm.
-                 \describe{
-		 \item{range}{vector of indices in the observed vector
-		 to monitor (should be consecutive)}
-		 \item{S}{number of harmonics to include. Note:
-		 Atm. only S=1 is supported.}
-		 \item{beta}{A vector of regression coefficients to
-		 use in the seasonal Poisson model. If \code{NULL} the
-		 observed values in \code{1:min(range)} are used to
-		 estimate beta through a generalized linear model.}
-		 \item{c.ARL}{threshold in the GLR test,
-		 i.e. \eqn{c_gamma}{c_{\gamma}}}
-                 \item{Mtilde}{number of observations needed before we
-		   have a full rank the typical setup for the
-		   "intercept" and "epi" charts is Mtilde=1}
-		 \item{M}{Number of time instances back in time in the
-		 window-limited approach, i.e. the last value
-		 considered is \eqn{\max{1,n-M}}. To always look back
-		 until the first observation use \code{M=-1}.}
-		 \item{change}{A string specifying the type of the
-		 alternative. Currently the two choices are
-		 \code{intercept} and \code{epi}. See the SFB
-		 Discussion Paper 500 for details.}
-		 \item{theta}{If \code{NULL} then the GLR scheme is
-                 used. If not \code{NULL} the prespecified value for
-                 \eqn{\kappa} or \eqn{lambda} is used in a recursive
-                 LR scheme, which is faster.  }
-		 }
+\item{disProgObj}{object of class \code{disProg} to do surveillance
+    for}
+\item{control}{A list controlling the behaviour of the algorithm
+    \describe{
+    \item{\code{range}}{vector of indices in the observed vector
+        to monitor (should be consecutive)}
+   
+    \item{\code{mu0}}{A vector of in-control values of the Poisson
+        distribution with the same length as \code{range}. If
+        \code{NULL} the observed values in \code{1:(min(range)-1)} are
+        used to estimate beta through a generalized linear model. To
+        fine-tune the model one can instead specify \code{mu0} as a
+        list with two components:
+        \describe{
+        \item{\code{S}}{number of harmonics to include}
+        \item{\code{trend}}{include a term \code{t} in the GLM model}
+        }}
+    \item{\code{c.ARL}}{threshold in the GLR test,
+        i.e. \eqn{c_{\gamma}}{c_gamma}}
+    \item{\code{Mtilde}}{number of observations needed before we
+        have a full rank the typical setup for the
+        "\code{intercept}" and "\code{epi}" charts is \code{Mtilde=1}}
+    \item{\code{M}}{number of time instances back in time in the
+        window-limited approach, i.e. the last value
+        considered is \eqn{\max{1,n-M}}. To always look back
+        until the first observation use \code{M=-1}.}
+    \item{\code{change}}{a string specifying the type of the
+        alternative. Currently the two choices are
+        \code{intercept} and \code{epi}. See the SFB
+        Discussion Paper 500 for details.}
+    \item{\code{theta}}{if \code{NULL} then the GLR scheme is
+        used. If not \code{NULL} the prespecified value for
+        \eqn{\kappa} or \eqn{\lambda} is used in a recursive
+        LR scheme, which is faster.  }
+    \item{\code{dir}}{a string specifying the direction of testing in GLR scheme. With \code{"inc"} only increases in \eqn{x} are considered in the GLR-statistic, with \code{"dec"} decreases are regarded. }
+    }
   }
 }
 \value{
-\item{survRes}{ \code{algo.prc} returns a list of class \code{survRes}
+\item{survRes}{ \code{algo.glrpois} returns a list of class \code{survRes}
     (surveillance result), which includes the alarm value for
     recognizing an outbreak (1 for alarm, 0 for no alarm), the
     threshold value for recognizing the alarm and the input object of
@@ -57,19 +65,30 @@ algo.glrpois(disProgObj,control = list(range=range,c.ARL=5, S=1,
   Discussion Paper 500. A moving-window generalized likelihood ratio
   detector is used, i.e. the detector has the form
 %
-\deqn{N = inf(... >= c_gamma)}{N = \inf\left\{ n : \max_{1\leq k \leq
+\deqn{N = \inf\left\{ n : \max_{1\leq k \leq
       n} \left[ \sum_{t=k}^n \log \left\{
         \frac{f_{\theta_1}(x_t|z_t)}{f_{\theta_0}(x_t|z_t)} \right\}
-    \right] \geq c_\gamma \right\} }
+    \right] \geq c_\gamma \right\} }{N = inf(... >= c_gamma)}
 %
-where instead of \eqn{1<= k <= n}{1\leq k \leq n} the GLR statistic is computed
-for all \eqn{k \in \{n-M, \ldots, n-\tilde{M}+1\}}. To achieve the
-typical behaviour from \eqn{1\leq k\leq n} use \code{Mtilde=1} and \code{M=-1}.
+where instead of \eqn{1\leq k \leq n}{1<= k <= n} the GLR statistic is
+computed for all \eqn{k \in \{n-M, \ldots, n-\tilde{M}+1\}}{k \in \{n-M, \ldots, n-Mtilde+1\}}. To
+achieve the typical behaviour from \eqn{1\leq k\leq n}{1<= k <= n} use
+\code{Mtilde=1} and \code{M=-1}.
 
-At the moment, window limited ``intercept'' charts have not been
-tested and are atm not supported. As speed is not an issue here this
-doesn't bother too much. Therefore, a value of \code{M=-1} is always
-in the intercept charts.
+So \eqn{N} is the time point where the GLR statistic is above the
+threshold the first time: An alarm is given and the surveillance is
+resetted starting from time \eqn{N+1}. Note that the same
+\code{c.ARL} as before is used, but if \code{mu0} is different at
+\eqn{N+1,N+2,\ldots} compared to time {1,2,\ldots} the run length
+properties differ. Because \code{c.ARL} to obtain a specific ARL can
+only be obtained my Monte Carlo simulation there is no good way to
+update \code{c.ARL} automatically at the moment. Also, FIR GLR-detectors
+might be worth considering.
+
+At the moment, window limited ``\code{intercept}'' charts have not been
+extensively tested and are at the moment not supported. As speed is
+not an issue here this doesn't bother too much. Therefore, a value of
+\code{M=-1} is always used in the intercept charts.
 
 }
 \seealso{
@@ -98,17 +117,21 @@ s.ts <- create.disProg(week=1:length(t),observed=x,state=(t>=tau))
 plot(s.ts,legend=NULL,xaxis.years=FALSE)
 
 #Run 
-cntrl = list(range=t,c.ARL=5, S=1,Mtilde=1, mu0=mu0,change="intercept")
+cntrl = list(range=t,c.ARL=5, Mtilde=1, mu0=mu0,change="intercept",dir="inc")
 glr.ts <- algo.glrpois(s.ts,control=cntrl)
 lr.ts  <- algo.glrpois(s.ts,control=c(cntrl,theta=0.4))
 
 plot(glr.ts,xaxis.years=FALSE)
+plot(lr.ts,xaxis.years=FALSE)
 
 }
 
-\keyword{}
+%\keyword{}
 \source{
 Poisson regression charts for the monitoring of surveillance time
-series (2006), HÃ¶hle, M., SFB386 Discussion Paper 500.
+series (2006), Höhle, M., SFB386 Discussion Paper 500.
 }
 
+
+
+%Rnw file 

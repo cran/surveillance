@@ -102,7 +102,7 @@ algo.farrington.threshold <- function(pred,phi,alpha=0.01,skewness.transform="no
 ###################################################
 ### chunk number 5: 
 ###################################################
-algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, reweight=TRUE, verbose=FALSE,alpha=0.01)) { 
+algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, reweight=TRUE, verbose=FALSE,alpha=0.01,powertrans="2/3")) { 
   #Fetch observed
   observed <- disProgObj$observed
   freq <- disProgObj$freq
@@ -121,6 +121,7 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
   if (is.null(control$trend))    {control$trend=TRUE}
   if (is.null(control$plot))     {control$plot=FALSE}
   if (is.null(control$limit54))  {control$limit54=c(5,4)}
+  if (is.null(control$powertrans)){control$powertrans="2/3"}
 
   #check options
   if (!((control$limit54[1] >= 0) &  (control$limit54[2] > 0))) {
@@ -212,21 +213,24 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
     pred <- predict.glm(model,data.frame(wtime=c(k)),dispersion=model$phi,
                         type="response",se.fit=TRUE)
     #Calculate lower and upper threshold
-    lu <- algo.farrington.threshold(pred,model$phi,skewness.transform="2/3",alpha=control$alpha)
+    lu <- algo.farrington.threshold(pred,model$phi,skewness.transform=control$powertrans,alpha=control$alpha)
 
     ######################################################################
     # If requested show a plot of the fit.
     ######################################################################
     if (control$plot) {
       #Compute all predictions
-      data <- data.frame(wtime=c(wtime,k))
-      preds <- predict(model,data,,type="response",dispersion=model$phi)
+      data <- data.frame(wtime=seq(min(wtime),k,length=1000))
+      preds <- predict(model,data,type="response",dispersion=model$phi)
 
       #Show a plot of the model fit.
-      plot(c(wtime, k), c(response,observed[k]),ylim=range(c(observed[data$wtime],lu)),,xlab="time",ylab="No. of counts",main=paste("Prediction at time t=",k))
-      #Add the observed value and the upper threshold.
-      lines(data$wtime,preds,col=2)
-      points(k,lu[2],cex=1,pch=2,col=2)
+      plot(c(wtime, k), c(response,observed[k]),ylim=range(c(observed[data$wtime],lu)),,xlab="time",ylab="No. infected",main=paste("Prediction at time t=",k," with b=",control$b,",w=",control$w,sep=""),pch=c(rep(1,length(wtime)),16))
+      #Add the prediction
+      lines(data$wtime,preds,col=1,pch=2)
+
+      #Add the thresholds
+      #points(c(k,k),lu,cex=1,pch=3,col=3)
+      lines(rep(k,2),lu,col=3,lty=2)
     }
 
 
@@ -235,15 +239,14 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
     ######################################################################
 
     #Compute exceedance score unless less than 5 reports during last 4 weeks.
-    enoughCases <- (sum(observed[(k-control$limit54[2]):(k-1)])>=control$limit54[1])
+    #enoughCases <- (sum(observed[(k-control$limit54[2]):(k-1)])>=control$limit54[1])
+    #Changed in version 0.9-7 - current week is included now
+    enoughCases <- (sum(observed[(k-control$limit54[2]+1):k])>=control$limit54[1])
 
     #18 May 2006: Bug/unexpected feature found by Y. Le Strat. 
     #the okHistory variable meant to protect against zero count problems,
     #but instead it resulted in exceedance score == 0 for low counts. 
     #Now removed to be concordant with the Farrington 1996 paper.
-    #REMOVEDokHistory <- (pred$fit>1)
-    #X <- ifelse(enoughCases && okHistory,
-    #            (observed[k] - pred$fit) / (max(lu) - pred$fit),0)
     X <- ifelse(enoughCases,(observed[k] - pred$fit) / (max(lu) - pred$fit),0)
 
     #Do we have an alarm -- i.e. is observation beyond CI??

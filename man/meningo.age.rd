@@ -10,11 +10,11 @@
 \format{
   An multivariate object of class disProg with 156 observations in each one of 4 age groups.
   \describe{
-    \item{week}{Number of month.}
-    \item{observed}{Matrix with number of counts in the corresponding month and age group.}
-    \item{state}{Boolean whether there was an outbreak -- dummy not implemented.}
-    \item{neighbourhood}{Neighbourhood matrix, all age groups are adjacent.}
-    \item{populationFrac}{Population fractions.} 
+    \item{week}{Number of month}
+    \item{observed}{Matrix with number of counts in the corresponding month and age group}
+    \item{state}{Boolean whether there was an outbreak -- dummy not implemented}
+    \item{neighbourhood}{Neighbourhood matrix, all age groups are adjacent}
+    \item{populationFrac}{Population fractions} 
   }
 }
 \source{

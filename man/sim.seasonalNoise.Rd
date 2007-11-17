@@ -1,5 +1,7 @@
 \name{sim.seasonalNoise}
 \alias{sim.seasonalNoise}
+\encoding{latin1}
+
 \title{Generation of Background Noise for Simulated Timeseries}
 \description{Generation of a cyclic model of a Poisson distribution
 as background data for a simulated timevector.
@@ -45,5 +47,5 @@ mu = exp(A * sin( frequency * omega * (t + phi)) + alpha  + beta * t +  K * stat
 
 }
 
-\keyword{}
+%\keyword{}
 

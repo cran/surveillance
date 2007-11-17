@@ -13,6 +13,8 @@
 \alias{s1}
 \alias{s2}
 \alias{s3}
+\encoding{latin1}
+
 \title{RKI SurvStat Data}
 \description{14 datasets for different diseases beginning in
 	2001 to the 3rd Quarter of 2004 including their defined outbreaks.
@@ -55,6 +57,6 @@
     survResObj <- algo.rki1(k1, control=list(range=27:192))
     plot(survResObj, "RKI 1", "k1", firstweek=27, startyear=2002)
 }
-\keyword{}
+%\keyword{}
 
 

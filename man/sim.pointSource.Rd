@@ -1,5 +1,7 @@
 \name{sim.pointSource}
 \alias{sim.pointSource}
+\encoding{latin1}
+
 \title{Generation of Simulated Point Source Epidemy}
 \description{Simulation of epidemies which were introduced by point sources.
         The basis of this proagramme is a combination of a Hidden Markov Modell
@@ -48,5 +50,5 @@
     plot(disProgObj)
 }
 
-\keyword{}
+%\keyword{}
 

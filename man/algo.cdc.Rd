@@ -1,6 +1,8 @@
 \name{algo.cdc}
 \alias{algo.cdcLatestTimepoint}
 \alias{algo.cdc}
+\encoding{latin1}
+
 \title{The CDC Algorithm}
 \description{
         Surveillance using the CDC Algorithm
@@ -69,7 +71,7 @@
     algo.cdc(disProgObj, control = list(range = 400:500,alpha=0.025))
 }
 
-\keyword{}
+%\keyword{}
 \source{
 Stroup, D., G. Williamson, J. Herndon, and J. Karon (1989). Detection
 of aberrations in the occurence of notifiable diseases surveillance data.
