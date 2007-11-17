@@ -23,6 +23,6 @@
     mydisProgObj <- readData("./simulation",sysPath=FALSE)
 }
 
-%\keyword{}
+\keyword{file}
 
 

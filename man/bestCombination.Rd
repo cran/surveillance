@@ -17,4 +17,4 @@
 }
 \value{Returns a vector c(prod(set1),prod(set2))
       }
-%\keyword{}
+\keyword{hplot}

@@ -78,7 +78,7 @@ meanResponse(theta, designRes)
 
 \author{M. Paul, L. Held}
 
-%\keyword{}
+\keyword{models}
 
 \source{Held, L., Höhle, M., Hofmann, M. (2005) A statistical framework for the 
     analysis of multivariate infectious disease surveillance counts. 

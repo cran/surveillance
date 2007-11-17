@@ -71,7 +71,7 @@
     algo.cdc(disProgObj, control = list(range = 400:500,alpha=0.025))
 }
 
-%\keyword{}
+\keyword{classif}
 \source{
 Stroup, D., G. Williamson, J. Herndon, and J. Karon (1989). Detection
 of aberrations in the occurence of notifiable diseases surveillance data.

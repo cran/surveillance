@@ -86,7 +86,7 @@
     algo.bayes3(disProg, control = list(range = 200:208,alpha=0.05))
 }
 
-%\keyword{}
+\keyword{classif}
 \source{
 Riebler, A. (2004), Empirischer Vergleich von statistischen Methoden zur
 Ausbruchserkennung bei Surveillance Daten, Bachelor's thesis.

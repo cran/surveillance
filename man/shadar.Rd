@@ -1,6 +1,6 @@
 \name{shadar}
 \alias{shadar}
-\title{Salonella Hadar cases in Germany 2001-2006}
+\title{Salmonella Hadar cases in Germany 2001-2006}
 \description{Number of salmonella hadar cases in
   Germany 2001-2006. An increase is seen during 2006
 }
@@ -20,6 +20,6 @@ Robert Koch Institut, Epidemiologisches Bulletin 31/2006.
 data(shadar)
 plot(shadar)
 }
-%\keyword{}
+\keyword{datasets}
 
 

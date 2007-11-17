@@ -61,7 +61,7 @@ plot(res,disease="Salmonella Agona",method="Farrington")
 }
 \author{M. Höhle}
 \seealso{\code{\link{algo.farrington.fitGLM}},\code{\link{algo.farrington.threshold}}}
-%\keyword{}
+\keyword{classif}
 \source{A statistical algorithm for the early detection of outbreaks of infectious disease, Farrington, C.P., Andrews, N.J, Beale A.D. and Catchpole, M.A. (1996). , J. R. Statist. Soc. A, 159, 547-563.}
 
 

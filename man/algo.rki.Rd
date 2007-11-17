@@ -89,5 +89,5 @@
     algo.rkiLatestTimepoint(disProgObj)
 }
 
-%\keyword{}
+\keyword{classif}
 

@@ -48,7 +48,7 @@ make.design(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
     }}
 }
 \author{M.Paul, L. Held}
-%\keyword{}
+\keyword{misc}
 
 
 

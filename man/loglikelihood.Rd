@@ -30,7 +30,7 @@ loglikelihood(theta, designRes)
 }
 \seealso{\code{\link{meanResponse}}}
 \author{M. Paul, L. Held}
-%\keyword{}
+\keyword{models}
 
 
 % meanResponse

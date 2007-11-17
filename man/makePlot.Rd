@@ -30,5 +30,5 @@
     makePlot("./", "k1", "rki2", "RKI 2", "Kryptosporidiose")
 }
 
-%\keyword{}
+\keyword{misc}
 

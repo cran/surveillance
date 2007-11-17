@@ -47,5 +47,5 @@ mu = exp(A * sin( frequency * omega * (t + phi)) + alpha  + beta * t +  K * stat
 
 }
 
-%\keyword{}
+\keyword{datagen}
 

@@ -119,5 +119,5 @@ plot(surv,legend=list(x="topright"))
 
 }
 
-%\keyword{}
+\keyword{classif}
 

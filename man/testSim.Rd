@@ -42,6 +42,6 @@
     testSim(r = 0.5, K = 5)
 }
 
-%\keyword{}
+\keyword{misc}
 
 

@@ -1,0 +1,15 @@
+0.9-8
+=====
+
+* The algo_glrpois function now has an additional "ret" arguments,
+  where one specifies the return type. The arguments of the underlying
+  c functions have been changed to include an additional direction and
+  return type value arguments.
+
+* added restart argument to the algo.glrpois control object, which
+allows the user to control what happens after the first alarm has been
+generated
+
+* experimental algo.glrnb function is added to the package. All calls to
+algo.glrpois are now just alpha=0 calls to this function. However, 
+the underlying C functions differentiate between poisson and negative case

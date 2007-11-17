@@ -14,6 +14,6 @@ algo.farrington.assign.weights(s)
 }
 \value{Weights according to the residuals}
 \seealso{See Also as \code{\link{anscombe.residuals}}}
-%\keyword{}
+\keyword{regression}
 
 

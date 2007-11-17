@@ -16,7 +16,7 @@ anscombe.residuals(m, phi)
 }
 \value{Standardized Anscombe residuals of \code{m}}
 \references{McCullagh & Nelder, Generalized Linear Models, 1989}
-%\keyword{}
+\keyword{regression}
 
 
 

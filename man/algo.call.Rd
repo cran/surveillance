@@ -52,6 +52,6 @@
     survRes[["bayes(5,5,1)"]]
 }
 
-%\keyword{}
+\keyword{classif}
 
 

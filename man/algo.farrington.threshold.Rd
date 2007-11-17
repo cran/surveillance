@@ -27,6 +27,6 @@ algo.farrington.threshold(pred,phi,alpha=0.01,skewness.transform="none")
         Vector of length 2 with lower and upper bounds of an \eqn{(1-\alpha)\%} confidence interval.
         }
 }
-%\keyword{}
+\keyword{regression}
 
 
