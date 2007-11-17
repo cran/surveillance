@@ -29,6 +29,6 @@ findK(theta0, theta1, distr = c("poisson", "binomial"),
 \value{
   Returns reference value \code{k}.
 }
-%\keyword{ }
+\keyword{models}
 
 

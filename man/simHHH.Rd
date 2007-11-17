@@ -72,5 +72,5 @@
     analysis of multivariate infectious disease surveillance counts. Statistical
     Modelling, 5, p. 187-199.
     }
-%\keyword{}
+\keyword{datagen}
 

@@ -57,7 +57,7 @@
                 either in one single plot or in several plots for each individual
                 time series. }
 }
-\author{M. Hï¿½hle with contributions by A. Riebler and C. Lang}
+\author{M. Höhle with contributions by A. Riebler and C. Lang}
 \examples{
 
     # Plotting of simulated data
@@ -82,7 +82,7 @@
     plot(measles.weser, same.scale=TRUE, as.one=FALSE)
 }
 
-%\keyword{}
+\keyword{hplot}
 
 
 

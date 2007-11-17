@@ -16,7 +16,7 @@
 \value{\item{x}{univariate \code{disProg} object with aggregated 
      counts and respective states for each time point.}
 }
-%\keyword{}
+\keyword{hplot}
 \examples{
 data(ha)
 plot(aggregate(ha))

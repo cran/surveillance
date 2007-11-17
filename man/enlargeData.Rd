@@ -33,5 +33,5 @@
     enlargeData(obj, 33:36, 10) # enlarge 10 times with part 33:36
 }
 
-%\keyword{}
+\keyword{utilities}
 

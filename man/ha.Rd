@@ -20,6 +20,6 @@ Robert Koch Institut, Epidemiologisches Bulletin 33/2006, p.290.
 data(ha)
 plot(aggregate(ha))
 }
-%\keyword{}
+\keyword{datasets}
 
 

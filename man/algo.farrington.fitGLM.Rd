@@ -34,6 +34,6 @@
   convergence \code{NULL} is returned.}
 %
 \seealso{\code{\link{anscombe.residuals}}}
-%\keyword{}
+\keyword{regression}
 
 

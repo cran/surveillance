@@ -50,5 +50,5 @@
     plot(disProgObj)
 }
 
-%\keyword{}
+\keyword{datagen}
 

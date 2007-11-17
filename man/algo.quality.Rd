@@ -48,6 +48,6 @@
     algo.quality(survResObj)
 }
 
-%\keyword{}
+\keyword{misc}
 
 

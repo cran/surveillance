@@ -52,7 +52,7 @@ grid2 <- create.grid(disProgObj, cntrl2, params = list(epidemic=c(0.1,0.9,5),
                      negbin=c(0.3,12,10)))
 
 }
-%\keyword{}
+\keyword{misc}
 
 
 

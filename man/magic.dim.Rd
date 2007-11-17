@@ -16,7 +16,7 @@
       \item{k}{an integer}
 }
 \value{vector with two elements}
-%\keyword{}
+\keyword{hplot}
 
 
 % primeFactors

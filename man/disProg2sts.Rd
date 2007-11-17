@@ -31,5 +31,5 @@
   print(disProg2sts(ha))
   class(sts2disProg(disProg2sts(ha)))
 }
-%\keyword{}
+\keyword{utilities}
 

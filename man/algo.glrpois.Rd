@@ -8,7 +8,7 @@
 }
 \usage{
 algo.glrpois(disProgObj,control = list(range=range,c.ARL=5, 
-         mu0=NULL, Mtilde=1, M=-1, change="intercept",theta=NULL,dir="inc"))
+         mu0=NULL, Mtilde=1, M=-1, change="intercept",theta=NULL,dir=c("inc","dec"),ret=c("cases","value")))
 }
 \arguments{
 \item{disProgObj}{object of class \code{disProg} to do surveillance
@@ -45,19 +45,30 @@ algo.glrpois(disProgObj,control = list(range=range,c.ARL=5,
         used. If not \code{NULL} the prespecified value for
         \eqn{\kappa} or \eqn{\lambda} is used in a recursive
         LR scheme, which is faster.  }
-    \item{\code{dir}}{a string specifying the direction of testing in GLR scheme. With \code{"inc"} only increases in \eqn{x} are considered in the GLR-statistic, with \code{"dec"} decreases are regarded. }
-    }
-  }
-}
+    \item{\code{dir}}{a string specifying the direction of testing in
+        GLR scheme. With \code{"inc"} only increases in \eqn{x} are
+        considered in the GLR-statistic, with \code{"dec"} decreases
+        are regarded. }
+    \item{\code{ret}}{a string specifying the type of
+        \code{upperbound}-statistic that is returned. With
+        \code{"cases"} the number of cases that would have been
+        necassary to produce an alarm or with \code{"value"} the
+        glr-statistic is computed (see below).}  
+    } 
+  } 
+} 
 \value{
-\item{survRes}{ \code{algo.glrpois} returns a list of class \code{survRes}
-    (surveillance result), which includes the alarm value for
-    recognizing an outbreak (1 for alarm, 0 for no alarm), the
-    threshold value for recognizing the alarm and the input object of
-    class disProg. The \code{upperbound} slot of the object are filled
-    with the current \eqn{GLR(n)} value.  } 
+\item{survRes}{ \code{algo.glrpois} returns a list of class
+    \code{survRes} (surveillance result), which includes the alarm
+    value for recognizing an outbreak (1 for alarm, 0 for no alarm),
+    the threshold value for recognizing the alarm and the input object
+    of class disProg. The \code{upperbound} slot of the object are
+    filled with the current \eqn{GLR(n)} value or with the number of
+    cases that are necassary to produce an alarm at any timpoint
+    \eqn{<=n}. Both lead to the same alarm timepoints, but
+    \code{"cases"} has an obvious interpretation.} 
 }
-%
+% 
 \details{ 
 %
   This function implements the seasonal Poisson charts based on
@@ -94,7 +105,7 @@ not an issue here this doesn't bother too much. Therefore, a value of
 \seealso{
 \code{\link{algo.rkiLatestTimepoint}}
 }
-\author{M. Hoehle}
+\author{M. Hoehle with contributions by V. Wimmer}
 \examples{
 ##Simulate data and apply the algorithm
 S <- 1 ; t <- 1:120 ; m <- length(t)
@@ -117,8 +128,8 @@ s.ts <- create.disProg(week=1:length(t),observed=x,state=(t>=tau))
 plot(s.ts,legend=NULL,xaxis.years=FALSE)
 
 #Run 
-cntrl = list(range=t,c.ARL=5, Mtilde=1, mu0=mu0,change="intercept",dir="inc")
-glr.ts <- algo.glrpois(s.ts,control=cntrl)
+cntrl = list(range=t,c.ARL=5, Mtilde=1, mu0=mu0,change="intercept",ret="value",dir="inc")
+glr.ts <- algo.glrpois(s.ts,control=c(cntrl))
 lr.ts  <- algo.glrpois(s.ts,control=c(cntrl,theta=0.4))
 
 plot(glr.ts,xaxis.years=FALSE)
@@ -126,12 +137,13 @@ plot(lr.ts,xaxis.years=FALSE)
 
 }
 
-%\keyword{}
+\keyword{classif}
 \source{
 Poisson regression charts for the monitoring of surveillance time
 series (2006), Höhle, M., SFB386 Discussion Paper 500.
 }
 
 
+% Hook
 
 %Rnw file 

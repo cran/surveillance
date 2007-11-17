@@ -57,6 +57,6 @@
     survResObj <- algo.rki1(k1, control=list(range=27:192))
     plot(survResObj, "RKI 1", "k1", firstweek=27, startyear=2002)
 }
-%\keyword{}
+\keyword{datasets}
 
 

@@ -44,7 +44,7 @@
   plot(salmonellaDisProg, title = title, xaxis.years=TRUE, legend.opts=NULL,
         startyear = 1990, firstweek = 1)
 }
-%\keyword{}
+\keyword{hplot}
 
 
 

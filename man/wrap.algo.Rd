@@ -57,5 +57,5 @@ glrpois(sts, control = list(range=range,c.ARL=5, S=1,beta=NULL, Mtilde=1, M=-1, 
 %\examples{
 %}
 
-%\keyword{}
+\keyword{classif}
 
