@@ -1,5 +1,7 @@
 \name{algo.farrington.threshold}
 \alias{algo.farrington.threshold}
+\encoding{latin1}
+
 \title{Threshold computations using a two sided confidence interval}
 \description{
 Depending on the current transformation \eqn{h(y)= \{y, \sqrt{y}, y^{2/3}\}},
@@ -25,6 +27,6 @@ algo.farrington.threshold(pred,phi,alpha=0.01,skewness.transform="none")
         Vector of length 2 with lower and upper bounds of an \eqn{(1-\alpha)\%} confidence interval.
         }
 }
-\keyword{}
+%\keyword{}
 
 

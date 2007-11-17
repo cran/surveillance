@@ -11,6 +11,7 @@
 \alias{dim,sts-method}
 \alias{colnames,sts,missing,missing-method}
 \alias{initialize,sts-method}
+\encoding{latin1}
 
 \title{Class "sts" -- surveillance time series}
 

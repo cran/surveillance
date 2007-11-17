@@ -17,6 +17,13 @@
 \alias{getH}
 \alias{getHK}
 \alias{getTheta1}
+%additional (undocumented) functions needed for algo.hhh
+\alias{unpackParams}
+\alias{gradient}
+\alias{weightedSumNeighbours}
+\alias{jacobian}
+\alias{sinCos2amplitudeShift}
+\alias{jacobianAmplitudeShift}
 %
 \title{Internal surveillance Functions}
 \description{

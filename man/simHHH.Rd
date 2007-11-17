@@ -2,13 +2,15 @@
 \alias{simHHH}
 \alias{simHHH.default}
 \alias{simHHH.ah}
+\encoding{latin1}
+
 \title{Simulates data based on the model proposed by Held et. al (2005)}
 \description{
    Simulates a multivariate time series of counts based on the
    Poisson/Negative Binomial model as described in Held et al. (2005).
 }
 \usage{
-\method{simHHH}{default}(model=NULL, control = list(coefs = list(alpha, gamma = 0, delta = 0,
+\method{simHHH}{default}(model=NULL, control = list(coefs = list(alpha=1, gamma = 0, delta = 0,
        lambda = 0, phi = NULL, psi = NULL, period = 52),
        neighbourhood = NULL, population = NULL, start = NULL),
 %       state = NULL, K = 0),
@@ -66,9 +68,9 @@
 }
 \note{The model does not contain a linear trend.}
 %\seealso{\code{\link{algo.hhh}}, \code{\link{algo.hhh.grid}}}
-\source{Held, L., HÃ¶hle, M., Hofmann, M. (2005). A statistical framework for the
+\source{Held, L., Höhle, M., Hofmann, M. (2005). A statistical framework for the
     analysis of multivariate infectious disease surveillance counts. Statistical
     Modelling, 5, p. 187-199.
     }
-\keyword{}
+%\keyword{}
 

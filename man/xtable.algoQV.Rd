@@ -12,9 +12,9 @@
         \item{...}{Further arguments (see \code{\link[xtable]{xtable})}}
 }
 \usage{
-xtable.algoQV(x,caption = NULL, label = NULL, align = NULL, digits = NULL, display = NULL, ...)
+  \method{xtable}{algoQV}(x,caption = NULL, label = NULL, align = NULL, digits = NULL, display = NULL, ...)
 }
-\keyword{}
+%\keyword{}
 \seealso{ \code{\link[xtable]{xtable}}}
 \examples{
     # Create a test object

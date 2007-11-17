@@ -7,18 +7,17 @@
     correct53to52(disProgObj, firstweek = 1)
 }
 \arguments{
-        \item{disProgObj}{object of class disProg (including the observed and the state chain).}
-        \item{firstweek}{the number of the first week in a year, default = 1 (if it starts
-                                with the beginning of a year). Necessary, because the infected of week 53
-                                and the infected of week 52 must be added.}
+\item{disProgObj}{object of class disProg (including the observed and the state chain).}
+\item{firstweek}{the number of the first week in a year, default = 1 (if it starts
+    with the beginning of a year). Necessary, because the infected of week 53
+    and the infected of week 52 must be added.}
 }
 \value{
-        \item{disProg}{a object \code{disProg} (disease progress) including a list of the observed
-                 and the state chain (corrected to 52 weeks instead of 53 weeks a year)}
-        }
+\item{disProg}{a object \code{disProg} (disease progress) including a list of the observed
+    and the state chain (corrected to 52 weeks instead of 53 weeks a year)}
 }
 \details{\code{\link{readData}} reads data with 53 weeks a year, but normally one year is said
-        to have 52 weeks.
+  to have 52 weeks.
 }
 \seealso{\code{\link{readData}}
 }
@@ -32,6 +31,6 @@
                                       # entry is the first week of the year
 }
 
-\keyword{}
+%\keyword{}
 
 

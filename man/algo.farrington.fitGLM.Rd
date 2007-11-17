@@ -1,5 +1,7 @@
 \name{algo.farrington.fitGLM}
 \alias{algo.farrington.fitGLM}
+\encoding{latin1}
+
 \title{Fit the Poisson GLM of the Farrington procedure for a single
   time point}
 \description{
@@ -25,13 +27,13 @@
 %
 \details{Compute weights from an initial fit and rescale using
   Anscombe based residuals as described in the
-  \code{\link{anscombe.residuals}} function.}  }
+  \code{\link{anscombe.residuals}} function.}
 %
 \value{An object of class GLM with additional fields \code{wtime},
   \code{response} and \code{phi}. If the \code{glm} returns without
   convergence \code{NULL} is returned.}
 %
 \seealso{\code{\link{anscombe.residuals}}}
-\keyword{}
+%\keyword{}
 
 

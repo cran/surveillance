@@ -1,5 +1,7 @@
 \name{create.disProg}
 \alias{create.disProg}
+\encoding{latin1}
+
 \title{Creating an object of class disProg}
 \description{
   Creates an object of class \code{disProg} from a vector with the weeknumber
@@ -28,23 +30,21 @@
 \value{\item{disProg}{object of class \code{disProg}  
   }
 }
-\details{}
-\seealso{}
 \author{M. Paul}
 \examples{
 
   # create an univariate disProg object for the salmonella.agona data
   data(salmonella.agona)
-  week <- nrow(salmonella.agona)
+  week <- 1:length(salmonella.agona$observed)
   salmonellaDisProg <- create.disProg(week=week, observed=salmonella.agona$observed,
   state=salmonella.agona$state)
   
   # plot salmonella cases
   title <- "Salmonella Agona cases in the UK"
-  plot(salmonellaDisProg, title = title, xaxis.years=TRUE, legend=FALSE,
+  plot(salmonellaDisProg, title = title, xaxis.years=TRUE, legend.opts=NULL,
         startyear = 1990, firstweek = 1)
 }
-\keyword{}
+%\keyword{}
 
 
 

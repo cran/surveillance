@@ -5,7 +5,7 @@
 # Simulates multivariate count data based on the model described in Held et.al (2005)
 # Note: trend is omitted
 ######################################
-simHHH.default <- function(model=NULL,control=list(coefs=list(alpha, gamma=0, delta=0, lambda=0,
+simHHH.default <- function(model=NULL,control=list(coefs=list(alpha=1, gamma=0, delta=0, lambda=0,
                                          phi=NULL,psi=NULL,period=52),
                            neighbourhood=NULL,population=NULL,start=NULL),
                            length){
@@ -101,7 +101,7 @@ simHHH.default <- function(model=NULL,control=list(coefs=list(alpha, gamma=0, de
     season <- model.frame(formula=formulaSeason(S=S,period=control$coefs$period),
                            data=data.frame("t"=1:length))
     #rearrange the sinus and cosinus parts
-    season[,c(seq(1,2*S,by=2),seq(2,2*S,by=2))]
+    season <- season[,c(seq(1,2*S,by=2),seq(2,2*S,by=2))]
     # this computes \sum_{s=1}^S [gamma_s*sin(omega_s*t) + delta_s*cos(omega_s*t) ]
     season<- as.matrix(season)%*%c(control$coefs$gamma,control$coefs$delta)
 

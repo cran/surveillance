@@ -1,5 +1,7 @@
 \name{bestCombination}
 \alias{bestCombination}
+\encoding{latin1}
+
 \title{Partition of a number into two factors}
 \description{
        Given a prime number factorization \code{x}, \code{best combination}
@@ -15,4 +17,4 @@
 }
 \value{Returns a vector c(prod(set1),prod(set2))
       }
-\keyword{}
+%\keyword{}

@@ -1,27 +1,35 @@
 \name{plot.survRes}
 \alias{plot.survRes}
 \alias{plot.survRes.one}
+\encoding{latin1}
+
 \title{Plot a survRes object}
-\description{Plotting of a (multivariate) \code{survRes} object. The function \code{plot.survRes.one} is used as a helper function to plot a univariate time series.}
+\description{Plotting of a (multivariate) \code{survRes} object. The function \code{plot.survRes.one} is used as a helper function to plot a univariate time series.
 }
 \usage{
-  plot.survRes(x, method=x$control$name, disease=x$control$data, xaxis.years=TRUE,startyear = 2001, firstweek = 1, same.scale=TRUE,...)
-  plot.survRes.one(x, method=x$control$name, disease=x$control$data, domany=FALSE,ylim=NULL,xaxis.years=TRUE,startyear = 2001, firstweek = 1, xlab="time", ylab="No. infected", main=NULL, type="hhs",lty=c(1,1,2),col=c(1,1,4), outbreak.symbol = list(pch=3, col=3),alarm.symbol=list(pch=24, col=2),legend.opts=list(x="top",legend=c("Infected", "Threshold", "Alarm", "Outbreak"),lty=NULL,col=NULL,pch=NULL), ...)
+  \method{plot}{survRes}(x, method=x$control$name, disease=x$control$data, 
+  xaxis.years=TRUE,startyear = 2001, firstweek = 1, same.scale=TRUE,...)
+  \method{plot}{survRes.one}(x, method=x$control$name, disease=x$control$data,
+   domany=FALSE,ylim=NULL,xaxis.years=TRUE,startyear = 2001, firstweek = 1, 
+   xlab="time", ylab="No. infected", main=NULL, type="hhs",lty=c(1,1,2),col=c(1,1,4), 
+   outbreak.symbol = list(pch=3,col=3),alarm.symbol=list(pch=24,col=2),
+   legend.opts=list(x="top",legend=c("Infected", "Upperbound", "Alarm", "Outbreak"),
+   lty=NULL,col=NULL,pch=NULL), ...)
 }
 \arguments{
-        \item{x}{Object of class \code{survRes}}
-        \item{method}{Surveillance method to be used in title}
-        \item{disease}{Name of disease in title}
+        \item{x}{object of class \code{survRes}}
+        \item{method}{surveillance method to be used in title}
+        \item{disease}{name of disease in title}
         \item{xaxis.years}{Boolean indicating whether to show a year based x-axis for weekly data} 
         \item{domany}{Boolean telling the function whether it is called for a multivariate (\code{TRUE}) or univariate (\code{FALSE}) \code{survRes} object. In case of \code{TRUE} no titles are drawn.}
         \item{ylim}{range of y axis}
-        \item{startyear}{Year to begin the axis labeling (the year where
+        \item{startyear}{year to begin the axis labeling (the year where
                 the oldest data come from)}
-        \item{firstweek}{Number of the first week of January in the first year (just for axis labeling reasons)}
+        \item{firstweek}{number of the first week of January in the first year (just for axis labeling reasons)}
         \item{xlab}{label of the x-axis}
         \item{ylab}{label of the y-axis}
-        \item{main}{The title of the graphics is generated from the \code{method} and \code{disease} arguments if not specified otherwise}
-        \item{same.scale}{Plot all time series with the same \code{ylim}? Defaults to \code{true}}.
+        \item{main}{the title of the graphics is generated from the \code{method} and \code{disease} arguments if not specified otherwise}
+        \item{same.scale}{plot all time series with the same \code{ylim}? Defaults to \code{true}}.
         \item{type}{line type of the observed counts (first two elements) and the upper bound (third element)}
         \item{lty}{vector of size 3 speciying the line type of the observed counts (left, right) and the upperbound line}
         \item{col}{vector with three elements: color of left bar and color of top bar, color of right bar, col of the upperbound line.}
@@ -29,15 +37,15 @@
         \item{alarm.symbol}{list with entries \code{pch} and \code{col} specifying the plot symbol}
         \item{legend.opts}{a list containing the entries to be sent to the \code{\link{legend}} function. If no legend is requested use \code{legend.opts=NULL}. Otherwise, the following arguments are default
             \describe{
-            \item{x}{\code{top}}
-            \item{legend}{The names infected and outbreak.}
-            \item{lty}{If \code{NULL} the \code{lty} argument will be used.}
-            \item{pch}{If \code{NULL} the \code{pch} argument is used.}
-            \item{col}{If \code{NULL} the \code{col} argument is
-                used.}  
+            \item{\code{x}}{\code{top}}
+            \item{\code{legend}}{The names infected and outbreak.}
+            \item{\code{lty}}{If \code{NULL} the \code{lty} argument will be used}
+            \item{\code{pch}}{If \code{NULL} the \code{pch} argument is used}
+            \item{\code{col}}{If \code{NULL} the \code{col} argument is
+                used}  
             }
             
-            An further arguments to the \code{legend} function are
+            Any further arguments to the \code{legend} function are
             just provided as additional elements of this list,
             e.g. \code{horiz=TRUE}.  
           }
@@ -50,14 +58,14 @@
 \details{
   The \code{plot.survRes.one} is intended for internal use. At the moment none of the surveillance methods support multivariate \code{survRes} objects. New versions of the packages currently under development will handle this.
 }
-\author{M. Höhle}
+\author{M. Hï¿½hle}
 \examples{
 data(ha)
 ctrl <- list(range = 209:290, b = 2, w = 6, alpha = 0.005)
 plot(algo.bayes(aggregate(ha), control = ctrl))
 }
 
-\keyword{}
+%\keyword{}
 
 
 

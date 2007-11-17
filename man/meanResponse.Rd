@@ -1,49 +1,88 @@
 \name{meanResponse}
 \alias{meanResponse}
+\encoding{latin1}
 \title{Calculate mean response needed in algo.hhh}
 \description{
         Calculates the mean response for the model specified in designRes 
         according to equations (1.2) and (1.1) in Held et al., 2005
-        for univariate time series and equations (3.3) and (3.2) for multivariate
-        time series. See details.
+        for univariate time series and equations (3.3) and (3.2) (with extensions)
+        for multivariate time series. See details.
 }
 \usage{
-  meanResponse(theta, designRes)
+meanResponse(theta, designRes)
 }
 \arguments{
-        \item{theta}{vector of parameters 
-              \deqn{\theta = (\lambda, \phi, \beta, \gamma_1, \delta_1, 
-              \gamma_2, \delta_2, \ldots, \psi, \alpha_1, \alpha_2, \ldots).}
-              If the model specifies less parameters, those components are omitted.} 
-        \item{designRes}{Result of a call to \code{make.design}}
+	\item{theta}{vector of parameters 
+	
+			\eqn{\theta = (\alpha_1,\ldots,\alpha_m,
+								\bold{\lambda}, 
+								\bold{\phi}, \bold{\beta}, 
+								\bold{\gamma}_1, \ldots,  \bold{\gamma}_m, 
+								\bold{\psi}),}{\theta = (\alpha_1,\ldots,\alpha_m,
+								\lambda, \phi, \beta, 
+								\gamma_1, \ldots, \gamma_m, \psi),}
+								
+			where \eqn{\bold{\lambda}=(\lambda_1,\ldots,\lambda_m)}{\lambda=(\lambda_1,\ldots,\lambda_m)}, 
+			\eqn{\bold{\phi}=(\phi_1,\ldots,\phi_m)}{\phi=(\phi_1,\ldots,\phi_m)}, 
+			\eqn{\bold{\beta}=(\beta_1,\ldots,\beta_m)}{\beta=(\beta_1,\ldots,\beta_m)}, 
+			\eqn{\bold{\gamma_1}=(\gamma_{11},\ldots,\gamma_{1,2S_1})}{\gamma_1=(\gamma_11,\ldots,\gamma_(1,2S_1))}, 
+			\eqn{\bold{\gamma_m}=(\gamma_{m1},\ldots,\gamma_{m,2S_m})}{\gamma_m=(\gamma_m1,\ldots,\gamma_(m,2S_m))}, 
+			\eqn{\bold{\psi}=(\psi_1,\ldots,\psi_m)}{\psi=(\psi_1,\ldots,\psi_m)}.
+			
+			If the model specifies less parameters, those components are omitted.} 
+	\item{designRes}{Result of a call to \code{make.design} }
 }
-\value{
-    Returns a matrix of dimension \eqn{n \times m} with the calculated mean 
-    response for each time point and unit, where \eqn{n} is the number of time 
-    points and \eqn{m} is the number of units.
-}
+
 \details{        
-        Calculates the mean response for a Poisson or a Negative Binomial model
-        with mean
-        \deqn{\mu_t = \nu_t + \lambda y_{t-1}}
-        where 
-        \deqn{log \nu_t = \alpha + \beta t 
-        + \sum_{s=1}^{S}(\gamma_s sin(\omega_s t) + \delta_s cos(\omega_s t))}
-        and Fourier frequencies \eqn{\omega_s = 2s\pi/period} for a univariate time series.  
-        For multivariate time series the mean structure is
-        \deqn{\mu_{it} = \lambda y_{i,t-1} + \phi \sum_{j \sim i} y_{j,t-1} + n_{it} \nu_{it}}
-        where 
-        \deqn{log \nu_{it} = \alpha_i + \beta t 
-        + \sum_{s=1}^{S}(\gamma_s sin(\omega_s t) + \delta_s cos(\omega_s t))}
-        and \eqn{n_{it}} are standardized population counts.
-        }
-\seealso{}
+	Calculates the mean response for a Poisson or a negative binomial model
+	with mean
+	\deqn{\mu_t = \lambda y_{t-1} + \nu_t }{\mu_t = \lambda y_t-1 + \nu_t }
+	where
+	\deqn{\log( \nu_t) = \alpha + \beta t + \sum_{j=1}^{S}(\gamma_{2j-1} \sin(\omega_j t) + \gamma_{2j} \cos(\omega_j t) ) }{
+			log(\nu_t) = \alpha + \beta t + \sum_(j=1)^S (\gamma_(2j-1) * \sin(\omega_j * t) + \gamma_2j * \cos(\omega_j * t) )  }
+	and \eqn{\omega_j = 2\pi j/period }{\omega_j = 2 * \pi * j / period} are Fourier frequencies with
+	known period, e.g. \code{period}=52 for weekly data,
+	for a univariate time series.
+	
+	For multivariate time series the mean structure is
+	\deqn{\mu_{it} = \lambda_i y_{i,t-1} + \phi_i \sum_{j \sim i} w_{ji} y_{j,t-1} + n_{it} \nu_{it}}{
+			\mu_it = \lambda_i * y_i,t-1 + \phi_i * \sum_(j ~ i) w_ji * y_j,t-1 + n_it * \nu_it }
+	where 
+	\deqn{\log(\nu_{it}) = \alpha_i + \beta_i t + \sum_{j=1}^{S_i} (\gamma_{i,2j-1} \sin(\omega_j t) + \gamma_{i,2j} \cos(\omega_j t) ) }{
+			log(\nu_it) = \alpha_i + \beta_i * t + \sum_(j=1)^S_i (\gamma_(i,2j-1) * \sin(\omega_j * t) + \gamma_(i,2j) * \cos(\omega_j * t) )  }
+	and \eqn{n_{it}}{n_it} are standardized population counts. The weights \eqn{w_{ji}}{w_ji} are specified in the columns of
+	the neighbourhood matrix \code{disProgObj$neighbourhood}.
+	
+	Alternatively, the mean can be specified as
+	\deqn{\mu_{it} = \lambda_i \pi_i y_{i,t-1} + \sum_{j \sim i} \lambda_j (1-\pi_j)/ |k \sim j| y_{j,t-1} + n_{it} \nu_{it}}{
+			\mu_it = \lambda_i *\pi_i * y_i,t-1 + \sum_(j ~ i) \lambda_j *(1-\pi_j)/|k ~ j| * y_j,t-1 + n_it * \nu_it }
+	if \code{proportion}="single" ("multiple") in \code{designRes$control}. Note that this model specification is still experimental.
+	
+	
+	
+}
+
+\value{
+	Returns a \code{list} with elements
+	\item{mean}{matrix of dimension \eqn{n \times m}{n x m} with the calculated mean 
+			response for each time point and unit, where \eqn{n} is the number of time 
+			points and \eqn{m} is the number of units. }
+	\item{epidemic}{matrix with the epidemic part 
+			\eqn{ \lambda_i y_{i,t-1} + \phi_i \sum_{j \sim i} y_{j,t-1}}{
+					\lambda_i * y_i,t-1 + \phi_i * \sum_(j ~ i) y_j,t-1} }
+	\item{endemic}{matrix with the endemic part of the mean \eqn{ n_{it} \nu_{it} }{ n_it*nu_it } }
+	\item{epi.own}{matrix with \eqn{ \lambda_i y_{i,t-1} }{\lambda_i * y_i,t-1} }
+	\item{epi.neighbours}{matrix with \eqn{\phi_i \sum_{j \sim i} y_{j,t-1}}{
+					\phi_i * \sum_(j ~ i) y_j,t-1} }
+}
+
 \author{M. Paul, L. Held}
-\examples{}
-\keyword{}
-\source{Held, L., Höhle, M., Hofmann, M. (2005). A statistical framework for the 
-    analysis of multivariate infectious disease surveillance counts. Statistical 
-    Modelling, 5, p. 187-199.}
+
+%\keyword{}
+
+\source{Held, L., Höhle, M., Hofmann, M. (2005) A statistical framework for the 
+    analysis of multivariate infectious disease surveillance counts. 
+    \emph{Statistical Modelling}, \bold{5}, p. 187--199.}
 
 
 % make.design

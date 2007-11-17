@@ -3,13 +3,15 @@
 ###################################################
 create.disProg <- function(week, observed, state, start=c(2001,1), freq=52, neighbourhood=NULL, populationFrac=NULL){
   namesObs <-colnames(observed)
-  namesState <- colnames(observed)
   
   #univariate timeseries ?
-  if(is.vector(observed))
+  if(is.vector(observed)){
     observed <- matrix(observed,ncol=1)
+    namesObs <- deparse(quote(observed))
+  }
   if(is.vector(state))
     state <- matrix(state,ncol=1)
+  
     
   #check number of columns of observed and state
   nAreas <- ncol(observed)
@@ -25,9 +27,16 @@ create.disProg <- function(week, observed, state, start=c(2001,1), freq=52, neig
   }
   
   #check neighbourhood matrix
-  if(!is.null(neighbourhood) & (any(dim(neighbourhood) != nAreas))) {
-    cat('wrong dimensions of neighbourhood matrix \n')
-    return(NULL)
+  # neighbourhood can be a matrix or an array of dimension c(nAreas,nAreas, nrow(observed))
+  if(!is.null(neighbourhood) ) {
+    dimNhood <- dim(neighbourhood)
+    if(length(dimNhood)==2 & any(dimNhood != nAreas)) {
+      cat('wrong dimensions of neighbourhood matrix \n')
+      return(NULL)
+    } else if (length(dimNhood)==3 & (any(dimNhood[1:2] != nAreas) | (dimNhood[3] != nrow(observed)) )){
+      cat('wrong dimensions of neighbourhood matrix \n')
+      return(NULL)
+    }
   }
   
   #if(is.null(populationFrac)) 
@@ -40,17 +49,18 @@ create.disProg <- function(week, observed, state, start=c(2001,1), freq=52, neig
   
   #labels for observed and state
   if(is.null(namesObs)){
-    namesObs <- paste("observed", 1:nAreas, sep="")       
-    namesState <- paste("state", 1:nAreas, sep="")  
+    namesObs <- paste(deparse(quote(observed)),1:nAreas,sep="")
+
   }
- 
-  dimnames(observed) <- list(NULL,namesObs)
-  dimnames(state) <- list(NULL,namesState)
+  
+  colnames(observed) <- namesObs
+  colnames(state) <- namesObs
   
   res <- list("week"=week, "observed"=observed, "state"=state, "start"=start, "freq"=freq,  "neighbourhood"=neighbourhood, "populationFrac"=populationFrac)
   class(res) <- "disProg"
   return(res)
 }
+
 
 
 ###################################################
@@ -84,7 +94,7 @@ aggregate.disProg <- function(x,...){
   state[state > 1] <- 1
   
   #create univariate disProg object
-  x <- create.disProg(week=x$week, observed=observed, state=state, freq=x$freq)
+  x <- create.disProg(week=x$week, observed=observed, state=state, freq=x$freq,start=x$start)
   return(x)
 }
 
@@ -93,7 +103,7 @@ aggregate.disProg <- function(x,...){
 ### chunk number 4: 
 ###################################################
 
-plot.disProg.one <- function(x, title = "", xaxis.years=TRUE, startyear = 2001, firstweek = 1, ylim=NULL, xlab="time", ylab="No. infected",type="hh",lty=c(1,1),col=c(1,1), outbreak.symbol = list(pch=3, col=3),legend.opts=list(x="top", legend=c("Infected", "Outbreak"),lty=NULL,pch=NULL,col=NULL), ...) {
+plot.disProg.one <- function(x, title = "", xaxis.years=TRUE, quarters=TRUE, startyear = x$start[1], firstweek = x$start[2], ylim=NULL, xlab="time", ylab="No. infected",type="hh",lty=c(1,1),col=c(1,1), outbreak.symbol = list(pch=3, col=3),legend.opts=list(x="top", legend=c("Infected", "Outbreak"),lty=NULL,pch=NULL,col=NULL),...) {
 
 
   observed <- x$observed
@@ -133,29 +143,36 @@ plot.disProg.one <- function(x, title = "", xaxis.years=TRUE, startyear = 2001, 
   #Label of x-axis 
   if(xaxis.years){        
     # get the number of quarters lying in range for getting the year and quarter order
-    myat.week <- seq(ceiling((52-firstweek+1)/13) * 13 + 1, length(observed)+(floor((52-firstweek + 1)/13) * 13 +1), by=13)
+    obsPerYear <- x$freq
+    obsPerQuarter <- x$freq/4
+    myat.week <- seq(ceiling((obsPerYear-firstweek+1)/obsPerQuarter) * obsPerQuarter + 1, length(observed)+(floor((obsPerYear-firstweek + 1)/obsPerQuarter) * obsPerQuarter +1), by=obsPerQuarter)
     # get the right year order
-    year <- (myat.week - 52) %/% 52 + startyear
+    year <- (myat.week - obsPerYear) %/% obsPerYear + startyear
     # function to define the quarter order
     quarterFunc <- function(i) { switch(i+1,"I","II","III","IV")}
     # get the right number and order of quarter labels
-    quarter <- sapply( (myat.week-1) %/% 13 %% 4, quarterFunc)
+    quarter <- sapply( (myat.week-1) %/% obsPerQuarter %% 4, quarterFunc)
     # get the positions for the axis labels
-    myat.week <- myat.week - (52 - firstweek + 1)
+    myat.week <- myat.week - (obsPerYear - firstweek + 1)
 
     # construct the computed axis labels
-    if (cex == 1) {
-      mylabels.week <- paste(year,"\n\n",quarter,sep="")
+    if (quarters) {
+      if (cex == 1) {
+        mylabels.week <- paste(year,"\n\n",quarter,sep="")
+      } else {
+        mylabels.week <- paste(year,"\n",quarter,sep="")
+      }
     } else {
-      mylabels.week <- paste(year,"\n",quarter,sep="")
+      mylabels.week <- paste(year,sep="")
     }
+      
         
     axis( at=myat.week , labels=mylabels.week , side=1, line = 1 )
     axis( side=2 )
   }
         
   #should there be a legend? 
-  if(!is.null(legend.opts)) {
+  if(!is.null(legend.opts) && (class(legend.opts) == "list")) {
     #Fill empty (mandatory) slots in legend.opts list
     if (is.null(legend.opts$lty)) legend.opts$lty = c(lty[1],NA)
     if (is.null(legend.opts$col)) legend.opts$col = c(col[1],outbreak.symbol$col)
@@ -170,7 +187,7 @@ plot.disProg.one <- function(x, title = "", xaxis.years=TRUE, startyear = 2001, 
   invisible()
 }
 
-plot.disProg <- function(x, title = "", xaxis.years=TRUE, startyear = 2001, firstweek = 1, as.one=TRUE, same.scale=TRUE, ...){
+plot.disProg <- function(x, title = "", xaxis.years=TRUE, startyear = x$start[1], firstweek = x$start[2], as.one=TRUE, same.scale=TRUE, ...){
   observed <- x$observed
   state    <- x$state
   
@@ -242,7 +259,7 @@ plot.disProg <- function(x, title = "", xaxis.years=TRUE, startyear = 2001, firs
       #plot areas
       k <- 1:nAreas
       sapply(k, function(k) {
-         plot.disProg.one(create.disProg(x$week, observed[,k], state[,k]), 
+         plot.disProg.one(create.disProg(x$week, observed[,k], state[,k], freq=x$freq,start=x$start), 
                           title = "", startyear = startyear, firstweek = firstweek, 
                           xaxis.years=xaxis.years, ylim=ylim, legend.opts=NULL, ... )   
          mtext(colnames(observed)[k],line=-1.3)     
@@ -261,7 +278,7 @@ plot.disProg <- function(x, title = "", xaxis.years=TRUE, startyear = 2001, firs
 ### chunk number 5: 
 ###################################################
 
-plot.survRes.one <- function(x, method=x$control$name, disease=x$control$data, domany=FALSE,ylim=NULL,xaxis.years=TRUE,startyear = 2001, firstweek = 1, xlab="time", ylab="No. infected", main=NULL, type="hhs",lty=c(1,1,2),col=c(1,1,4), outbreak.symbol = list(pch=3, col=3),alarm.symbol=list(pch=24, col=2),legend.opts=list(x="top",legend=c("Infected", "Threshold", "Alarm", "Outbreak"),lty=NULL,col=NULL,pch=NULL), ...) {
+plot.survRes.one <- function(x, method=x$control$name, disease=x$control$data, domany=FALSE,ylim=NULL,xaxis.years=TRUE,startyear = 2001, firstweek = 1, xlab="time", ylab="No. infected", main=NULL, type="hhs",lty=c(1,1,2),col=c(1,1,4), outbreak.symbol = list(pch=3, col=3),alarm.symbol=list(pch=24, col=2),legend.opts=list(x="top",legend=c("Infected", "Upperbound", "Alarm", "Outbreak"),lty=NULL,col=NULL,pch=NULL), ...) {
 
   ################## Handle the NULL arguments ########################################################
   if (is.null(main)) main = paste("Analysis of ", as.character(disease), " using ", as.character(method),sep="") 
@@ -293,8 +310,9 @@ plot.survRes.one <- function(x, method=x$control$name, disease=x$control$data, d
   if (is.null(ylim)) {
     max <- max(max(observed), max(survResObj$upperbound))
     ylim <- c(-1/20 * max, max)
-  } else
-  max <- ylim[2]
+  } else {
+    max <- ylim[2]
+  }
   
   #ensure that there is enough space for the alarm/outbreak symbols   
   if(ylim[1]>=0)
@@ -356,14 +374,14 @@ plot.survRes.one <- function(x, method=x$control$name, disease=x$control$data, d
     axis( side=2 )
   }
   
-  if(!is.null(legend.opts)) {
+  if(!is.null(legend.opts) && (class(legend.opts) == "list")) {
     #Fill empty (mandatory) slots in legend.opts list
     if (is.null(legend.opts$lty)) legend.opts$lty = c(lty[1],lty[3],NA,NA)
     if (is.null(legend.opts$col)) legend.opts$col = c(col[1],col[3],alarm.symbol$col,outbreak.symbol$col)
     if (is.null(legend.opts$pch)) legend.opts$pch = c(NA,NA,alarm.symbol$pch,outbreak.symbol$pch)
     if (is.null(legend.opts$x))   legend.opts$x = "top"
     if (is.null(legend.opts$legend)) 
-      legend.opts$legend = c("Infected", "Threshold", "Alarm", "Outbreak")
+      legend.opts$legend = c("Infected", "Upperbound", "Alarm", "Outbreak")
 
     do.call("legend",legend.opts)
   }
@@ -378,7 +396,7 @@ plot.survRes <- function(x, method=x$control$name, disease=x$control$data, xaxis
   observed <- x$disProgObj$observed
   state <- x$disProgObj$state
   alarm <- x$alarm
-  
+
   #univariate timeseries ?
   if(is.vector(observed))
     observed <- matrix(observed,ncol=1)
@@ -405,7 +423,7 @@ plot.survRes <- function(x, method=x$control$name, disease=x$control$data, xaxis
       k <- 1:nAreas
       sapply(k, function(k) {
         #Create the survRes
-        dP <- create.disProg(x$disProgObj$week, observed[,k], state[,k])
+        dP <- create.disProg(x$disProgObj$week, observed[,k], state[,k],start=x$start)
         obj <- list(alarm=alarm[,k],disProgObj=dP,control=x$control,upperbound=x$upperbound[,k])
         class(obj) <- "survRes"
         plot.survRes.one(obj,startyear = startyear, firstweek = firstweek, 

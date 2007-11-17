@@ -8,6 +8,7 @@
 \alias{plot.sts.time}
 \alias{plot.sts.time.one}
 \alias{plot.sts.spacetime}
+\alias{plot.sts.alarm}
 
 \title{Display Methods for Surveillance Time-Series Objects}
 \description{
@@ -46,6 +47,14 @@
 	  \code{observed} matrix. It is possible to redirect the output
 	  into files, e.g. to generate an animated GIF. See the
 	  examples.}
+	\item{code{alarm ~ time}}{Generates a so called alarmplot for a
+	  multivariate \code{sts} object. For each time point and each
+	  series it is shown whether there is an alarm. In case of
+	  hierarchical surveillance the user can pass
+	  an additional argument \code{lvl}, which is a vector of the
+	  same length as rows in \code{x} specifying for each time series
+	  its level.
+	}
       }
     }
     \item{\dots}{further arguments passed to or from other methods:

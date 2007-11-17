@@ -1,6 +1,8 @@
 \name{test}
 \alias{test}
+\encoding{latin1}
 \title{Print xtable for several diseases and the summary}
+
 \description{Just a test method
 }
 \usage{
@@ -24,6 +26,6 @@
                         "s2", "s3", "k1", "n1", "n2", "h1_nrwrp"))
 }
 
-\keyword{}
+%\keyword{}
 
 
