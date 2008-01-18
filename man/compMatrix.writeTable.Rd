@@ -55,5 +55,5 @@
     compMatrix.writeTable(sumCompMatrix)
 }
 
-%\keyword{}
+\keyword{print}
 

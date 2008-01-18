@@ -29,6 +29,6 @@
     find.kh(ARLa=500,ARLr=7,sided="one")
     find.kh(ARLa=500,ARLr=3,sided="one")
 }
-%\keyword{}
+\keyword{models}
 %\source{}
 

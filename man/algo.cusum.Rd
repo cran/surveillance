@@ -98,7 +98,7 @@
   D. A. Pierce and D. W. Schafer (1986), Residuals in Generalized Linear Models, Journal of the American Statistical Association, 81, 977--986
 }
 
-%\keyword{}
+\keyword{classif}
 %\source{}
 
 

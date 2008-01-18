@@ -34,7 +34,7 @@ CUSUM scheme with reference value \code{k}, decision interval \code{h} for
   \item{FIR.ARL}{one-sided ARL of the FIR CUSUM scheme with head start
                \eqn{\frac{\code{h}}{2}} }
 }
-%\keyword{}
+\keyword{models}
 \source{Based on the FORTRAN code of
 
 Hawkins, D. M. (1992). Evaluation of Average Run Lengths of Cumulative

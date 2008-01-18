@@ -102,6 +102,6 @@ Consist of Small Regional Counts. Morbidity and Mortality Weekly Report, 2004,
 %1983, 78, 389-395
  }
 \seealso{\code{\link{hValues}}}
-%\keyword{ }
+\keyword{classif}
 
 

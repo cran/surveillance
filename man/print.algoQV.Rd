@@ -9,7 +9,7 @@
 \item{x}{Quality Values object generated with \code{quality}}
 \item{...}{Further arguments (not reall used)}
 }
-%\keyword{}
+\keyword{print}
 \examples{
     # Create a test object
     disProgObj <- sim.pointSource(p = 0.99, r = 0.5, length = 200, A = 1,

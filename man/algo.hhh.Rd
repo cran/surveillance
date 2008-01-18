@@ -100,7 +100,8 @@ model <- list(lambda=c(TRUE,TRUE), neighbours=c(FALSE,TRUE),
 algo.hhh(influMen, control=model)
 
 }
-%\keyword{}
+\keyword{ts}
+\keyword{regression}
 \source{Held, L., Höhle, M., Hofmann, M. (2005) A statistical framework for the 
     analysis of multivariate infectious disease surveillance counts. 
     \emph{Statistical Modelling}, \bold{5}, p. 187--199.}

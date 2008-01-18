@@ -52,6 +52,6 @@ for a Poisson variate \eqn{X \sim Po(\lambda)}
 \deqn{\theta_1 = \frac{s \pi_0}{1+(s-1) \pi_0} }
 for a Binomial variate \eqn{X \sim Bin(n, \pi) }
 }
-%\keyword{}
+\keyword{models}
 
 

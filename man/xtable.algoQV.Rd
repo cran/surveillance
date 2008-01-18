@@ -14,7 +14,7 @@
 \usage{
   \method{xtable}{algoQV}(x,caption = NULL, label = NULL, align = NULL, digits = NULL, display = NULL, ...)
 }
-%\keyword{}
+\keyword{print}
 \seealso{ \code{\link[xtable]{xtable}}}
 \examples{
     # Create a test object

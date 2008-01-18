@@ -13,7 +13,7 @@
       \item{x}{an integer}
 }
 \value{vector with prime number factorization of x}
-%\keyword{}
+\keyword{hplot}
 
 
 % bestCombination
