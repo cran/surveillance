@@ -22,19 +22,19 @@ algo.glrnb <- function(disProgObj,
   either <- function(cond, whenTrue, whenFalse) { if (cond) return(whenTrue) else return(whenFalse) }
   
   # Set the default values if not yet set
-  if(is.null(control[["c.ARL"]]))
+  if(is.null(control[["c.ARL",exact=TRUE]]))
     control$c.ARL <- 5
-  if(is.null(control[["change"]]))
+  if(is.null(control[["change",exact=TRUE]]))
     control$change <- "intercept"
-  if(is.null(control[["Mtilde"]]))
+  if(is.null(control[["Mtilde",exact=TRUE]]))
     control$Mtilde <- 1
-  if(is.null(control[["M"]]))
+  if(is.null(control[["M",exact=TRUE]]))
     control$M <- -1
-  if(is.null(control[["dir"]]))
+  if(is.null(control[["dir",exact=TRUE]]))
     control$dir <- "inc"
-  if(is.null(control[["ret"]]))
+  if(is.null(control[["ret",exact=TRUE]]))
   	control$ret <- "value"
-  if(is.null(control[["alpha"]]))
+  if(is.null(control[["alpha",exact=TRUE]]))
       control$alpha <- 0
   
 
@@ -58,12 +58,12 @@ algo.glrnb <- function(disProgObj,
 
   # Estimate m (the expected number of cases), i.e. parameter lambda of a
   # poisson distribution based on time points 1:t-1
-  if (is.null(control[["mu0"]]) | is.list(control[["mu0"]])) {
+  if (is.null(control[["mu0",exact=TRUE]]) | is.list(control[["mu0",exact=TRUE]])) {
     #Initialize
-    if (is.null(control[["mu0"]])) control$mu0 <- list()
-    if (is.null(control[["mu0"]][["S"]])) control$mu0$S <- 1
-    if (is.null(control[["mu0"]][["trend"]])) control$mu0$trend <- FALSE
-    if (is.null(control[["mu0"]][["refit"]])) control$m0$refit <- FALSE
+    if (is.null(control[["mu0",exact=TRUE]])) control$mu0 <- list()
+    if (is.null(control[["mu0",exact=TRUE]][["S"]])) control$mu0$S <- 1
+    if (is.null(control[["mu0",exact=TRUE]][["trend"]])) control$mu0$trend <- FALSE
+    if (is.null(control[["mu0",exact=TRUE]][["refit"]])) control$m0$refit <- FALSE
     control$mu0Model <- control$mu0
 
     #Estimate using a hook function (lazy evaluation)
@@ -93,7 +93,7 @@ algo.glrnb <- function(disProgObj,
     # cat("Doneidx === ",doneidx,"\n")
     # Call the C-interface -- this should depend on the type
     if (control$change == "intercept") {
-      if (is.null(control[["theta"]])) {
+      if (is.null(control[["theta",exact=TRUE]])) {
         if (control$alpha == 0) { #poisson
 
           if (control$M > 0 ){ # window limited
