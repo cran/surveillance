@@ -68,7 +68,7 @@
         \code{\link{algo.call}}, \code{\link{algo.rkiLatestTimepoint}} and \code{\link{algo.rki}} for
         the RKI system.
 }
-\author{M. Höhle, A. Riebler, C. Lang}
+\author{M. \enc{Höhle}{Hoehle}, A. Riebler, C. Lang}
 \examples{
     disProg <- sim.pointSource(p = 0.99, r = 0.5, length = 208, A = 1,
                                     alpha = 1, beta = 0, phi = 0,

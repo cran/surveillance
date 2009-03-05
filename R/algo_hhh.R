@@ -1,43 +1,67 @@
 ###################################################
 ### chunk number 1: 
 ###################################################
+# lag - which lag for observation-driven part?
+#  y_i,t = lambda*y_i,t-lag  NOTE: lag=-1 means y_i,t+1
+# lag.range =c(lag.neg, lag.pos) 
+#  i.e. (1,0) for t-1,t (DEFAULT)
+#       (2,2) for t-2,t-1,t,t+1,t+2
 algo.hhh<-function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE, 
    linear=FALSE, nseason=0,
    negbin=c("none", "single", "multiple"), 
-   proportion=c("none", "single", "multiple")),
+   proportion=c("none", "single", "multiple"),
+   lag.range=NULL),
                thetastart=NULL, verbose=TRUE){
         
   #Convert sts objects
   if (class(disProgObj) == "sts") disProgObj <- sts2disProg(disProgObj)
 
   #set default values (if not provided in control)
-  if(is.null(control$linear))
+  if(is.null(control[["linear",exact=TRUE]]))
     control$linear <- FALSE
     
-  if(is.null(control$nseason))
+  if(is.null(control[["nseason",exact=TRUE]]))
     control$nseason <- 0
     
-  if(is.null(control$neighbours))
-    control$neighbours <- FALSE
+  if(is.null(control[["neighbours",exact=TRUE]]))
+    control$neighbours <- NA
     
-  if(is.null(control$negbin))
+  if(is.null(control[["negbin",exact=TRUE]]))
     control$negbin <- "none"
     
-  if(is.null(control$lambda))
-    control$lambda <- TRUE
+  if(is.null(control[["lambda",exact=TRUE]]))
+    control$lambda <- 1
 
-  if(is.null(control$proportion))
+  if(is.null(control[["proportion",exact=TRUE]]))
     control$proportion <- "none"
-
+    
   control$negbin <- match.arg(control$negbin, c("single","multiple","none"))
   control$proportion <- match.arg(control$proportion, c("single","multiple","none"))
+
+  # convert logical values to numerical values, FALSE corresponds to NA
+  # to allow for lag == 0
+  if(is.logical(control[["lambda", exact=TRUE]])){
+    control$lambda <- as.numeric(control$lambda)
+    control$lambda[control$lambda==0] <- NA
+  }
+   if(is.logical(control[["neighbours", exact=TRUE]])){
+    control$neighbours <- as.numeric(control$neighbours)
+    control$neighbours[control$neighbours==0] <- NA
+  }
+  
+  # determine range of observations y_i,t
+  if(is.null(control[["lag.range",exact=TRUE]])){
+    lags <- c(control$lambda, control$neighbours)
+    control$lag.range <- c(max(c(lags,1),na.rm=TRUE), 
+                           max(c(-lags,0), na.rm=TRUE))
+  }
 
   n <- nrow(disProgObj$observed)
   nareas <- ncol(disProgObj$observed)
 
   #univariate
   if(nareas ==1){
-    control$neighbours <- FALSE
+    control$neighbours <- NA
     control$proportion <- "none"
     
     control$nseason <- control$nseason[1]
@@ -45,13 +69,14 @@ algo.hhh<-function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
 
   # model with (lambda, pi) ?
   if(control$proportion != "none"){
-    control$neighbours <- FALSE
-    if(sum(control$lambda) == 0 | sum(control$lambda)!= nareas)
-      control$lambda <- TRUE
+    control$neighbours <- NA
+    # no lambda specified or lambda not specified for each area
+    if(sum(!is.na(control$lambda)) == 0 | sum(!is.na(control$lambda))!= nareas)
+      control$lambda <- 1
   }
   
-  # check neighbourhood matrix if neighbours=T or proportion!="none"
-  if(sum(control$neighbours)>0 | control$proportion != "none"){
+  # check neighbourhood matrix if neighbours=TRUE or proportion!="none"
+  if(sum(!is.na(control$neighbours))>0 | control$proportion != "none"){
     if(any(is.na(disProgObj$neighbourhood)))
     stop("No correct neighbourhood matrix given\n")
   }
@@ -66,7 +91,8 @@ algo.hhh<-function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
     if((designRes$dim$phi==1) & (sum(nOfNeighbours)==0))
       stop("Specified model is not in line with neighbourhood matrix\n")
       
-    if((designRes$dim$phi==nareas) & (any(nOfNeighbours[control$neighbours]==0)))
+#    if((designRes$dim$phi==nareas) & (any(nOfNeighbours[!is.na(control$neighbours)]==0)))
+    if((length(control$neighbours) == nareas) & (any(nOfNeighbours[!is.na(control$neighbours)]==0)))
       stop("Specified model is not in line with neighbourhood matrix\n")
       
   } else if(designRes$dim$proportion > 0){
@@ -75,22 +101,28 @@ algo.hhh<-function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
     if((designRes$dim$proportion==1) & (sum(nOfNeighbours)==0))
       stop("Specified model is not in line with neighbourhood matrix\n")
       
-    if((designRes$dim$proportion==nareas) & (any(nOfNeighbours[control$proportion]==0)))
+    if((designRes$dim$proportion==nareas) & (any(nOfNeighbours==0)))
       stop("Specified model is not in line with neighbourhood matrix\n")
       
   }
 
 
   dimtheta <- designRes$dimTheta$dim
+  dimLambda <- designRes$dimTheta$lambda
+  dimPhi <- designRes$dimTheta$phi
 
-  #starting values for optim (without alpha_i's)
+  #starting values for optim 
+  areastart <- log(colMeans(designRes$Y)/designRes$populationFrac[1,])
+  
   if(!is.null(thetastart)){
     #check dimension of thetastart
-    if(length(thetastart) != (dimtheta-nareas)){
-      cat('thetastart must be of length',dimtheta-nareas,'\n')
+    # must be either of length dimtheta or of length dimtheta-nareas
+    if(all(length(thetastart) != c(dimtheta, dimtheta-nareas)) ){
+      cat('thetastart must be of length', dimtheta, 'or ',dimtheta-nareas,'\n')
      return(NULL)
     }
     theta  <- thetastart
+    if(length(theta) == dimtheta) areastart <- NULL
   } else {
     #set starting values for theta
     #lambda = log(0.5), phi = log(0.1), beta = gamma = delta = 0, psi = 1
@@ -98,10 +130,21 @@ algo.hhh<-function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
                rep(0.5,designRes$dimTheta$proportion),
                rep(0, designRes$dimTheta$trend + designRes$dimTheta$season), rep(2,designRes$dimTheta$negbin) )
   }
-
+  
   #starting values for intercepts
-  areastart <- log(apply(designRes$Y, 2, sum)/designRes$populationFrac[1,]/(n-1))
-  theta <- c(areastart,theta)
+  if(!is.null(areastart)){
+    if(dimLambda + dimPhi >0){
+      #cat("theta",theta[1:(dimLambda + dimPhi)],"\n")
+      Lambda <- getLambda(theta[1:(dimLambda + dimPhi)], designRes)
+      expAlpha <- expAlpha.mm(Lambda,designRes$Y)
+      expAlpha[expAlpha <=0] <- (colMeans(designRes$Y)/designRes$populationFrac[1,])[expAlpha <=0]
+      areastart <- log(expAlpha)
+      #areastart <- log(expAlpha.mm(Lambda,designRes$Y))
+    }
+  
+    theta <- c(areastart,theta)
+    #cat("initial values",theta,"\n")
+  }
 
   #check if initial values are valid
   mu<-meanResponse(theta,designRes)$mean
@@ -124,6 +167,17 @@ algo.hhh<-function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
   }
   
   loglik <- myoptim$value
+  
+  if(loglik==0){
+    if(verbose){
+      cat('loglikelihood = 0\n')
+      cat('Results are not reliable! Try different starting values. \n')
+    }
+    res <- list(convergence=FALSE)
+    class(res) <- "ah"
+    return(res)
+  }
+
   thetahat <- myoptim$par
   fisher <- -myoptim$hessian
 
@@ -170,7 +224,8 @@ algo.hhh<-function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
   
   result <- list(coefficients=thetahat, se=se, cov=cov, call=match.call(),
                  loglikelihood=loglik, convergence=convergence,
-                 fitted.values=fitted, control=control,disProgObj=disProgObj)
+                 fitted.values=fitted, control=control,disProgObj=disProgObj, 
+                 lag=designRes$lag, nObs=designRes$nObs)
   
   class(result) <- "ah"
   return(result)
@@ -184,42 +239,58 @@ algo.hhh<-function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
 algo.hhh.grid <- function(disProgObj, control=list(lambda=TRUE,neighbours=FALSE, 
                linear=FALSE, nseason=0, 
                negbin=c("none", "single", "multiple"), 
-               proportion=c("none", "single", "multiple")), 
+               proportion=c("none", "single", "multiple"),lag.range=NULL), 
                thetastartMatrix, maxTime=1800, verbose=FALSE){
 
   #convert disProgObj if necessary
   if (class(disProgObj) == "sts") disProgObj <- sts2disProg(disProgObj)
 
   #set default values (if not provided in control)
-  if(is.null(control$linear))
+  if(is.null(control[["linear",exact=TRUE]]))
     control$linear <- FALSE
     
-  if(is.null(control$nseason))
+  if(is.null(control[["nseason",exact=TRUE]]))
     control$nseason <- 0
     
-  if(is.null(control$neighbours))
-    control$neighbours <- FALSE
+  if(is.null(control[["neighbours",exact=TRUE]]))
+    control$neighbours <- NA
     
-  if(is.null(control$negbin))
+  if(is.null(control[["negbin",exact=TRUE]]))
     control$negbin <- "none"
     
-  if(is.null(control$lambda))
-    control$lambda <- TRUE
+  if(is.null(control[["lambda",exact=TRUE]]))
+    control$lambda <- 1
 
-  if(is.null(control$proportion))
+  if(is.null(control[["proportion",exact=TRUE]]))
     control$proportion <- "none"
     
   control$negbin <- match.arg(control$negbin, c("single","multiple","none"))
   control$proportion <- match.arg(control$proportion, c("single","multiple","none"))
   
+  # convert logical values to numerical values, FALSE corresponds to NA
+  # to allow for lag == 0
+  if(is.logical(control[["lambda", exact=TRUE]])){
+    control$lambda <- as.numeric(control$lambda)
+    control$lambda[control$lambda==0] <- NA
+  }
+   if(is.logical(control[["neighbours", exact=TRUE]])){
+    control$neighbours <- as.numeric(control$neighbours)
+    control$neighbours[control$neighbours==0] <- NA
+  }
   
+  # determine range of observations y_i,t
+  if(is.null(control[["lag.range",exact=TRUE]])){
+    lags <- c(control$lambda, control$neighbours)
+    control$lag.range <- c(max(c(lags,1),na.rm=TRUE), 
+                           max(c(-lags,0), na.rm=TRUE))
+  } 
   n <- nrow(disProgObj$observed)
   nareas <- ncol(disProgObj$observed)
 
   # check parameter specification for season
   #univariate
   if(nareas ==1){
-    control$neighbours <- FALSE
+    control$neighbours <- NA
     control$proportion <- "none"
     
     control$nseason <- control$nseason[1]
@@ -227,17 +298,17 @@ algo.hhh.grid <- function(disProgObj, control=list(lambda=TRUE,neighbours=FALSE,
 
   # model with (lambda, pi) ?
   if(control$proportion != "none"){
-    control$neighbours <- FALSE
-    if(sum(control$lambda) == 0 | sum(control$lambda)!=nareas)
-      control$lambda <- TRUE
+    control$neighbours <- NA
+    # no lambda specified or lambda not specified for each area
+    if(sum(!is.na(control$lambda)) == 0 | sum(!is.na(control$lambda))!= nareas)
+      control$lambda <- 1
   }
   
-  # check neighbourhood matrix 
-  if(sum(control$neighbours)>0 | control$proportion != "none"){
+  # check neighbourhood matrix if neighbours=TRUE or proportion!="none"
+  if(sum(!is.na(control$neighbours))>0 | control$proportion != "none"){
     if(any(is.na(disProgObj$neighbourhood)))
     stop("No correct neighbourhood matrix given\n")
   }
-
 
   designRes<- make.design(disProgObj=disProgObj, control=control)
 
@@ -248,7 +319,8 @@ algo.hhh.grid <- function(disProgObj, control=list(lambda=TRUE,neighbours=FALSE,
     if((designRes$dim$phi==1) & (sum(nOfNeighbours)==0))
       stop("Specified model is not in line with neighbourhood matrix\n")
       
-    if((designRes$dim$phi==nareas) & (any(nOfNeighbours[control$neighbours]==0)))
+#    if((designRes$dim$phi==nareas) & (any(nOfNeighbours[!is.na(control$neighbours)]==0)))
+    if((length(control$neighbours) == nareas) & (any(nOfNeighbours[!is.na(control$neighbours)]==0)))
       stop("Specified model is not in line with neighbourhood matrix\n")
       
   } else if(designRes$dim$proportion > 0){
@@ -257,11 +329,10 @@ algo.hhh.grid <- function(disProgObj, control=list(lambda=TRUE,neighbours=FALSE,
     if((designRes$dim$proportion==1) & (sum(nOfNeighbours)==0))
       stop("Specified model is not in line with neighbourhood matrix\n")
       
-    if((designRes$dim$proportion==nareas) & (any(nOfNeighbours[control$proportion]==0)))
+    if((designRes$dim$proportion==nareas) & (any(nOfNeighbours==0)))
       stop("Specified model is not in line with neighbourhood matrix\n")
       
   }
-
   
   dimthetaStart <- designRes$dimTheta$dim -nareas
   
@@ -271,11 +342,11 @@ algo.hhh.grid <- function(disProgObj, control=list(lambda=TRUE,neighbours=FALSE,
   
   #check dimension of thetastartMatrix
   if(!is.matrix(thetastartMatrix)){
-    cat('thetastart must be a matrix with', dimthetaStart, 'columns\n')
+    cat('thetastart must be a matrix with', designRes$dimTheta$dim, 'or ', dimthetaStart, 'columns\n')
     return(NULL)
   }
-  if(ncol(thetastartMatrix) != (dimthetaStart)){
-    cat('thetastart must be a matrix with',dimthetaStart,'columns\n')
+  if(all(ncol(thetastartMatrix) != c(designRes$dimTheta$dim, dimthetaStart))){
+    cat('thetastart must be a matrix with', designRes$dimTheta$dim, 'or ', dimthetaStart,'columns\n')
     return(NULL)
   }
   
@@ -438,6 +509,7 @@ create.grid <- function(disProgObj, control, params = list(epidemic = c(0.1, 0.9
 
 
 
+
 ###################################################
 ### chunk number 4: 
 ###################################################
@@ -453,16 +525,15 @@ loglikelihood <- function(theta, designRes){
 
   #loglikelihood poisson
   if(dimNegbin==0){
-    result <- sum(dpois(Y, lambda=mean, log=TRUE))
-    #result <- sum(Y*log(mean)-mean ) #   -log(gamma(Y+1)))
-    
+    result <- colSums(dpois(Y, lambda=mean, log=TRUE))
+  
   } else if(dimNegbin==1){
     #loglikelihood negbin
     
     #ensure psi (on last position in vector theta) ist positive
     psi <- exp(theta[dimTheta])
 
-    result <- sum(dnbinom(Y, size=psi, mu=mean, log=TRUE))
+    result <- colSums(dnbinom(Y, size=psi, mu=mean, log=TRUE))
     
   } else if(dimNegbin>1){
     #loglikelihood negbin, multiple dispersion params
@@ -471,11 +542,13 @@ loglikelihood <- function(theta, designRes){
     psi <- exp(theta[(dimTheta-dimNegbin+1):dimTheta])
     psi <- matrix(psi,ncol=dimNegbin, nrow=nrow(Y), byrow=TRUE)
 
-    result <- sum(dnbinom(Y, size=psi, mu=mean, log=TRUE))
+    result <- colSums(dnbinom(Y, size=psi, mu=mean, log=TRUE))
   }
-
-  return(result)
+  res <- sum(result)
+  attr(res, "colsums") <- result
+  return(res)
 }
+
 
 
 ###################################################
@@ -526,7 +599,7 @@ meanResponse <- function(theta, designRes){
       if(length(designRes$control$lambda)==nareas){
         # create vector lambda with elements 0 if control$lambda=FALSE
         lambda <- rep(0,nareas)
-        lambda[designRes$control$lambda] <- params$lambda
+        lambda[!is.na(designRes$control$lambda)] <- params$lambda
       }
       auto.lambda <- Ym1*matrix(lambda,ncol=nareas,nrow=nrow(Y), byrow=TRUE)
     }
@@ -538,7 +611,7 @@ meanResponse <- function(theta, designRes){
       if(length(designRes$control$neighbours)==nareas){
         # create vector phi with elements 0 if control$neighbours=FALSE
         phi <- rep(0,nareas)
-        phi[designRes$control$neighbours] <- params$phi
+        phi[!is.na(designRes$control$neighbours)] <- params$phi
       }
       
       auto.phi <- Ym1.neighbours*matrix(phi,ncol=nareas,nrow=nrow(Y), byrow=TRUE)
@@ -649,30 +722,52 @@ meanResponse <- function(theta, designRes){
 make.design <- function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE, 
         linear=FALSE, nseason=0,
          negbin=c("none", "single", "multiple"), 
-         proportion=c("none", "single", "multiple")) ){
+         proportion=c("none", "single", "multiple"),
+         lag.range=NULL) ){
+
+  #Convert sts objects
+  if (class(disProgObj) == "sts") disProgObj <- sts2disProg(disProgObj)
 
   #set default values (if not provided in control)
-  if(is.null(control$linear))
+  if(is.null(control[["linear",exact=TRUE]]))
     control$linear <- FALSE
     
-  if(is.null(control$nseason))
+  if(is.null(control[["nseason",exact=TRUE]]))
     control$nseason <- 0
   
-  if(is.null(control$neighbours))
-    control$neighbours <- FALSE
+  if(is.null(control[["neighbours",exact=TRUE]]))
+    control$neighbours <- NA
     
-  if(is.null(control$negbin))
+  if(is.null(control[["negbin",exact=TRUE]]))
     control$negbin <- "none"
     
-  if(is.null(control$lambda))
-    control$lambda <- TRUE
+  if(is.null(control[["lambda",exact=TRUE]]))
+    control$lambda <- 1
     
-  if(is.null(control$proportion))
+  if(is.null(control[["proportion",exact=TRUE]]))
     control$proportion <- "none"
-  
+    
   control$proportion <- match.arg(control$proportion, c("single","multiple","none"))
   control$negbin <- match.arg(control$negbin, c("single","multiple","none"))
   
+  # convert logical values to numerical values, FALSE corresponds to NA
+  # to allow for lag == 0
+  if(is.logical(control[["lambda", exact=TRUE]])){
+    control$lambda <- as.numeric(control$lambda)
+    control$lambda[control$lambda==0] <- NA
+  }
+   if(is.logical(control[["neighbours", exact=TRUE]])){
+    control$neighbours <- as.numeric(control$neighbours)
+    control$neighbours[control$neighbours==0] <- NA
+  }
+  
+  # determine range of observations y_i,t
+  if(is.null(control[["lag.range",exact=TRUE]])){
+    lags <- c(control$lambda, control$neighbours)
+    control$lag.range <- c(max(c(lags,1),na.rm=TRUE), 
+                           max(c(-lags,0), na.rm=TRUE))
+  }
+    
   data <- disProgObj$observed
   n <- nrow(data)
   nareas <- ncol(data)
@@ -689,7 +784,7 @@ make.design <- function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
   
   #univariate
   if(nareas ==1){
-    control$neighbours <- FALSE
+    control$neighbours <- NA
     control$proportion <- "none"
     
     control$nseason <- control$nseason[1]
@@ -700,14 +795,15 @@ make.design <- function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
 
   # model with (lambda, pi) ?
   if(control$proportion != "none"){
-    control$neighbours <- FALSE
-    if(sum(control$lambda) == 0 |sum(control$lambda) !=nareas)
-      control$lambda <- TRUE
+    control$neighbours <- NA
+    # no lambda specified or lambda is not specified for each area
+    if(sum(!is.na(control$lambda)) == 0 |sum(!is.na(control$lambda)) !=nareas)
+      control$lambda <- 1
   }
 
-  dimLambda <- sum(control$lambda)
+  dimLambda <- sum(!is.na(control$lambda))
 
-  dimPhi <- sum(control$neighbours)
+  dimPhi <- sum(!is.na(control$neighbours))
 
   dimProportion <- switch(control$proportion ,
                        "single" = 1,
@@ -733,34 +829,50 @@ make.design <- function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
   ####################################################################
   # arrange response as matrix
   #Y, Ym1, Ym1.neighbours and population are (nOfobs)x(nOfareas) matrices
-  #where nOfobs = n-1 and nOfareas is the number of areas/units
+  #where nOfareas is the number of areas/units and 
+  # nOfobs is determined by control$lag.range with default nOfObs=n-1 
+  
+  # Thus, lag.range can be used to ensure that models with different lags
+  # are based on the same observations.
+  t.min <- 1+control$lag.range[1]
+  t.max <- n-control$lag.range[2]
 
-  Y <- matrix(data[2:n,],nrow=(n-1),ncol=nareas)
+  Y <- matrix(data[t.min:t.max,],nrow=length(t.min:t.max),ncol=nareas)
   
   # population sizes n_{i,t} 
-  population <- matrix(disProgObj$populationFrac[2:n,],nrow=(n-1),ncol=nareas)
+  population <- matrix(disProgObj$populationFrac[t.min:t.max,],nrow=length(t.min:t.max),ncol=nareas)
 
-  Ym1 <- matrix(data[1:(n-1),],nrow=(n-1),ncol=nareas)
+  # observed counts at time point t-lag
+  # NOTE: the same lag (the maximum lag) is used for all areas
+  if(dimLambda >0){
+    lag.lambda <- control$lambda[which.max(abs(control$lambda))]
+    Ym1 <- matrix(data[(t.min:t.max)-lag.lambda,],nrow=length(t.min:t.max),ncol=nareas)
+  } else {
+    lag.lambda<- NA
+    Ym1 <- matrix(0,nrow=length(t.min:t.max),ncol=nareas)
+  }
 
-  Ym1.neighbours <- matrix(0,nrow=(n-1),ncol=nareas)
+  Ym1.neighbours <- matrix(0,nrow=length(t.min:t.max),ncol=nareas)
   nOfNeighbours <- 0
 
   # now matrix for neighbours
   if(dimPhi>0){
-    Ym1.neighbours <- weightedSumNeighbours(disProgObj)$neighbours[-n,]
+    lag.phi <- control$neighbours[which.max(abs(control$neighbours))]
+    Ym1.neighbours <- weightedSumNeighbours(disProgObj)$neighbours[(t.min:t.max)-lag.phi,]
     nOfNeighbours <- weightedSumNeighbours(disProgObj)$nOfNeighbours
 #     Ym1.neighbours <- sumNeighbours(disProgObj)[-n,]
- }
+ } else lag.phi <- NA
  
   if(dimProportion >0){
-    Ym1.neighbours <- weightedSumNeighbours(disProgObj)$neighbours[-n,] #not really needed
+    Ym1.neighbours <- weightedSumNeighbours(disProgObj)$neighbours[(t.min:t.max)-lag.lambda,] #not really needed
     nOfNeighbours <- weightedSumNeighbours(disProgObj)$nOfNeighbours
   }
   
   ####################################################################
   # now define design matrix (for trend and seasonality) for each time point
 
-  t<- disProgObj$week[1:(n-1)]
+  #t<- disProgObj$week[t.min:t.max]
+  t<- disProgObj$week[(t.min:t.max)-1]
   #t <- t - mean(t)
 
   form<-function(mod=ifelse(dimTrend == 0,"~-1","~-1+t"),
@@ -781,7 +893,7 @@ make.design <- function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
   result <- list("Y"=Y, "Ym1"=Ym1, "Ym1.neighbours"=Ym1.neighbours,"nOfNeighbours"=nOfNeighbours,
                  "X.trendSeason"=X.trendSeason,
                  "populationFrac"=population,  "dimTheta"=dimTheta,
-                 "control"=control,"disProgObj"=disProgObj)
+                 "control"=control,"disProgObj"=disProgObj, "lag"=c(lag.lambda,lag.phi),"nObs"=prod(dim(Ym1)))
 
   return(result)
 }
@@ -791,7 +903,7 @@ make.design <- function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
 ###################################################
 ### chunk number 7: 
 ###################################################
-print.ah <- function(x,digits = max(3, getOption("digits") - 3), amplitudeShift=TRUE,...){
+print.ah <- function(x,digits = max(3, getOption("digits") - 3), amplitudeShift=TRUE,reparamPsi=TRUE,...){
   if(!x$convergence)
     cat('Results are not reliable! Try different starting values. \n')
   else {
@@ -801,18 +913,23 @@ print.ah <- function(x,digits = max(3, getOption("digits") - 3), amplitudeShift=
     }
         
     cat('\nEstimated parameters and standard errors: \n\n')
-    coefs <- coefficients(x, se=TRUE, amplitudeShift=amplitudeShift)
+    coefs <- coefficients(x, se=TRUE, amplitudeShift=amplitudeShift,reparamPsi=reparamPsi)
     
     print(round(cbind("Estimates"=coefs[,"Estimates"],
                  "Std.Error"=coefs[,"Std. Error"]),digits=digits),print.gap=2)
 
-    cat('\nlog-likelihood:\t',round(x$loglik,digits=digits-2),'\n')  
-    cat('AIC:\t\t',round(-2*x$loglik,digits=digits-2)+2*length(coef(x)),'\n\n')
+    cat('\nlog-likelihood:   ',round(x$loglik,digits=digits-2),'\n')  
+    cat('AIC:              ',round(AIC(x),digits=digits-2),'\n')
+    cat('BIC:              ',round(AIC(x,k=log(x$nObs)),digits=digits-2),'\n\n')
+    
+    if(!is.na(x$lag[1])) cat('lag used for lambda:      ',x$lag[1],'\n')
+    if(!is.na(x$lag[2])) cat('lag used for phi:         ',x$lag[2] ,'\n')
+    cat('number of observations:   ',x$nObs,'\n\n')
   }
 
 }
 
-print.ahg <- function (x, digits = max(3, getOption("digits") - 3), amplitudeShift=TRUE, ...){
+print.ahg <- function (x, digits = max(3, getOption("digits") - 3), amplitudeShift=TRUE,reparamPsi=TRUE, ...){
     cat("\nsize of grid: ", x$gridSize, "\n")
     if (x$gridSize != x$gridUsed)
         cat("grid search stopped after", x$gridUsed, "iterations \n")
@@ -825,7 +942,7 @@ print.ahg <- function (x, digits = max(3, getOption("digits") - 3), amplitudeShi
       cat("values of log-likelihood:")
       print(table(round(x$all[,1],0)))
 #      cat("\n")
-      print.ah(x$best, digits = digits, amplitudeShift=amplitudeShift)
+      print.ah(x$best, digits = digits, amplitudeShift=amplitudeShift,reparamPsi=reparamPsi)
     }
 }
 
@@ -860,7 +977,7 @@ predict.ah <- function(object,newdata=NULL,type=c("response","endemic","epi.own"
   
   # in meanResponse the params lambda, phi are "exp()'ed"
   # log() them  to obtain the correct predictions
-  if(sum(control$lambda) >0 | sum(control$neighbours) >0){
+  if(sum(!is.na(control$lambda)) >0 | sum(!is.na(control$neighbours)) >0){
   
     indexL <- design$dimTheta$intercept+1
     indexU <- indexL +design$dimTheta$lambda +design$dimTheta$phi -1
@@ -891,6 +1008,7 @@ predict.ah <- function(object,newdata=NULL,type=c("response","endemic","epi.own"
 predict.ahg <- function(object, newdata=NULL, type=c("response","endemic","epi.own","epi.neighbours"),...){
   predict(object$best,newdata=newdata,type=type)
 }
+
 
 
 
@@ -940,9 +1058,10 @@ residuals.ahg <- function(object, type = c("deviance", "pearson"), ...){
 ############################################
 # extract estimates and standard errors (se=TRUE)
 # if amplitudeShift=TRUE, the seasonal params are transformed
+# if reparamPsi=TRUE, the overdispersion param psi is transformed to 1/psi
 #
 ############################################
-coef.ah <- function(object,se=FALSE, amplitudeShift=FALSE,...){
+coef.ah <- function(object,se=FALSE, amplitudeShift=FALSE, reparamPsi=FALSE,...){
   coefs <- object$coefficients
   stdErr <- object$se
 
@@ -961,14 +1080,28 @@ coef.ah <- function(object,se=FALSE, amplitudeShift=FALSE,...){
     cov <- D %*% object$cov %*% t(D)
     stdErr <- sqrt(diag(cov))
   }
+  if(reparamPsi & object$control$negbin!="none"){
+    #extract psi coefficients
+    index <- grep("psi",names(coefs))
+    psi.names <- names(coefs)[index]
+    # change labels
+    names(coefs)[index] <- paste("1/",psi.names,sep="")
+    
+    #transform psi coefficients
+    coefs[index] <- 1/coefs[index]
+    # se's using Delta rule: se[h(psi)] = se[psi] * |h'(psi)|
+    # h = 1/psi, h' = -1/psi^2
+    D <- diag(coefs[index]^2,length(index))
+    stdErr[index] <- sqrt(diag(D %*% object$cov[index,index] %*% t(D)))
+  }
   if(se)
     return(cbind("Estimates"=coefs,"Std. Error"=stdErr))
   else
     return(coefs)
 }
 
-coef.ahg <- function(object,se=FALSE, amplitudeShift=FALSE,...){
-  return(coef(object$best,se=se, amplitudeShift=amplitudeShift))
+coef.ahg <- function(object,se=FALSE, amplitudeShift=FALSE, reparamPsi=FALSE,...){
+  return(coef(object$best,se=se, amplitudeShift=amplitudeShift,reparamPsi=reparamPsi))
 }
 
 
@@ -1032,7 +1165,6 @@ jacobianAmplitudeShift <- function(params){
   }
   return(res)
 }
-
 
 
 
@@ -1104,6 +1236,9 @@ unpackParams <- function(theta, designRes){
 ################################################
 gradient <- function(theta,designRes){
   
+  if(any(is.na(theta) | !is.finite(theta))) 
+    return(rep(NA,length(theta)))
+  
   Y<-designRes$Y
   Ym1 <-designRes$Ym1
   control <- designRes$control
@@ -1154,7 +1289,7 @@ gradient <- function(theta,designRes){
       if(length(control$lambda)>1){
         # create vector lambda with elements 0 if control$lambda=FALSE
         lambda <- rep(0,nareas)
-        lambda[designRes$control$lambda] <- params$lambda
+        lambda[!is.na(designRes$control$lambda)] <- params$lambda
       }
       
       lambda <- matrix(lambda,ncol=nareas,nrow=nrow(Y),byrow=TRUE)
@@ -1162,10 +1297,16 @@ gradient <- function(theta,designRes){
 
       # multiple lambda_i's or single lambda ?
       if(length(control$lambda) > 1)
-        grLambda <- colSums(dLambda)[designRes$control$lambda]
+        grLambda <- colSums(dLambda)[!is.na(designRes$control$lambda)]
       else grLambda <- sum(dLambda)
 
+      if(any(is.na(grLambda))){
+        warning("derivatives for lambda not computable\n")
+        return(rep(NA,length(theta)))
+      }
+
     } else grLambda <- NULL
+    
 
     # gradient for phi
     if(designRes$dimTheta$phi >0){
@@ -1174,16 +1315,22 @@ gradient <- function(theta,designRes){
       if(length(control$neighbours)>1){
         # create vector phi with elements 0 if control$neighbours=FALSE
         phi <- rep(0,nareas)
-        phi[designRes$control$neighbours] <- params$phi
+        phi[!is.na(designRes$control$neighbours)] <- params$phi
       }
 
       phi <- matrix(phi,ncol=nareas,nrow=nrow(Y),byrow=TRUE)
+      if(any(is.na(phi))) stop("phi contains NA\'s\n")
       dPhi <- derivHHH(phi*designRes$Ym1.neighbours)
 
       # multiple phi_i's or single phi ?
       if(length(control$neighbours)>1)
-        grPhi <- colSums(dPhi)[designRes$control$neighbours]
+        grPhi <- colSums(dPhi)[!is.na(designRes$control$neighbours)]
       else grPhi<- sum(dPhi)
+      
+      if(any(is.na(grPhi))){
+        warning("derivatives for phi not computable\n")
+        return(rep(NA,length(theta)))
+      }
 
     } else grPhi <- NULL
 
@@ -1241,8 +1388,6 @@ gradient <- function(theta,designRes){
       return(sapply(1:nareas,dPi.id))
     }
 
-
-
     # gradient for lambda
     if(designRes$dimTheta$lambda ==0)
      cat("no lambda\n")
@@ -1256,7 +1401,11 @@ gradient <- function(theta,designRes){
     if(designRes$dimTheta$lambda > 1)
       grLambda <- colSums(dLambda)
     else grLambda <- sum(dLambda)
-
+    
+    if(any(is.na(grLambda))){
+      warning("derivatives for lambda not computable\n")
+      return(rep(NA,length(theta)))
+    }
 
     # gradient for phi
     grPhi <- NULL
@@ -1268,6 +1417,11 @@ gradient <- function(theta,designRes){
       grPi <- colSums(dPi)
     else grPi <- sum(dPi)
 
+    if(any(is.na(grPi))){
+      warning("derivatives for pi not computable\n")
+      return(rep(NA,length(theta)))
+    }
+
   }
   
   
@@ -1276,6 +1430,10 @@ gradient <- function(theta,designRes){
   ############################################
   # gradient for intercepts
   grAlpha <- colSums(derivHHH(endemic))
+  if(any(is.na(grAlpha))){
+    warning("derivatives for alpha not computable\n")
+    return(rep(NA,length(theta)))
+  }
 
   # gradient for trend
   if(designRes$dimTheta$trend >0){
@@ -1284,6 +1442,11 @@ gradient <- function(theta,designRes){
     if(designRes$dimTheta$trend >1)
       grTrend <- colSums(dTrend)[designRes$control$linear]
     else grTrend <- sum(dTrend)
+    
+    if(any(is.na(grTrend))){
+      warning("derivatives for trend not computable\n")
+      return(rep(NA,length(theta)))
+    }
     
   } else grTrend <- NULL
   
@@ -1297,6 +1460,10 @@ gradient <- function(theta,designRes){
       for (i in ((designRes$dimTheta$trend>0) +1):ncol(designRes$X.trendSeason) ){
         grSeason <- c(grSeason, sum(derivHHH(endemic*designRes$X.trendSeason[,i])))
       }  
+      if(any(is.na(grSeason))){
+        warning("derivatives for seasonal parameters not computable\n")
+        return(rep(NA,length(theta)))
+      }
       
     } else if(length(control$nseason)==nareas){
       #maximum number of Fourier frequencies S.max=max_i{S_i}
@@ -1319,8 +1486,13 @@ gradient <- function(theta,designRes){
       # 		sin(omega_1)_B, cos(omega_1)_B, sin(omega_2)_B, ..., cos(omega_S.max)_B
   
       # remove NA's, i.e. only derivatives for {gamma_{ij}: j <=2*S_i}
+      # check if there are any NaN's
+      if(any(is.nan(grSeason))){
+        warning("derivatives for seasonal parameters not computable\n")
+        return(rep(NA,length(theta)))
+      }
       grSeason <- grSeason[!is.na(grSeason)]
-      
+ 
     } # end multiple params
 
   } # end gradient season
@@ -1334,8 +1506,14 @@ gradient <- function(theta,designRes){
       grPsi <- colSums(dPsi)
     else grPsi <- sum(dPsi)
     
+    if(any(is.na(grPsi))){
+      warning("derivatives for psi not computable\n")
+      return(rep(NA,length(theta)))
+    }
+    
   } else grPsi <- NULL
   
+
   res <- c(grAlpha,grLambda,grPhi,grPi,grTrend,grSeason,grPsi)
 
   return(res)
@@ -1383,7 +1561,7 @@ weightedSumNeighbours <- function(disProgObj){
   nOfNeighbours <-colSums(nhood[,,1]>0)
     
   for(i in 1:ncol(observed)){
-    #weights <- matrix(as.numeric(nhood[,i]),nrow=nrow,ncol=ncol,byrow=T)
+    #weights <- matrix(as.numeric(nhood[,i]),nrow=nrow,ncol=ncol,byrow=TRUE)
     weights <- t(nhood[,i,])
     neighbours[,i] <- rowSums(observed*weights)
   }
@@ -1424,7 +1602,7 @@ jacobian <- function(thetahat, designRes){
     if(length(designRes$control$lambda)==1)
       lambda <- "lambda"
     else {
-      lambda <- paste("lambda", alpha, sep="_")[designRes$control$lambda]
+      lambda <- paste("lambda", alpha, sep="_")[!is.na(designRes$control$lambda)]
     }
     thetaNames <- c(thetaNames, lambda)
     
@@ -1437,7 +1615,7 @@ jacobian <- function(thetahat, designRes){
     if(length(designRes$control$neighbours)==1)
       phi <- "phi"
     else {
-      phi <- paste("phi", alpha, sep="_")[designRes$control$neighbours]
+      phi <- paste("phi", alpha, sep="_")[!is.na(designRes$control$neighbours)]
     }
     thetaNames <- c(thetaNames, phi)
     
@@ -1495,6 +1673,109 @@ jacobian <- function(thetahat, designRes){
   dimnames(D) <- list(thetaNames,thetaNames)
   names(thetahat) <- thetaNames
   return(list(D=D,theta=thetahat))
+}
+
+# theta.epidemic = c(lambda,phi)
+# Note: lambda and phi are  on log-scale
+getLambda <- function(theta.epidemic, designRes, t.weights=1){
+  
+  # check dimension of theta.epidemic
+  dimLambda <- designRes$dimTheta$lambda
+  dimPhi <- designRes$dimTheta$phi
+  if(designRes$dimTheta$proportion>0)
+    stop("proportions currently not supported\n")
+  
+  if(length(theta.epidemic)!= (dimLambda+dimPhi))
+    stop("vector with parameters must be of length ", dimLambda+dimPhi,"\n")
+    
+  # is there an autoregression?
+  if(sum(!is.na(designRes$control$lambda))==0 & sum(!is.na(designRes$control$neighbours)) ==0)
+    return(NULL)
+
+  if(dimLambda>0){
+    coef.lambda <- exp(theta.epidemic[1:dimLambda] )
+  } else coef.lambda <- 0
+  if(dimPhi>0){
+    coef.phi <- exp(theta.epidemic[(dimLambda+1):length(theta.epidemic)] )
+  } else coef.phi <- 0
+
+  #univariate?
+  if(ncol(designRes$disProgObj$observed)==1){
+    if(sum(!is.na(designRes$control$lambda))==1)
+    return(coef.lambda)
+    else return(NULL)
+  }
+  
+  nhood <- designRes$disProgObj$neighbourhood
+  # time-varying weights w_ji
+  if(length(dim(nhood))==3)
+    nhood <- nhood[,,t.weights]
+    
+  diag(nhood) <- 0
+  nareas <- ncol(nhood)
+  nOfNeighbours <- colSums(nhood>0)
+  
+  if(designRes$control$proportion=="none"){
+    # no lambda
+    if(sum(!is.na(designRes$control$lambda))==0){
+      lambda <- rep(0,nareas)
+    # single lambda for all units
+    } else if(sum(!is.na(designRes$control$lambda))==1 & length(designRes$control$lambda)==1){
+      lambda <- rep(coef.lambda,nareas)
+    # multiple lambda
+    } else{
+      lambda <- rep(0, nareas)
+      lambda[designRes$control$lambda] <- coef.lambda
+    }
+    Lambda <- diag(lambda,nareas)
+    
+    if(dimPhi>0){
+      # single phi for all units
+      if(length(designRes$control$neighbours)==1 & sum(!is.na(designRes$control$neighbours))==1){
+        phi <-rep(coef.phi,nareas)
+      } else if(length(designRes$control$neighbours)>1 & sum(!is.na(designRes$control$neighbours))>0){
+        phi <- rep(0,nareas)
+        phi[!is.na(designRes$control$neighbours)] <- coef.phi
+      }  
+      phi.weights <- matrix(phi,nrow=nareas,ncol=nareas,byrow=FALSE)*nhood#designRes$disProgObj$neighbourhood
+      Lambda[nhood>0] <- phi.weights[nhood>0]
+    }
+
+  } else { #todo: check
+    return(NULL)
+#hoehle 14 Oct 2008 - commented, coz it contains warnings for R CMD check
+#    lambdaMatrix <- matrix(lambda,ncol=nareas,nrow=nareas,byrow=TRUE)
+#    nOfNeighbours <- rowSums(nhood)
+#    piMatrix <- matrix((1-prop)/nOfNeighbours,ncol=nareas,nrow=nareas,byrow=TRUE)
+#    piMatrix[nhood==0] <-0
+#    diag(piMatrix)<-prop
+#    Lambda <- lambdaMatrix*piMatrix
+  }
+  return(Lambda)
+}
+
+## moment estimator of exp(alpha)
+## alpha.hat(lambda,phi) = mean(y)' %*% (I - Lambda)
+expAlpha.mm <- function(Lambda,Y){
+  mean.obs <- colMeans(Y)
+  mean.obs %*% (diag(1,length(mean.obs))-Lambda)
+}
+
+
+########
+logLik.ah <- function(object,...){
+	if(!inherits(object, "ah"))
+		stop("expected object to be an object of class ah\n")
+	if(!object$convergence)
+		stop("algorithm did not converge\n")
+	val <- object$loglikelihood
+	attr(val, "df") <- length(coef(object))
+	attr(val, "nobs") <- object$nObs
+	class(val) <- "logLik"
+	return(val)
+}
+logLik.ahg <- function(object, ...){
+	logLik.ah(object$best)
 }
 
 

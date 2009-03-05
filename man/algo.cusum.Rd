@@ -72,7 +72,7 @@
 }
 \details{This implementation is still experimental}
 %\seealso{}
-\author{M. Paul and M. Höhle}
+\author{M. Paul and M. \enc{Höhle}{Hoehle}}
 \examples{
 
     # Xi ~ Po(5), i=1,...,500

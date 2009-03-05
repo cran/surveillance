@@ -36,7 +36,7 @@
 }
 \seealso{\code{\link{sim.seasonalNoise}}
 }
-\author{M. Höhle, A. Riebler, C. Lang}
+\author{M. \enc{Höhle}{Hoehle}, A. Riebler, C. Lang}
 \examples{
     # Plotting of simulated data
     disProgObj <- sim.pointSource(p = 0.99, r = 0.5, length = 208,

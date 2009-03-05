@@ -11,6 +11,7 @@
 \alias{insert.zeroes}
 \alias{wait}
 \alias{init.sts}
+\alias{merge.list}
 %Functions from M.Paul
 \alias{commonDenom}
 \alias{logInterpolation}
@@ -24,7 +25,22 @@
 \alias{jacobian}
 \alias{sinCos2amplitudeShift}
 \alias{jacobianAmplitudeShift}
+\alias{getLambda}
+\alias{expAlpha.mm}
+\alias{logLik.ah}
+\alias{logLik.ahg}
 %
+%twins function not documented
+\alias{make.nu}
+\alias{make.pois}
+\alias{pois.plot}
+\alias{tms.plot}
+
+%Weird functions from sp package which produce warnings in R CMD check
+%for the surveillance package (??)
+\alias{summary,GridTopology-method}
+\alias{summary,Spatial-method}
+
 \title{Internal surveillance Functions}
 \description{
   Undocumented internal \code{surveillance} functions. If you really

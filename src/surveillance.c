@@ -17,12 +17,13 @@
   void glr_epi_window
 
   //History
+  17 Feb 2009 -- added LR scheme for negative binomial (still experimental)
   08 Jan 2007 -- added the files for the negative binomial computations
   21 Sep 2007 -- modified code to get around error of extreme strict (=pedantic) MacOS compiling on CRAN
   28 Nov 2006 -- file created
 */
 
-
+/*#define DEBUG*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -571,6 +572,89 @@ void glr_epi_window(int* x,double* mu0, int *lx_R, int *Mtilde_R, int *M_R, doub
   Comment/ToDo: move to seperate files?
   ======================================================================
 */
+
+/**********************************************************************
+  C implementation of the LR test for the negative binomial based
+  intercept shift chart with known, but possible time varying, incontrol
+  mean. See Hoehle and Paul (2008) paper for details.
+
+  Params:
+   x   - array of observed values (pos 0 is first interesting value)
+  mu0  - array with the means once in-control (pos 0 is first interesting value)
+  alpha -- fixed dispersion parameter of the NegBin distribution (see Lawless87)
+  lx   - length of the x and mu0 array
+  kappa- the change in intercept to detect (here known in advance)
+
+  c_ARL- when to sound alarm threshold
+  ret_N- here the return value is stored
+  ret_lr- GLR value for each n to be returned
+  ret_cases - The number of cases to be returned 
+  ret - what should be returned (value of lr-statistic, cases)?
+**********************************************************************/
+
+void lr_cusum_nb(int* x, double* mu0, double* alpha_R, int *lx_R, double *kappa_R, double *c_ARL_R,int *ret_N, double *ret_lr, double *ret_cases, int *ret_R) {
+
+#ifdef DEBUG
+  printf("====> begin lr_cusum_nb\n"); 
+#endif
+
+  /* Pointers to something useful */
+  int lx = *lx_R;
+  double c_ARL = *c_ARL_R;
+  double kappa = *kappa_R;
+  double alpha = *alpha_R;
+  int ret = *ret_R;
+  
+#ifdef DEBUG
+  printf("lx = %d\n",lx);
+  printf("alpha = %f\n",alpha);
+#endif
+
+  /* Loop variables */
+  register int n=0; 
+  int stop = 0;
+  int N = lx;
+
+  /* Loop over all 0 <= n <= length(x) */
+  while ((n < lx)) {
+    /*Compute for one n*/
+#ifdef DEBUG
+    printf("n=%d\n",n);
+#endif
+
+    /* LR for one NB variable as given in the first equation of Sect 2.1 
+       in the Hoehle and Paul (2008) paper
+    */
+    double zn = kappa * x[n] + (x[n]+1/alpha)*log( (1+alpha*mu0[n])/(1+alpha*mu0[n]*exp(kappa)) );
+
+    /* Recursive CUSUM as given in (4) by Hoehle and Paul (2008) */
+    if (n==0) {
+      /* Statistic */
+      ret_lr[n] = fmax(0,zn);
+      /* Number of cases it takes to sound an alarm - backcalc'ed by backcalc.mws*/
+      if (ret==2) ret_cases[n] = -(log((1+alpha*mu0[n])/(1+alpha*mu0[n]*exp(kappa)))-c_ARL*alpha)/alpha/(kappa+log((1+alpha*mu0[n])/(1+alpha*mu0[n]*exp(kappa))));
+    } 
+    else {
+      /* Statistic */
+      ret_lr[n] = fmax(0,ret_lr[n-1] + zn);
+      /* Number of cases it takes to sound an alarm -- backcalc.mws*/
+      if (ret==2) ret_cases[n] = -(ret_lr[n-1]*alpha+log((1+alpha*mu0[n])/(1+alpha*mu0[n]*exp(kappa)))-c_ARL*alpha)/alpha/(kappa+log((1+alpha*mu0[n])/(1+alpha*mu0[n]*exp(kappa))));
+    }
+
+    /* Find the first time that the GLR increases c_ARL there we stop */
+    if ((ret_lr[n] > c_ARL) && !stop) {
+      N = n;
+      stop = 1;
+      break;
+    }
+  
+    /* Advance counter */
+    n++;
+  }
+
+  /* Return value (add 1 for R/SPlus array compability */
+  *ret_N = N+1;
+}
 
 
 /* ======================================================================

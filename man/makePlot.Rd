@@ -25,7 +25,7 @@
 \seealso{\code{\link{readData}}, \code{\link{correct53to52}}, \code{\link{enlargeData}},
                 \code{\link{algo.call}}, \code{\link{plot.survRes}}
 }
-\author{M. Höhle, A. Riebler, C. Lang}
+\author{M. \enc{Höhle}{Hoehle}, A. Riebler, C. Lang}
 \examples{
     makePlot("./", "k1", "rki2", "RKI 2", "Kryptosporidiose")
 }

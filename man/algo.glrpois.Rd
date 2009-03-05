@@ -90,7 +90,7 @@ So \eqn{N} is the time point where the GLR statistic is above the
 threshold the first time: An alarm is given and the surveillance is
 resetted starting from time \eqn{N+1}. Note that the same
 \code{c.ARL} as before is used, but if \code{mu0} is different at
-\eqn{N+1,N+2,\ldots} compared to time {1,2,\ldots} the run length
+\eqn{N+1,N+2,\ldots} compared to time \eqn{1,2,\ldots} the run length
 properties differ. Because \code{c.ARL} to obtain a specific ARL can
 only be obtained my Monte Carlo simulation there is no good way to
 update \code{c.ARL} automatically at the moment. Also, FIR GLR-detectors
@@ -140,7 +140,7 @@ plot(lr.ts,xaxis.years=FALSE)
 \keyword{classif}
 \source{
 Poisson regression charts for the monitoring of surveillance time
-series (2006), Höhle, M., SFB386 Discussion Paper 500.
+series (2006), \enc{Höhle}{Hoehle}, M., SFB386 Discussion Paper 500.
 }
 
 

@@ -27,58 +27,22 @@
 /p1  { stroke } def
 /p2  { gsave bg fill grestore newpath } def
 /p3  { gsave bg fill grestore stroke } def
-/t   { 6 -2 roll moveto gsave rotate
-       ps mul neg 0 2 1 roll rmoveto
+/t   { 5 -2 roll moveto gsave rotate
        1 index stringwidth pop
        mul neg 0 rmoveto show grestore } def
+/ta  { 4 -2 roll moveto gsave rotate show } def
+/tb  { 2 -1 roll 0 rmoveto show } def
 /cl  { grestore gsave newpath 3 index 3 index moveto 1 index
        4 -1 roll lineto  exch 1 index lineto lineto
        closepath clip newpath } def
 /rgb { setrgbcolor } def
 /s   { scalefont setfont } def
 % end   .ps.prolog
-% begin encoding
-/WinAnsiEncoding [
- /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
- /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
- /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
- /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef
- /space /exclam /quotedbl /numbersign /dollar /percent /ampersand /quoteright
- /parenleft /parenright /asterisk /plus /comma /minus /period /slash
- /zero /one /two /three /four /five /six /seven
- /eight /nine /colon /semicolon /less /equal /greater /question
- /at /A /B /C /D /E /F /G
- /H /I /J /K /L /M /N /O
- /P /Q /R /S /T /U /V /W
- /X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore
- /grave /a /b /c /d /e /f /g
- /h /i /j /k /l /m /n /o
- /p /q /r /s /t /u /v /w
- /x /y /z /braceleft /bar /braceright /asciitilde /.notdef
- /Euro /.notdef /quotesinglbase /florin /quotedblbase /ellipsis /dagger /daggerdbl
- /circumflex /perthousand /Scaron /guilsinglleft /OE /.notdef /Zcaron /.notdef
- /.notdef /quoteleft /quoteright /quotedblleft /quotedblright /bullet /endash /emdash
- /tilde /trademark /scaron /guilsinglright /oe /.notdef /zcaron /Ydieresis
- /space /exclamdown /cent /sterling /currency /yen /brokenbar /section
- /dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen /registered /macron
- /degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph /periodcentered
- /cedilla /onesuperior /ordmasculine /guillemotright /onequarter /onehalf /threequarters /questiondown
- /Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla
- /Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis
- /Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply
- /Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn /germandbls
- /agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla
- /egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis
- /eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide
- /oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn /ydieresis
-]
- def
-% end encoding
 %%IncludeResource: font Helvetica
 /Helvetica findfont
 dup length dict begin
   {1 index /FID ne {def} {pop pop} ifelse} forall
-  /Encoding WinAnsiEncoding def
+  /Encoding ISOLatin1Encoding def
   currentdict
   end
 /Font1 exch definefont pop
@@ -86,7 +50,7 @@ dup length dict begin
 /Helvetica-Bold findfont
 dup length dict begin
   {1 index /FID ne {def} {pop pop} ifelse} forall
-  /Encoding WinAnsiEncoding def
+  /Encoding ISOLatin1Encoding def
   currentdict
   end
 /Font2 exch definefont pop
@@ -94,7 +58,7 @@ dup length dict begin
 /Helvetica-Oblique findfont
 dup length dict begin
   {1 index /FID ne {def} {pop pop} ifelse} forall
-  /Encoding WinAnsiEncoding def
+  /Encoding ISOLatin1Encoding def
   currentdict
   end
 /Font3 exch definefont pop
@@ -102,7 +66,7 @@ dup length dict begin
 /Helvetica-BoldOblique findfont
 dup length dict begin
   {1 index /FID ne {def} {pop pop} ifelse} forall
-  /Encoding WinAnsiEncoding def
+  /Encoding ISOLatin1Encoding def
   currentdict
   end
 /Font4 exch definefont pop
@@ -528,12 +492,15 @@ np
 0 4.99 l
 o
 0.00 0.00 468.00 432.00 cl
-/ps 18 def /Font2 findfont 18 s
+/Font2 findfont 18 s
 0 setgray
-262.80 396.74 (Analysis of sts using cdc\(4*,0,5\)) .5 0 0 t
-/ps 18 def /Font1 findfont 18 s
-262.80 17.28 (time) .5 0 0 t
-11.52 223.20 (No. infected) .5 0 90 t
+125.25 396.74 (Anal) 0 ta
+-0.270 (ysis of sts using cdc\(4*,0,5\)) tb gr
+/Font1 findfont 18 s
+262.80 17.28 (time) .5 0 t
+11.52 175.18 (No) 90 ta
+-0.720 (. inf) tb
+-0.540 (ected) tb gr
 57.60 72.00 468.00 374.40 cl
 0 setgray
 0.75 setlinewidth
@@ -1720,19 +1687,19 @@ np
 417.06 57.60 m
 0 -7.20 l
 o
-/ps 18 def /Font1 findfont 18 s
-74.68 74.88 (2001) .5 0 0 t
-74.68 53.28 () .5 0 0 t
-74.68 31.68 (I) .5 0 0 t
-172.50 74.88 (2001) .5 0 0 t
-172.50 53.28 () .5 0 0 t
-172.50 31.68 (III) .5 0 0 t
-270.32 74.88 (2002) .5 0 0 t
-270.32 53.28 () .5 0 0 t
-270.32 31.68 (I) .5 0 0 t
-368.15 74.88 (2002) .5 0 0 t
-368.15 53.28 () .5 0 0 t
-368.15 31.68 (III) .5 0 0 t
+/Font1 findfont 18 s
+74.68 74.88 (2001) .5 0 t
+74.68 53.28 () .5 0 t
+74.68 31.68 (I) .5 0 t
+172.50 74.88 (2001) .5 0 t
+172.50 53.28 () .5 0 t
+172.50 31.68 (III) .5 0 t
+270.32 74.88 (2002) .5 0 t
+270.32 53.28 () .5 0 t
+270.32 31.68 (I) .5 0 t
+368.15 74.88 (2002) .5 0 t
+368.15 53.28 () .5 0 t
+368.15 31.68 (III) .5 0 t
 np
 57.60 96.53 m
 0 249.15 l
@@ -1761,12 +1728,12 @@ np
 57.60 345.68 m
 -7.20 0 l
 o
-40.32 96.53 (0) .5 0 90 t
-40.32 146.36 (10) .5 0 90 t
-40.32 196.19 (20) .5 0 90 t
-40.32 246.02 (30) .5 0 90 t
-40.32 295.85 (40) .5 0 90 t
-40.32 345.68 (50) .5 0 90 t
+40.32 96.53 (0) .5 90 t
+40.32 146.36 (10) .5 90 t
+40.32 196.19 (20) .5 90 t
+40.32 246.02 (30) .5 90 t
+40.32 295.85 (40) .5 90 t
+40.32 345.68 (50) .5 90 t
 525.60 72.00 936.00 374.40 cl
 525.60 72.00 936.00 374.40 cl
 0 setgray
@@ -2180,12 +2147,15 @@ np
 0 11.60 l
 o
 468.00 0.00 936.00 432.00 cl
-/ps 18 def /Font2 findfont 18 s
+/Font2 findfont 18 s
 0 setgray
-730.80 396.74 (Analysis of sts using farrington\(3,0,5\)) .5 0 0 t
-/ps 18 def /Font1 findfont 18 s
-730.80 17.28 (time) .5 0 0 t
-479.52 223.20 (No. infected) .5 0 90 t
+569.76 396.74 (Anal) 0 ta
+-0.270 (ysis of sts using farrington\(3,0,5\)) tb gr
+/Font1 findfont 18 s
+730.80 17.28 (time) .5 0 t
+479.52 175.18 (No) 90 ta
+-0.720 (. inf) tb
+-0.540 (ected) tb gr
 525.60 72.00 936.00 374.40 cl
 0 setgray
 0.75 setlinewidth
@@ -3278,19 +3248,19 @@ np
 885.06 57.60 m
 0 -7.20 l
 o
-/ps 18 def /Font1 findfont 18 s
-542.68 74.88 (2001) .5 0 0 t
-542.68 53.28 () .5 0 0 t
-542.68 31.68 (I) .5 0 0 t
-640.50 74.88 (2001) .5 0 0 t
-640.50 53.28 () .5 0 0 t
-640.50 31.68 (III) .5 0 0 t
-738.32 74.88 (2002) .5 0 0 t
-738.32 53.28 () .5 0 0 t
-738.32 31.68 (I) .5 0 0 t
-836.15 74.88 (2002) .5 0 0 t
-836.15 53.28 () .5 0 0 t
-836.15 31.68 (III) .5 0 0 t
+/Font1 findfont 18 s
+542.68 74.88 (2001) .5 0 t
+542.68 53.28 () .5 0 t
+542.68 31.68 (I) .5 0 t
+640.50 74.88 (2001) .5 0 t
+640.50 53.28 () .5 0 t
+640.50 31.68 (III) .5 0 t
+738.32 74.88 (2002) .5 0 t
+738.32 53.28 () .5 0 t
+738.32 31.68 (I) .5 0 t
+836.15 74.88 (2002) .5 0 t
+836.15 53.28 () .5 0 t
+836.15 31.68 (III) .5 0 t
 np
 525.60 96.53 m
 0 231.89 l
@@ -3315,11 +3285,11 @@ np
 525.60 328.42 m
 -7.20 0 l
 o
-508.32 96.53 (0) .5 0 90 t
-508.32 154.50 (5) .5 0 90 t
-508.32 212.48 (10) .5 0 90 t
-508.32 270.45 (15) .5 0 90 t
-508.32 328.42 (20) .5 0 90 t
+508.32 96.53 (0) .5 90 t
+508.32 154.50 (5) .5 90 t
+508.32 212.48 (10) .5 90 t
+508.32 270.45 (15) .5 90 t
+508.32 328.42 (20) .5 90 t
 ep
 %%Trailer
 %%Pages: 1
