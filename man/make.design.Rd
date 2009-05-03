@@ -9,27 +9,32 @@
 make.design(disProgObj, control=list(lambda=TRUE, neighbours=FALSE, 
    linear=FALSE, nseason=0,
    negbin=c("none", "single", "multiple"), 
-   proportion=c("none", "single", "multiple")) )
+   proportion=c("none", "single", "multiple"),lag.range=NULL) )
 }
 \arguments{
-        \item{disProgObj}{Object of class \code{disProg}}
-        \item{control}{Control object:
-              \itemize{
-              \item{lambda}{if \code{TRUE} an autoregressive 
-                   parameter \eqn{\lambda} is included, if \code{lambda} is a vector of logicals,
-                   unit-specific parameters \eqn{\lambda_i} are included}
-              \item{neighbours}{if \code{TRUE} an autoregressive parameter for 
-                    adjacent units \eqn{\phi} is included, if \code{neighbours} is a vector of logicals,
-                    unit-specific parameters \eqn{\phi_i} are included}
-              \item{linear}{a \code{logical} (or a vector of logicals) indicating wether a linear 
-                    trend \eqn{\beta} (or a linear trend \eqn{\beta_i} for each unit)
-                    is included}
-              \item{nseason}{integer number of Fourier frequencies \code{nseason}; if \code{nseason} is a vector
-                    of integers, each unit \eqn{i} gets its own seasonal parameters }
-              \item{negbin}{if \code{"single"} negative binomial rather than poisson is used,
-                    if \code{"multiple"} unit-specific overdispersion parameters are used.}
-              \item{proportion}{see details in \code{\link{meanResponse}} }
-              }}
+  \item{disProgObj}{object of class \code{disProg}}
+  \item{control}{control object:
+        \describe{
+        \item{\code{lambda}}{If \code{TRUE} an autoregressive 
+              parameter \eqn{\lambda} is included, if \code{lambda} is a vector of logicals,
+              unit-specific parameters \eqn{\lambda_i} are included. By default, observations \eqn{y_{t-lag}}{y_t-lag}
+              at the previous time points, i.e. \eqn{lag=1}, are used for the autoregression. Other lags can be
+              used by specifying \code{lambda} as a vector of integers, see Examples and \code{\link{meanResponse}} for details.}
+        \item{\code{neighbours}}{If \code{TRUE} an autoregressive parameter for 
+              adjacent units \eqn{\phi} is included, if \code{neighbours} is a vector of logicals,
+              unit-specific parameters \eqn{\phi_i} are included. By default, observations \eqn{y_{t-lag}}{y_t-lag}
+              at the previous time points, i.e. \eqn{lag=1}, are used for the autoregression. Other lags can be
+              used by specifying \code{neighbours} as a vector of integers.}
+        \item{\code{linear}}{a \code{logical} (or a vector of logicals) indicating wether a linear 
+              trend \eqn{\beta} (or a linear trend \eqn{\beta_i} for each unit)
+              is included}
+        \item{\code{nseason}}{Integer number of Fourier frequencies; if \code{nseason} is a vector
+              of integers, each unit \eqn{i} gets its own seasonal parameters }
+        \item{\code{negbin}}{if \code{"single"} negative binomial rather than poisson is used,
+              if \code{"multiple"} unit-specific overdispersion parameters are used.}
+        \item{\code{proportion}}{see details in \code{\link{meanResponse}} }
+        \item{\code{lag.range}}{determines which observations are used to fit the model }
+        }}        
 }
 \value{\item{list}{
     \itemize{
@@ -45,6 +50,8 @@ make.design(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
     \item{dimTheta}{list with number of parameters used in model}
     \item{control}{control object}
     \item{disProgObj}{Object of class \code{disProg}}
+    \item{lag}{which lag is used for the autoregressive parameters \eqn{lambda} and \eqn{phi} }
+    \item{nObs}{number of observations}
     }}
 }
 \author{M.Paul, L. Held}

@@ -20,7 +20,7 @@
         and printed for each diesease as latex table. Additonally a summary latex table
         for all diseases is printed
 }
-\author{M. Höhle, A. Riebler, C. Lang}
+\author{M. \enc{Höhle}{Hoehle}, A. Riebler, C. Lang}
 \examples{
     test(c("m1", "m2", "m3", "m4", "m5", "q1_nrwh", "q2", "s1",
                         "s2", "s3", "k1", "n1", "n2", "h1_nrwrp"))

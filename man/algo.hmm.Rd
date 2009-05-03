@@ -15,7 +15,8 @@
 }
 \usage{
   algo.hmm(disProgObj, control = list(range=range, Mtilde=-1, 
-             noStates=2, trend=TRUE, noHarmonics=1,covEffectEqual=FALSE))
+             noStates=2, trend=TRUE, noHarmonics=1,
+             covEffectEqual=FALSE))
 }
 \arguments{
         \item{disProgObj}{object of class disProg (including the observed and the state chain)}
@@ -94,7 +95,7 @@
 
 }
 \seealso{\code{\link[msm:msm]{msm}}}
-\author{M. Höhle}
+\author{M. \enc{Höhle}{Hoehle}}
 \examples{
 set.seed(123)
 #Simulate outbreak data from HMM

@@ -85,8 +85,9 @@ algo.farrington.threshold <- function(pred,phi,alpha=0.01,skewness.transform="no
   #Standard deviation of prediction, i.e. sqrt(var(h(Y_0)-h(\mu_0))) 
   switch(skewness.transform,
          "none" = { se <- sqrt(mu0*tau); exponent <- 1},
-         "sqrt" = { se <- sqrt(1/4*tau); exponent <- 1/2},
-         "2/3"  = { se <- sqrt(4/9*mu0^(1/3)*tau); exponent <- 2/3})
+         "1/2" = { se <- sqrt(1/4*tau); exponent <- 1/2},
+         "2/3"  = { se <- sqrt(4/9*mu0^(1/3)*tau); exponent <- 2/3},
+         { stop("No proper exponent in algo.farrington.threshold.")})
 
   #Note that lu can contain NA's if e.g. (-1.47)^(3/2)
   lu <- sort((mu0^exponent + c(-1,1)*qnorm(1-alpha/2)*se)^(1/exponent),na.last=FALSE)
@@ -102,7 +103,7 @@ algo.farrington.threshold <- function(pred,phi,alpha=0.01,skewness.transform="no
 ###################################################
 ### chunk number 5: 
 ###################################################
-algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, reweight=TRUE, verbose=FALSE,alpha=0.01,powertrans="2/3")) { 
+algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, reweight=TRUE, verbose=FALSE,alpha=0.01,trend=TRUE,limit54=c(5,4),powertrans="2/3")) { 
   #Fetch observed
   observed <- disProgObj$observed
   freq <- disProgObj$freq
@@ -125,7 +126,7 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
 
   #check options
   if (!((control$limit54[1] >= 0) &  (control$limit54[2] > 0))) {
-    stop("The limit54 arguments are out of bounds: cases >= 0 and perior > 0.")
+    stop("The limit54 arguments are out of bounds: cases >= 0 and period > 0.")
   }
 
   # initialize the necessary vectors
@@ -239,7 +240,6 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
     ######################################################################
 
     #Compute exceedance score unless less than 5 reports during last 4 weeks.
-    #enoughCases <- (sum(observed[(k-control$limit54[2]):(k-1)])>=control$limit54[1])
     #Changed in version 0.9-7 - current week is included now
     enoughCases <- (sum(observed[(k-control$limit54[2]+1):k])>=control$limit54[1])
 

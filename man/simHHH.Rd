@@ -68,7 +68,7 @@
 }
 \note{The model does not contain a linear trend.}
 %\seealso{\code{\link{algo.hhh}}, \code{\link{algo.hhh.grid}}}
-\source{Held, L., Höhle, M., Hofmann, M. (2005). A statistical framework for the
+\source{Held, L., \enc{Höhle}{Hoehle}, M., Hofmann, M. (2005). A statistical framework for the
     analysis of multivariate infectious disease surveillance counts. Statistical
     Modelling, 5, p. 187-199.
     }

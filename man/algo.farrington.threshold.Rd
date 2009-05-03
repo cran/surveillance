@@ -21,7 +21,7 @@ algo.farrington.threshold(pred,phi,alpha=0.01,skewness.transform="none")
 \item{alpha}{Quantile level in Gaussian based CI, i.e. an \eqn{(1-\alpha)\%}
     confidence interval is computed. }
 \item{skewness.transform}{Skewness correction, i.e. one of
-    \code{"none"}, \code{"sqrt"}, or \code{"2/3"}.}
+    \code{"none"}, \code{"1/2"}, or \code{"2/3"}.}
 }
 \value{\item{vector}{
         Vector of length 2 with lower and upper bounds of an \eqn{(1-\alpha)\%} confidence interval.

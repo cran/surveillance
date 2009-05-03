@@ -1,0 +1,6 @@
+citHeader("To cite package \"surveillance\" in publications use:")
+desc <- packageDescription("surveillance",encoding=NA)
+year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", desc$Date)
+vers <- paste("R package version", desc$Version)
+citEntry(entry="Article",textVersion="surveillance: An R package for the surveillance of infectious diseases (2007), M. Hoehle, Computational Statistics, 22(4), pp. 571--582.",title="surveillance: An R package for the surveillance of infectious diseases",author="M. {Hoehle}",journal="Computational Statistics",volume="22",number="4",pages="571--582")
+

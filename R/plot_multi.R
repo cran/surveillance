@@ -39,11 +39,12 @@ create.disProg <- function(week, observed, state, start=c(2001,1), freq=52, neig
     }
   }
   
-  #if(is.null(populationFrac)) 
-  #
-  if (nAreas ==1){
-    populationFrac <- matrix(1,nrow=nObs, ncol=1)
-  } 
+  if(is.null(populationFrac)) {
+    populationFrac <- matrix(1/ncol(observed),nrow=nObs, ncol=ncol(observed))
+  } else {
+    populationFrac <- populationFrac
+  }
+
   #if(is.null(neighbourhood) & (nAreas >1) )
   #  
   

@@ -13,7 +13,10 @@ estimateGLRNbHook()
 %\arguments{
 %}
 \value{
-  A vector of length as \code{range} containing the predicted values.
+  A list
+  	\item{\code{mod}}{resulting model of a call of \code{glm.nb}}
+    \item{\code{range}}{vector of length as \code{range} containing the predicted values} 
+
 }
 %
 \details{ 

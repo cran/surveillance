@@ -68,8 +68,11 @@
   (almost) similiar to \code{\link{plot.survRes}}. \code{k} is the
   column to plot.
 
-  \preformatted{plot.sts.time(x, type,method=x@control$name,disease=x@control$data,same.scale=TRUE,...)}
-  \preformatted{plot.sts.time.one(x, k=1,domany=FALSE,ylim=NULL,xaxis.years=TRUE, xaxis.unit=TRUE, xlab="time", ylab="No. infected", main=NULL,type="hhs",lty=c(1,1,2),col=c(1,1,4), outbreak.symbol = list(pch=3,col=3, cex=1),alarm.symbol=list(pch=24, col=2, cex=1),cex=1,legend.opts=list(x="top", legend=NULL,lty=NULL,pch=NULL,col=NULL),...)}
+  \preformatted{plot.sts.time(x, type,method=x@control$name,disease=x@control$data,same.scale=TRUE,par.list=list(mfrow=magic.dim(nAreas),mar=par()$mar),...)}
+  \preformatted{plot.sts.time.one(x,
+  k=1,domany=FALSE,ylim=NULL,xaxis.years=TRUE, xaxis.unit=TRUE,
+  xlab="time", ylab="No. infected",
+  main=NULL,type="s",lty=c(1,1,2),col=c(NA,1,4), lwd=c(1,1,1), outbreak.symbol = list(pch=3,col=3, cex=1),alarm.symbol=list(pch=24, col=2, cex=1),cex=1,legend.opts=list(x="top", legend=NULL,lty=NULL,pch=NULL,col=NULL),dx.upperbound=0.5,hookFunc=function() {},...)}
   
   For spacetime plots the following internal function does all the work:
   \preformatted{plot.sts.spacetime(x,type,legend=NULL,opts.col=NULL,labels=TRUE,wait.ms=250,cex.lab=0.7,verbose=FALSE,dev.printer=NULL,...)}

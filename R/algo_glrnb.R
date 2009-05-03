@@ -34,9 +34,8 @@ algo.glrnb <- function(disProgObj,
     control$dir <- "inc"
   if(is.null(control[["ret",exact=TRUE]]))
   	control$ret <- "value"
-  if(is.null(control[["alpha",exact=TRUE]]))
-      control$alpha <- 0
-  
+  #if(is.null(control[["alpha",exact=TRUE]]))
+  #    control$alpha <- 0
 
   #GLM (only filled if estimated)
   m <- NULL
@@ -50,11 +49,9 @@ algo.glrnb <- function(disProgObj,
   dir <- ifelse(control$dir=="inc",1,-1)
   control$ret <- match.arg(control$ret, c("value","cases"))
   ret <- pmatch(control$ret,c("value","cases"))
+  mod <- list()
   
-  #Postprocess
-  if ((control$alpha>0) & (control$ret == "cases")) {
-    stop("Return of cases is currently not implemented for the negative binomial distribution!")
-  }
+ 
 
   # Estimate m (the expected number of cases), i.e. parameter lambda of a
   # poisson distribution based on time points 1:t-1
@@ -63,14 +60,22 @@ algo.glrnb <- function(disProgObj,
     if (is.null(control[["mu0",exact=TRUE]])) control$mu0 <- list()
     if (is.null(control[["mu0",exact=TRUE]][["S"]])) control$mu0$S <- 1
     if (is.null(control[["mu0",exact=TRUE]][["trend"]])) control$mu0$trend <- FALSE
-    if (is.null(control[["mu0",exact=TRUE]][["refit"]])) control$m0$refit <- FALSE
+    if (is.null(control[["mu0",exact=TRUE]][["refit"]])) control$mu0$refit <- FALSE
     control$mu0Model <- control$mu0
 
     #Estimate using a hook function (lazy evaluation)
-    control$mu0 <- estimateGLRNbHook()
+    control$mu0 <- estimateGLRNbHook()$pred
+    
+    mod[[1]] <- estimateGLRNbHook()$mod
+    
+    # if it is necessary to estimate alpha
+    if(is.null(control[["alpha",exact=TRUE]])) control$alpha <- mod[[1]]$theta
   }
-	
-	
+  
+   #Postprocess
+  if ((control$alpha>0) & (control$ret == "cases") & (is.null(control[["theta",exact=TRUE]]))) {
+    stop("Return of cases is currently not implemented for the GLR detector based on the negative binomial distribution!")
+  }
 	
   #The counts
   x <- observed[control$range]
@@ -105,16 +110,18 @@ algo.glrnb <- function(disProgObj,
         	res <- .C("glr_cusum",as.integer(x),as.double(mu0),length(x),as.integer(control$Mtilde),as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(dir),as.integer(ret),PACKAGE="surveillance")
 
         	}
-        }else { #negbin
+        } else { #negbin
           res <- .C("glr_nb_window",x=as.integer(x),mu0=as.double(mu0),alpha=as.double(control$alpha),lx=length(x),Mtilde=as.integer(control$Mtilde),M=as.integer(control$M),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),dir=as.integer(dir),PACKAGE="surveillance")
         }
-      } else {
+      } else { ###################### !is.null(control$theta)
         if (control$alpha == 0) { #poisson
 
-          res <- .C("lr_cusum",as.integer(x),as.double(mu0),length(x),as.double(control$theta),as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(ret),PACKAGE="surveillance")
+          res <- .C("lr_cusum",x=as.integer(x),mu0=as.double(mu0),lx=length(x),as.double(control$theta),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(ret),PACKAGE="surveillance")
 
         } else { #negbin
-          stop("The LR feature of the negative binomial distribution is currently not implemented!")
+          warning("LR feature of the negative binomial distribution is currently experimental!")
+          res <- .C("lr_cusum_nb",x=as.integer(x),mu0=as.double(mu0),alpha=as.double(control$alpha),lx=length(x),as.double(control$theta),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(ret),PACKAGE="surveillance")
+
         }
       }
     } else { ################### Epidemic chart #######################
@@ -142,7 +149,8 @@ algo.glrnb <- function(disProgObj,
       } else {
         #Update the range (how to change back??)
         range <- range[-(1:res$N)]
-        mu0 <- estimateGLRNbHook()
+        mu0 <- estimateGLRNbHook()$pred
+        mod[[noofalarms+2]] <-  estimateGLRNbHook()$mod 
         control$mu0[(doneidx + res$N + 1):length(control$mu0)] <- mu0
       }
 
@@ -175,6 +183,7 @@ algo.glrnb <- function(disProgObj,
   control$name <- paste(algoName, control$change)
   control$data <- paste(deparse(substitute(disProgObj)))
   control$m    <- m
+  control$mu0Model$fitted <- mod
 
   # return alarm and upperbound vectors
   result <- list(alarm = alarm, upperbound = upperbound, 
@@ -214,7 +223,7 @@ estimateGLRNbHook <- function() {
   m <- eval(substitute(glm.nb(form,data=data),list(form=as.formula(formula))))
 
   #Predict mu_{0,t}
-  return(as.numeric(predict(m,newdata=data.frame(t=range),type="response")))
+  return(list(mod=m,pred=as.numeric(predict(m,newdata=data.frame(t=range),type="response"))))
 }
 
 

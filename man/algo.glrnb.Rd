@@ -8,7 +8,8 @@
 }
 \usage{
 algo.glrnb(disProgObj,control = list(range=range,c.ARL=5, 
-         mu0=NULL, alpha=0, Mtilde=1, M=-1, change="intercept",theta=NULL,dir=c("inc","dec"),ret=c("cases","value")))
+         mu0=NULL, alpha=0, Mtilde=1, M=-1, change="intercept",
+         theta=NULL,dir=c("inc","dec"),ret=c("cases","value")))
 }
 \arguments{
 \item{disProgObj}{object of class \code{disProg} to do surveillance
@@ -32,7 +33,7 @@ algo.glrnb(disProgObj,control = list(range=range,c.ARL=5,
         negative binomial distribution. If \code{alpha=0} then the negative
         binomial distribution boils down to the Poisson distribution
         and a call of \code{algo.glrnb} is equivalent to a call to
-        \code{algo.glrpois}.}
+        \code{algo.glrpois}. If \code{alpha=NULL} the parameter is calculated as part of the in-control estimation.}
     \item{\code{c.ARL}}{threshold in the GLR test,
         i.e. \eqn{c_{\gamma}}{c_gamma}}
     \item{\code{Mtilde}}{number of observations needed before we
@@ -77,8 +78,8 @@ algo.glrnb(disProgObj,control = list(range=range,c.ARL=5,
 \details{ 
 %
   This function implements the seasonal cound data chart based on
-  generalized likelihood ratio (GLR) as described in the SFB
-  Discussion Paper 500 (the paper covers only the Poisson case). A moving-window generalized likelihood ratio
+  generalized likelihood ratio (GLR) as described in the Hoehle and Paul
+  (2008) paper. A moving-window generalized likelihood ratio
   detector is used, i.e. the detector has the form
 %
 \deqn{N = \inf\left\{ n : \max_{1\leq k \leq
@@ -95,7 +96,7 @@ So \eqn{N} is the time point where the GLR statistic is above the
 threshold the first time: An alarm is given and the surveillance is
 resetted starting from time \eqn{N+1}. Note that the same
 \code{c.ARL} as before is used, but if \code{mu0} is different at
-\eqn{N+1,N+2,\ldots} compared to time {1,2,\ldots} the run length
+\eqn{N+1,N+2,\ldots} compared to time \eqn{1,2,\ldots} the run length
 properties differ. Because \code{c.ARL} to obtain a specific ARL can
 only be obtained my Monte Carlo simulation there is no good way to
 update \code{c.ARL} automatically at the moment. Also, FIR GLR-detectors
@@ -142,9 +143,14 @@ plot(glr.ts,xaxis.years=FALSE)
 
 \keyword{classif}
 \source{
+Count data regression charts for the monitoring of surveillance time
+series (2008), M. \enc{Höhle}{Hoehle} and M. Paul, Computational Statistics and
+Data Analysis, 52(9), pp. 4357--4368.
+
 Poisson regression charts for the monitoring of surveillance time
-series (2006), Höhle, M., SFB386 Discussion Paper 500.
+series (2006), \enc{Höhle}{Hoehle}, M., SFB386 Discussion Paper 500.
 }
+
 
 
 % Hook

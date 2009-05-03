@@ -15,42 +15,49 @@
 algo.hhh.grid(disProgObj, control=list(lambda=TRUE, neighbours=FALSE, 
    linear=FALSE, nseason=0,
    negbin=c("none", "single", "multiple"), 
-   proportion=c("none", "single", "multiple")), 
+   proportion=c("none", "single", "multiple"),lag.range=NULL), 
    thetastartMatrix, maxTime=1800, verbose=FALSE)
 }
 \arguments{
-        \item{disProgObj}{Object of class \code{disProg}}
-        \item{control}{Control object:
-              \itemize{
-              \item{lambda}{if \code{TRUE} an autoregressive 
-                   parameter \eqn{\lambda} is included, if \code{lambda} is a vector of logicals,
-                   unit-specific parameters \eqn{\lambda_i} are included}
-              \item{neighbours}{if \code{TRUE} an autoregressive parameter for 
-                    adjacent units \eqn{\phi} is included, if \code{neighbours} is a vector of logicals,
-                    unit-specific parameters \eqn{\phi_i} are included}
-              \item{linear}{a \code{logical} (or a vector of logicals) indicating wether a linear 
-                    trend \eqn{\beta} (or a linear trend \eqn{\beta_i} for each unit)
-                    is included}
-              \item{nseason}{integer number of Fourier frequencies; if \code{nseason} is a vector
-                    of integers, each unit \eqn{i} gets its own seasonal parameters }
-              \item{negbin}{if \code{"single"} negative binomial rather than poisson is used,
-                    if \code{"multiple"} unit-specific overdispersion parameters are used.}
-              \item{proportion}{see details in \code{\link{meanResponse}} }
-              }}        \item{thetastartMatrix}{matrix with initial values for all parameters specified
-             in the control object as rows.}
-        \item{verbose}{if \code{true} progress information is printed} 
-        \item{maxTime}{maximum of time (in seconds) to elapse until algorithm stopps.}
+\item{disProgObj}{object of class \code{disProg}}
+\item{control}{control object:
+      \itemize{
+      \item{\code{lambda}}{If \code{TRUE} an autoregressive 
+            parameter \eqn{\lambda} is included, if \code{lambda} is a vector of logicals,
+            unit-specific parameters \eqn{\lambda_i} are included. By default, observations \eqn{y_{t-lag}}{y_t-lag}
+            at the previous time points, i.e. \eqn{lag=1}, are used for the autoregression. Other lags can be
+            used by specifying \code{lambda} as a vector of integers, see Examples and \code{\link{meanResponse}} for details.}
+      \item{\code{neighbours}}{If \code{TRUE} an autoregressive parameter for 
+            adjacent units \eqn{\phi} is included, if \code{neighbours} is a vector of logicals,
+            unit-specific parameters \eqn{\phi_i} are included. By default, observations \eqn{y_{t-lag}}{y_t-lag}
+            at the previous time points, i.e. \eqn{lag=1}, are used for the autoregression. Other lags can be
+            used by specifying \code{neighbours} as a vector of integers.}
+      \item{\code{linear}}{a \code{logical} (or a vector of logicals) indicating wether a linear 
+            trend \eqn{\beta} (or a linear trend \eqn{\beta_i} for each unit)
+            is included}
+      \item{\code{nseason}}{integer number of Fourier frequencies; if \code{nseason} is a vector
+            of integers, each unit \eqn{i} gets its own seasonal parameters }
+      \item{\code{negbin}}{if \code{"single"} negative binomial rather than poisson is used,
+            if \code{"multiple"} unit-specific overdispersion parameters are used.}
+      \item{\code{proportion}}{see details in \code{\link{meanResponse}} }
+      \item{\code{lag.range}}{determines which observations are used to fit the model}
+      }}        
+      \item{thetastartMatrix}{matrix with initial values for all parameters specified
+      in the control object as rows.}
+\item{verbose}{if \code{true} progress information is printed} 
+\item{maxTime}{maximum of time (in seconds) to elapse until algorithm stopps.}
 }
 
-\value{\item{list}{
-        \itemize{
-             \item{best}{result of a call to \code{algo.hhh} with highest likelihood } 
-             \item{allLoglik}{values of loglikelihood for all starting values used}
-             \item{gridSize}{number of different starting values in thetastartMatrix}
-             \item{gridUsed}{number of used starting values}
-             \item{convergence}{if \code{false} \code{algo.hhh} did not converge
-                 for all (used) starting values}
-        }} 
+\value{\item{ahg}{Returns an object of class \code{ahg} with elements 
+    \itemize{
+          \item{best}{result of a call to \code{algo.hhh} with highest likelihood } 
+          \item{allLoglik}{values of loglikelihood for all starting values used}
+          \item{gridSize}{number of different starting values in thetastartMatrix}
+          \item{gridUsed}{number of used starting values}
+          \item{time}{elapsed time}
+          \item{convergence}{if \code{false} \code{algo.hhh} did not converge
+              for all (used) starting values}
+    }} 
 }
 
 \seealso{\code{\link{meanResponse}},\code{\link{create.grid}},\code{\link{algo.hhh}}}
@@ -100,10 +107,18 @@ grid <- create.grid(influMen,model, list(epidemic=c(.1,.9,3),
 # run algo.hhh.grid, search time is limited to 30 sec
 algo.hhh.grid(influMen, control=model, thetastartMatrix=grid, maxTime=30)
 
+# now meningococcal infections in the same week should enter as covariates
+# (i.e. nu_flu,t = lambda_flu * y_flu,t-1  
+#  and  nu_men,t = lambda_men * y_men,t-1 + phi_men*y_flu,t )
+model2 <- list(lambda=c(1,1), neighbours=c(NA,0),
+              linear=FALSE,nseason=c(3,1),negbin="multiple")
+              
+algo.hhh.grid(influMen, control=model2, thetastartMatrix=grid, maxTime=30)
+
 
 }
 \keyword{misc}
-\source{Held, L., Höhle, M., Hofmann, M. (2005) A statistical framework for the 
+\source{Held, L., \enc{Höhle}{Hoehle}, M., Hofmann, M. (2005) A statistical framework for the 
     analysis of multivariate infectious disease surveillance counts. 
     \emph{Statistical Modelling}, \bold{5}, p. 187--199.}
 

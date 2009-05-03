@@ -36,7 +36,7 @@
 \seealso{\code{\link{sim.pointSource}}, \code{\link{algo.call}}, \code{\link{algo.compare}},
   \code{\link{plot.survRes}}, \code{\link{compMatrix.writeTable}}
 }
-\author{M. Höhle, A. Riebler, C. Lang}
+\author{M. \enc{Höhle}{Hoehle}, A. Riebler, C. Lang}
 \examples{
     testSim(K = 2)
     testSim(r = 0.5, K = 5)
