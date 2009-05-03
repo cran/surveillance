@@ -10,8 +10,8 @@
 \usage{
 algo.rogerson(disProgObj, control = list(range = range,
    theta0t = NULL, ARL0 = NULL, s = NULL, hValues = NULL,
-   distribution = c("poisson","binomial"), nt = NULL, FIR=FALSE, limit = NULL,
-   digits = 1))
+   distribution = c("poisson","binomial"), nt = NULL, FIR=FALSE, 
+   limit = NULL, digits = 1))
 }
 \arguments{
   \item{disProgObj}{object of class \code{disProg} that includes a matrix with

@@ -26,7 +26,10 @@ init.sts <- function(.Object, week, start=c(2000,1), freq=52, observed, state, m
   #Name handling
   namesObs <-colnames(observed)
   namesState <- colnames(observed)
-
+  #Ensure observed, state are on matrix form
+  observed <- as.matrix(observed)
+  state <- as.matrix(state)
+  
   #check number of columns of observed and state
   nAreas <- ncol(observed)
   nObs <- nrow(observed)
@@ -112,7 +115,14 @@ setMethod("initialize", "sts", init.sts)
 
 #Partial -- use a disProg object as start and convert it.
 disProg2sts <- function(disProgObj, map=NULL) {
-  sts <- new("sts", week=disProgObj$week, start=disProgObj$start, freq=disProgObj$freq, observed=disProgObj$observed, state = disProgObj$state, map=map, neighbourhood=disProgObj$neighbourhood, populationFrac=disProgObj$populationFrac,alarm=disProgObj$alarm,upperbound=disProgObj$upperbound)
+  #Ensure that week slot is not zero
+  if (is.null(disProgObj[["week",exact=TRUE]])) {
+    myweek <- 1:nrow(as.matrix(disProgObj$observed))
+  } else {
+    myweek <- disProgObj$week
+  }
+    
+  sts <- new("sts", week=myweek, start=disProgObj$start, freq=disProgObj$freq, observed=disProgObj$observed, state = disProgObj$state, map=map, neighbourhood=disProgObj$neighbourhood, populationFrac=disProgObj$populationFrac,alarm=disProgObj$alarm,upperbound=disProgObj$upperbound)
   return(sts)
 }
 
@@ -145,6 +155,10 @@ sts2disProg <- function(sts) {
 ###########################################################################
 
 setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...) {
+  
+ #Action of aggregation for populationFrac depends on the type 
+ binaryTS <- sum( x@populationFrac > 1 ) > 1
+
   #Aggregate time
   if (by == "time") {
     if (nfreq == "all") {
@@ -167,6 +181,12 @@ setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...)
     x@alarm <- as.matrix(aggregate(x@alarm,by=list(new),sum)[,-1])
     x@upperbound <- as.matrix(aggregate(x@upperbound,by=list(new),sum)[,-1])
     x@populationFrac <- as.matrix(aggregate(x@populationFrac,by=list(new),sum)[,-1])
+
+    #the population fractions need to be recomputed if not a binary ts
+    if (!binaryTS) {
+      sums <- matrix(rep(apply(x@populationFrac,1,sum),times=ncol(x)),ncol=ncol(x))
+      x@populationFrac <-x@populationFrac/sums
+    }
   }
   if (by == "unit") {
     #Aggregate units
@@ -175,7 +195,7 @@ setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...)
     x@alarm <- as.matrix(apply(x@alarm, MARGIN=1, sum))>0
     #There is no clever way to aggregate the upperbounds
     x@upperbound <- matrix(NA,ncol=ncol(x@alarm),nrow=nrow(x@alarm))
-    x@populationFrac <- as.matrix(apply(x@populationFrac, MARGIN=1, sum))>0
+    x@populationFrac <- as.matrix(apply(x@populationFrac, MARGIN=1, sum))#>0
     x@neighbourhood <- matrix(1,nrow=1,ncol=1)
   }
 
@@ -183,19 +203,29 @@ setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...)
 
   return(x)
 })
-
+  
 
 #####################################################################
-# Misc access functions
+# Miscellaneous access methods
 ####################################################################
 
 setMethod("nrow", "sts", function(x) return(nrow(x@observed)))
 setMethod("ncol", "sts", function(x) return(ncol(x@observed)))
 setMethod("dim", "sts", function(x) return(dim(x@observed)))
 setMethod("colnames", signature=c(x="sts",do.NULL="missing",prefix="missing"), function(x,do.NULL, prefix) return(colnames(x@observed)))
+#Extract the corresponding year for each observation using
+#the sts@start information
+setGeneric("year", function(x, ...) standardGeneric("year"));
+setMethod("year", "sts", function(x,...) return((x@week-1) %/% x@freq + x@start[1]))
+#Extract which observation within year we have
+setGeneric("obsinyear", function(x, ...) standardGeneric("obsinyear"));
+setMethod("obsinyear", "sts", function(x,...) return( (x@week-1 + x@start[2]-1) %% x@freq + 1))
+
 
 #####################################################################
 #[-method for accessing the observed, alarm, etc. objects
+# new param:
+#  normPopulationFrac - normalize population frac
 #####################################################################
 
 setMethod("[", "sts", function(x, i, j, ..., drop) {
@@ -207,7 +237,13 @@ setMethod("[", "sts", function(x, i, j, ..., drop) {
   x@observed <- x@observed[i,j,drop=FALSE]
   x@state <- x@state[i,j,drop=FALSE]
   x@alarm <- x@alarm[i,j,drop=FALSE]
+
   x@populationFrac <- x@populationFrac[i,j,drop=FALSE]
+  #If not binary TS the populationFrac is normed
+  binaryTS <- sum( x@populationFrac > 1 ) > 1
+  if (!binaryTS) {
+    x@populationFrac <- x@populationFrac / apply(x@populationFrac,MARGIN=1,sum)
+   }  
   x@upperbound <- x@upperbound[i,j,drop=FALSE]
 
   #Neighbourhood matrix
@@ -272,12 +308,30 @@ setMethod("plot", signature(x="sts", y="missing"), function(x, y, type,...) {
   }
 })
 
+######################################################################
+# Helper function taken from the RCurl package
+######################################################################
+
+merge.list <- function (x, y, ...) 
+{
+    if (length(x) == 0) 
+        return(y)
+    if (length(y) == 0) 
+        return(x)
+    i = match(names(y), names(x))
+    i = is.na(i)
+    if (any(i)) 
+        x[names(y)[which(i)]] = y[which(i)]
+    return(x)
+}
 
 ##########################################################################
 # Plot functions
+#
+# colors - c( fill color of polygons, line color of polygons, upperbound)
 ##########################################################################
 
-plot.sts.time.one <- function(x, k=1, domany=FALSE,ylim=NULL,xaxis.years=TRUE, xaxis.units=TRUE, xlab="time", ylab="No. infected", main=NULL, type="hhs",lty=c(1,1,2),col=c(1,1,4), outbreak.symbol = list(pch=3, col=3, cex=1),alarm.symbol=list(pch=24, col=2, cex=1),cex=1,legend.opts=list(x="top", legend=NULL,lty=NULL,pch=NULL,col=NULL),...) {
+plot.sts.time.one <- function(x, k=1, domany=FALSE,ylim=NULL,xaxis.years=TRUE, xaxis.units=TRUE, xlab="time", ylab="No. infected", main=NULL, type="s",lty=c(1,1,2),col=c(NA,1,4),lwd=c(1,1,1), outbreak.symbol = list(pch=3, col=3, cex=1),alarm.symbol=list(pch=24, col=2, cex=1),cex=1,legend.opts=list(x="top", legend=NULL,lty=NULL,pch=NULL,col=NULL),dx.upperbound=0.5,hookFunc=function() {},...) {
 
   #Extract slots -- depending on the algorithms: x@control$range
   observed   <- x@observed[,k]
@@ -289,87 +343,91 @@ plot.sts.time.one <- function(x, k=1, domany=FALSE,ylim=NULL,xaxis.years=TRUE, x
   firstweek <-  x@start[2]
   method <-     x@control$name
   disease <-    x@control$data
+  population <- x@populationFrac[,k]
+  binaryTS <- sum( population > 1 ) > 1
+
+  if (binaryTS) {
+    observed <- observed/population
+    upperbound <- upperbound/population
+    if (ylab == "No. infected") { ylab <- "Proportion infected" }
+  }
   
    ##### Handle the NULL arguments ######################################
   if (is.null(main)) {
     #If no surveillance algorithm has been run
     if (length(x@control) != 0) {
-     # main = paste("Analysis of ", as.character(disease), " using ",
       main = paste("Surveillance using ", as.character(method),sep="") 
     }
   }
   #No titles are drawn when more than one is plotted.
   if (domany) main = ""
 
- 
-  # width of the column
-  tab <- 0.5
-
-  # left/right help for constructing the columns
-  observedxl <- (1:length(observed))-tab
-  observedxr <- (1:length(observed))+tab
-  upperboundx <- (1:length(upperbound)) #-0.5
-  
   # control where the highest value is
   max <- max(c(observed,upperbound),na.rm=TRUE)
-        
-  #if ylim is not specified
-  if(is.null(ylim)){
+  
+  #if ylim is not specified, give it a default value
+  if(is.null(ylim) ){
     ylim <- c(-1/20*max, max)
   }
 
-
-  #Generate the matrices to plot
-  xstuff <- cbind(observedxl, observedxr, upperboundx)
-  ystuff <-cbind(observed, observed, upperbound)
-        
-
-  #Plot the results using one Large plot call (we do this by modifying
-  #the call). 
-  matplot(x=xstuff,y=ystuff,xlab=xlab,ylab=ylab,main=main,ylim=ylim,axes = !(xaxis.years),type=type,lty=lty,col=col,...)
-
-  #Aggregated data types -- this is not supported atm
-  #if (!is.null(survResObj$aggr)) {
-  #  points(upperboundx+tab,survResObj$aggr,col=1)
-  #}
+  # left/right help for constructing the columns
+  dx.observed <- 0.5
+  upperboundx <- (1:length(upperbound)) - (dx.observed - dx.upperbound)
   
-  for(i in 1:length(observed)){
-    matlines( c(i-tab, i+tab), c(observed[i],observed[i]), col=col[1] )
-    if (!is.na(alarm[i]) && (alarm[i] == 1))
-      matpoints( i, -1/40*max, pch=alarm.symbol$pch, col=alarm.symbol$col, cex= alarm.symbol$cex)
-    if (state[i] == 1)
-      matpoints( i, -1/20*max, pch=outbreak.symbol$pch, col=outbreak.symbol$col,cex = outbreak.symbol$cex)
+  #Generate the matrices to plot (values,last value)
+  xstuff <- cbind(c(upperboundx,length(observed) + min(1-(dx.observed - dx.upperbound),0.5)))
+  ystuff <-cbind(c(upperbound,upperbound[length(observed) ]))
+
+  #Plot the results 
+  matplot(x=xstuff,y=ystuff,xlab=xlab,ylab=ylab,main=main,ylim=ylim,axes = !(xaxis.years),type=type,lty=lty[-c(1:2)],col=col[-c(1:2)],lwd=lwd[-c(1:2)],...)
+
+  #This draws the polygons containing the number of counts (sep. by NA)
+  i <- rep(1:length(observed),each=5)
+  dx <- rep(dx.observed * c(-1,-1,1,1,NA), times=length(observed))
+  x.points <- i + dx
+  y.points <- as.vector(t(cbind(0, observed, observed, 0, NA)))
+  polygon(x.points,y.points,col=col[1],border=col[2],lwd=lwd[1])
+
+  #Draw outbreak symbols
+  alarmIdx <- which(!is.na(alarm) & (alarm == 1))
+  if (length(alarmIdx)>0) {
+    matpoints( alarmIdx, rep(-1/40*ylim[2],length(alarmIdx)), pch=alarm.symbol$pch, col=alarm.symbol$col, cex= alarm.symbol$cex)
+  }
+  
+  #Draw alarm symbols
+  stateIdx <- which(state == 1)
+  if (length(stateIdx)>0) {
+    matpoints( stateIdx, rep(-1/20*ylim[2],length(stateIdx)), pch=outbreak.symbol$pch, col=outbreak.symbol$col,cex = outbreak.symbol$cex)
   }
 
-  # check where to place the legend. If the left upper side is free place it there
-  if (max * 2/3 >= max(
-                max(observed[1:floor(1/4 * length(observed))]),
-                max(upperbound[1:floor(1/4 * length(upperbound))]),na.rm=TRUE
-                )) {
-    xlegpos <- 0
-  }
   #Label of x-axis 
   if(xaxis.years){
     if (x@freq ==52) {
-      # get the number of quarters lying in range for getting the year and quarter order
-      myat.week <- seq(ceiling((52-firstweek+1)/13) * 13 + 1, length(observed)+(floor((52-firstweek + 1)/13) * 13 +1), by=13)
-      # get the right year order
-      year <- (myat.week - 52) %/% 52 + startyear
+      # At which indices to put the "at" tick label. This will
+      # be exactly those week numbers where the new quarter begins: 1, 14, 27 and 40 + i*52.
+      # Note that week number and index is not the same due to the "firstweek" argument
+      weeks <- 1:length(observed) + (firstweek-1)
+      noYears <- ceiling(max(weeks)/52)
+      quarterStarts <- rep( (0:(noYears))*52, each=4) + rep( c(1,14,27,40), noYears+1)
+      weeks <- subset(weeks, !is.na(match(weeks,quarterStarts)))
+      weekIdx <- weeks - (firstweek-1)
+
+      # get the right year for each week
+      year <- weeks %/% 52 + startyear
       # function to define the quarter order
       quarterFunc <- function(i) { switch(i+1,"I","II","III","IV")}
       # get the right number and order of quarter labels
-      quarter <- sapply( (myat.week-1) %/% 13 %% 4, quarterFunc)
-      # get the positions for the axis labels
-      myat.week <- myat.week - (52 - firstweek + 1)
+      quarter <- sapply( (weeks-1) %/% 13 %% 4, quarterFunc)
 
       #construct the computed axis labels -- add quarters if xaxis.units is requested
       if (xaxis.units) {
-        mylabels.week <- paste(year,"\n\n",quarter,sep="")
+        labels.week <- paste(year,"\n\n",quarter,sep="")
       } else {
-        mylabels.week <- paste(year,sep="")
+        labels.week <- paste(year,sep="")
       }
-    
-      axis( at=myat.week , labels=mylabels.week , side=1, line = 1 ,cex=cex)
+
+      axis( side=1,line=1,labels=FALSE,at=c(1,length(observed)),lwd.ticks=0)
+      axis( at=weekIdx , labels=labels.week , side=1, line = 1 ,cex=cex)
       axis( side=2 ,cex=cex)
     } else { ##other frequency
       #A label at each unit
@@ -398,13 +456,17 @@ plot.sts.time.one <- function(x, k=1, domany=FALSE,ylim=NULL,xaxis.years=TRUE, x
   if(!is.null(legend.opts)) {
     #Fill empty (mandatory) slots in legend.opts list
     if (is.null(legend.opts$lty)) legend.opts$lty = c(lty[1],lty[3],NA,NA)
-    if (is.null(legend.opts$col)) legend.opts$col = c(col[1],col[3],outbreak.symbol$col,alarm.symbol$col)
+    if (is.null(legend.opts$col)) legend.opts$col = c(col[2],col[3],outbreak.symbol$col,alarm.symbol$col)
     if (is.null(legend.opts$pch)) legend.opts$pch = c(NA,NA,outbreak.symbol$pch,alarm.symbol$pch)
     if (is.null(legend.opts$legend))
       legend.opts$legend = c("Infected", "Threshold","Outbreak","Alarm" )
     
     do.call("legend",legend.opts)
   }
+
+  #Call hook function for user customized action
+  environment(hookFunc) <- environment()
+  hookFunc()
 
   invisible()
 }
@@ -433,12 +495,10 @@ plot.sts.alarm <- function(x, lvl=rep(1,nrow(x)), ylim=NULL,xaxis.years=TRUE, xa
     }
   }
  
-  # width of the column
-  tab <- 0.5
-
   # left/right help for constructing the columns
-  observedxl <- (1:length(observed))-tab
-  observedxr <- (1:length(observed))+tab
+  dx.observed <- 0.5
+  observedxl <- (1:length(observed))-dx.observed
+  observedxr <- (1:length(observed))+dx.observed
   upperboundx <- (1:length(upperbound)) #-0.5
   
   # control where the highest value is
@@ -462,27 +522,32 @@ plot.sts.alarm <- function(x, lvl=rep(1,nrow(x)), ylim=NULL,xaxis.years=TRUE, xa
   #Label of x-axis 
   if(xaxis.years){
     if (x@freq ==52) {
-      # get the number of quarters lying in range for getting the year and quarter order
-      myat.week <- seq(ceiling((52-firstweek+1)/13) * 13 + 1, length(observed)+(floor((52-firstweek + 1)/13) * 13 +1), by=13)
-      # get the right year order
-      year <- (myat.week - 52) %/% 52 + startyear
+            # At which indices to put the "at" tick label. This will
+      # be exactly those week numbers where the new quarter begins: 1, 14, 27 and 40 + i*52.
+      # Note that week number and index is not the same due to the "firstweek" argument
+      weeks <- 1:length(observed) + (firstweek-1)
+      noYears <- ceiling(max(weeks)/52)
+      quarterStarts <- rep( (0:(noYears))*52, each=4) + rep( c(1,14,27,40), noYears+1)
+      weeks <- subset(weeks, !is.na(pmatch(weeks,quarterStarts)))
+      weekIdx <- weeks - (firstweek-1)
+
+      # get the right year for each week
+      year <- weeks %/% 52 + startyear
       # function to define the quarter order
       quarterFunc <- function(i) { switch(i+1,"I","II","III","IV")}
       # get the right number and order of quarter labels
-      quarter <- sapply( (myat.week-1) %/% 13 %% 4, quarterFunc)
-      # get the positions for the axis labels
-      myat.week <- myat.week - (52 - firstweek + 1)
+      quarter <- sapply( (weeks-1) %/% 13 %% 4, quarterFunc)
 
       #construct the computed axis labels -- add quarters if xaxis.units is requested
       if (xaxis.units) {
-        mylabels.week <- paste(year,"\n\n",quarter,sep="")
+        labels.week <- paste(year,"\n\n",quarter,sep="")
       } else {
-        mylabels.week <- paste(year,sep="")
+        labels.week <- paste(year,sep="")
       }
-    
-      axis( at=myat.week , labels=mylabels.week , side=1, line = 1 ,cex=cex)
-      #Different axis
-      #axis( side=2 ,cex=cex)
+
+      axis( side=1,line=1,labels=FALSE,at=c(1,length(observed)),lwd.ticks=0)
+      axis( at=weekIdx , labels=labels.week , side=1, line = 1 ,cex=cex)
+      axis( side=2, at=1:ncol(x),cex.axis=cex.yaxis, labels=colnames(x),las=2)
     } else { ##other frequency
       #A label at each unit
       myat.unit <- seq(firstweek,length.out=length(observed) )
@@ -523,10 +588,25 @@ plot.sts.alarm <- function(x, lvl=rep(1,nrow(x)), ylim=NULL,xaxis.years=TRUE, xa
   invisible()
 }
 
+######################################################################
+# Helper function to merge two lists - taken from the RCurl
+# package
+######################################################################
 
+function (x, y, ...) {
+  if (length(x) == 0) 
+    return(y)
+  if (length(y) == 0) 
+    return(x)
+  i = match(names(y), names(x))
+  i = is.na(i)
+  if (any(i)) 
+    x[names(y)[which(i)]] = y[which(i)]
+  return(x)
+}
 
 #xaxis.years=TRUE,startyear = 2001, firstweek = 1, legend=TRUE
-plot.sts.time <- function(x, type, method=x@control$name, disease=x@control$data,same.scale=TRUE,...) {
+plot.sts.time <- function(x, type, method=x@control$name, disease=x@control$data,same.scale=TRUE,par.list=list(mfrow=magic.dim(nAreas),mar=par()$mar),...) {
 
   #Plot as one if type = time + unit 
   as.one=all(!is.na(pmatch(c("time","unit"),type[[3]] ))) & is.na(pmatch("|",type[[3]]))
@@ -535,7 +615,9 @@ plot.sts.time <- function(x, type, method=x@control$name, disease=x@control$data
   observed <- x@observed
   state <- x@state
   alarm <- x@alarm
-
+  population <- x@populationFrac
+  binaryTS <- sum( population > 1 ) > 1
+  
   #univariate timeseries ?
   if(is.vector(observed))
     observed <- matrix(observed,ncol=1)
@@ -544,8 +626,20 @@ plot.sts.time <- function(x, type, method=x@control$name, disease=x@control$data
   if(is.vector(alarm)) 
     alarm <- matrix(alarm,ncol=1)
   nAreas <- ncol(observed)
+
+  if (binaryTS) {
+    pi <-  ifelse(population == 0,  0,observed / population)
+    un <-  ifelse(population == 0, 0, x@upperbound / population)
+    max <-  max(max(pi),max(un),na.rm=TRUE)
+  } else {
+    max <-  max(max(observed),max(x@upperbound),na.rm=TRUE)
+  }
+
+  #Check empty arguments
+  if (is.null(par.list[["mfrow",exact=TRUE]])) {
+    par.list$mfrow <- magic.dim(nAreas)
+  } 
   
-  max <-  max(max(observed),max(x@upperbound),na.rm=TRUE)
 
   #multivariate time series
   if(nAreas > 1){
@@ -553,23 +647,31 @@ plot.sts.time <- function(x, type, method=x@control$name, disease=x@control$data
     if(as.one) {
       #### This is currently not supported
     } else {
-      #set window size     
-      par(mfrow=magic.dim(nAreas),mar=c(2,1,1,1))
-      
+      #set window size
+      oldpar <- par()
+      par(par.list)
+
+      #All plots on same scale? If yes, then check if a scale
+      #is already specified using the ylim argument
+      args <- list(...)
       if(same.scale) {
-        ylim <- c(-1/20*max, max)
+        if (is.null(args$ylim)) {
+          args$ylim <- c(-1/20*max, max)
+        }
       } else {
-        ylim <- NULL
+        args$ylim <- NULL
       }
       
       #plot areas
-      k <- 1:nAreas
-      sapply(k, function(k) {
-        plot.sts.time.one(x, k=k, domany=TRUE, ylim=ylim,legend=NULL, ... )   
+      for (k in 1:nAreas) {
+        #Changed call of plot.sts.time.one to invocation using "call"
+        argsK <- merge.list(args,list("x"=x,"k"=k,"domany"=TRUE,"legend"=NULL))
+        do.call("plot.sts.time.one",args=argsK)
         mtext(colnames(observed)[k],line=-1.3)     
-      })
+      }
       #reset graphical params
-      par(mfrow=c(1,1), mar=c(5, 4, 4, 2)+0.1)
+      #par(mfrow=c(1,1), mar=c(5, 4, 4, 2)+0.1)
+      oldwarn <- options()$warn ; options(warn=-1) ; par(oldpar) ; options(warn=oldwarn)
     }
   } else {  #univariate time series
     plot.sts.time.one(x=x, domany=FALSE,...)
@@ -646,6 +748,7 @@ plot.sts.spacetime <- function(x,type,legend=NULL,opts.col=NULL,labels=TRUE,wait
 
   #Make the columns of o as in the map object
   o.col <- o.col[,pmatch(region.id,o.col.id),drop=FALSE]
+  alarm.col <- alarm[,pmatch(region.id,o.col.id),drop=FALSE]
 
   #Screen processing
   screen.matrix <- matrix(c(0,1,0,1,0,1,0.8,1),2,4,byrow=TRUE)
@@ -667,7 +770,13 @@ plot.sts.spacetime <- function(x,type,legend=NULL,opts.col=NULL,labels=TRUE,wait
     #Plot the map on screen 1
     screen(1)
     plot(map,col=o.col[t,],xlab="",ylab="",...)
-    plot(map,dens=alarm*15,add=TRUE)
+    #Indicate alarms as shaded overlays
+    if (!all(is.na(alarm.col))) {
+      #Plotting using density "NA" does not appear to work
+      #anymore in the new sp versions
+      alarm.col[is.na(alarm.col)] <- 0
+      plot(map,dens=alarm.col*15,add=TRUE)
+    }
     
 
     if (labels)
@@ -838,4 +947,14 @@ setMethod( "show", "sts", function( object ){
 } )
 
 
+#Method to convert sts object to a data frame
+setMethod("as.data.frame", signature(x="sts"), function(x,row.names = NULL, optional = FALSE,...) {
+  res <- data.frame("observed"=x@observed, "week"=x@week, "state"=x@state, "alarm"=x@alarm)
+  
+  colnames(res) <-  c(paste("observed.",colnames(x@observed),sep=""),"week",
+                      paste("state.",colnames(x@observed),sep=""),
+                      paste("alarm.",colnames(x@observed),sep=""))
 
+  return(res)
+          
+})

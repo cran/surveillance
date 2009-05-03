@@ -7,27 +7,35 @@
 \alias{cusum}
 \alias{farrington}
 \alias{glrpois}
+\alias{glrnb}
 \alias{rogerson}
 \encoding{latin1}
 
 \title{Multivariate Surveillance through independent univariate algorithms}
 \description{
-
   This function takes an \code{sts} object and applies an univariate
-  surveillance algorithm to the time series of each observational unit.
-
-  
+  surveillance algorithm to the time series of each observational unit. 
 }
 \usage{
 %This is the main function
-wrap.algo(sts, algo, control,control.hook=function(k) return(control),verbose=TRUE,...)
+wrap.algo(sts, algo, control,control.hook=function(k)
+         return(control),verbose=TRUE,...)
 %Derived functions fixing the control object and the "algo" argument
-farrington(sts, control=list(range=NULL, b=3, w=3,reweight=TRUE,verbose=FALSE,alpha=0.01),...)
+farrington(sts, control=list(range=NULL, b=3, w=3,reweight=TRUE,
+         verbose=FALSE,alpha=0.01),...)
 cdc(sts, control= list(range = range,alpha=0.025),...)
-bayes(sts, control = list(range = range, b = 0, w = 6, actY = TRUE,alpha=0.05),...)
-rki(sts, control = list(range = range, b = 2, w = 4, actY = FALSE),...)
-cusum(sts,  control = list(range=range, k=1.04, h=2.26,m=NULL, trans="standard",alpha=NULL),...)
-glrpois(sts, control = list(range=range,c.ARL=5, S=1,beta=NULL, Mtilde=1, M=-1, change="intercept",theta=NULL),...)
+bayes(sts, control = list(range = range, b = 0, w = 6,
+         actY = TRUE,alpha=0.05),...)
+rki(sts, control = list(range = range, b = 2, w = 4,
+         actY = FALSE),...)
+cusum(sts,  control = list(range=range, k=1.04, h=2.26,
+         m=NULL, trans="standard",alpha=NULL),...)
+glrpois(sts, control = list(range=range,c.ARL=5, S=1,beta=NULL,
+         Mtilde=1, M=-1, change="intercept",theta=NULL),...)
+glrnb(sts, control = list(range=range,c.ARL=5, mu0=NULL, alpha=0,
+         Mtilde=1, M=-1, change="intercept",
+         theta=NULL,dir=c("inc","dec"),
+         ret=c("cases","value")),...)
 }
 \arguments{
   \item{sts}{Object of class \code{sts}}
@@ -43,9 +51,9 @@ glrpois(sts, control = list(range=range,c.ARL=5, S=1,beta=NULL, Mtilde=1, M=-1, 
   \item{...}{Additional arguments sent to the \code{algo} function.}
 }
 \value{
-  An \item{sts} object with the \code{alarm}, \code{upperbound},
-  etc. slots filled with the results of independent and univariate
-  surveillance algorithm.
+  An \code{sts} object with the \code{alarm}, \code{upperbound},
+  etc. slots filled with the results of independent and univariate 
+  surveillance algorithm. 
 }
 \seealso{
   \code{\link{algo.bayes}}, \code{\link{algo.cdc}},
@@ -53,7 +61,7 @@ glrpois(sts, control = list(range=range,c.ARL=5, S=1,beta=NULL, Mtilde=1, M=-1, 
   \code{\link{algo.cusum}}, \code{\link{algo.glrpois}}
   for the exact form of the \code{control} object.
 }
-\author{M. Höhle}
+\author{M. \enc{Höhle}{Hoehle}}
 %\examples{
 %}
 

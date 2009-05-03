@@ -12,3 +12,6 @@ if(!isGeneric("nrow")) setGeneric("nrow", useAsDefault=nrow)
 if(!isGeneric("ncol")) setGeneric("ncol", useAsDefault=ncol)
 if(!isGeneric("colnames")) setGeneric("colnames", useAsDefault=colnames)
 
+#New function to cover
+if(!isGeneric("as.data.frame")) setGeneric("as.data.frame", useAsDefault=as.data.frame)
+

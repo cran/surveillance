@@ -36,17 +36,28 @@ meanResponse(theta, designRes)
 \details{        
 	Calculates the mean response for a Poisson or a negative binomial model
 	with mean
-	\deqn{\mu_t = \lambda y_{t-1} + \nu_t }{\mu_t = \lambda y_t-1 + \nu_t }
-	where
+	\deqn{\mu_t = \lambda y_{t-lag} + \nu_t }{\mu_t = \lambda y_t-lag + \nu_t }
+	where  
 	\deqn{\log( \nu_t) = \alpha + \beta t + \sum_{j=1}^{S}(\gamma_{2j-1} \sin(\omega_j t) + \gamma_{2j} \cos(\omega_j t) ) }{
 			log(\nu_t) = \alpha + \beta t + \sum_(j=1)^S (\gamma_(2j-1) * \sin(\omega_j * t) + \gamma_2j * \cos(\omega_j * t) )  }
 	and \eqn{\omega_j = 2\pi j/period }{\omega_j = 2 * \pi * j / period} are Fourier frequencies with
 	known period, e.g. \code{period}=52 for weekly data,
 	for a univariate time series.
 	
+	Per default, the number of cases at time point \eqn{t-1}, i.e. \eqn{lag=1}, enter
+	as autoregressive covariates into the model. Other lags can also be considered.
+	
+	The seasonal terms in the predictor can also be expressed as
+	\eqn{\gamma_{s} \sin(\omega_s t) + \delta_{s} \cos(\omega_s t) = A_s \sin(\omega_s t + \epsilon_s)}{
+	 \gamma_s sin(\omega_s * t) + \delta_s cos(\omega_s * t) = A_s sin(\omega_s * t + \epsilon_s)}
+	with amplitude \eqn{A_s=\sqrt{\gamma_s^2 +delta_s^2}}{A_s=sqrt{\gamma_s^2 +delta_s^2}} 
+	and phase difference \eqn{\tan(\epsilon_s) = \delta_s / \gamma_s}. The amplitude and
+	phase shift can be obtained from a fitted model by specifying \code{amplitudeShift=TRUE}
+	in the \code{coef} method.
+	
 	For multivariate time series the mean structure is
-	\deqn{\mu_{it} = \lambda_i y_{i,t-1} + \phi_i \sum_{j \sim i} w_{ji} y_{j,t-1} + n_{it} \nu_{it}}{
-			\mu_it = \lambda_i * y_i,t-1 + \phi_i * \sum_(j ~ i) w_ji * y_j,t-1 + n_it * \nu_it }
+	\deqn{\mu_{it} = \lambda_i y_{i,t-lag} + \phi_i \sum_{j \sim i} w_{ji} y_{j,t-lag} + n_{it} \nu_{it}}{
+			\mu_it = \lambda_i * y_i,t-lag + \phi_i * \sum_(j ~ i) w_ji * y_j,t-lag + n_it * \nu_it }
 	where 
 	\deqn{\log(\nu_{it}) = \alpha_i + \beta_i t + \sum_{j=1}^{S_i} (\gamma_{i,2j-1} \sin(\omega_j t) + \gamma_{i,2j} \cos(\omega_j t) ) }{
 			log(\nu_it) = \alpha_i + \beta_i * t + \sum_(j=1)^S_i (\gamma_(i,2j-1) * \sin(\omega_j * t) + \gamma_(i,2j) * \cos(\omega_j * t) )  }
@@ -80,7 +91,7 @@ meanResponse(theta, designRes)
 
 \keyword{models}
 
-\source{Held, L., Höhle, M., Hofmann, M. (2005) A statistical framework for the 
+\source{Held, L., \enc{Höhle}{Hoehle}, M., Hofmann, M. (2005) A statistical framework for the 
     analysis of multivariate infectious disease surveillance counts. 
     \emph{Statistical Modelling}, \bold{5}, p. 187--199.}
 

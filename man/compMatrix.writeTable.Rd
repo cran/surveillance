@@ -17,7 +17,7 @@
         Latex table of the entered matrix.
         }
 }
-\author{M. Höhle, A. Riebler, C. Lang}
+\author{M. \enc{Höhle}{Hoehle}, A. Riebler, C. Lang}
 \examples{
     ### First creates some tables ###
 

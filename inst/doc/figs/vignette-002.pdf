@@ -1,11 +1,11 @@
-%PDF-1.1
+%PDF-1.4
 %Å‚Å„ÅœÅ”\r
 1 0 obj
 <<
-/CreationDate (D:20080121134106)
-/ModDate (D:20080121134106)
+/CreationDate (D:20090305162424)
+/ModDate (D:20090305162424)
 /Title (R Graphics Output)
-/Producer (R 2.6.1)
+/Producer (R 2.9.0)
 /Creator (R)
 >>
 endobj
@@ -17,23 +17,15 @@ endobj
 endobj
 5 0 obj
 <<
-/Type /Font
-/Subtype /Type1
-/Name /F1
-/BaseFont /ZapfDingbats
+/Type /Page
+/Parent 3 0 R
+/Contents 6 0 R
+/Resources 4 0 R
 >>
 endobj
 6 0 obj
 <<
-/Type /Page
-/Parent 3 0 R
-/Contents 7 0 R
-/Resources 4 0 R
->>
-endobj
-7 0 obj
-<<
-/Length 8 0 R
+/Length 7 0 R
 >>
 stream
 q
@@ -256,9 +248,13 @@ Q q 57.60 72.00 878.40 302.40 re W n
 Q q
 BT
 0.000 0.000 0.000 rg
-/F3 1 Tf 18.00 0.00 0.00 18.00 343.91 396.74 Tm (Kryptosporidiosis in BW 2001-2005) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 479.80 17.28 Tm (time) Tj
-/F2 1 Tf 0.00 18.00 -18.00 0.00 11.52 175.81 Tm (No. infected) Tj
+/F3 1 Tf 18.00 0.00 -0.00 18.00 343.91 396.74 Tm [(Kr) -10 (yptosporidiosis in BW 2001-2005)] TJ
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 479.80 17.28 Tm (time) Tj
+ET
+BT
+/F2 1 Tf 0.00 18.00 -18.00 0.00 11.52 175.81 Tm [(No) 40 (. inf) 30 (ected)] TJ
 ET
 Q q 57.60 72.00 878.40 302.40 re W n
 0.000 0.000 0.000 RG
@@ -1139,24 +1135,58 @@ Q q
 901.52 57.60 m 901.52 50.40 l S
 BT
 0.000 0.000 0.000 rg
-/F2 1 Tf 18.00 0.00 0.00 18.00 72.06 53.28 Tm (2001) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 89.58 31.68 Tm (I) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 173.24 53.28 Tm (2001) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 185.75 31.68 Tm (III) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 274.42 53.28 Tm (2002) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 291.94 31.68 Tm (I) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 375.60 53.28 Tm (2002) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 388.11 31.68 Tm (III) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 476.78 53.28 Tm (2003) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 494.30 31.68 Tm (I) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 577.96 53.28 Tm (2003) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 590.47 31.68 Tm (III) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 679.14 53.28 Tm (2004) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 696.66 31.68 Tm (I) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 780.32 53.28 Tm (2004) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 792.83 31.68 Tm (III) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 881.50 53.28 Tm (2005) Tj
-/F2 1 Tf 18.00 0.00 0.00 18.00 899.02 31.68 Tm (I) Tj
+/F2 1 Tf 18.00 0.00 -0.00 18.00 72.06 53.28 Tm (2001) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 89.58 31.68 Tm (I) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 173.24 53.28 Tm (2001) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 185.75 31.68 Tm (III) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 274.42 53.28 Tm (2002) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 291.94 31.68 Tm (I) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 375.60 53.28 Tm (2002) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 388.11 31.68 Tm (III) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 476.78 53.28 Tm (2003) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 494.30 31.68 Tm (I) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 577.96 53.28 Tm (2003) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 590.47 31.68 Tm (III) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 679.14 53.28 Tm (2004) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 696.66 31.68 Tm (I) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 780.32 53.28 Tm (2004) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 792.83 31.68 Tm (III) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 881.50 53.28 Tm (2005) Tj
+ET
+BT
+/F2 1 Tf 18.00 0.00 -0.00 18.00 899.02 31.68 Tm (I) Tj
 ET
 57.60 96.53 m 57.60 363.20 l S
 57.60 96.53 m 50.40 96.53 l S
@@ -1166,9 +1196,17 @@ ET
 57.60 363.20 m 50.40 363.20 l S
 BT
 /F2 1 Tf 0.00 18.00 -18.00 0.00 40.32 91.53 Tm (0) Tj
+ET
+BT
 /F2 1 Tf 0.00 18.00 -18.00 0.00 40.32 153.19 Tm (50) Tj
+ET
+BT
 /F2 1 Tf 0.00 18.00 -18.00 0.00 40.32 214.85 Tm (100) Tj
+ET
+BT
 /F2 1 Tf 0.00 18.00 -18.00 0.00 40.32 281.52 Tm (150) Tj
+ET
+BT
 /F2 1 Tf 0.00 18.00 -18.00 0.00 40.32 348.19 Tm (200) Tj
 ET
 Q q 57.60 72.00 878.40 302.40 re W n
@@ -1185,20 +1223,22 @@ Q q 57.60 72.00 878.40 302.40 re W n
 465.64 341.78 m 465.64 349.42 l S
 BT
 0.000 0.000 0.000 rg
-/F2 1 Tf 12.00 0.00 0.00 12.00 487.24 355.69 Tm (Infected) Tj
-/F2 1 Tf 12.00 0.00 0.00 12.00 487.24 341.29 Tm (Outbreak) Tj
+/F2 1 Tf 12.00 0.00 -0.00 12.00 487.24 355.69 Tm [(Inf) 30 (ected)] TJ
+ET
+BT
+/F2 1 Tf 12.00 0.00 -0.00 12.00 487.24 341.29 Tm (Outbreak) Tj
 ET
 Q
 endstream
 endobj
-8 0 obj
-23420
+7 0 obj
+23617
 endobj
 3 0 obj
 <<
 /Type /Pages
 /Kids [
-6 0 R
+5 0 R
 ]
 /Count 1
 /MediaBox [0 0 936 432]
@@ -1207,51 +1247,52 @@ endobj
 4 0 obj
 <<
 /ProcSet [/PDF /Text]
-/Font << /F1 5 0 R /F2 10 0 R /F3 11 0 R >>
+/Font <</F2 9 0 R /F3 10 0 R >>
 /ExtGState << >>
 >>
 endobj
-9 0 obj
+8 0 obj
 <<
 /Type /Encoding
 /BaseEncoding /WinAnsiEncoding
-/Differences [ 45/minus ]
+/Differences [ 45/minus 96/quoteleft
+144/dotlessi /grave /acute /circumflex /tilde /macron /breve /dotaccent
+/dieresis /.notdef /ring /cedilla /.notdef /hungarumlaut /ogonek /caron /space]
 >>
 endobj
-10 0 obj <<
+9 0 obj <<
 /Type /Font
 /Subtype /Type1
 /Name /F2
 /BaseFont /Helvetica
-/Encoding 9 0 R
+/Encoding 8 0 R
 >> endobj
-11 0 obj <<
+10 0 obj <<
 /Type /Font
 /Subtype /Type1
 /Name /F3
 /BaseFont /Helvetica-Bold
-/Encoding 9 0 R
+/Encoding 8 0 R
 >> endobj
 xref
-0 12
+0 11
 0000000000 65535 f 
 0000000021 00000 n 
 0000000163 00000 n 
-0000023869 00000 n 
-0000023952 00000 n 
+0000023983 00000 n 
+0000024066 00000 n 
 0000000212 00000 n 
-0000000295 00000 n 
-0000000375 00000 n 
-0000023848 00000 n 
-0000024056 00000 n 
-0000024150 00000 n 
-0000024247 00000 n 
+0000000292 00000 n 
+0000023962 00000 n 
+0000024158 00000 n 
+0000024415 00000 n 
+0000024511 00000 n 
 trailer
 <<
-/Size 12
+/Size 11
 /Info 1 0 R
 /Root 2 0 R
 >>
 startxref
-24349
+24613
 %%EOF

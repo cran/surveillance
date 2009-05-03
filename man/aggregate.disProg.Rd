@@ -7,11 +7,11 @@
        of \code{surveillance} will also allow for time aggregations etc. 
 }
 \usage{
-  \method{aggregate}{disProg}(x,...)
+  \method{aggregate}{disProg}(x,\dots)
 }
 \arguments{
         \item{x}{Object of class \code{disProg}}
-        \item{...}{not used at the moment}
+        \item{\dots}{not used at the moment}
 }
 \value{\item{x}{univariate \code{disProg} object with aggregated 
      counts and respective states for each time point.}

@@ -35,7 +35,7 @@ mu = exp(A * sin( frequency * omega * (t + phi)) + alpha  + beta * t +  K * stat
 }
 \seealso{\code{\link{sim.pointSource}}
 }
-\author{M. Höhle, A. Riebler, C. Lang}
+\author{M. \enc{Höhle}{Hoehle}, A. Riebler, C. Lang}
 \examples{
 
     season <- sim.seasonalNoise(length = 300)

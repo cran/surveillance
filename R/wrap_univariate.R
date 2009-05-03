@@ -16,19 +16,21 @@ wrap.algo <- function(sts, algo, control,
                       verbose=TRUE,...) {
   #Number of time series
   nAreas <- ncol(sts@observed)
+  nTimePoints <- nrow(sts@observed)
   nAlarm <- length(control$range)
-  #Adjust alarm matrix so we have the same number of values as control$range
-  sts@alarm <- matrix(NA,ncol=nAreas,nrow=nAlarm)
-  sts@upperbound <- matrix(NA,ncol=nAreas,nrow=nAlarm)
 
-  #Loop
+  #Create alarm matrix having same size as sts
+  sts@alarm <- matrix(NA,ncol=nAreas,nrow=nTimePoints,dimnames=dimnames(sts@observed))
+  sts@upperbound <- matrix(NA,ncol=nAreas,nrow=nTimePoints,dimnames=dimnames(sts@observed))
+
+  #Loop over all regions
   for (k in 1:nAreas) {
     if (verbose) {
       cat("Running ",algo," on area ",k," out of ",nAreas,"\n")
     }
     
-    ##Create an old S4 disProg object
-    disProg.k <- create.disProg(sts@week, sts@observed[,k], sts@state[,k], freq=sts@freq, start=sts@start)
+    ##Create an old S3 disProg object
+    disProg.k <- sts2disProg(sts[,k])
 
     #Use the univariate algorithm (possibly preprocess control object)
     kcontrol <- control.hook(k)
@@ -36,19 +38,24 @@ wrap.algo <- function(sts, algo, control,
     
     #Transfer results to the S4 object
     if (!is.null(survRes.k)) {
-      sts@alarm[,k] <- survRes.k$alarm
-      sts@upperbound[,k] <- survRes.k$upperbound
+      sts@alarm[control$range,k] <- survRes.k$alarm
+      sts@upperbound[control$range,k] <- survRes.k$upperbound
 
       #Control object needs only to be set once
       sts@control <- survRes.k$control
     }
   }
 
-  #Throw away the un-needed observations
+  #Reduce sts object to only those obervations in range
   sts@observed <- sts@observed[control$range,,drop=FALSE]
   sts@state <- sts@state[control$range,,drop=FALSE]
   sts@populationFrac <- sts@populationFrac[control$range,,drop=FALSE]
-  
+  sts@alarm <- sts@alarm[control$range,,drop=FALSE]
+  sts@upperbound <- sts@upperbound[control$range,,drop=FALSE]
+
+  #Set correct theta0t matrix for all 
+  sts@control$theta0t <- control$theta0t
+
   #Fix the corresponding start entry
   start <- sts@start
   new.sampleNo <- start[2] + min(control$range) - 1
@@ -56,7 +63,7 @@ wrap.algo <- function(sts, algo, control,
   start.sampleNo <- (new.sampleNo - 1) %% sts@freq + 1
   sts@start <- c(start.year,start.sampleNo)
 
-  #Ensure dimnames
+  #Ensure dimnames in the new object
   sts <- fix.dimnames(sts)
   
   return(sts)
@@ -99,6 +106,15 @@ glrpois <- function(sts, control = list(range=range,c.ARL=5, S=1,
   wrap.algo(sts,algo="algo.glrpois",control=control,...)
 }
 
+#GLRnb wrapper
+glrnb <- function(sts, control = list(range=range,c.ARL=5, mu0=NULL, alpha=0,
+                         Mtilde=1, M=-1, change="intercept",theta=NULL,dir=c("inc","dec"),
+                         ret=c("cases","value")), ...) {
+  wrap.algo(sts,algo="algo.glrnb",control=control,...)
+}
+
+
+
 #### this code definitely needs some more documentation -- wrap.algo atm is
 # 100% without docu
 #Rogerson wrapper
@@ -113,9 +129,23 @@ rogerson <- function(sts, control = list(range=range, theta0t=NULL,
                             nt=NULL, FIR=FALSE,limit=NULL, digits=1),...) {
   #Hook function to find right theta0t vector
   control.hook = function(k) {
-    control$hValues <- hValues(theta0 = control$theta0t[,k], ARL0=control$ARL0, control$s , distr = control$distribution)$hValues
+    #Extract values relevant for the k'th component
     control$theta0t <- control$theta0t[,k]
-#    print(control)
+    if (is.null(control[["nt",exact=TRUE]])) {
+      control$nt <- sts@populationFrac[control$range,k]
+    } else {
+      if (!all.equal(sts@populationFrac[control$range,k],control$nt[,k])) {
+        warning("Warning: nt slot of control specified, but specified population differs.")
+      } else {
+        control$nt <- control$nt[,k]
+      }
+    }
+    #If no hValues given then compute them
+    if (is.null(control[["hValues",exact=TRUE]])) {
+#This code does not appear to work once n is big.      
+#      control$hValues <- hValues(theta0 = unique(control$theta0t), ARL0=control$ARL0, s=control$s , distr = control$distribution, n=mean(control$nt))$hValues
+            control$hValues <- hValues(theta0 = unique(control$theta0t), ARL0=control$ARL0, s=control$s , distr = control$distribution)$hValues
+    }
     return(control)
   }
   #WrapIt

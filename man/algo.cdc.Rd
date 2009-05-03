@@ -10,7 +10,8 @@
 \usage{
     algo.cdcLatestTimepoint(disProgObj, timePoint = NULL,
          control = list(b = 5, m = 1, alpha=0.025))
-    algo.cdc(disProgObj, control = list(range = range, b= 5, m=1, alpha = 0.025))
+    algo.cdc(disProgObj, control = list(range = range, b= 5, m=1, 
+         alpha = 0.025))
 }
 \arguments{
         \item{disProgObj}{object of class disProg (including the observed and the state chain).}
@@ -60,7 +61,7 @@
         \code{\link{algo.rkiLatestTimepoint}},\code{\link{algo.bayesLatestTimepoint}} and \code{\link{algo.bayes}} for
         the Bayes system.
 }
-\author{M. Höhle}
+\author{M. \enc{Höhle}{Hoehle}}
 \examples{
     # Create a test object
     disProgObj <- sim.pointSource(p = 0.99, r = 0.5, length = 500, 

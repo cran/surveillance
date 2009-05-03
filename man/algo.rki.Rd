@@ -70,7 +70,7 @@
         \code{\link{algo.bayesLatestTimepoint}} and \code{\link{algo.bayes}} for
         the Bayes system.
 }
-\author{M. Höhle, A. Riebler, Christian Lang}
+\author{M. \enc{Höhle}{Hoehle}, A. Riebler, Christian Lang}
 \examples{
     # Create a test object
     disProgObj <- sim.pointSource(p = 0.99, r = 0.5, length = 208, A = 1,

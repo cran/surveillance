@@ -14,5 +14,5 @@
     data(CIdata)
 }
 \seealso{\code{\link{algo.rki}}}
-\keyword{}
+\keyword{data}
 
