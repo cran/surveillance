@@ -54,7 +54,7 @@ gsl_ran_poisson_log_pdf (const unsigned int k, const double mu)
 {
   double p;
   if (mu==0) {
-    return(log(k == 0));
+    return(log((double)(k == 0)));
   } else {
     double lf = lgammafn(k+1); /*gsl2R: gsl_sf_lnfact(k) */
 
@@ -82,14 +82,14 @@ gsl_ran_gamma_log_pdf (const double x, const double a, const double b)
   if (x < 0)
     {
       //This is problematic!
-      return log(0) ;
+      return log((double)0) ;
     }
   else if (x == 0)
     {
       if (a == 1)
         return log(1/b) ;
       else
-        return log(0) ;
+        return log((double)0) ;
     }
   else if (a == 1)
     {

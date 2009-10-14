@@ -52,6 +52,10 @@ algo.cdcLatestTimepoint <- function(disProgObj, timePoint = NULL, control = list
 # 'algo.cdc' calls 'algo.bayesLatestTimepoint' for data points given by range.
 
 algo.cdc <- function(disProgObj, control = list(range = range, b=5, m=1, alpha=0.025)){
+  if(disProgObj$freq != 52) {
+    stop("algo.cdc only works for weekly data.")
+  }
+
   # initialize the necessary vectors
   alarm <- matrix(data = 0, nrow = length(control$range), ncol = 1)
   aggr <- matrix(data = 0, nrow = length(control$range), ncol = 1)
@@ -59,10 +63,10 @@ algo.cdc <- function(disProgObj, control = list(range = range, b=5, m=1, alpha=0
 
   #Set control options (standard CDC options)
   if (is.null(control$range)) {
-    control$range <- (disProgObj$freq*control$b - control$w):length(disProgObj$observed)
+    control$range <- (disProgObj$freq*control$b - control$m):length(disProgObj$observed)
   }
   if (is.null(control$b))        {control$b=5}
-  if (is.null(control$w))        {control$m=1}
+  if (is.null(control$m))        {control$m=1} #bug fixed
   if (is.null(control$alpha))    {control$alpha=0.025}
 
   count <- 1

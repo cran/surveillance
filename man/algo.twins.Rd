@@ -4,12 +4,13 @@
 \encoding{latin1}
 \title{Model fit based on a two-component epidemic model} 
 \description{
-  Fits a Negative binomial model (as described in Held et al. (2006) to an univariate time series of counts.  
+  Fits a negative binomial model (as described in Held et al. (2006)
+  to an univariate time series of counts.  
 }
 \usage{
 algo.twins(disProgObj, control=list(burnin=1000, filter=10,
-   sampleSize=2500, alpha_xi=10, beta_xi=10, psiRWSigma=0.25,
-   alpha_psi=1, beta_psi=0.1, logFile="twins.log"))
+   sampleSize=2500, noOfHarmonics=1, alpha_xi=10, beta_xi=10,
+   psiRWSigma=0.25,alpha_psi=1, beta_psi=0.1, logFile="twins.log"))
 }
 \arguments{
   \item{disProgObj}{object of class \code{disProg}}
@@ -17,7 +18,10 @@ algo.twins(disProgObj, control=list(burnin=1000, filter=10,
         \describe{
         \item{\code{burnin}}{Number of burn in samples.}
         \item{\code{filter}}{Thinning parameter. If \code{filter = 10} every 10th sample is after the burn in is returned.}
-        \item{\code{sampleSize}}{Number of returned samples. Total number of samples = \code{burnin+filter*sampleSize}}
+        \item{\code{sampleSize}}{Number of returned samples. Total
+	  number of samples = \code{burnin}+\code{filter}*\code{sampleSize}}
+	\item{\code{noOfHarmonics}}{Number of harmonics to use in the
+	  modelling, i.e. \eqn{L}{L} in (2.2) of Held et al (2006).}
         \item{\code{alpha_xi}}{Parameter \eqn{\alpha_{\xi}}{\alpha_\xi} of the hyperprior of the epidemic parameter \eqn{\lambda}{\lambda}}
         \item{\code{beta_xi}}{Parameter \eqn{\beta_{\xi}}{\beta_\xi} of the hyperprior of the epidemic parameter \eqn{\lambda}{\lambda}}
         \item{\code{psiRWSigma}}{Starting value for the tuning of the variance of the random walk proposal for the overdispersion parameter \eqn{\psi}{\psi}.}

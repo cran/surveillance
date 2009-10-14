@@ -62,7 +62,9 @@ wrap.algo <- function(sts, algo, control,
   start.year <- start[1] + (new.sampleNo - 1) %/% sts@freq 
   start.sampleNo <- (new.sampleNo - 1) %% sts@freq + 1
   sts@start <- c(start.year,start.sampleNo)
-
+  sts@week <- sts@week[control$range]
+  sts@epochAsDate <- sts@epochAsDate
+  
   #Ensure dimnames in the new object
   sts <- fix.dimnames(sts)
   
@@ -76,21 +78,33 @@ farrington <- function(sts, control=list(range=NULL, b=3, w=3, reweight=TRUE, ve
 
 #CDC wrapper
 cdc <- function(sts, control= list(range = range,alpha=0.025),...) {
+  if (sts@epochAsDate) {
+    warning("algo.cdc currently can't handle Date entries. Computing reference values based on freq")
+  }
   wrap.algo(sts,algo="algo.cdc",control=control,...)
 }
 
 #Bayes wrapper (this can be implemented more efficiently)
 bayes <- function(sts, control = list(range = range, b = 0, w = 6, actY = TRUE,alpha=0.05),...) {
+  if (sts@epochAsDate) {
+    warning("algo.cdc currently can't handle Date entries. Computing reference values based on freq")
+  }
   wrap.algo(sts,algo="algo.bayes",control=control)
 }
 
 #RKI wrapper
 rki <- function(sts, control = list(range = range, b = 2, w = 4, actY = FALSE),...) {
+  if (sts@epochAsDate) {
+    warning("algo.cdc currently can't handle Date entries. Computing reference values based on freq")
+  }
   wrap.algo(sts,algo="algo.rki",control=control,...)
 }
 
 #HMM wrapper
 hmm <- function(sts, control=list(range=NULL, noStates=2, trend=TRUE, noHarmonics=1,covEffectEqual=FALSE),...) {
+  if (sts@epochAsDate) {
+    warning("algo.cdc currently can't handle Date entries. Computing reference values based on freq")
+  }
   wrap.algo(sts,algo="algo.hmm",control=control,...)
 }
 
@@ -127,6 +141,9 @@ rogerson <- function(sts, control = list(range=range, theta0t=NULL,
                             ARL0=NULL, s=NULL, hValues=NULL,
                             distribution=c("poisson","binomial"),
                             nt=NULL, FIR=FALSE,limit=NULL, digits=1),...) {
+  if (sts@epochAsDate) {
+    warning("algo.cdc currently can't handle Date entries. Computing reference values based on freq")
+  }
   #Hook function to find right theta0t vector
   control.hook = function(k) {
     #Extract values relevant for the k'th component

@@ -5,7 +5,7 @@
 \alias{year,sts-method}
 \title{ Methods for Function year  }
 \description{
- Method to extract the corresponding year of each obervatuib in an
+ Method to extract the corresponding year of each observation in an
  \code{sts} object. The year is calculated based on the \code{start} slot.
 }
 \section{Methods}{

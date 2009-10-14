@@ -41,8 +41,10 @@ algo.bayesLatestTimepoint <- function(disProgObj, timePoint = NULL, control = li
   }
 
   # get the parameter for the negative binomial distribution
-  sumBasevec <- sum(basevec)
-  lengthBasevec <- length(basevec)
+  # Modification on 13 July 2009 after comment by C. W. Ryan on NAs in the
+  # time series
+  sumBasevec <- sum(basevec, na.rm=TRUE)
+  lengthBasevec <- sum(!is.na(basevec))
 
   # compute the upper limit of the 95% CI.
   upCi <- qnbinom(1-control$alpha, sumBasevec + 1/2, (lengthBasevec)/(lengthBasevec + 1))

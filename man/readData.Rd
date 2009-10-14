@@ -28,7 +28,8 @@
     #To bring a single vector of counts into a format, which can be
     #handled by readData. Assume ``counts'' is a vector of counts.
     counts <- rpois(100,20)
-    counts <- data.frame("week"=1:length(counts),"observed"=counts,"state"=rep(0,length(counts)))
+    counts <- data.frame("week"=1:length(counts),"observed"=counts,
+                         "state"=rep(0,length(counts)))
     write(c("week","observed","state"),file="disease.txt",ncol=3)
     write(t(as.matrix(counts)),file="disease.txt",ncol=3,append=TRUE)
     disease <- readData("disease",week53to52=FALSE,sysPath=FALSE)
