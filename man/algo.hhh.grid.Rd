@@ -63,7 +63,7 @@ algo.hhh.grid(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
 \seealso{\code{\link{meanResponse}},\code{\link{create.grid}},\code{\link{algo.hhh}}}
 \author{M. Paul, L. Held}
 \examples{
-
+\dontrun{
 ## monthly counts of menigococcal infections in France
 data(meningo.age)
 				
@@ -114,8 +114,7 @@ model2 <- list(lambda=c(1,1), neighbours=c(NA,0),
               linear=FALSE,nseason=c(3,1),negbin="multiple")
               
 algo.hhh.grid(influMen, control=model2, thetastartMatrix=grid, maxTime=30)
-
-
+}
 }
 \keyword{misc}
 \source{Held, L., \enc{Höhle}{Hoehle}, M., Hofmann, M. (2005) A statistical framework for the 

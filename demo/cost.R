@@ -5,10 +5,10 @@ library(surveillance)
 options(width=70)
 options("prompt"="R> ")
 set.seed(1234)
-cat("Info: I need a writable figs/ directory in getwd()\n")
 
 opendevice <- function(horizontal=TRUE,width=7,height=4,...) {
-  #pdf(...,width=width,height=height)
+  #This function is not really necessary for the demo session.
+##   #pdf(...,width=width,height=height)
 
   #Do it for postscript instead  -- who uses postscript these days??
   args <- list(...)
@@ -33,6 +33,7 @@ plot(aggregate(ha),main="Hepatitis A in Berlin 2001-2006")
 ###################################################
 ### chunk number 3: 
 ###################################################
+cat("Info: I need a writable figs/ directory in getwd()\n")
 opendevice(file="figs/002.pdf")
 data("ha")
 plot(aggregate(ha),main="Hepatitis A in Berlin 2001-2006")

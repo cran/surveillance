@@ -8,7 +8,8 @@
 }
 \usage{
 algo.glrpois(disProgObj,control = list(range=range,c.ARL=5, 
-         mu0=NULL, Mtilde=1, M=-1, change="intercept",theta=NULL,dir=c("inc","dec"),ret=c("cases","value")))
+         mu0=NULL, Mtilde=1, M=-1, change="intercept",theta=NULL,
+         dir=c("inc","dec"),ret=c("cases","value")))
 }
 \arguments{
 \item{disProgObj}{object of class \code{disProg} to do surveillance
@@ -128,7 +129,8 @@ s.ts <- create.disProg(week=1:length(t),observed=x,state=(t>=tau))
 plot(s.ts,legend=NULL,xaxis.years=FALSE)
 
 #Run 
-cntrl = list(range=t,c.ARL=5, Mtilde=1, mu0=mu0,change="intercept",ret="value",dir="inc")
+cntrl = list(range=t,c.ARL=5, Mtilde=1, mu0=mu0,
+             change="intercept",ret="value",dir="inc")
 glr.ts <- algo.glrpois(s.ts,control=c(cntrl))
 lr.ts  <- algo.glrpois(s.ts,control=c(cntrl,theta=0.4))
 
@@ -140,7 +142,7 @@ plot(lr.ts,xaxis.years=FALSE)
 \keyword{classif}
 \source{
 Poisson regression charts for the monitoring of surveillance time
-series (2006), \enc{Höhle}{Hoehle}, M., SFB386 Discussion Paper 500.
+series (2006), \enc{HÃ¶hle}{Hoehle}, M., SFB386 Discussion Paper 500.
 }
 
 

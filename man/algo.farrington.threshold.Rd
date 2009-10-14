@@ -13,7 +13,7 @@ Depending on the current transformation \eqn{h(y)= \{y, \sqrt{y}, y^{2/3}\}},
   observation and a prediction variance.  }
 
 \usage{
-algo.farrington.threshold(pred,phi,alpha=0.01,skewness.transform="none")
+algo.farrington.threshold(pred,phi,alpha=0.01,skewness.transform="none",y)
 }
 \arguments{
 \item{pred}{A GLM prediction object}
@@ -22,10 +22,12 @@ algo.farrington.threshold(pred,phi,alpha=0.01,skewness.transform="none")
     confidence interval is computed. }
 \item{skewness.transform}{Skewness correction, i.e. one of
     \code{"none"}, \code{"1/2"}, or \code{"2/3"}.}
+\item{y}{Observed number}
 }
-\value{\item{vector}{
-        Vector of length 2 with lower and upper bounds of an \eqn{(1-\alpha)\%} confidence interval.
-        }
+\value{
+  Vector of length 4 with lower and upper bounds of an \eqn{(1-\alpha)\%} confidence 
+  interval (first two arguments) and corresponding quantile of observation \code{y} 
+  together with the median of the predictive distribution.
 }
 \keyword{regression}
 

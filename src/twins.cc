@@ -1112,7 +1112,7 @@ void update_lambda_br(double** lambda, double** lambda_br,double* xi_lambda, int
     if(K_geom){
       accbr += log(1-p_K);
     }
-    accbr=accbr*pow(-1,u)+log(v);
+    accbr=accbr*pow((double)(-1),u)+log(v);
 
     if (u==2)
       {
@@ -1383,7 +1383,7 @@ void update_delta_br(double* delta, double* delta_br,double &xi_delta, int* brea
     if(K_geom){
       accbr += log(1-p_K);
     }
-    accbr=accbr*pow(-1,u)+log(v);
+    accbr=accbr*pow((double)(-1),u)+log(v);
 
     if (u==2)
       {
@@ -1673,7 +1673,7 @@ void update_epsilon_br(double* epsilon, double* epsilon_br,double& xi_epsilon, i
     if(K_geom){
       accbr += log(1-p_K);
     }
-    accbr=accbr*pow(-1,u)+log(v);
+    accbr=accbr*pow((double)(-1),u)+log(v);
 
     if (u==2)
       {
@@ -2761,18 +2761,21 @@ register long sampleCounter=1;
       for (register long t=2; t<=n; t++) {
         //Update X
         double binp = nu[i][t]*xi[i] / (epsilon[t] + nu[i][t]*xi[i] + lambda[i][t] * Z[i][t-1]);
-        X[i][t] =  gsl_ran_binomial(r, binp, Z[i][t]);
-
+	X[i][t] =  gsl_ran_binomial(r, binp, Z[i][t]);
 
         //Update S
         binp =  epsilon[t] / (epsilon[t] + lambda[i][t] * Z[i][t-1]);
-        S[i][t] =  gsl_ran_binomial(r, binp, (Z[i][t] - X[i][t]));
-
+	//hoehle 9 Apr 2009 -- protection against Z[i][t-1]==0 case, leading to binp = nan
+	if (Z[i][t-1] == 0) {binp = 1;}
+	S[i][t] =  gsl_ran_binomial(r, binp, (Z[i][t] - X[i][t]));
   
     
         //Update Y
         Y[i][t] = Z[i][t] - X[i][t] - S[i][t];
         
+	//Debug
+	//cout << "i=" << i << "\tt=" << t << "\tX=" << X[i][t] << "\tY=" << Y[i][t] << "\tZ=" << Z[i][t] << "\tS=" << S[i][t] << "\tepsilon=" << epsilon[t] << "\tbinp=" << binp << endl;
+
         //Update omega[t] in case of overdispersion
 	if(overdispersion){
 	       double a = psi + Z[i][t];
@@ -2797,7 +2800,7 @@ register long sampleCounter=1;
       if(!theta_pred_estim){
 	double p_thetanp1 = ((double(K[i]))/double(n)); //(1+double(K[i]))
 	if(K_geom){
-	  p_thetanp1 = (double(K[i])*(1.0-p_K)*(1.0-pow(1.0-p_K,n-1)))/((double(n)-1.0)*(1.0-pow(1.0-p_K,n)));
+	  p_thetanp1 = (double(K[i])*(1.0-p_K)*(1.0-pow((double)1.0-p_K,n-1)))/((double(n)-1.0)*(1.0-pow((double)1.0-p_K,n)));
 	}
         if(gsl_rng_uniform (r)<=p_thetanp1){
         if (sampleCounter>burnin) {
@@ -2827,7 +2830,7 @@ register long sampleCounter=1;
           if(delta_rev){
 	    double p_thetanp1 = ((double(K[i]))/double(n)); //(1+double(K[i]))
 	    if(K_geom){
-	      p_thetanp1 = ((double(K[i]))*(1.0-p_K)*(1.0-pow(1.0-p_K,n-1)))/((double(n)-1.0)*(1.0-pow(1.0-p_K,n)));
+	      p_thetanp1 = ((double(K[i]))*(1.0-p_K)*(1.0-pow((double)1.0-p_K,n-1)))/((double(n)-1.0)*(1.0-pow((double)1.0-p_K,n)));
 	    }
             if(gsl_rng_uniform (r)<=p_thetanp1){
               if (sampleCounter>burnin) {
@@ -2849,7 +2852,7 @@ register long sampleCounter=1;
         if(epsilon_rev){
 	  double p_thetanp1 = ((double(K[i]))/double(n)); //(1+double(K[i]))
 	  if(K_geom){
-  	    p_thetanp1 = ((double(K[i]))*(1.0-p_K)*(1.0-pow(1.0-p_K,n-1)))/((double(n)-1.0)*(1.0-pow(1.0-p_K,n)));
+  	    p_thetanp1 = ((double(K[i]))*(1.0-p_K)*(1.0-pow((double)1.0-p_K,n-1)))/((double(n)-1.0)*(1.0-pow((double)1.0-p_K,n)));
 	  }
           if(gsl_rng_uniform (r)<=p_thetanp1){
             if (sampleCounter>burnin) {

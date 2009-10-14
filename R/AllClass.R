@@ -9,7 +9,9 @@ setClass( "sts", representation(week = "numeric",
                                 upperbound  = "matrix",
                                 neighbourhood= "matrix",
                                 populationFrac= "matrix",
-#                                lvl = "vector",
                                 map = "SpatialPolygonsDataFrame",
-                                control = "list"))
+                                control = "list",
+#New slots add
+                                epochAsDate="logical",
+                                multinomialTS="logical"))
 

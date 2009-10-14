@@ -97,6 +97,7 @@
 \seealso{\code{\link[msm:msm]{msm}}}
 \author{M. \enc{Höhle}{Hoehle}}
 \examples{
+\dontrun{
 set.seed(123)
 #Simulate outbreak data from HMM
 counts <- sim.pointSource(p = 0.98, r = 0.8, length = 3*52,
@@ -110,7 +111,7 @@ surv <- algo.hmm(counts, control=list(range=(2*52):length(counts$observed),
                                    Mtilde=2*52,noStates=2,trend=FALSE,
                                    covEffectsEqual=TRUE))
 plot(surv,legend=list(x="topright"))
-
+}
 }
 \references{
   Y. Le Strat and F. Carrat, Monitoring Epidemiologic Surveillance Data using Hidden Markov Models (1999), Statistics in Medicine, 18, 3463--3478

@@ -1,2 +1,2 @@
 cost    Run all commands in the Computational Statistics article. Requires a directory "figs" in the current working directory.
-
+biosurvbook Run all commands from the book chapter on Danish mortality monitoring using the surveillance package.

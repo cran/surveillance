@@ -1,5 +1,49 @@
-1.0-1
-=====
+1.1-0 (uploaded on CRAN 14/10/2009)
+================================
+
+* Added the functions categoricalCUSUM and LRCUSUM.runlength
+  for the CUSUM monitoring of general categorical time series
+  (binomial, beta-binomial, multinomial, ordered response,
+  Bradley-Terry models).
+
+* Added the functions pairedbinCUSUM and pairedbinCUSUM.runlength
+  implementing the CUSUM monitoring and run-length computations for 
+  a paired binary outcome as described in Steiner et al. (1999).
+
+* Experimental implementation of the prospective space-time cluster
+  detection described in Assuncao and Correa (2009).
+
+* Added a demo("biosurvbook") containing the code of an upcoming
+  book chapter on how to use the surveillance package. This
+  contains the description of ISO date use, negative binomial CUSUM,
+  run-length computation, etc. From an applicational point of view
+  the methods are illustrated by Danish mortality monitoring.
+
+* Fixed a small bug in algo.cdc found by Marian Talbert Allen
+  which resulted in the control$m argument being ignored.
+
+* The constructor of the sts class now uses the argument
+  "epoch" instead of weeks to make clearer that also
+  daily, monthly or other data can be handled.
+
+* Added additional epochAsDate slot to sts class. Modified
+  plot functions so they can handle ISO weeks. 
+
+* algo.farrington now also computes quantile and median of 
+  the predictive distribution. Furthermore has the computation
+  of reference values been modified so its a) a little bit faster
+  and b) it is also able to handle ISO weeks now. The reference values
+  for date t0 are calculated as follows:
+  For i, i=1,..., b look at date t0 - i*year. From this date on move
+  w months/weeks/days to the left and right. In case of weeks:
+   For each of these
+  determined time points go back in time to the closest Monday
+
+* Renamed the functions obsinyear to epochInYear, which now also
+  handles objects of class Date.
+
+1.0-2 (released on CRAN 6 Mar 2009)
+===========================
 
 * Negative Binomial CUSUM or the more general NegBin likelihood ratio
   detector is now implemented as part of algo.glrnb.

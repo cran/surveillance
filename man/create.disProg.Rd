@@ -12,10 +12,10 @@
 }
 \usage{
   create.disProg(week, observed, state, start=c(2001,1), freq=52, 
-  neighbourhood=NULL, populationFrac=NULL)
+  neighbourhood=NULL, populationFrac=NULL, epochAsDate=FALSE)
 }
 \arguments{
-\item{week}{number of week}
+\item{week}{index in the matrix of observations, typically weeks}
 \item{observed}{matrix with parallel time series of counts where rows are 
     time points and columns are the individual time series for unit/area
     \eqn{i, i=1,\ldots,m}}
@@ -26,6 +26,7 @@
     \eqn{m \times m} with elements \eqn{n_{ij}=1} if units \eqn{i}
     and \eqn{j} are adjacent and 0 otherwise } 
 \item{populationFrac}{matrix with corresponding population proportions} 
+\item{epochAsDate}{interpret the integers in \code{week} as Dates. Default is \code{FALSE}}
 }
 \value{\item{disProg}{object of class \code{disProg}  
   }
