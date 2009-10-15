@@ -8,6 +8,7 @@
 %\alias{[,sts,missing,index,missing-method}
 %\alias{[,sts,index,missing,missing-method}
 \alias{[,sts-method}
+\alias{[,sts,ANY,ANY,ANY-method}
 %
 \description{
   Methods for \code{"["}, i.e., extraction or subsetting of the

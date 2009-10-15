@@ -63,6 +63,10 @@
     and 9 from two years ago (also symmetrical around the
     comparable week). Alpha is fixed at 0.05.
   }
+
+  The procedure is now able to handle \code{NA}'s in the reference
+  values. In the summation and when counting the number of observed
+  reference values these are simply not counted.
 }
 \seealso{
         \code{\link{algo.call}}, \code{\link{algo.rkiLatestTimepoint}} and \code{\link{algo.rki}} for

@@ -1,7 +1,7 @@
 ###################################################
 ### chunk number 1: 
 ###################################################
-create.disProg <- function(week, observed, state, start=c(2001,1), freq=52, neighbourhood=NULL, populationFrac=NULL){
+create.disProg <- function(week, observed, state, start=c(2001,1), freq=52, neighbourhood=NULL, populationFrac=NULL,epochAsDate=FALSE){
   namesObs <-colnames(observed)
   
   #univariate timeseries ?
@@ -57,7 +57,7 @@ create.disProg <- function(week, observed, state, start=c(2001,1), freq=52, neig
   colnames(observed) <- namesObs
   colnames(state) <- namesObs
   
-  res <- list("week"=week, "observed"=observed, "state"=state, "start"=start, "freq"=freq,  "neighbourhood"=neighbourhood, "populationFrac"=populationFrac)
+  res <- list("week"=week, "observed"=observed, "state"=state, "start"=start, "freq"=freq,  "neighbourhood"=neighbourhood, "populationFrac"=populationFrac,"epochAsDate"=epochAsDate)
   class(res) <- "disProg"
   return(res)
 }

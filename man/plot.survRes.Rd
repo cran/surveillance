@@ -11,9 +11,11 @@
   xaxis.years=TRUE,startyear = 2001, firstweek = 1, same.scale=TRUE,\dots)
   \method{plot}{survRes.one}(x, method=x$control$name, disease=x$control$data,
    domany=FALSE,ylim=NULL,xaxis.years=TRUE,startyear = 2001, firstweek = 1, 
-   xlab="time", ylab="No. infected", main=NULL, type="hhs",lty=c(1,1,2),col=c(1,1,4), 
+   xlab="time", ylab="No. infected", main=NULL, type="hhs",
+   lty=c(1,1,2),col=c(1,1,4), 
    outbreak.symbol = list(pch=3,col=3),alarm.symbol=list(pch=24,col=2),
-   legend.opts=list(x="top",legend=c("Infected", "Upperbound", "Alarm", "Outbreak"),
+   legend.opts=list(x="top",
+   legend=c("Infected", "Upperbound", "Alarm", "Outbreak"),
    lty=NULL,col=NULL,pch=NULL), ...)
 }
 \arguments{

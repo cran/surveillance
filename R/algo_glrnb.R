@@ -34,17 +34,24 @@ algo.glrnb <- function(disProgObj,
     control$dir <- "inc"
   if(is.null(control[["ret",exact=TRUE]]))
   	control$ret <- "value"
+  if(!is.null(control[["theta",exact=TRUE]])) {
+    if(control[["theta",exact=TRUE]] == 1) {
+      stop("Error: theta has to be larger than 1!")
+    }
+  }
   #if(is.null(control[["alpha",exact=TRUE]]))
   #    control$alpha <- 0
 
   #GLM (only filled if estimated)
   m <- NULL
 
+  ################################################
   #Extract the important parts from the arguments
+  ################################################
   observed <- disProgObj$observed
-  t <- control$range
+  #range is fixed, but t is modified as we iterate the cusum
+  t <- control$range ; range <- control$range
   control$mu0Model <- NULL
-  range <- control$range
   control$dir <- match.arg(control$dir, c("inc","dec"))
   dir <- ifelse(control$dir=="inc",1,-1)
   control$ret <- match.arg(control$ret, c("value","cases"))
@@ -87,7 +94,7 @@ algo.glrnb <- function(disProgObj,
   upperbound <- matrix(data = 0, nrow = length(t), ncol = 1)
   
   
-   #Setup counters for the progress
+  #Setup counters for the progress
   doneidx <- 0
   N <- 1
   xm10 <- 0
@@ -119,7 +126,6 @@ algo.glrnb <- function(disProgObj,
           res <- .C("lr_cusum",x=as.integer(x),mu0=as.double(mu0),lx=length(x),as.double(control$theta),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(ret),PACKAGE="surveillance")
 
         } else { #negbin
-          warning("LR feature of the negative binomial distribution is currently experimental!")
           res <- .C("lr_cusum_nb",x=as.integer(x),mu0=as.double(mu0),alpha=as.double(control$alpha),lx=length(x),as.double(control$theta),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(ret),PACKAGE="surveillance")
 
         }
@@ -166,7 +172,7 @@ algo.glrnb <- function(disProgObj,
   #last alarm
   upperbound[(doneidx-res$N+1):nrow(upperbound)] <- either(ret == 1, res$val, res$cases)
   
-  #fix of the problem that no upperbound-statistic ss returned 
+  #fix of the problem that no upperbound-statistic is returned 
   #in case of no alarm
   if (noofalarms == 0) {
     upperbound <- either(ret==1, res$val, res$cases)
@@ -178,7 +184,6 @@ algo.glrnb <- function(disProgObj,
   
  
   # Add name and data name to control object
-  
   algoName <- either(control$alpha == 0, "glrpois:", "glrnb:")
   control$name <- paste(algoName, control$change)
   control$data <- paste(deparse(substitute(disProgObj)))

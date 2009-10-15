@@ -3,10 +3,14 @@
 # the surveillance package
 ######################################################################
 
-algo.twins <- function(disProgObj, control=list(burnin=1000, filter=10, sampleSize=2500, alpha_xi=10, beta_xi=10, psiRWSigma=0.25, alpha_psi=1, beta_psi=0.1, logFile="twins.log")) {
+algo.twins <- function(disProgObj, control=list(burnin=1000, filter=10, sampleSize=2500, noOfHarmonics=1, alpha_xi=10, beta_xi=10, psiRWSigma=0.25, alpha_psi=1, beta_psi=0.1, logFile="twins.log")) {
 
+  if (ncol(disProgObj$observed)>1) {
+    stop("Error: algo.twins only handles univariate time series of counts.")
+  }
+  
+  #Determine period from data
   T <- as.integer(disProgObj$freq)
-  nfreq <- as.integer(1)
 
   #Convert sts objects
   if (class(disProgObj) == "sts") disProgObj <- sts2disProg(disProgObj)
@@ -30,7 +34,11 @@ algo.twins <- function(disProgObj, control=list(burnin=1000, filter=10, sampleSi
     control$beta_psi <- 0.1
   if(is.null(control[["logFile",exact=TRUE]]))
     control$logFile <- "twins.log"
+  if(is.null(control[["noOfHarmonics",exact=TRUE]]))
+    control$noOfHarmonics <- 1
+  
 
+  nfreq <- control$noOfHarmonics
   control$logFile2 <- paste(control$logFile,"2",sep="")
 
   #Call the C code
@@ -46,7 +54,7 @@ algo.twins <- function(disProgObj, control=list(burnin=1000, filter=10, sampleSi
             burnin=as.integer(burnin), 
             filter=as.integer(filter),sampleSize=as.integer(sampleSize),
             alpha_xi=as.double(alpha_xi), beta_xi=as.double(beta_xi),
-            T=T, nfreq=nfreq,
+            T=as.integer(T), nfreq=as.integer(nfreq),
             psiRWSigma=as.double(0.25),
             alpha_psi=as.double(alpha_psi), beta_psi=as.double(beta_psi),
             PACKAGE="surveillance"))
@@ -94,18 +102,25 @@ make.pois <- function(obj) {
   return(m)
 }
 
-pois.plot <- function(m.results,xlab="") {
-  plotorder <- c(expression(Z),expression(X),expression(Y))
-  plotcols <- c(1,"blue","red")
+pois.plot <- function(m.results,...) {
+  plotorder <- c(expression(Z),expression(Y),expression(X))
+  plotcols <- c(1,"red","blue")
   lwd <- c(1,3,3)
-  ymax <- 5/4*max(m.results[[paste(plotorder[1])]])
-  plot(0:(m.results$n-1),m.results[[paste(plotorder[1])]],type="s",col=plotcols[1],
-       ylim=c(0,ymax),xlab=xlab,ylab="No. of cases",lwd=lwd[1])
+  sts <- disProg2sts(m.results$disProgObj)
 
-  for (i in 2:length(plotorder)) {
-    lines(1:(m.results$n-1),m.results[[paste(plotorder[i])]][2:m.results$n],type="s",col=plotcols[i],lwd=lwd[i])
+  #Make default legend if nothing else is specified.
+  if (is.null(list(...)[["legend.opts",exact=TRUE]])) {
+#    plot(sts,legend.opts=list(x="topleft",legend=paste(plotorder),lwd=lwd,col=plotcols,horiz=TRUE,y.intersp=0,lty=1),...)
+    #There is a bug here, but atm I do not have the time to fix it.
+    plot(sts,legend.opts=NULL,...)
+  } else {
+    plot(sts,...)
   }
-  legend(0,ymax,paste(plotorder),lwd=lwd,col=plotcols,horiz=TRUE,y.intersp=0)
+  
+  #Add Y and X lines
+  for (i in 2:length(plotorder)) {
+        lines(1:(m.results$n)+0.5,m.results[[paste(plotorder[i])]][c(2:m.results$n,m.results$n)],type="s",col=plotcols[i],lwd=lwd[i])
+  }
 }
 
 # makes list of gamma, zeta and nu
@@ -173,6 +188,8 @@ plot.atwins <- function(x, which=c(1,4,6,7), ask=TRUE,...) {
   
   #Make list of X,Y,Z,omega means of results2
   m.results <-make.pois(x)
+  m.results$disProgObj <- x$disProgObj
+  
   #Make list of results of  gamma, zeta and nu
   nu<-make.nu(x)
 
@@ -184,7 +201,7 @@ plot.atwins <- function(x, which=c(1,4,6,7), ask=TRUE,...) {
   
   if (show[1]) {
     par(mfcol=c(1,1))
-    pois.plot(m.results,xlab="time")
+    pois.plot(m.results,...)
   }
 
   if (show[2]) {

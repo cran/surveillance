@@ -1,6 +1,32 @@
-citHeader("To cite package \"surveillance\" in publications use:")
-desc <- packageDescription("surveillance",encoding=NA)
-year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", desc$Date)
-vers <- paste("R package version", desc$Version)
-citEntry(entry="Article",textVersion="surveillance: An R package for the surveillance of infectious diseases (2007), M. Hoehle, Computational Statistics, 22(4), pp. 571--582.",title="surveillance: An R package for the surveillance of infectious diseases",author="M. {Hoehle}",journal="Computational Statistics",volume="22",number="4",pages="571--582")
+if (!exists("meta") || is.null(meta)) meta <- packageDescription("surveillance")
+
+citHeader("To cite package", sQuote(meta$Package), "in publications use:")
+
+### Default citation of R packages
+# year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date)
+# vers <- paste("R package version", meta$Version)
+# title <- paste(meta$Package, ": ", meta$Title, sep = "")
+# citEntry(
+#     entry = "Manual",
+#     title = title,
+#     author = as.personList(meta$Author),
+#     year = year,
+#     note = vers,
+#     url = meta$URL,
+#     textVersion = paste(meta$Author, " (", year, "). ", title, ". ",
+#                         vers, ". ", meta$URL, sep = "")
+# )
+
+### Article in Computational Statistics (2007)
+citEntry(
+    entry = "Article",
+    title = "surveillance: An {R} package for the surveillance of infectious diseases",
+    author = "M. {Hoehle}",
+    journal = "Computational Statistics",
+    year = "2007",
+    volume = "22",
+    number = "4",
+    pages = "571--582",
+    textVersion = "surveillance: An R package for the surveillance of infectious diseases (2007), M. Hoehle, Computational Statistics, 22(4), pp. 571--582."
+)
 

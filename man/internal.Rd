@@ -12,6 +12,7 @@
 \alias{wait}
 \alias{init.sts}
 \alias{merge.list}
+\alias{addFormattedXAxis}
 %Functions from M.Paul
 \alias{commonDenom}
 \alias{logInterpolation}
