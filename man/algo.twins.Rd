@@ -10,7 +10,8 @@
 \usage{
 algo.twins(disProgObj, control=list(burnin=1000, filter=10,
    sampleSize=2500, noOfHarmonics=1, alpha_xi=10, beta_xi=10,
-   psiRWSigma=0.25,alpha_psi=1, beta_psi=0.1, logFile="twins.log"))
+   psiRWSigma=0.25,alpha_psi=1, beta_psi=0.1, nu_trend=FALSE,
+   logFile="twins.log"))
 }
 \arguments{
   \item{disProgObj}{object of class \code{disProg}}
@@ -26,7 +27,10 @@ algo.twins(disProgObj, control=list(burnin=1000, filter=10,
         \item{\code{beta_xi}}{Parameter \eqn{\beta_{\xi}}{\beta_\xi} of the hyperprior of the epidemic parameter \eqn{\lambda}{\lambda}}
         \item{\code{psiRWSigma}}{Starting value for the tuning of the variance of the random walk proposal for the overdispersion parameter \eqn{\psi}{\psi}.}
         \item{\code{alpha_psi}}{Parameter \eqn{\alpha_{\psi}}{\alpha_\psi} of the prior of the overdispersion parameter \eqn{\psi}{\psi}}
-        \item{\code{beta_psi}}{Parameter \eqn{\beta_{\psi}}{\beta_\psi} of the prior of the overdispersion parameter \eqn{\psi}{\psi}}
+        \item{\code{beta_psi}}{Parameter \eqn{\beta_{\psi}}{\beta_\psi}
+	  of the prior of the overdispersion parameter \eqn{\psi}{\psi}}
+	\item{\code{nu_trend}}{Adjust for a linear trend in the endemic
+	  part? (default: \code{FALSE})}
         \item{\code{logFile}}{Base file name for the output files. The function writes three output files in your current working directory (i.e. getwd()). If \code{logfile = "twins.log"} the results are stored in the three files "twins.log", "twins.log2" and "twins.log.acc".  
         "twins.log" containes the returned samples of the parameters \eqn{\psi}{\psi}, \eqn{\gamma_{0}}{\gamma_0}, \eqn{\gamma_{1}}{\gamma_1}, \eqn{\gamma_{2}}{\gamma_2}, K, \eqn{\xi_{\lambda}}{\xi_\lambda} \eqn{\lambda_{1},...,\lambda{n}}{\lambda_1,...,\lambda_{n}}, the predictive distribution of the number of cases at time \eqn{n+1} and the deviance.   
         "twins.log2" containes the sample means of the variables \eqn{X_{t}, Y_{t}, \omega_{t}}{X_t, Y_t, \omega_t} and the relative frequency of a changepoint at time t for t=1,...,n and the relative frequency of a predicted changepoint at time n+1.  
@@ -42,10 +46,6 @@ algo.twins(disProgObj, control=list(burnin=1000, filter=10,
   working directory (i.e. getwd()): twins.log, twins.log.acc and twins.log2
   Thus you need to have write permissions in the current getwd()
   directory.
-
-  Currently, the example section is commented, because the underlying
-  C++ code appears to crash under some UNIX distributions and it takes
-  rather long time.
 }
 \value{Returns an object of class \code{atwins} with elements 
   \item{control}{specified control object}
@@ -57,29 +57,27 @@ algo.twins(disProgObj, control=list(burnin=1000, filter=10,
   model for counts of infectious diseases, Biostatistics, \bold{7}, pp.
   422--437.
 }
-\author{M. Hofmann and M. \enc{Höhle}{Hoehle}}
+\author{M. Hofmann and M. \enc{Höhle}{Hoehle} and D. \enc{Sabanés
+  Bové}{Sabanes Bove}}
 \examples{
-\dontrun{
-#Load the data used in the Held et al. (2006) paper
+
+# Load the data used in the Held et al. (2006) paper
 data("hepatitisA")
 
-#Fix seed - this is used for the MCMC samplers in twins
+# Fix seed - this is used for the MCMC samplers in twins
 set.seed(123)
 
-#Call algorithm and save result. Apparently, the underlying C++
-#code can cause problems on some LINUX distributions (e.g. ubuntu):
-# *** glibc detected *** /usr/lib/R/bin/exec/R: corrupted double-linked
-# so until further notice this example code is put into dontrun mode
+# Call algorithm and save result.
 otwins <- algo.twins(hepatitisA)
 
-#This shows the entire output (use ask=TRUE for pause between plots)
+# This shows the entire output (use ask=TRUE for pause between plots)
 plot(otwins, ask=FALSE)
 
-#Direct access to MCMC output
+# Direct access to MCMC output
 hist(otwins$logFile$psi,xlab=expression(psi),main="")
 require("coda")
 print(summary(mcmc(otwins$logFile[,c("psi","xipsi","K")])))
-}
+
 }
 \keyword{ts}
 \keyword{regression}

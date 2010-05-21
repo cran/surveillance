@@ -6,10 +6,9 @@
 \description{
   Shiryaev-Roberts based prospective spatio-temporal cluster detection
   as in Assuncao & Correa (2009).
-  
 }
 \usage{
-stcd(x, y,t,radius,epsilon,threshold)
+stcd(x, y,t,radius,epsilon,areaA, areaAcapBk, threshold, cusum=FALSE)
 }
 \arguments{
   \item{x}{Vector containing spatial x coordinate of the events.}
@@ -19,8 +18,11 @@ stcd(x, y,t,radius,epsilon,threshold)
   \item{radius}{Radius of the cluster to detect.}
   \item{epsilon}{Relative change of event-intensity within the cluster
     to detect. See reference paper for an explicit definition.}
+  \item{areaA}{???}
+  \item{areaAcapBk}{???}
   \item{threshold}{Threshold limit for the alarm and should be equal to
     the desired Average-Run-Length (ARL) of the detector.}
+  \item{cusum}{???}
 }
 \details{
  Shiryaev-Roberts based spatio-temporal cluster detection based
@@ -57,12 +59,22 @@ space-time clusters, Computational Statistics & Data Analysis,
 library("splancs")
 data(burkitt)
 
+# order the times
+burkitt <- burkitt[order(burkitt$t), ]
+
 #Parameters for the SR detection
 epsilon <- 0.5 # relative change within the cluster
 radius <- 20 # radius
 threshold <- 161 # threshold limit
 
-res <- stcd(burkitt$x,burkitt$y,burkitt$t,radius,epsilon,threshold)
+res <- stcd(x=burkitt$x,
+            y=burkitt$y,
+            t=burkitt$t,
+            radius=radius,
+            epsilon=epsilon,
+            areaA=1,
+            areaAcapBk=1,
+            threshold=threshold)
 
 #Index of the event
 which.max(res$R >= threshold)
