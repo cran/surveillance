@@ -1,5 +1,14 @@
+1.1-3 (uploaded on CRAN 22/05/2010
+==================================
+
+* a few minor bug fixes
+
+* small improvements on the twins function by Daniel Sabanes Bove
+  fixing the segmentation fault issue of the function on Ubuntu.
+
+
 1.1-0 (uploaded on CRAN 14/10/2009)
-================================
+==================================
 
 * Added the functions categoricalCUSUM and LRCUSUM.runlength
   for the CUSUM monitoring of general categorical time series

@@ -1,7 +1,7 @@
 Package: surveillance
 Title: Modeling and monitoring discrete response time series
-Version: 1.1-2
-Date: 2009-10-14
+Version: 1.1-6
+Date: 2010-05-21
 Author: M. Höhle with contributions from T. Correa, M. Hofmann, C.
         Lang, M. Paul, A. Riebler, S. Steiner and V. Wimmer
 Depends: methods,utils,xtable,spc,sp,maptools,vcd,msm,Matrix
@@ -30,6 +30,6 @@ License: GPL-2
 URL: http://surveillance.r-forge.r-project.org/
 ZipData: no
 Encoding: latin1
-Packaged: 2009-10-14 15:43:27 UTC; hoehle
+Packaged: 2010-05-23 12:48:35 UTC; hoehle
 Repository: CRAN
-Date/Publication: 2009-10-15 10:29:53
+Date/Publication: 2010-05-25 15:58:01

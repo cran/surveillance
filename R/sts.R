@@ -222,6 +222,8 @@ setMethod("year", "sts", function(x,...) return((x@week-1) %/% x@freq + x@start[
 #Extract which observation within year we have
 setGeneric("epochInYear", function(x, ...) standardGeneric("epochInYear"));
 setMethod("epochInYear", "sts", function(x,...) {
+  #Strptime format strings available as:
+  #http://www.opengroup.org/onlinepubs/009695399/functions/strptime.html
   if (x@epochAsDate) {
     epochStr <- switch( as.character(x@freq), "12" = "%m","52" =  "%V","365" = "%j")
     return(as.numeric(format(epoch(x),epochStr)))
@@ -957,8 +959,17 @@ insert.zeroes<- function(x,length=3) {
 setMethod( "show", "sts", function( object ){
   cat( "-- An object of class sts -- \n" )
   #cat( "length(week):\t", length(object@week),"\n" )
-  cat( "freq:\t\t", object@freq,"\n" )
-  cat( "start:\t\t",object@start,"\n" )
+  if (!object@epochAsDate) {
+    cat( "freq:\t\t", object@freq,"\n" )
+  } else {
+    epochStr <- switch( as.character(object@freq), "12" = "%m","52" =  "%V","365" = "%j")
+    cat( "freq:\t\t", paste(object@freq," with strptime format string ",epochStr,"\n",sep=""))
+  }
+  if (!object@epochAsDate) {
+    cat( "start:\t\t",object@start,"\n" )
+  } else {
+    cat( "start:\t\t",paste(epoch(object)[1]),"\n" )
+  }
   cat( "dim(observed):\t", dim(object@observed), "\n\n")
 
   n <- 1

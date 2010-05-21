@@ -7,31 +7,33 @@
  *******************************************************************/
 
 /* new definitions to replace GSL code */
-int r;
+
+// Remove the dead RNG variable (DSB 04/05/2010):
+// int r;
 
 
-double gsl_rng_uniform (int RNG) {
+double gsl_rng_uniform () {
   //  GetRNGstate();
   double res = runif(0,1);
   //PutRNGstate();
   return(res);
 }
 
-double gsl_ran_gaussian(int RNG, double sigma) {
+double gsl_ran_gaussian(double sigma) {
   //GetRNGstate();
   double res = rnorm(0.0,sigma);
   //PutRNGstate();
   return(res);
 }
 
-double gsl_ran_gamma(int RNG, double a, double b) {
+double gsl_ran_gamma(double a, double b) {
   //GetRNGstate();
   double res = rgamma(a,b);
   //PutRNGstate();
   return(res);
 }
 
-unsigned int gsl_ran_poisson(int RNG, double lambda) {
+unsigned int gsl_ran_poisson(double lambda) {
   //GetRNGstate();
   unsigned int res = rpois(lambda);
   //PutRNGstate();
@@ -39,7 +41,7 @@ unsigned int gsl_ran_poisson(int RNG, double lambda) {
 }
 
 
-unsigned int gsl_ran_binomial(int RNG, double p, unsigned int n) {
+unsigned int gsl_ran_binomial(double p, unsigned int n) {
   //GetRNGstate();
   unsigned int res = rbinom(n,p);
   //PutRNGstate();

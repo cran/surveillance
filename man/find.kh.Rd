@@ -7,12 +7,13 @@
         normal setting.
 }
 \usage{
-  find.kh(ARLa = 500, ARLr = 7, sided = "one", verbose=FALSE)
+  find.kh(ARLa = 500, ARLr = 7, sided = "one", method = "BFGS", verbose=FALSE)
 }
 \arguments{
         \item{ARLa}{average run length in acceptance setting, aka. in control state. Specifies the number of observations before false alarm.}
         \item{ARLr}{average run length in rejection state, aka. out of control state. Specifies the number of observations before an increase is detected (i.e. detection delay)}
         \item{sided}{one-sided cusum scheme}
+       \item{method}{Which method to use in the function \code{\link{optim}}. Standard choice is BFGS, but in some situation Nelder-Mead can be advantageous.} 
         \item{verbose}{gives extra information about the root finding process}
 }
 \value{

@@ -190,16 +190,21 @@ anscombeNB <- function(y,mu,alpha=0.1) {
 #         false alarm
 #  ARLw - average run length in rejection state (i.e. number before
 #         an increase is detected (i.e. detection delay)
+#  method - optim method to use, see ?optim
 #
 # Returns:
 #  list( k - reference value, h - decision interval)
 ######################################################################
-find.kh <- function(ARLa=500,ARLr=7,sided="one",verbose=FALSE) {
+find.kh <- function(ARLa=500,ARLr=7,sided="one",method="BFGS",verbose=FALSE) {
   #Small helper function which is to be minimized
   fun <- function(k) {
     if (k>0) {
       #Compute decision interval
       h <- xcusum.crit(L0=ARLa,k=k,r=50,sided=sided)
+
+      #Check if xcusum.crit managed to find a solution
+      if (is.nan(h)) stop(paste("xcusum.crit in package spc was not able to find a h corresponding to ARLa=",ARLa," and k=",k))
+
       if (h > 0) {
         #Compute ARLr given the above computed h
         arlr <- xcusum.arl(k,h,mu=2*k,r=50,sided=sided)
@@ -215,7 +220,7 @@ find.kh <- function(ARLa=500,ARLr=7,sided="one",verbose=FALSE) {
       return( 1e99)
     }
   }
-  k <- optim(1,fun,method="BFGS")$par
+  k <- optim(1,fun,method=method)$par
   return(list(k=k,h=xcusum.crit(L0=ARLa,k=k,r=50,sided=sided)))
 }
 

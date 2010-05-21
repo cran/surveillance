@@ -86,7 +86,10 @@ void lr_cusum(int* x,double* mu0, int *lx_R, double *kappa_R, double *c_ARL_R,in
     /* Add up */
     if (n==0) {
       ret_lr[n] = fmax(0,zn);
-      if (ret==2) ret_cases[n] = (c_ARL + mu0[n]*(kappa-1))/kappa ;
+      /*5.11.2009 -- Bug fix. There was a small programming error for the 
+	computing the cases for n==0.
+	if (ret==2) ret_cases[n] = (c_ARL + mu0[n]*(kappa-1))/kappa ; */
+      if (ret==2) ret_cases[n] = (c_ARL + mu0[n]*(exp(kappa)-1))/kappa ;
     } 
     else {
       ret_lr[n] = fmax(0,ret_lr[n-1] + zn);
@@ -136,23 +139,27 @@ double glr (int n, int x[], double mu0[], int dir){
     /* Loop variable */
     register int k;
 
-      /* Loop over all k */
-      for (k=n; k>=0; k--) { /* Backwards loop makes calculations faster */
-        /* Recursive update of the kappa.ml quantitities */
+    /* For fitting and summation */
+    double kappa_ml = 0;
+    double sum = 0;
 
-        sumx += x[k];
-        summu0 += mu0[k];
+    /* Loop over all k */
+    for (k=n; k>=0; k--) { /* Backwards loop makes calculations faster */
+      /* Recursive update of the kappa.ml quantitities */
+
+      sumx += x[k];
+      summu0 += mu0[k];
        
-        /* Calculate MLE of kappa */
-        double kappa_ml = dir*fmax(0,dir*log(sumx/summu0));
-       
-        /* Recursive updating of the likelihood ratios -- See
-	      notes on the 21 september printout. This is fast! */
-        double sum = kappa_ml * sumx + (1-exp(kappa_ml))*summu0;
-  
-        /* save max value */
-        if (sum > maxGLR) { maxGLR = sum;}
-      }
+      /* Calculate MLE of kappa */
+      kappa_ml = dir*fmax(0,dir*log(sumx/summu0));
+      
+      /* Recursive updating of the likelihood ratios -- See
+	 notes on the 21 september printout. This is fast! */
+      sum = kappa_ml * sumx + (1-exp(kappa_ml))*summu0;
+      
+      /* save max value */
+      if (sum > maxGLR) { maxGLR = sum;}
+    }
     return(maxGLR);
 }
 
@@ -184,6 +191,10 @@ double glr_window (int n, int x[], double mu0[], int dir, int M, int Mtilde){
     /* For the recursive computation of kappa_ml compute for (n-Mtilde+1):n */
     double sumx = 0;
     double summu0 = 0;
+    /* For fitting and summation */
+    double sum = 0;
+    double kappa_ml = 0;
+
     for (l=n-Mtilde+1; l<=n; l++) {
       sumx += x[l];
       summu0 += mu0[l];
@@ -196,10 +207,10 @@ double glr_window (int n, int x[], double mu0[], int dir, int M, int Mtilde){
       /* Recursive update of the kappa.ml quantitities */
       sumx += x[k];
       summu0 += mu0[k];
-      double kappa_ml = dir*fmax(0,dir*log(sumx/summu0));;
+      kappa_ml = dir*fmax(0,dir*log(sumx/summu0));;
 
       /*Calculate sum of likelihood ratios using recursive updating (fast!)*/
-      double sum = kappa_ml * sumx + (1-exp(kappa_ml))*summu0;
+      sum = kappa_ml * sumx + (1-exp(kappa_ml))*summu0;
 
       /* Save the max value */
       if (sum > maxGLR) { maxGLR = sum;}
@@ -267,7 +278,7 @@ void glr_cusum(int* x,double* mu0, int *lx_R, int *n0_R, double *c_ARL_R,int *re
       /* to find the number of cases that are necassary to produce an alarm */
       /* optionally, if ret == 2*/
       if (ret == 2){
-        /* change the value at timepoint n as long as an alarm is produced */
+        /* change the value at timepoint n until an alarm is produced */
         
         int xnnew = -1;
             
@@ -277,7 +288,7 @@ void glr_cusum(int* x,double* mu0, int *lx_R, int *n0_R, double *c_ARL_R,int *re
         /* save the old value of x */
         int xnold = x[n];
         
-        /* increase/decrease xnnew as long the glr-statistic with the new x is >= c_ARL */    
+        /* increase/decrease xnnew until the glr-statistic with the new x is >= c_ARL */    
         while ((dir*glrnew < c_ARL*dir)){
           
           /* increase/decrease xnnew */
