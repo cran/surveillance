@@ -2,7 +2,7 @@
 ### chunk number 1: 
 ###################################################
 
-algo.hmm <- function(disProgObj, control = list(range=range, Mtilde=-1, noStates=2, trend=TRUE, noHarmonics=1,covEffectEqual=FALSE )){
+algo.hmm <- function(disProgObj, control = list(range=range, Mtilde=-1, noStates=2, trend=TRUE, noHarmonics=1,covEffectEqual=FALSE, saveHMMs = FALSE )){
 
   # Set the default values if not yet set
   if(is.null(control$Mtilde)){ control$Mtilde <- -1 }
@@ -10,6 +10,7 @@ algo.hmm <- function(disProgObj, control = list(range=range, Mtilde=-1, noStates
   if(is.null(control$trend)){ control$trend <- TRUE }
   if(is.null(control$noHarmonics)){ control$noHarmonics <- 1 }
   if(is.null(control$covEffectEqual)){ control$covEffectEqual <- FALSE }
+  if(is.null(control$saveHMMs)){ control$saveHMMs <- FALSE }
 
   #Stop if not enough for estimation
   if(min(control$range) < 2) {
@@ -19,7 +20,7 @@ algo.hmm <- function(disProgObj, control = list(range=range, Mtilde=-1, noStates
   # initialize the necessary vectors
   alarm <- matrix(data = 0, nrow = length(control$range), ncol = 1)
   upperbound <- matrix(data = 0, nrow = length(control$range), ncol = 1)
-
+  control$hmms <- list()
 
 
   ##############################################
@@ -81,6 +82,12 @@ algo.hmm <- function(disProgObj, control = list(range=range, Mtilde=-1, noStates
                #Force the effects of the trend and harmonics to be equal for all states
                hconstraint=hconstraint
                )
+    
+    #In case the model fits should be saved.
+    if (control$saveHMMs) {
+      control$hmms[[i]] <- hmm
+    }
+
     #If most probable state of current time point (i.e. last obs) equals the 
     #highest state then do alarm 
 #    print(observed)

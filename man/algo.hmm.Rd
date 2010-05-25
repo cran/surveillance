@@ -16,7 +16,7 @@
 \usage{
   algo.hmm(disProgObj, control = list(range=range, Mtilde=-1, 
              noStates=2, trend=TRUE, noHarmonics=1,
-             covEffectEqual=FALSE))
+             covEffectEqual=FALSE, saveHMMs = FALSE))
 }
 \arguments{
         \item{disProgObj}{object of class disProg (including the observed and the state chain)}
@@ -42,6 +42,7 @@
             \item{\code{trend}}{Boolean stating whether a linear time trend exists, i.e. if \code{TRUE} (default) then \eqn{\beta_j \neq 0}{\beta != 0}}
             \item{\code{noHarmonics}}{number of harmonic waves to include in the linear predictor. Default is 1.}
             \item{\code{covEffectEqual}}{see details}
+            \item{\code{saveHMMs}}{Boolean, if \code{TRUE} then the result of the fitted HMMs is saved. With this option the function can also be used to analyse data retrospectively. Default option is \code{FALSE}}
             }
           }
 }
@@ -95,7 +96,7 @@
 
 }
 \seealso{\code{\link[msm:msm]{msm}}}
-\author{M. \enc{Höhle}{Hoehle}}
+\author{M. \enc{HÃ¶hle}{Hoehle}}
 \examples{
 \dontrun{
 set.seed(123)
@@ -111,6 +112,19 @@ surv <- algo.hmm(counts, control=list(range=(2*52):length(counts$observed),
                                    Mtilde=2*52,noStates=2,trend=FALSE,
                                    covEffectsEqual=TRUE))
 plot(surv,legend=list(x="topright"))
+
+#Retrospective use of the function, i.e. monitor only the last time point
+#but use option saveHMMs to store the output of the HMM fitting
+surv <- algo.hmm(counts,control=list(range=length(counts$observed),Mtilde=-1,noStates=2,
+                          trend=FALSE,covEffectsEqual=TRUE, saveHMMs=TRUE))
+
+#Compute most probable state using the viterbi algorithm - 1 is "normal", 2 is "outbreak".
+viterbi.msm(surv$control$hmm[[1]])$fitted
+
+#How often correct?
+tab <- cbind( truth=counts$state + 1 , hmm=viterbi.msm(surv$control$hmm[[1]])$fitted)
+table(tab[,1],tab[,2])
+
 }
 }
 \references{

@@ -11,8 +11,15 @@
 
 using namespace std;
 
-// Calculate the number of events centered in xi,yi trough the critical
-// radius given, from  the time tj until ti
+// Calculate the number of events in the cylinder B( (xk,yk), rho)
+// (i.e. represented by the boolean matrix MSpace) between event times
+// (tj,ti]   
+//
+// Params:
+//   MSpace - contains for each pair of points is geographically
+//            B( (xi,yi), rho)
+//   EvtN   - The last event, i.e. t_i
+//   EvtJ   - The first event, i.e. t_j
 int CalculaNCj(short **MSpace, const int EvtN, const int EvtJ)
 {
   int i;
@@ -22,8 +29,9 @@ int CalculaNCj(short **MSpace, const int EvtN, const int EvtJ)
   return(Soma);
 }
 
-// Calculate the number of events centered in xi,yi trough the critical
-// radius given
+// Calculate the number of events in the cylinder B( (xj,yj), rho)
+// (i.e. represented by the boolean matrix MSpace) between event times
+// (0,t_n]   
 int ContaEvt(short **MSpace, const int EvtN, const int EvtJ)
 {
   int i;
@@ -34,15 +42,30 @@ int ContaEvt(short **MSpace, const int EvtN, const int EvtJ)
 }
 
 //////////////////////////////////////////////////////////////////////
-// Unfortunately, this function has not been commented in the TerraView
-// version
+// Comment: Unfortunately, this function has not been commented in the 
+// TerraView and hence it has been a bit difficult to document its exact
+// use.
+//
+// Params:
+//   ev    - a list of the events
+//   RaioC - radius of the cylinder
+//   epslon - relative change \lambda(s,t)(1+epsilon*I_{C_k}(s,t)) 
+//   areaA - area of the observation window A (also denoted W)
+//   areaAcapBk - area of A \ B(s_k,\rho) for all k=1,\ldots,n
+//   cusum  - return Shiryaev-Roberts (FALSE) or CUSUM (TRUE) test
+//            statistic
+//   R - array of length ev where the computed values of R_n are
+//       to be returned in.
 //////////////////////////////////////////////////////////////////////
-int SistemadeVigilancia(SVEventLst &ev, const double RaioC, const double epslon,
-                        std::valarray<double> &R) {
+
+int SistemadeVigilancia(SVEventLst &ev,
+			const double RaioC, const double epslon,  
+			const double areaA, double *areaAcapBk, 
+			const int cusum, std::valarray<double> &R) {
   size_t i, j, NCj, NumTotEvt, NumEvtCil;
   short **MSpace;
   double pontox, pontoy, DistEucl, Soma, UCj, fator;
- 
+
   //order the event list
   ev.sort();
    
@@ -70,7 +93,8 @@ int SistemadeVigilancia(SVEventLst &ev, const double RaioC, const double epslon,
     return 1;
   }
 
-  //populate the spatio matrix with 1 if is close in spatio and 0 if not  
+  //Populate the spatio matrix with 1's if within radius rho in space 
+  //and 0 if not  
   i = 0;
   for( SVEventLst::iterator it = ev.begin(); it != ev.end(); ++it, i++ ) {
     j = 0;
@@ -85,18 +109,68 @@ int SistemadeVigilancia(SVEventLst &ev, const double RaioC, const double epslon,
     }
   }
 
-  //do the calculs to find the output value of each event
+  //////////////////////////////////////////////////////////////////////
+  //Sequentually, for n=1,2,3,... compute the value of R_n by
+  //by summing up all contributions of Lambda_{k,n} to form R_n, i.e.
+  //                         \sum_{k=1}^n \Lambda_{k,n}
+  //////////////////////////////////////////////////////////////////////
+  double LambdaMax = 0, Lambda;
+  SVEventLst::iterator it2, jt2, ev0; 
+
+  //Loop over all n
   for( i = 0; i < n_event; i++ ) {
     Soma = 0.0;
+    //Loop over 1<= k <= n    (in code k is called j and n is i)
     for( j = 0; j <= i; j++ ) {
-      NCj = CalculaNCj(MSpace,i,j);
+      //N(C_{k,n})
+      NCj = CalculaNCj(MSpace,i,j);      
+      //N(B(s_k, \rho) \times (0,t_n]) 
       NumTotEvt = ContaEvt(MSpace,i,j);
-      NumEvtCil = i-j+1;
+      //N(A \times (t_k,t_n) ) = n-k+1
+      NumEvtCil = i-j+1;  
       UCj = ((double)NumEvtCil*(double)NumTotEvt)/(double)(i+1);
       fator = 1.0+epslon;
-      Soma += (pow(fator,(double)NCj) * exp((-epslon)*UCj));
+      Lambda = pow(fator,(double)NCj) * exp((-epslon)*UCj);
+
+      /*
+      //Alternative estimation having the desired property for \rho->\infty
+      // N( A \times (0,t_k] \cup (A\times (t_k,t_n) \backslash C_{k,n}) )
+      // \nu( A \times (0,t_k] \cup (A\times (t_k,t_n) \backslash C_{k,n}) )
+      double iCount=0;
+      double jCount=0;
+      ev0 = ev.begin();
+      for( it2 = ev.begin(); iCount < i ; ++it2, iCount++ );
+      for( jt2 = ev.begin(); jCount < j ; ++jt2, jCount++ );
+
+      double NNoCkn = ((j-1) + (NumEvtCil - NCj));
+      double volCkn = areaAcapBk[j] * ((*it2).t - (*jt2).t);
+      double volNoCkn = areaA * ((*it2).t - (*ev0).t) - volCkn;
+      UCj = (NNoCkn / volNoCkn) * volCkn;
+      // Debug
+      // cout << "----> k=" << j << " n= " << i << endl;
+      // cout << "t_k=" << (*jt2).t << endl;
+      // cout << "t_n=" << (*it2).t << endl;
+      // cout << "N(C_{k,n}) = NCj;
+      // cout << "N(W\\times(0,t_n) \\backslash C_{k,n}))=" << NNoCkn << endl;
+      // cout << "vol(C_{k,n}))=" << volCkn << endl;
+      // cout << "vol(W\\times(0,t_n) \backslash C_{k,n})=" << volNoCkn << endl;
+      //// cout << "mu(C_{k,n})=" << UCj << endl;
+      //Lambda = pow(fator,(double)NCj) * exp((-epslon)*UCj);
+      */
+
+      //Summation for the Shiryaev-Roberts statistics
+      Soma += Lambda;
+      //Find maximum k of \Lambda_{k,n} for the CUSUM statistics
+      if (Lambda> LambdaMax) {
+	LambdaMax = Lambda;
+      }
     }
-    R[i] = Soma;
+    //Depending on the summation scheme compute the statistic.
+    if (cusum) {
+      R[i] = LambdaMax;
+    } else {
+      R[i] = Soma;
+    }
   }
 
   //clean memory
@@ -106,6 +180,7 @@ int SistemadeVigilancia(SVEventLst &ev, const double RaioC, const double epslon,
   delete [] MSpace;
   return 0;
 }
+
 
 int CalculaLambda(SVEventLst &ev, const double RaioC, const double epslon, std::valarray<double> &R, unsigned int &numObs)
 {
@@ -191,6 +266,8 @@ int CalculaLambda(SVEventLst &ev, const double RaioC, const double epslon, std::
 //  n - number of elements in x, y and t (the same for the three vectors)
 //  radius  - cluster of the radius
 //  epsilon - relative ratio of the intensity functions to detect for
+//  areaA - area of the observation region (also denoted W)
+//  areaAcapBk - area of A \ B(s_k,\rho) for all k=1,\ldots,n
 //  threshold -- upper threshold when to sound the alarm
 //  Rarray -- array of length n, this will contain the statistics calced
 //            by the function
@@ -203,7 +280,8 @@ int CalculaLambda(SVEventLst &ev, const double RaioC, const double epslon, std::
 extern "C" {
 
   void SRspacetime(double *x, double *y, double *t, long *n, double *radius,
-		   double *epsilon, double *threshold, 
+		   double *epsilon, double *areaA, double *areaAcapBk,
+		   int *cusum, double *threshold, 
 		   double *Rarray, int *idxFirstAlarm, int *idxClusterCenter) {
   
   //Create SVEventLst
@@ -222,8 +300,8 @@ extern "C" {
   //Array of test statistic values
   std::valarray<double> R;
   
-  //Call SistemadeVigilancia
-  SistemadeVigilancia(eList,*radius,*epsilon,R);
+  //Call SistemadeVigilancia, this calculates the SR statistics R_n
+  SistemadeVigilancia(eList,*radius,*epsilon,*areaA,areaAcapBk,*cusum, R);
 
   //Debug purposes
   //cout << "Size of R = " << R.size() << endl;
@@ -243,7 +321,7 @@ extern "C" {
     }
   }
 
-  //Advancing the iterator it to the point
+  //Advancing the iterator "it" to the point
   //where the alarm is generated. 
   if (controle) {
     unsigned int cont = 0;

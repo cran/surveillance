@@ -27,8 +27,13 @@ typedef std::list<SVEvent> SVEventLst;
 //Functions provided in sr-spacetime.cc
 int CalculaNCj(short **MSpace, const int EvtN, const int EvtJ);
 int ContaEvt(short **MSpace, const int EvtN, const int EvtJ);
-int SistemadeVigilancia(SVEventLst &, const double RaioC, const double epslon, 
-			std::valarray<double> &R);
+//int SistemadeVigilancia(SVEventLst &, const double RaioC, const double epslon, 
+//			std::valarray<double> &R);
+//New version with different estimation approach
+int SistemadeVigilancia(SVEventLst &ev,
+			const double RaioC, const double epslon,  
+			const double areaA, double *areaAcapBk, 
+			const int cusum, std::valarray<double> &R);
 int CalculaLambda(SVEventLst &ev, const double RaioC, const double epslon, 
 		  std::valarray<double> &R, unsigned int &numObs);
 
