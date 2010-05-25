@@ -8,6 +8,7 @@
 \alias{farrington}
 \alias{glrpois}
 \alias{glrnb}
+\alias{outbreakP}
 \alias{rogerson}
 \encoding{latin1}
 
@@ -36,6 +37,8 @@ glrnb(sts, control = list(range=range,c.ARL=5, mu0=NULL, alpha=0,
          Mtilde=1, M=-1, change="intercept",
          theta=NULL,dir=c("inc","dec"),
          ret=c("cases","value")),...)
+outbreakP(sts, control=list(range = range, k=100,
+         ret=c("cases","value"),maxUpperboundCases=1e5),...)
 }
 \arguments{
   \item{sts}{Object of class \code{sts}}
@@ -58,7 +61,8 @@ glrnb(sts, control = list(range=range,c.ARL=5, mu0=NULL, alpha=0,
 \seealso{
   \code{\link{algo.bayes}}, \code{\link{algo.cdc}},
   \code{\link{algo.rki}}, \code{\link{algo.farrington}},
-  \code{\link{algo.cusum}}, \code{\link{algo.glrpois}}
+  \code{\link{algo.cusum}}, \code{\link{algo.glrpois}},
+  \code{\link{algo.glrnb}}, \code{\link{algo.outbreakP}}
   for the exact form of the \code{control} object.
 }
 \author{M. \enc{Höhle}{Hoehle}}

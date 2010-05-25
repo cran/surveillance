@@ -73,6 +73,70 @@ algo.farrington.fitGLM <- function(response,wtime,timeTrend=TRUE,reweight=TRUE) 
   return(model)
 }
 
+######################################################################
+# The algo.farrington.fitGLM function in a version using glm.fit 
+# which is faster than the call using "glm. 
+# This saves lots of overhead and increases speed.
+#
+# Author: Mikko Virtanen (@thl.fi) with minor modifications by Michael Hoehle
+# Date:   9 June 2010 
+#
+# Note: Not all glm results may work on the output. But for the
+# necessary ones for the algo.farrington procedure work.
+######################################################################
+
+algo.farrington.fitGLM.fast <- function(response,wtime,timeTrend=TRUE,reweight=TRUE) {
+  #Create design matrix and formula needed for the terms object
+  #Results depends on whether to include a time trend or not.
+  if (timeTrend) {
+    design<-cbind(intercept=1,wtime) 
+    Formula<-response~wtime 
+  } else {
+    design<-matrix(1,nrow=length(wtime))
+    Formula<-response~1
+  }
+  
+  #Fit it using glm.fit which is faster than calling "glm"
+  model <- glm.fit(design,response, family = quasipoisson(link = "log"))
+      
+   #Check convergence - if no convergence we return empty handed.
+   if (!model$converged) {
+      #Try without time dependence
+     if (timeTrend) {
+       model <- glm.fit(design[,1,drop=FALSE],response, family = quasipoisson(link = "log"))
+       Formula<-response~1
+       cat("Warning: No convergence with timeTrend -- trying without.\n")
+     } 
+   }
+
+   #Fix class of output to glm/lm object in order for anscombe.residuals to work
+   #Note though: not all glm methods may work for the result
+   class(model) <- c("glm","lm")
+
+   #Overdispersion parameter phi
+   phi <- max(summary.glm(model)$dispersion,1)
+    
+   #In case reweighting using Anscome residuals is requested
+   if (reweight) {
+     s <- anscombe.residuals(model,phi)
+     omega <- algo.farrington.assign.weights(s)
+     model <- glm.fit(design,response, family = quasipoisson(link = "log"), weights = omega)
+     #Here, the overdispersion often becomes small, so we use the max
+     #to ensure we don't operate with quantities less than 1.
+     phi <- max(summary.glm(model)$dispersion,1)
+   } # end of refit.
+    
+   model$phi <- phi
+   model$wtime <- wtime
+   model$response <- response
+   model$terms<-terms(Formula)
+   # cheating a bit, all methods for glm may not work
+   class(model)<-c("algo.farrington.glm","glm") 
+   #Done
+  return(model)
+}
+
+
 
 ###################################################
 ### chunk number 4: 
@@ -152,7 +216,7 @@ refvalIdxByDate <- function(t0, b, w, epochStr, epochs) {
 ###################################################
 ### chunk number 6: 
 ###################################################
-algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, reweight=TRUE, verbose=FALSE,alpha=0.01,trend=TRUE,limit54=c(5,4),powertrans="2/3")) { 
+algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, reweight=TRUE, verbose=FALSE,alpha=0.01,trend=TRUE,limit54=c(5,4),powertrans="2/3",fitFun=c("algo.farrington.fitGLM.fast","algo.farrington.fitGLM"))) { 
   #Fetch observed
   observed <- disProgObj$observed
   freq <- disProgObj$freq
@@ -174,6 +238,12 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
   if (is.null(control$plot))     {control$plot=FALSE}
   if (is.null(control$limit54))  {control$limit54=c(5,4)}
   if (is.null(control$powertrans)){control$powertrans="2/3"}
+  if (is.null(control$fitFun))   {
+    control$fitFun="algo.farrington.fitGLM.fast"
+  } else {
+    control$fitFun <- match.arg(control$fitFun, c("algo.farrington.fitGLM.fast","algo.farrington.fitGLM"))
+  }
+
   #Use special Date class mechanism to find reference months/weeks/days
   if (is.null(disProgObj[["epochAsDate",exact=TRUE]])) { 
     epochAsDate <- FALSE 
@@ -226,26 +296,14 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
     #Extract values from indices
     response <- observed[wtime]
 
-##     response <- NULL # die Responsespalte
-##     for (i in (control$b:1)) {
-##       if (control$verbose) {cat("b=",i,"\trange=",((k-i*freq)-control$w):((k-i*freq)+control$w),"\n")}
-
-##       for (j in (((k-i*freq)-control$w):((k-i*freq)+control$w))){
-##         if (j<1) {
-##           cat("Warning: Selection index less than 1!\n")
-##         }
-##         else {
-##           response <- append(response,observed[j])
-##         }
-##       }
-##     } 
-
     if (control$verbose) { print(response)}
 
     ######################################################################
     #Fit the model with overdispersion -- the initial fit
     ######################################################################
-    model <- algo.farrington.fitGLM(response,wtime,timeTrend=control$trend,reweight=control$reweight)
+    #New feature: fitFun can now be the fast function for fitting the GLM
+    model <- do.call(control$fitFun, args=list(response=response,wtime=wtime,timeTrend=control$trend,reweight=control$reweight))
+#    model <- algo.farrington.fitGLM.fast(control$fitFun, response=response,wtime=wtime,timeTrend=control$trend,reweight=control$reweight)
 
     #Stupid check to pass on NULL values from the algo.farrington.fitGLM proc.
     if (is.null(model)) return(model)
@@ -273,7 +331,8 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
       #it is removed. Only necessary to check this if a trend is requested.
       if (!(atLeastThreeYears && significant && noExtrapolation)) {
         doTrend <- FALSE
-        model <- algo.farrington.fitGLM(response,wtime,timeTrend=FALSE,reweight=control$reweight)
+        model <- do.call(control$fitFun, args=list(response=response,wtime=wtime,timeTrend=FALSE,reweight=control$reweight))
+#        model <- algo.farrington.fitGLM.fast(control$fitFun, response=response,wtime=wtime,timeTrend=FALSE,reweight=control$reweight)
       }
     } else {
       doTrend <- FALSE
