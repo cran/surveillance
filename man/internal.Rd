@@ -36,6 +36,8 @@
 \alias{make.pois}
 \alias{pois.plot}
 \alias{tms.plot}
+%Utility functions
+\alias{formatDate}
 
 %Weird functions from sp package which produce warnings in R CMD check
 %for the surveillance package (??)

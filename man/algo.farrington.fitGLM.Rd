@@ -1,5 +1,6 @@
 \name{algo.farrington.fitGLM}
 \alias{algo.farrington.fitGLM}
+\alias{algo.farrington.fitGLM.fast}
 \encoding{latin1}
 
 \title{Fit the Poisson GLM of the Farrington procedure for a single
@@ -17,6 +18,8 @@
 \usage{
   algo.farrington.fitGLM(response, wtime, timeTrend = TRUE, 
                          reweight = TRUE)
+  algo.farrington.fitGLM.fast(response, wtime, timeTrend = TRUE, 
+                         reweight = TRUE)
 }
 \arguments{
   \item{response}{The vector of observed base counts}
@@ -27,13 +30,26 @@
 %
 \details{Compute weights from an initial fit and rescale using
   Anscombe based residuals as described in the
-  \code{\link{anscombe.residuals}} function.}
+  \code{\link{anscombe.residuals}} function.
+
+  Note that \code{algo.farrington.fitGLM} uses the \code{glm} routine
+  for fitting. A faster alternative is provided by
+  \code{algo.farrington.fitGLM.fast} which uses the \code{glm.fit}
+  function directly (thanks to Mikko Virtanen). This saves
+  computational overhead and increases speed for 500 monitored time
+  points by a factor of approximately two. However, some of the
+  routine \code{glm} functions might not work on the output of this
+  function. Which function is used for \code{algo.farrington} can be
+  controlled by the \code{control$fitFun} argument.
+  
+
+}
 %
 \value{An object of class GLM with additional fields \code{wtime},
   \code{response} and \code{phi}. If the \code{glm} returns without
   convergence \code{NULL} is returned.}
 %
-\seealso{\code{\link{anscombe.residuals}}}
+\seealso{\code{\link{anscombe.residuals}},\code{\link{algo.farrington}}}
 \keyword{regression}
 
 

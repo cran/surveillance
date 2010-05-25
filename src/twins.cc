@@ -2936,7 +2936,7 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
       if(!theta_pred_estim){
 	double p_thetanp1 = ((double(K[i]))/double(n)); //(1+double(K[i]))
 	if(K_geom){
-	  p_thetanp1 = (double(K[i])*(1.0-p_K)*(1.0-pow((double)1.0-p_K,n-1)))/((double(n)-1.0)*(1.0-pow((double)1.0-p_K,n)));
+	  p_thetanp1 = (double(K[i])*(1.0-p_K)*(1.0-pow((double)1.0-p_K,double(n-1))))/((double(n)-1.0)*(1.0-pow((double)1.0-p_K,double(n))));
 	}
         if(gsl_rng_uniform()<=p_thetanp1){
 	  if (sampleCounter>burnin) {
@@ -2966,7 +2966,7 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
 	if(delta_rev){
 	  double p_thetanp1 = ((double(K[i]))/double(n)); //(1+double(K[i]))
 	  if(K_geom){
-	    p_thetanp1 = ((double(K[i]))*(1.0-p_K)*(1.0-pow((double)1.0-p_K,n-1)))/((double(n)-1.0)*(1.0-pow((double)1.0-p_K,n)));
+	    p_thetanp1 = ((double(K[i]))*(1.0-p_K)*(1.0-pow((double)1.0-p_K,double(n-1))))/((double(n)-1.0)*(1.0-pow((double)1.0-p_K,double(n))));
 	  }
 	  if(gsl_rng_uniform()<=p_thetanp1){
 	    if (sampleCounter>burnin) {
@@ -2988,7 +2988,7 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
       if(epsilon_rev){
 	double p_thetanp1 = ((double(K[i]))/double(n)); //(1+double(K[i]))
 	if(K_geom){
-	  p_thetanp1 = ((double(K[i]))*(1.0-p_K)*(1.0-pow((double)1.0-p_K,n-1)))/((double(n)-1.0)*(1.0-pow((double)1.0-p_K,n)));
+	  p_thetanp1 = ((double(K[i]))*(1.0-p_K)*(1.0-pow((double)1.0-p_K,double(n-1))))/((double(n)-1.0)*(1.0-pow((double)1.0-p_K,double(n))));
 	}
 	if(gsl_rng_uniform()<=p_thetanp1){
 	  if (sampleCounter>burnin) {
