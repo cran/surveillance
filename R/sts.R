@@ -215,10 +215,6 @@ setMethod("nrow", "sts", function(x) return(nrow(x@observed)))
 setMethod("ncol", "sts", function(x) return(ncol(x@observed)))
 setMethod("dim", "sts", function(x) return(dim(x@observed)))
 setMethod("colnames", signature=c(x="sts",do.NULL="missing",prefix="missing"), function(x,do.NULL, prefix) return(colnames(x@observed)))
-#Extract the corresponding year for each observation using
-#the sts@start information
-setGeneric("year", function(x, ...) standardGeneric("year"));
-setMethod("year", "sts", function(x,...) return((x@week-1) %/% x@freq + x@start[1]))
 #Extract which observation within year we have
 setGeneric("epochInYear", function(x, ...) standardGeneric("epochInYear"));
 setMethod("epochInYear", "sts", function(x,...) {
@@ -226,15 +222,16 @@ setMethod("epochInYear", "sts", function(x,...) {
   #http://www.opengroup.org/onlinepubs/009695399/functions/strptime.html
   if (x@epochAsDate) {
     epochStr <- switch( as.character(x@freq), "12" = "%m","52" =  "%V","365" = "%j")
-    return(as.numeric(format(epoch(x),epochStr)))
+    return(as.numeric(formatDate(epoch(x),epochStr)))
   } else {
     return( (x@week-1 + x@start[2]-1) %% x@freq + 1)
   }
 })
+#Extract the corresponding year for each observation using
 setGeneric("year", function(x, ...) standardGeneric("year"));
 setMethod("year", "sts", function(x,...) {
   if (x@epochAsDate) {
-    return(as.numeric(format(epoch(x),"%G")))
+    return(as.numeric(formatDate(epoch(x),"%G")))
   } else {
     ((x@week-1 + x@start[2]-1) + (x@freq*x@start[1])) %/% x@freq 
   }
@@ -351,21 +348,6 @@ merge.list <- function (x, y, ...)
 # colors - c( fill color of polygons, line color of polygons, upperbound)
 ##########################################################################
 
-######################################################################
-#Format especially x-axis according to year and epoch. Also handling
-#ISO weeks.
-#This function could also use plot.Date, but then x-axis
-#has not simple 1:nrow(x) interpretation anymore.
-#
-#myplot <- function(x,...) {
-#  plot(epoch(x),observed(x),xaxt="n",type="h")#,...)
-#  axis.Date(1, x=epoch(x),las=2,format="%Y-W%V",at=seq(min(epoch(x)),max(epoch(x)),by="1 month"),las=2)
-#  axis.Date(1, x=epoch(x),format="%Y-W%V",at=seq(min(epoch(x)),max(epoch(x)),by="3 month"),las=2)
-#  axis.Date(1, x=epoch(x),at=seq(min(epoch(x)),max(epoch(x)),by="year"),label=FALSE,tcl=-1)
-#}
-######################################################################
-
-
 addFormattedXAxis <- function(x, epochsAsDate, observed, firstweek,xaxis.units,cex) {
   #Declare commonly used variables.
   startyear <-  x@start[1]
@@ -389,7 +371,7 @@ addFormattedXAxis <- function(x, epochsAsDate, observed, firstweek,xaxis.units,c
       quarter <- sapply( (weeks-1) %/% 13 %% 4, quarterFunc)
     } else {   #If epochAsDate -- experimental functionality to handle ISO 8601
       date <- as.Date(x@week, origin="1970-01-01")
-      years <- unique(as.numeric(format(date,"%Y")))
+      years <- unique(as.numeric(formatDate(date,"%Y")))
       #Start of quarters in each year present in the data. 
       qStart <- as.Date(paste(rep(years,each=4), c("-01-01","-04-01","-07-01","-10-01"),sep=""))
       qName  <- rep(c("I","II","III","IV"), length.out=length(qStart))
@@ -400,7 +382,7 @@ addFormattedXAxis <- function(x, epochsAsDate, observed, firstweek,xaxis.units,c
 
       date <- date[weekIdx]
       #Year the ISO week belongs to
-      year <- as.numeric(format(date,"%G"))
+      year <- as.numeric(formatDate(date,"%G"))
       quarter <- qName
     }        
       
@@ -529,12 +511,13 @@ plot.sts.time.one <- function(x, k=1, domany=FALSE,ylim=NULL,xaxis.years=TRUE, a
 
   if(!is.null(legend.opts)) {
     #Fill empty (mandatory) slots in legend.opts list
-    if (is.null(legend.opts$lty)) legend.opts$lty = c(lty[1],lty[3],NA,NA)
-    if (is.null(legend.opts$col)) legend.opts$col = c(col[2],col[3],outbreak.symbol$col,alarm.symbol$col)
-    if (is.null(legend.opts$pch)) legend.opts$pch = c(NA,NA,outbreak.symbol$pch,alarm.symbol$pch)
+    if (is.null(legend.opts$x)) legend.opts$x <- "topleft"
+    if (is.null(legend.opts$lty)) legend.opts$lty <- c(lty[1],lty[3],NA,NA)
+    if (is.null(legend.opts$col)) legend.opts$col <- c(col[2],col[3],outbreak.symbol$col,alarm.symbol$col)
+    if (is.null(legend.opts$pch)) legend.opts$pch <- c(NA,NA,outbreak.symbol$pch,alarm.symbol$pch)
     if (is.null(legend.opts$legend))
-      legend.opts$legend = c("Infected", "Threshold","Outbreak","Alarm" )
-    
+      legend.opts$legend <- c("Infected", "Threshold","Outbreak","Alarm" )
+    print(legend.opts)
     do.call("legend",legend.opts)
   }
 
@@ -1019,12 +1002,12 @@ setMethod("as.data.frame", signature(x="sts"), function(x,row.names = NULL, opti
                        "365" = "%j")
                        
     #Find out how many epochs there are each year
-    years <- unique(as.numeric(format(date,"%Y")))
+    years <- unique(as.numeric(formatDate(date,"%Y")))
     dummyDates <- as.Date(paste(rep(years,each=6),"-12-",26:31,sep=""))
-    maxEpoch <- tapply( as.numeric(format(dummyDates, epochStr)), rep(years,each=6), max)
+    maxEpoch <- tapply( as.numeric(formatDate(dummyDates, epochStr)), rep(years,each=6), max)
     #Assign this to result
-    res$freq <- maxEpoch[pmatch(format(date,"%Y"),names(maxEpoch),duplicates.ok=TRUE)]
-    res$epochInPeriod <- as.numeric(format(date,epochStr)) / res$freq
+    res$freq <- maxEpoch[pmatch(formatDate(date,"%Y"),names(maxEpoch),duplicates.ok=TRUE)]
+    res$epochInPeriod <- as.numeric(formatDate(date,epochStr)) / res$freq
   } else {
     #Otherwise just replicate the fixed frequency
     res$freq <- x@freq

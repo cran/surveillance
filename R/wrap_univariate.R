@@ -100,6 +100,13 @@ rki <- function(sts, control = list(range = range, b = 2, w = 4, actY = FALSE),.
   wrap.algo(sts,algo="algo.rki",control=control,...)
 }
 
+#outbreakP wrapper
+outbreakP <- function(sts, control=list(range = range, k=100,
+         ret=c("cases","value"),maxUpperboundCases=1e5),...) {
+  wrap.algo(sts,algo="algo.outbreakP",control=control,...)
+}
+
+
 #HMM wrapper
 hmm <- function(sts, control=list(range=NULL, noStates=2, trend=TRUE, noHarmonics=1,covEffectEqual=FALSE),...) {
   if (sts@epochAsDate) {

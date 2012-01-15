@@ -1,5 +1,28 @@
-1.1-3 (uploaded on CRAN 22/05/2010
-==================================
+1.2-1 
+===================================
+
+* Added algo.outbreakP (Frisen & Andersson, 2009) providing a
+  semiparametric approach for outbreak detection for Poisson
+  distributed variables.
+
+* Added a pure R function for extracting ISO week and year from Date
+  objects. This function (isoWeekYear) is only called if "%G" and "%V"
+  format strings are used on Windows (sessionInfo()[[1]]$os == "mingw32")
+  as this is not implemented for "format.Date" on Windows.  
+  Thanks to Ashley Ford,  University of Warwick, UK for identifying 
+  this Windows specific bug.
+
+* For algo.farrington a faster fit routine "algo.farrington.fitGLM.fast"
+  has been provided by Mikko Virtanen, National Institute for Health 
+  and Welfare, Finland. The new function calls glm.fit
+  directly, which gives a doubling of speed for long series. However, if one 
+  wants to process the fitted model output some of the GLM routines might
+  not work on this output. For backwards compability the argument
+  control$fitFun = "algo.farrington.fitGLM" provides the old (and slow)
+  behaviour.
+  
+1.1-6 (uploaded on CRAN 25/05/2010)
+===================================
 
 * a few minor bug fixes
 
@@ -27,7 +50,7 @@
   contains the description of ISO date use, negative binomial CUSUM,
   run-length computation, etc. From an applicational point of view
   the methods are illustrated by Danish mortality monitoring.
-
+  
 * Fixed a small bug in algo.cdc found by Marian Talbert Allen
   which resulted in the control$m argument being ignored.
 
