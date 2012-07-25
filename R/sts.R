@@ -23,90 +23,95 @@ fix.dimnames <- function(x) {
 
 #constructor function
 init.sts <- function(.Object, epoch, start=c(2000,1), freq=52, observed, state=0*observed, map=NULL, neighbourhood=NULL, populationFrac=NULL,alarm=NULL,upperbound=NULL, control=NULL,epochAsDate=FALSE,multinomialTS=FALSE) {
-  #Name handling
-  namesObs <-colnames(observed)
-  namesState <- colnames(observed)
-  #Ensure observed, state are on matrix form
-  observed <- as.matrix(observed)
-  state <- as.matrix(state)
+
+  #If used in constructor
+  if(nargs() > 1) {
+    #Name handling  
+    namesObs <-colnames(observed)
+    namesState <- colnames(observed)
+    #Ensure observed, state are on matrix form
+    observed <- as.matrix(observed)
+    state <- as.matrix(state)
   
-  #check number of columns of observed and state
-  nAreas <- ncol(observed)
-  nObs <- nrow(observed)
-  if(ncol(observed) != ncol(state)){
-    #if there is only one state-vector for more than one area, repeat it
-    if(ncol(state)==1)
-      state <- ts(matrix(rep(state,nAreas),ncol=nAreas,byrow=FALSE),freq=frequency(observed))
-    else{ 
-      cat('wrong dimensions of observed and state \n')
+    #check number of columns of observed and state
+    nAreas <- ncol(observed)
+    nObs <- nrow(observed)
+    if(ncol(observed) != ncol(state)){
+      #if there is only one state-vector for more than one area, repeat it
+      if(ncol(state)==1)
+        state <- ts(matrix(rep(state,nAreas),ncol=nAreas,byrow=FALSE),frequency=frequency(observed))
+      else{ 
+        cat('wrong dimensions of observed and state \n')
+      return(NULL)
+      }
+    }
+    
+    #check neighbourhood matrix
+    if(!is.null(neighbourhood) & (any(dim(neighbourhood) != nAreas))) {
+      cat('wrong dimensions of neighbourhood matrix \n')
       return(NULL)
     }
-  }
-  
-  #check neighbourhood matrix
-  if(!is.null(neighbourhood) & (any(dim(neighbourhood) != nAreas))) {
-    cat('wrong dimensions of neighbourhood matrix \n')
-    return(NULL)
-  }
+    
+    #popFrac
+    if (is.null(populationFrac)) {
+      populationFrac <- matrix(1/nAreas,nrow=nObs,ncol=nAreas)
+    }
+    if (nAreas ==1 & (!multinomialTS)){
+      populationFrac <- matrix(1,nrow=nObs, ncol=1)
+    }
+    
+    #labels for observed and state
+    if(is.null(namesObs)){
+      namesObs <- paste("observed", 1:nAreas, sep="")       
+      namesState <- paste("state", 1:nAreas, sep="")  
+    }
+    
+    dimnames(observed) <- list(NULL,namesObs)
+    dimnames(state) <- list(NULL,namesState)
 
-  #popFrac
-  if (is.null(populationFrac)) {
-    populationFrac <- matrix(1/nAreas,nrow=nObs,ncol=nAreas)
+    if (is.null(neighbourhood))
+      neighbourhood <- matrix(NA,nrow=ncol(observed),ncol=ncol(observed))
+    if (is.null(alarm)) 
+      alarm      <- matrix(NA,nrow=dim(observed)[1],ncol=dim(observed)[2])
+    if (is.null(upperbound))
+      upperbound <- matrix(NA,nrow=dim(observed)[1],ncol=dim(observed)[2])
+
+    ##Assign everything else
+    .Object@epoch <- epoch
+    .Object@epochAsDate <- epochAsDate
+    .Object@multinomialTS <- multinomialTS
+    
+    if (length(start) == 2) {
+      .Object@start <- start
+    } else {
+      stop("start must be a vector of length two denoting (year, epoch/week/month/idx)")
+    }
+    
+    .Object@freq <- freq
+    .Object@state <- state
+    .Object@observed <- observed
+    
+    #It is not possible to assign a null argument to the
+    #SpatialPolygonsDataFrame slot. 
+    if (!is.null(map)) {
+      .Object@map <- map
+    }
+    
+    .Object@neighbourhood <- neighbourhood
+    .Object@populationFrac <- populationFrac
+    .Object@alarm <- alarm
+    .Object@upperbound <- upperbound
+    
+    if (!is.null(control))
+      .Object@control <- control
+    
+    #Make sure all arrays have the same dimnames
+    .Object <- fix.dimnames(.Object)
   }
-  if (nAreas ==1 & (!multinomialTS)){
-    populationFrac <- matrix(1,nrow=nObs, ncol=1)
-  }
-  
-  #labels for observed and state
-  if(is.null(namesObs)){
-    namesObs <- paste("observed", 1:nAreas, sep="")       
-    namesState <- paste("state", 1:nAreas, sep="")  
-  }
- 
-  dimnames(observed) <- list(NULL,namesObs)
-  dimnames(state) <- list(NULL,namesState)
-
-  if (is.null(neighbourhood))
-    neighbourhood <- matrix(NA,nrow=ncol(observed),ncol=ncol(observed))
-  if (is.null(alarm)) 
-    alarm      <- matrix(NA,nrow=dim(observed)[1],ncol=dim(observed)[2])
-  if (is.null(upperbound))
-    upperbound <- matrix(NA,nrow=dim(observed)[1],ncol=dim(observed)[2])
-
-  ##Assign everything else
-  .Object@week <- epoch
-  .Object@epochAsDate <- epochAsDate
-  .Object@multinomialTS <- multinomialTS
-
-  if (length(start) == 2) {
-    .Object@start <- start
-  } else {
-    stop("start must be a vector of length two denoting (year, week/month/idx)")
-  }
-
-  .Object@freq <- freq
-  .Object@state <- state
-  .Object@observed <- observed
-
-  #It is not possible to assign a null argument to the
-  #SpatialPolygonsDataFrame slot. 
-  if (!is.null(map)) {
-    .Object@map <- map
-  }
-  
-  .Object@neighbourhood <- neighbourhood
-  .Object@populationFrac <- populationFrac
-  .Object@alarm <- alarm
-  .Object@upperbound <- upperbound
-  
-  if (!is.null(control))
-    .Object@control <- control
-
-  #Make sure all arrays have the same dimnames
-  .Object <- fix.dimnames(.Object)
   
   return(.Object)
 }
+
 
 ###########################################################################
 # Initialization -- two modes possible: full or just disProg, freq and map
@@ -117,8 +122,8 @@ setMethod("initialize", "sts", init.sts)
 
 #Partial -- use a disProg object as start and convert it.
 disProg2sts <- function(disProgObj, map=NULL) {
-  #Ensure that week slot is not zero
-  if (is.null(disProgObj[["week",exact=TRUE]])) {
+  #Ensure that epoch slot is not zero
+  if (is.null(disProgObj[["epoch",exact=TRUE]])) {
     myweek <- 1:nrow(as.matrix(disProgObj$observed))
   } else {
     myweek <- disProgObj$week
@@ -130,7 +135,7 @@ disProg2sts <- function(disProgObj, map=NULL) {
 
 #The reverse action
 sts2disProg <- function(sts) {
-  disProgObj <- create.disProg(week=sts@week, start=sts@start, freq=sts@freq,
+  disProgObj <- create.disProg(week=sts@epoch, start=sts@start, freq=sts@freq,
                                observed=sts@observed, state=sts@state, neighbourhood=sts@neighbourhood,
                                populationFrac=sts@populationFrac, epochAsDate=sts@epochAsDate)
   #For survRes: alarm=sts@alarm, upperbound=sts@upperbound)
@@ -176,7 +181,7 @@ setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...)
     m <- ceiling(n/howmany)
     new <- rep(1:m,each=howmany)[1:n]
     x@freq <- ifelse(nfreq == "all", howmany, nfreq)
-    x@week <- 1:m
+    x@epoch <- 1:m
     
     x@observed <- as.matrix(aggregate(x@observed,by=list(new),sum)[,-1])
     x@state <- as.matrix(aggregate(x@state,by=list(new),sum)[,-1])>0
@@ -224,7 +229,7 @@ setMethod("epochInYear", "sts", function(x,...) {
     epochStr <- switch( as.character(x@freq), "12" = "%m","52" =  "%V","365" = "%j")
     return(as.numeric(formatDate(epoch(x),epochStr)))
   } else {
-    return( (x@week-1 + x@start[2]-1) %% x@freq + 1)
+    return( (x@epoch-1 + x@start[2]-1) %% x@freq + 1)
   }
 })
 #Extract the corresponding year for each observation using
@@ -233,11 +238,9 @@ setMethod("year", "sts", function(x,...) {
   if (x@epochAsDate) {
     return(as.numeric(formatDate(epoch(x),"%G")))
   } else {
-    ((x@week-1 + x@start[2]-1) + (x@freq*x@start[1])) %/% x@freq 
+    ((x@epoch-1 + x@start[2]-1) + (x@freq*x@start[1])) %/% x@freq 
   }
 })
-
-
 
 #####################################################################
 #[-method for accessing the observed, alarm, etc. objects
@@ -250,7 +253,7 @@ setMethod("[", "sts", function(x, i, j, ..., drop) {
   if(missing(i)) {i <- min(1,nrow(x@observed)):nrow(x@observed)}
   if(missing(j)) {j <- min(1,ncol(x@observed)):ncol(x@observed)}
 
-  x@week <- x@week[i]
+  x@epoch <- x@epoch[i]
   x@observed <- x@observed[i,j,drop=FALSE]
   x@state <- x@state[i,j,drop=FALSE]
   x@alarm <- x@alarm[i,j,drop=FALSE]
@@ -265,16 +268,23 @@ setMethod("[", "sts", function(x, i, j, ..., drop) {
 
   #Neighbourhood matrix
   x@neighbourhood <- x@neighbourhood[j,j,drop=FALSE]
-  
-  #Fix the corresponding start entry
+
+  #Fix the corresponding start entry. i can either be a vector of
+  #logicals or specific index. Needs to work in both cases.
+  #Note: This code does not work if we have week 53s!
+  if (is.logical(i)) {
+    i.min <- which.max(i) #first TRUE entry
+  } else {
+    i.min <- min(i)
+  }
   start <- x@start
-  new.sampleNo <- start[2] + min(i) - 1
+  new.sampleNo <- start[2] + i.min - 1
   start.year <- start[1] + (new.sampleNo - 1) %/% x@freq 
   start.sampleNo <- (new.sampleNo - 1) %% x@freq + 1
   x@start <- c(start.year,start.sampleNo)
 
   #Save time by not allocating a new object
-  #res <- new("sts",week=week, freq=x@freq, start=start,observed=observed,state=state,alarm=alarm,upperbound=upperbound,neighbourhood=neighbourhood,populationFrac=populationFrac,map=x@map,control=x@control)
+  #res <- new("sts",epoch=week, freq=x@freq, start=start,observed=observed,state=state,alarm=alarm,upperbound=upperbound,neighbourhood=neighbourhood,populationFrac=populationFrac,map=x@map,control=x@control)
     
   return(x)
 })
@@ -321,6 +331,7 @@ setMethod("plot", signature(x="sts", y="missing"), function(x, y, type,...) {
     }
     if (alarmOk) {
       plot.sts.alarm(x,...)
+      return(invisible())
     }
   }
 })
@@ -370,7 +381,7 @@ addFormattedXAxis <- function(x, epochsAsDate, observed, firstweek,xaxis.units,c
       # get the right number and order of quarter labels
       quarter <- sapply( (weeks-1) %/% 13 %% 4, quarterFunc)
     } else {   #If epochAsDate -- experimental functionality to handle ISO 8601
-      date <- as.Date(x@week, origin="1970-01-01")
+      date <- as.Date(x@epoch, origin="1970-01-01")
       years <- unique(as.numeric(formatDate(date,"%Y")))
       #Start of quarters in each year present in the data. 
       qStart <- as.Date(paste(rep(years,each=4), c("-01-01","-04-01","-07-01","-10-01"),sep=""))
@@ -517,7 +528,7 @@ plot.sts.time.one <- function(x, k=1, domany=FALSE,ylim=NULL,xaxis.years=TRUE, a
     if (is.null(legend.opts$pch)) legend.opts$pch <- c(NA,NA,outbreak.symbol$pch,alarm.symbol$pch)
     if (is.null(legend.opts$legend))
       legend.opts$legend <- c("Infected", "Threshold","Outbreak","Alarm" )
-    print(legend.opts)
+    #print(legend.opts)
     do.call("legend",legend.opts)
   }
 
@@ -682,7 +693,10 @@ plot.sts.time <- function(x, type, method=x@control$name, disease=x@control$data
         #Changed call of plot.sts.time.one to invocation using "call"
         argsK <- merge.list(args,list("x"=x,"k"=k,"domany"=TRUE,"legend"=NULL))
         do.call("plot.sts.time.one",args=argsK)
-        mtext(colnames(observed)[k],line=-1.3)     
+        #Add title - do this using the cex.main size
+        cex.main <- list(...)[["cex.main",exact=TRUE]]
+        if (is.null(cex.main)) { cex.main <- 1 }
+        mtext(colnames(observed)[k],line=-1.3,cex=cex.main)     
       }
       #reset graphical params
       #par(mfrow=c(1,1), mar=c(5, 4, 4, 2)+0.1)
@@ -757,7 +771,7 @@ plot.sts.spacetime <- function(x,type,legend=NULL,opts.col=NULL,labels=TRUE,wait
   o.col[is.na(o.col)] <- gray(1)
   dimnames(o.col) <- dimnames(o)
 
-  #Sort the o xected according to the names in the map xect
+  #Sort the o according to the names in the map
   region.id <- unlist(lapply(map@polygons,function(poly) poly@ID))
   o.col.id <- dimnames(o.col)[[2]]
 
@@ -777,13 +791,13 @@ plot.sts.spacetime <- function(x,type,legend=NULL,opts.col=NULL,labels=TRUE,wait
     }
     
     #Clean screen (title area)
-    screen(2)
+    screen(n=2)
     par(bg=gray(1))
     erase.screen()
     par(bg="transparent")
 
     #Plot the map on screen 1
-    screen(1)
+    screen(n=1)
     plot(map,col=o.col[t,],xlab="",ylab="",...)
     #Indicate alarms as shaded overlays
     if (!all(is.na(alarm.col))) {
@@ -795,7 +809,8 @@ plot.sts.spacetime <- function(x,type,legend=NULL,opts.col=NULL,labels=TRUE,wait
     
 
     if (labels)
-      text(getSpPPolygonsLabptSlots(map), labels=as.character(region.id), cex.lab=cex.lab)
+      #getSpPPolygonsLabptSlots is deprecated. Use coordinates method insteas
+      text(coordinates(map), labels=as.character(region.id), cex.lab=cex.lab)
   
     if (!aggregate) { title(paste(t,"/",maxt,sep="")) }
 
@@ -843,10 +858,10 @@ wait <- function(wait.ms) {
 hcl.colors <- function(x,ncolors=100,use.color=TRUE) {
   if (use.color) {
     #The Zeil-ice colors 
-    GYR <- rev(heat_hcl(ncolors, h=c(0,120), c=c(90,30), l=c(50,90), power=c(0.75, 1.2)))
+    GYR <- rev(colorspace::heat_hcl(ncolors, h=c(0,120), c=c(90,30), l=c(50,90), power=c(0.75, 1.2)))
   } else {
     #Sanity check
-    GYR <- rev(heat_hcl(ncolors, h=c(0,120), c=0, l=c(50,90), power=c(0.75, 1.2)))
+    GYR <- rev(colorspace::heat_hcl(ncolors, h=c(0,120), c=0, l=c(50,90), power=c(0.75, 1.2)))
   }
   return(list(col=GYR,min=0,max=max(x), trans=function(x) return(x)))
 }
@@ -941,7 +956,7 @@ insert.zeroes<- function(x,length=3) {
 # show
 setMethod( "show", "sts", function( object ){
   cat( "-- An object of class sts -- \n" )
-  #cat( "length(week):\t", length(object@week),"\n" )
+  #cat( "length(week):\t", length(object@epoch),"\n" )
   if (!object@epochAsDate) {
     cat( "freq:\t\t", object@freq,"\n" )
   } else {
@@ -981,7 +996,7 @@ setMethod( "show", "sts", function( object ){
 
 setMethod("as.data.frame", signature(x="sts"), function(x,row.names = NULL, optional = FALSE, ...) {
   #Convert object to data frame and give names
-  res <- data.frame("observed"=x@observed, "epoch"=x@week, "state"=x@state, "alarm"=x@alarm,"population"=x@populationFrac)
+  res <- data.frame("observed"=x@observed, "epoch"=x@epoch, "state"=x@state, "alarm"=x@alarm,"population"=x@populationFrac)
 
   if (ncol(x) > 1) {
     colnames(res) <-  c(paste("observed.",colnames(x@observed),sep=""),"epoch",
@@ -995,7 +1010,7 @@ setMethod("as.data.frame", signature(x="sts"), function(x,row.names = NULL, opti
   #Add a column denoting the number of week
   if (x@epochAsDate) {
     #Convert to date
-    date <- as.Date(x@week, origin="1970-01-01")
+    date <- as.Date(x@epoch, origin="1970-01-01")
     epochStr <- switch( as.character(x@freq), 
                        "12" = "%m",
                        "52" =  "%V",
@@ -1011,7 +1026,7 @@ setMethod("as.data.frame", signature(x="sts"), function(x,row.names = NULL, opti
   } else {
     #Otherwise just replicate the fixed frequency
     res$freq <- x@freq
-    res$epochInPeriod <- x@week %% res$freq
+    res$epochInPeriod <- x@epoch %% res$freq
   }
   
   return(res)

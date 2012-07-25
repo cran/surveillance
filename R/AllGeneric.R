@@ -1,27 +1,46 @@
-# generate generic functions needed
 
-#Make summary a generic function
-setGeneric("summary")
+### Define some functions to be S3 generic
 
-#Conversion of some other functions
+animate <- function (object, ...) UseMethod("animate")
+R0 <- function (object, ...) UseMethod("R0")
+as.epidata <- function (data, ...) UseMethod("as.epidata")
+intensityplot <- function (x, ...) UseMethod("intensityplot")
+
+## internal function with methods for "twinSIR" and "simEpidata"
+getModel <- function (object, ...) UseMethod("getModel")
+
+## (rather internal) generic with methods for "matrix" and "Spatial"
+multiplicity <- function (x, ...) UseMethod("multiplicity")
+
+
+### Define some function to be S4 generic
+
 if(!isGeneric("plot")) setGeneric("plot", useAsDefault=plot)
 if(!isGeneric("aggregate")) setGeneric("aggregate", useAsDefault=aggregate)
 
+## Register "owin" as class in S4 so we can define methods for it
+## Note: package "maptools" also registers "owin" as a virtual S4 class by setClass("owin")
+if (!isClass("owin")) {
+    setOldClass("owin")
+}
+
+
+
 ######################################################################
-#Access and replace functions
+#Access and replace functions for the "sts" class
 ######################################################################
 #epoch slot
 if(!isGeneric("epoch")) setGeneric("epoch", function(x, as.Date=x@epochAsDate) standardGeneric("epoch"))
 setMethod("epoch", "sts", function(x, as.Date=x@epochAsDate) {
   if (!as.Date) {
-    return(x@week)
+    return(x@epoch)
   } else {
-    return(as.Date(x@week, origin="1970-01-01"))
+    return(as.Date(x@epoch, origin="1970-01-01"))
   }
 })
 setGeneric("epoch<-", function(x, value) standardGeneric("epoch<-"))
 setReplaceMethod("epoch", "sts", function(x, value) {
- x@week <- value
+ x@epoch <- value
  x
 })
 # observed slot
@@ -74,7 +93,28 @@ setReplaceMethod("control", "sts", function(x, value) {
  x@control <- value
  x
 })
+###multinomial Time series slot
+##control slot
+if(!isGeneric("multinomialTS")) setGeneric("multinomialTS", function(x) standardGeneric("multinomialTS"))
+setMethod("multinomialTS", "sts", function(x) {
+  return(x@multinomialTS)
+})
+setGeneric("multinomialTS<-", function(x, value) standardGeneric("multinomialTS<-"))
+setReplaceMethod("multinomialTS", "sts", function(x, value) {
+ x@multinomialTS <- value
+ x
+})
 
+### neighbourhood matrix slot 
+if(!isGeneric("neighbourhood")) setGeneric("neighbourhood", function(x) standardGeneric("neighbourhood"))
+setMethod("neighbourhood", "sts", function(x) {
+  return(x@neighbourhood)
+})
+setGeneric("neighbourhood<-", function(x, value) standardGeneric("neighbourhood<-"))
+setReplaceMethod("neighbourhood", "sts", function(x, value) {
+ x@neighbourhood <- value
+ x
+})
 
 
 

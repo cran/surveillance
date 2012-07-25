@@ -4,23 +4,35 @@
 create.disProg <- function(week, observed, state, start=c(2001,1), freq=52, neighbourhood=NULL, populationFrac=NULL,epochAsDate=FALSE){
   namesObs <-colnames(observed)
   
+  # check whether observed contains only numbers
+  if(!all(sapply(observed, is.numeric))){
+    stop("\'observed\' must be a matrix with numbers\n")
+  }
+   
   #univariate timeseries ?
   if(is.vector(observed)){
     observed <- matrix(observed,ncol=1)
     namesObs <- deparse(quote(observed))
+  } else {  # ensure we have a matrix
+    observed <- as.matrix(observed)
   }
-  if(is.vector(state))
-    state <- matrix(state,ncol=1)
   
+  if(missing(state)){
+    state <- 0*observed
+  } else if(is.vector(state)){
+    state <- matrix(state,ncol=1)
+  } else {
+    state <- as.matrix(state)
+  }
     
   #check number of columns of observed and state
   nAreas <- ncol(observed)
   nObs <- nrow(observed)
   if(ncol(observed) != ncol(state)){
     #if there is only one state-vector for more than one area, repeat it
-    if(ncol(state)==1)
+    if(ncol(state)==1) {
       state <- matrix(rep(state,nAreas),ncol=nAreas,byrow=FALSE)
-    else{ 
+    } else { 
       cat('wrong dimensions of observed and state \n')
       return(NULL)
     }
@@ -37,17 +49,25 @@ create.disProg <- function(week, observed, state, start=c(2001,1), freq=52, neig
       cat('wrong dimensions of neighbourhood matrix \n')
       return(NULL)
     }
+  } else {
+     # no neighbourhood specified
+     neighbourhood <- matrix(NA,nrow=nAreas,ncol=nAreas)
   }
   
   if(is.null(populationFrac)) {
     populationFrac <- matrix(1/ncol(observed),nrow=nObs, ncol=ncol(observed))
   } else {
-    populationFrac <- populationFrac
+    # make sure populationFrac is a matrix
+    populationFrac <- as.matrix(populationFrac)
+    # check dimensions
+    if(nrow(populationFrac)!= nObs | ncol(populationFrac)!= nAreas)
+      stop("dimensions of \'populationFrac\' and \'observed\' do not match\n")
+    # check whether populationFrac contains only numbers
+    if(!all(sapply(populationFrac, is.numeric))){
+      stop("\'populationFrac\' must be a matrix with real numbers\n")
+  }
   }
 
-  #if(is.null(neighbourhood) & (nAreas >1) )
-  #  
-  
   #labels for observed and state
   if(is.null(namesObs)){
     namesObs <- paste(deparse(quote(observed)),1:nAreas,sep="")
@@ -62,7 +82,19 @@ create.disProg <- function(week, observed, state, start=c(2001,1), freq=52, neig
   return(res)
 }
 
+print.disProg <- function(x, ...) {
+  cat( "-- An object of class disProg -- \n" )
+  cat( "freq:\t\t", x$freq,"\n" )
+  cat( "start:\t\t", x$start,"\n" )
+  cat( "dim(observed):\t", dim(x$observed), "\n\n")
 
+  n <- 1
+  cat("Head of observed:\n")
+  print(head(x$observed,n))
+
+  #cat("\nhead of neighbourhood:\n")
+  #print( head(x$neighbourhood,n))
+}
 
 ###################################################
 ### chunk number 2: 
@@ -78,7 +110,7 @@ sumNeighbours <- function(disProgObj){
       neighbours[,i] <- observed[,disProgObj$neighbourhood[,i]==1]
     #more than one neighbour
     else
-      neighbours[,i] <- apply(observed[,disProgObj$neighbourhood[,i]==1], MAR=1, sum)
+      neighbours[,i] <- apply(observed[,disProgObj$neighbourhood[,i]==1], MARGIN=1, sum)
   }
   return(neighbours)
 }
@@ -89,9 +121,9 @@ sumNeighbours <- function(disProgObj){
 ###################################################
 aggregate.disProg <- function(x,...){
   #aggregate observed counts
-  observed <- apply(x$observed,MAR=1,sum)
+  observed <- apply(x$observed,MARGIN=1,sum)
   #aggregate states
-  state <- apply(x$state,MAR=1,sum)
+  state <- apply(x$state,MARGIN=1,sum)
   state[state > 1] <- 1
   
   #create univariate disProg object

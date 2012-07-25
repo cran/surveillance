@@ -25,8 +25,10 @@ LRCUSUM.runlength(mu,mu0,mu1,h,dfun, n, g=5,outcomeFun=NULL,...)
   \item{n}{Vector of length \eqn{T} containing the total number of
     experiments for each time point.}
   \item{g}{The number of levels to cut the state space into when
-    performing the Markoc chain approximation. Sometimes also denoted
-    \eqn{M}.}
+    performing the Markov chain approximation. Sometimes also denoted
+    \eqn{M}. Note that the quality of the approximation depends very
+    much on \eqn{g}. If \eqn{T} greater than, say, 50 its necessary to
+  increase the value of \eqn{g}.}
   \item{outcomeFun}{A hook function to compute all possible outcome
     states to compute the likelihood ratio for. If \code{NULL} then the
     default function \code{outcomeFunStandard(k,n)} is used. This
@@ -53,17 +55,26 @@ such that it works for a very large class of distributions.
     length variable.}
   \item{arl}{If the model is time homogenous (i.e. if \eqn{T==1}) then
     the ARL is computed based on the stationary distribution of the
-    Markov chain. See the eqns in the reference for details.}
+    Markov chain. See the eqns in the reference for details. Note: If
+    the model is not time homogeneous then the function returns
+    \code{NA} and the ARL has to be approximated manually from the
+    output. One could use \code{sum(1:length(pmf) * pmf)}, which is an
+    approximation because of using a finite support for a sum which
+    should be from 1 to infinity.
+  }
 }
 \references{
   Höhle, M. (2010), Changepoint detection in categorical time series, 
-  Book chapter to appear in T. Kneib and G. Tutz (Eds.), Statistical
-  Modelling and Regression Structures, Springer.
+  Book chapter in T. Kneib and G. Tutz (Eds.), Statistical
+  Modelling and Regression Structures - Festschrift in Honour of Ludwig
+  Fahrmeir, Springer, pp. 377-397. Preprint available as
+  http://www.stat.uni-muenchen.de/~hoehle/pubs/hoehle2010-preprint.pdf
 
   Höhle, M. and Mazick, A. (2009), Aberration detection in R illustrated
   by Danish mortality monitoring, Book chapter to appear in T. Kass-Hout
   and X. Zhang (Eds.) Biosurveillance: A Health Protection Priority,
-  CRCPress.
+  CRCPress. Preprint available as
+  http://www.stat.uni-muenchen.de/~hoehle/pubs/hoehle_mazick2009-preprint.pdf
   
   Brook, D. and Evans, D. A. (1972),  An approach to the probability
   distribution of Cusum run length, Biometrika,

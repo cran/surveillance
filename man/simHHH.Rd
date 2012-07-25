@@ -63,7 +63,7 @@
         where
         \deqn{\log \nu_{it} = \alpha_i
         + \sum_{s=1}^{S}(\gamma_s sin(\omega_s t) + \delta_s cos(\omega_s t))}
-        \eqn{\omega_s = 2s\pi/}\code{period} are Fourier frequencies
+        \eqn{\omega_s = 2s\pi/\code{period}} are Fourier frequencies
         and \eqn{n_{it}} are possibly standardized population sizes.
 }
 \note{The model does not contain a linear trend.}

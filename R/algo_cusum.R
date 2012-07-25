@@ -62,7 +62,8 @@ algo.cusum <- function(disProgObj, control = list(range=range, k=1.04, h=2.26, m
     # anscombe residuals for NegBin
                      "anscombeNegBin" =  anscombeNB(x,mu=m,alpha=alpha),
     # don't do anything
-                     "none"     = x
+                     "none"     = x,
+                     stop("invalid 'trans'formation")
                      )  
 
   # initialize the necessary vectors

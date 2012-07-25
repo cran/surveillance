@@ -1,9 +1,12 @@
 /*******************************************************************
  * Author: Mathias Hofmann
- *         Michael H�hle <hoehle@stat.uni-muenchen.de>
+ *         Michael Hoehle <hoehle@stat.uni-muenchen.de>
  *         Volker Schmid
  *         Daniel Sabanes Bove <daniel.sabanesbove@ifspm.uzh.ch>
- * Date:   May 2010 -- modified from Oct 2008 by DSB
+ * History:
+ *   March 2012 (DSB) -- changed long types to int to be in accordance with R
+ *                       (we observed bad allocations in 64 bit machines)
+ *   May 2010 (DSB) -- modified from Oct 2008
  *
  * Markov Chain Monte Carlo (MCMC) estimation in the Branching Process
  * like Epidemic Model. Instead of a slow R solution this code
@@ -216,10 +219,10 @@ double epsilon_b=0.001;
  * X a vector with indices 0,..,I of a vector with indices 0,...,n
  * I "length" of vector (true length due to zero indice is I+1)
  *********************************************************************/
-double sumIn(const LongMatrix& X, long I, long n) {
+double sumIn(const LongMatrix& X, int I, int n) {
   double res = 0;
-  for (register long i=1; i<=I; i++){
-    for (register long t=1; t<=n; t++) {
+  for (register int i=1; i<=I; i++){
+    for (register int t=1; t<=n; t++) {
       res += X[i][t]; 
     }
   }
@@ -235,10 +238,10 @@ double sumIn(const LongMatrix& X, long I, long n) {
  * X a vector with indices 0,..,I of a vector with indices 0,...,n
  * I "length" of vector (true length due to zero indice is I+1)
  *********************************************************************/
-double sumIn(const DoubleMatrix& X, long I, long n) {
+double sumIn(const DoubleMatrix& X, int I, int n) {
   double res = 0;
-  for (register long i=1; i<=I; i++){
-    for (register long t=1; t<=n; t++) {
+  for (register int i=1; i<=I; i++){
+    for (register int t=1; t<=n; t++) {
       res += X[i][t]; 
     }
   }
@@ -253,10 +256,10 @@ double sumIn(const DoubleMatrix& X, long I, long n) {
  * X a vector with indices 0,..,I of a vector with indices 0,...,n
  * I "length" of vector (true length due to zero indice is I+1)
  *********************************************************************/
-double sumIn2(const LongMatrix& X, long I, long n) {
+double sumIn2(const LongMatrix& X, int I, int n) {
   double res = 0;
-  for (register long i=1; i<=I; i++){
-    for (register long t=2; t<=n; t++) {
+  for (register int i=1; i<=I; i++){
+    for (register int t=2; t<=n; t++) {
       res += X[i][t]; 
     }
   }
@@ -273,10 +276,10 @@ double sumIn2(const LongMatrix& X, long I, long n) {
  * X a vector with indices 0,..,I of a vector with indices 0,...,n
  * I "length" of vector (true length due to zero indice is I+1)
  *********************************************************************/
-double sumIn2(const DoubleMatrix& X, long I, long n) {
+double sumIn2(const DoubleMatrix& X, int I, int n) {
   double res = 0;
-  for (register long i=1; i<=I; i++){
-    for (register long t=2; t<=n; t++) {
+  for (register int i=1; i<=I; i++){
+    for (register int t=2; t<=n; t++) {
       res += X[i][t]; 
     }
   }
@@ -292,9 +295,9 @@ double sumIn2(const DoubleMatrix& X, long I, long n) {
  * X a vector with indices 0,..,I of a vector with indices 0,...,n
  * I "length" of vector (true length due to zero indice is I+1)
  *********************************************************************/
-double sumI1(const LongMatrix& X, long I, long t) {
+double sumI1(const LongMatrix& X, int I, int t) {
   double res = 0;
-  for (register long i=1; i<=I; i++) { res += X[i][t]; }
+  for (register int i=1; i<=I; i++) { res += X[i][t]; }
   return(res);
 }
 
@@ -307,9 +310,9 @@ double sumI1(const LongMatrix& X, long I, long t) {
  * X a vector with indices 0,..,I of a vector with indices 0,...,n
  * I "length" of vector (true length due to zero indice is I+1)
  *********************************************************************/
-double sumI1(const DoubleMatrix& X, long I, long t) {
+double sumI1(const DoubleMatrix& X, int I, int t) {
   double res = 0;
-  for (register long i=1; i<=I; i++) { res += X[i][t]; }
+  for (register int i=1; i<=I; i++) { res += X[i][t]; }
   return(res);
 }
 
@@ -318,7 +321,7 @@ double sumI1(const DoubleMatrix& X, long I, long t) {
  *********************************************************************/
 long factorial(long x){
   long fac=1;
-  if(x<0){ REprintf("negative value passed to factorial function\n"); exit(-1);}
+  if(x<0){ Rf_error("negative value passed to factorial function\n");}
   else{
     if(x==0){fac=1;}
     else{
@@ -335,8 +338,7 @@ long factorial(long x){
  *********************************************************************/
 double logit(double y){
   if(y <= 0 || y >= 1){
-    REprintf("y <= 0 or y >= 1 in logit function.\n");
-    exit(-1);
+    Rf_error("y <= 0 or y >= 1 in logit function.\n");
   }
   double logit;
   logit = log(y/(1-y));
@@ -532,7 +534,7 @@ int mxcheck(int n, const IntMatrix& matrix)
 
 
 /*updatealphabeta
-  Erzeugt Normalverteilten Zufallsvektor der L�nge noa*/
+  Erzeugt Normalverteilten Zufallsvektor der Laenge noa*/
 void gausssample(double* temp, int noa)
 {
   
@@ -603,7 +605,7 @@ double hyper(int rw, double* theta, double k_a, double k_b, int n)
 }
 
 
-double update_tau_alpha(const DoubleVector& alpha, long I, double aa, double bb, DoubleVector& xreg)
+double update_tau_alpha(const DoubleVector& alpha, int I, double aa, double bb, DoubleVector& xreg)
 {
   
   aa += double(I);
@@ -616,7 +618,7 @@ double update_tau_alpha(const DoubleVector& alpha, long I, double aa, double bb,
 }
 
 
-double update_tau_gamma(const DoubleVector& alpha, long ncov, double aa, double bb)
+double update_tau_gamma(const DoubleVector& alpha, int ncov, double aa, double bb)
 {
   
   aa += double(ncov);
@@ -697,7 +699,7 @@ double sumg(int ncov, const DoubleMatrix& xcov, DoubleVector& gamma, int t, int 
 
 
 
-void alphaupdate(DoubleVector& gamma, DoubleVector& alpha, DoubleVector& beta, DoubleVector& delta, const DoubleMatrix& lambda, double p, long I, long n, const LongMatrix& Y, const LongMatrix& X, long& acc_alpha, double taualpha, int ncov, const DoubleMatrix& xcov, DoubleVector& xreg, const DoubleMatrix& omega, const DoubleMatrix& omegaX, int scov, int mode){
+void alphaupdate(DoubleVector& gamma, DoubleVector& alpha, DoubleVector& beta, DoubleVector& delta, const DoubleMatrix& lambda, double p, int I, int n, const LongMatrix& Y, const LongMatrix& X, long& acc_alpha, double taualpha, int ncov, const DoubleMatrix& xcov, DoubleVector& xreg, const DoubleMatrix& omega, const DoubleMatrix& omegaX, int scov, int mode){
 
   for (int i=1; i<=I; i++)
     {
@@ -746,7 +748,7 @@ void alphaupdate(DoubleVector& gamma, DoubleVector& alpha, DoubleVector& beta, D
 
 
 void erzeuge_b_Q(DoubleVector& gamma  , double* my, double* Q, const DoubleVector& alpha, DoubleVector& delta, DoubleVector& beta, const LongMatrix& X, const LongMatrix& Z, const LongMatrix& Y,
-		 long n, long I, double taubeta, int rw, const DoubleMatrix& lambda, double p, const DoubleMatrix& xcov, int ncov, const DoubleMatrix& omega, const DoubleMatrix& omegaX,int scov, int mode)
+		 int n, int I, double taubeta, int rw, const DoubleMatrix& lambda, double p, const DoubleMatrix& xcov, int ncov, const DoubleMatrix& omega, const DoubleMatrix& omegaX,int scov, int mode)
 {
   if (mode==1)
     {
@@ -777,7 +779,7 @@ void erzeuge_b_Q(DoubleVector& gamma  , double* my, double* Q, const DoubleVecto
       
     }
   
-  /* Pr�zisionsmatrix*/
+  /* Praezisionsmatrix*/
   berechneQ(Q, rw, taubeta, n, 1, 0.0);
   
   if (mode==1)
@@ -807,7 +809,7 @@ void erzeuge_b_Q(DoubleVector& gamma  , double* my, double* Q, const DoubleVecto
 
 
 void erzeuge_b_Q_2(double* my, double* Q, const DoubleVector& alpha, DoubleVector& beta, DoubleVector& gamma, DoubleVector& delta, const LongMatrix& X,
-		   long n, long I, double taubeta, int rw, const DoubleMatrix& xcov, int ncov, int scov, const DoubleMatrix& omega)
+		   int n, int I, double taubeta, int rw, const DoubleMatrix& xcov, int ncov, int scov, const DoubleMatrix& omega)
 {
 
   /* b-vektor des Proposals*/
@@ -822,7 +824,7 @@ void erzeuge_b_Q_2(double* my, double* Q, const DoubleVector& alpha, DoubleVecto
     }
 
 
-  /* Pr�zisionsmatrix*/
+  /* Praezisionsmatrix*/
   berechneQ(Q, rw, taubeta, n+1, 1, 0.0);
 
   for (int i=1; i<=I; i++)
@@ -840,7 +842,7 @@ void erzeuge_b_Q_2(double* my, double* Q, const DoubleVector& alpha, DoubleVecto
 
 
 
-void machnu(DoubleVector& mu, const DoubleVector& alpha, DoubleVector& beta, DoubleVector& delta, DoubleMatrix& nu, long I, long n, int ncov, const DoubleMatrix& xcov, int scov)
+void machnu(DoubleVector& mu, const DoubleVector& alpha, DoubleVector& beta, DoubleVector& delta, DoubleMatrix& nu, int I, int n, int ncov, const DoubleMatrix& xcov, int scov)
 {
   for (int i=1; i<=I; i++)
     { 
@@ -853,7 +855,7 @@ void machnu(DoubleVector& mu, const DoubleVector& alpha, DoubleVector& beta, Dou
 }
 
 
-void update_gamma_j(int j, const DoubleVector& alpha, DoubleVector& beta, DoubleVector& gamma, DoubleVector& delta, int ncov, const DoubleMatrix& xcov, const LongMatrix& X, long n, long I, double taugamma, DoubleVector& gammaneu, long& acc_gamma, const DoubleMatrix& omega, int scov)
+void update_gamma_j(int j, const DoubleVector& alpha, DoubleVector& beta, DoubleVector& gamma, DoubleVector& delta, int ncov, const DoubleMatrix& xcov, const LongMatrix& X, int n, int I, double taugamma, DoubleVector& gammaneu, long& acc_gamma, const DoubleMatrix& omega, int scov)
 {
   double g = 0;
   double gd = 0;
@@ -921,7 +923,7 @@ void update_gamma_j(int j, const DoubleVector& alpha, DoubleVector& beta, Double
 
 
 
-void update_beta_t(int t, const DoubleVector& alpha, DoubleVector& beta, DoubleVector& gamma, DoubleVector& delta, int ncov, const DoubleMatrix& xcov, const LongMatrix& X, long n, long I, double taubeta, long& acc_beta, const DoubleMatrix& omega, int scov)
+void update_beta_t(int t, const DoubleVector& alpha, DoubleVector& beta, DoubleVector& gamma, DoubleVector& delta, int ncov, const DoubleMatrix& xcov, const LongMatrix& X, int n, int I, double taubeta, long& acc_beta, const DoubleMatrix& omega, int scov)
 {
   double h = 0;
   double c = 0;
@@ -995,7 +997,7 @@ void update_beta_t(int t, const DoubleVector& alpha, DoubleVector& beta, DoubleV
 
 
 
-void update_lambda_br(DoubleMatrix& lambda, DoubleMatrix& lambda_br,DoubleVector& xi_lambda, IntMatrix& breakpoints, IntMatrix& breakpointsStar, IntVector& K, IntVector& KStar, IntVector& Km1, double alpha_lambda, double beta_lambda, const LongMatrix& Y, const LongMatrix& Z, long n, long I, double& acceptedbr, const DoubleMatrix& omega, int theta_pred_estim, int xi_estim, int K_geom, double p_K, double alpha_xi, double beta_xi)
+void update_lambda_br(DoubleMatrix& lambda, DoubleMatrix& lambda_br,DoubleVector& xi_lambda, IntMatrix& breakpoints, IntMatrix& breakpointsStar, IntVector& K, IntVector& KStar, IntVector& Km1, double alpha_lambda, double beta_lambda, const LongMatrix& Y, const LongMatrix& Z, int n, int I, double& acceptedbr, const DoubleMatrix& omega, int theta_pred_estim, int xi_estim, int K_geom, double p_K, double alpha_xi, double beta_xi)
 {
   /*update breakpoints of lambda using reversible jump MCMC*/
 
@@ -1308,7 +1310,7 @@ void update_lambda_br(DoubleMatrix& lambda, DoubleMatrix& lambda_br,DoubleVector
 
 
 
-void update_delta_br(DoubleVector& delta, DoubleVector& delta_br,double &xi_delta, IntVector& breakpoints_delta, IntVector& breakpointsStar_delta, int& K_delta, int& KStar_delta, int& Km1_delta, double delta_a, double delta_b, const LongMatrix& X, const DoubleMatrix& nu, long n, long I, double& acceptedbr_delta, const DoubleMatrix& omega, int xi_estim_delta, int K_geom, double p_K, double alpha_xi, double beta_xi)
+void update_delta_br(DoubleVector& delta, DoubleVector& delta_br,double &xi_delta, IntVector& breakpoints_delta, IntVector& breakpointsStar_delta, int& K_delta, int& KStar_delta, int& Km1_delta, double delta_a, double delta_b, const LongMatrix& X, const DoubleMatrix& nu, int n, int I, double& acceptedbr_delta, const DoubleMatrix& omega, int xi_estim_delta, int K_geom, double p_K, double alpha_xi, double beta_xi)
 {
   //update breakpoints of lambda using reversible jump MCMC
 
@@ -1597,7 +1599,7 @@ void update_delta_br(DoubleVector& delta, DoubleVector& delta_br,double &xi_delt
 
 
 
-void update_epsilon_br(DoubleVector& epsilon, DoubleVector& epsilon_br,double& xi_epsilon, IntVector& breakpoints_epsilon, IntVector& breakpointsStar_epsilon, int& K_epsilon, int& KStar_epsilon, int& Km1_epsilon, double epsilon_a, double epsilon_b, const LongMatrix& S, long n, long I, double& acceptedbr_epsilon, const DoubleMatrix& omega, int xi_estim_epsilon, int K_geom, double p_K, double alpha_xi, double beta_xi)
+void update_epsilon_br(DoubleVector& epsilon, DoubleVector& epsilon_br,double& xi_epsilon, IntVector& breakpoints_epsilon, IntVector& breakpointsStar_epsilon, int& K_epsilon, int& KStar_epsilon, int& Km1_epsilon, double epsilon_a, double epsilon_b, const LongMatrix& S, int n, int I, double& acceptedbr_epsilon, const DoubleMatrix& omega, int xi_estim_epsilon, int K_geom, double p_K, double alpha_xi, double beta_xi)
 {
   /*update breakpoints of lambda using reversible jump MCMC*/
   
@@ -1906,18 +1908,18 @@ void update_epsilon_br(DoubleVector& epsilon, DoubleVector& epsilon_br,double& x
  Returns:
   matrix with the data
 */
-LongMatrix surveillancedata2twin(long* x, long n, long I) {
+LongMatrix surveillancedata2twin(int* x, int n, int I) {
 
   //Allocate data structure 
   LongMatrix Z(I+1, n+1);
 
   /* Fill with zeros at all 0 index (rows & columns) */
-  for (register long t=0; t<=n; t++){ Z[0][t]=0; }
-  for (register long i=0; i<=I; i++){ Z[i][0]=0; }
+  for (register int t=0; t<=n; t++){ Z[0][t]=0; }
+  for (register int i=0; i<=I; i++){ Z[i][0]=0; }
 
   //Start @ index 1. (Z[0] is not defined)
-  for (register long t=1; t<=n; t++) {
-    for (register long i=1; i<=I; i++) { 
+  for (register int t=1; t<=n; t++) {
+    for (register int i=1; i<=I; i++) { 
       Z[i][t]=x[t-1]; 
     } 
   }
@@ -1997,7 +1999,7 @@ LongMatrix surveillancedata2twin(long* x, long n, long I) {
  *
  *    D = -2log p(Z|theta) + 2 log p(Z|\mu(theta)=Z)
  */
-double satdevalt(long n, long I, const LongMatrix& X, const LongMatrix& Y, const LongMatrix& Z, 
+double satdevalt(int n, int I, const LongMatrix& X, const LongMatrix& Y, const LongMatrix& Z, 
 		 const DoubleMatrix& omega, const DoubleMatrix& lambda, const DoubleMatrix& nu, double *xi, DoubleMatrix& eta, DoubleMatrix& eta2, DoubleMatrix& varr, double psi, int overdispersion) {
   double res = 0;
   //Loop over all data
@@ -2042,7 +2044,7 @@ double satdevalt(long n, long I, const LongMatrix& X, const LongMatrix& Y, const
  *
  *    D = -2log p(Z|theta)
  */
-double satdev(long n, long I, const LongMatrix& Z, 
+double satdev(int n, int I, const LongMatrix& Z, 
 	      const DoubleMatrix& lambda, const DoubleMatrix& nu, double *xi, DoubleVector& epsilon, DoubleMatrix& eta, double psi, int overdispersion) {
   double res = 0;
   //Loop over all data
@@ -2068,7 +2070,7 @@ double satdev(long n, long I, const LongMatrix& Z,
 // Calculate chi square the sum of the qudratic pearson residuals (z-mean)/sd
 
 
-double chisq(long n, long I, const LongMatrix& Z, 
+double chisq(int n, int I, const LongMatrix& Z, 
 	     const DoubleMatrix& lambda, const DoubleMatrix& nu, double *xi, DoubleVector& epsilon, DoubleMatrix& eta, DoubleMatrix& varr, DoubleMatrix& rpearson, double psi, int overdispersion) {
   double res = 0;
   //Loop over all data
@@ -2100,8 +2102,8 @@ double chisq(long n, long I, const LongMatrix& Z,
  * Estimation in the basic epidemic model
  *
  */
-void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream &acclog, const LongMatrix& Z, double* xi, long n, long I, long T, long nfreq, long burnin, long filter,
-		    long samples, int rw) {
+void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream &acclog, const LongMatrix& Z, double* xi, int n, int I, int T, int nfreq, int burnin, int filter,
+		    int samples, int rw) {
   //Model parameters - start values
   double nu_const = alpha_nu/beta_nu;
   double lambda_const = 0.5;
@@ -2261,7 +2263,7 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
   }
   
   
-  /* F�r Saisonkomponenente */
+  /* Fuer Saisonkomponenente */
   int ncov;
   int scov = 0;
   if(delta_rev){
@@ -2439,7 +2441,7 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
   }//if varnu  
   
   
-  for (register long i=1;i<=I; i++) {
+  for (register int i=1;i<=I; i++) {
     X[i][2] = (long)floor(nu[i][2]);
     Y[i][2] = (long)floor(lambda[i][2]*nu[i][2]/(1 - lambda[i][2]));
     omeganp1[i] = 1;
@@ -2481,12 +2483,12 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
   }
 
   if(varnu){
-    for (register long j=0;j<ncov;j++) {
+    for (register int j=0;j<ncov;j++) {
       logfile << "gamma[" << j << "]\t";
     }
     if(delta_rev){
       logfile << "Kdelta\t" << "xidelta\t";
-      for (register long j=2; j<=n; j++) {
+      for (register int j=2; j<=n; j++) {
         logfile << "delta[" << j << "]\t";
       }
     }
@@ -2494,7 +2496,7 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
 
   if(epsilon_rev){
     logfile << "Kepsilon\t" << "xiepsilon\t";
-    for (register long j=2; j<=n; j++) {
+    for (register int j=2; j<=n; j++) {
       logfile << "epsilon[" << j << "]\t";
     }
   }
@@ -2514,7 +2516,7 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
 
 
   //Write the header to the logfile2
-  for (register long t=1;t<=n;t++) {
+  for (register int t=1;t<=n;t++) {
     logfile2 << "X[" << t << "]\tY[" << t << "]\tomega["
 	     << t << "]\tbp[" << t <<"]\t";
   }
@@ -2523,7 +2525,7 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
 
 
   //Calculate the necessary number of samples.
-  long sampleSize = filter*samples + burnin;
+  int sampleSize = filter*samples + burnin;
   if (!verbose) {
     Rprintf("Total number of samples = %d + %d * %d = %d\n", burnin, filter, samples, sampleSize);
     //if (overdispersion) {
@@ -2535,14 +2537,14 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
 
 
   /*Loop over samples - start at 1*/
-  register long sampleCounter=1;
+  register int sampleCounter=1;
   while ( sampleCounter<=sampleSize) {
  
     if ((!verbose) && ((sampleCounter % 10) == 0)) {
       Rprintf(".");
     }
     //Progress bar: 0,..,100% is shown.
-    if (sampleCounter > tuneSampleSize && (!verbose) && (sampleCounter % (long)floor(sampleSize/100.0) == 0)) {
+    if (sampleCounter > tuneSampleSize && (!verbose) && (sampleCounter % (int)floor(sampleSize/100.0) == 0)) {
       Rprintf("%d%%", sampleCounter*100 / sampleSize);
     }
     if(0){ 
@@ -2585,13 +2587,13 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
     double XSum = sumIn2(X,I,n);
  
     double xiSum = 0;
-    for (register long i=1;i<=I; i++) {
+    for (register int i=1;i<=I; i++) {
       xiSum = xiSum + xi[i];
     }
 
     if(!la_estim){
-      for (register long i=1;i<=I; i++) {
-	for (register long t=2;t<=n; t++) { 
+      for (register int i=1;i<=I; i++) {
+	for (register int t=2;t<=n; t++) { 
 	  lambda[i][t] =  0;
 	}
       }
@@ -2612,8 +2614,8 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
 	  logFx = log(gsl_ran_beta_pdf(lambda_const,alpha_lambda,beta_lambda)) + log(invlogitd(x));
 	  double logFxStar = 0;
 	  logFxStar = log(gsl_ran_beta_pdf(lambdaStar,alpha_lambda,beta_lambda)) + log(invlogitd(xStar));
-	  for (register long i=1;i<=I; i++) {
-	    for (register long t=2;t<=n; t++) {
+	  for (register int i=1;i<=I; i++) {
+	    for (register int t=2;t<=n; t++) {
 	      logFx = logFx + gsl_ran_poisson_log_pdf(Y[i][t], lambda_const*omega[i][t]*Z[i][t-1]);
 	      logFxStar = logFxStar + gsl_ran_poisson_log_pdf(Y[i][t], lambdaStar*omega[i][t]*Z[i][t-1]);
 	    }
@@ -2621,8 +2623,8 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
 	  double accx = exp(logFxStar - logFx);
    
 	  if (gsl_rng_uniform() <= accx) {x = xStar; lambda_const = invlogit(xStar); acceptedlambda++;}
-	  for (register long i=1;i<=I; i++) {
-	    for (register long t=2;t<=n; t++) { 
+	  for (register int i=1;i<=I; i++) {
+	    for (register int t=2;t<=n; t++) { 
 	      lambda[i][t] =  lambda_const;
 	    }
 	  }
@@ -2632,8 +2634,8 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
     if(!varnu){
 
       double omegaxiSum = 0;
-      for (register long i=1;i<=I; i++) {
-	for (register long t=2;t<=n; t++) { 
+      for (register int i=1;i<=I; i++) {
+	for (register int t=2;t<=n; t++) { 
 	  omegaxiSum += omega[i][t]*xi[i];
 	}
       }
@@ -2642,8 +2644,8 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
       a  = alpha_nu + XSum;
       b  = beta_nu + omegaxiSum;
       nu_const =  gsl_ran_gamma (a, 1/b);
-      for (register long i=1;i<=I; i++) {
-	for (register long t=2;t<=n; t++) { 
+      for (register int i=1;i<=I; i++) {
+	for (register int t=2;t<=n; t++) { 
 	  nu[i][t] =  nu_const;
 	}
       }
@@ -2666,8 +2668,8 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
       }
       //loglik * prior of the old value
       double logFPsi = gsl_ran_gamma_log_pdf(psi,a_psi,1/b_psi) + log(psi);
-      for (register long i=1; i<=I; i++) {
-	for (register long t=2; t<=n; t++){
+      for (register int i=1; i<=I; i++) {
+	for (register int t=2; t<=n; t++){
 	  logFPsi += gsl_ran_gamma_log_pdf(omega[i][t],psi,1/psi);
 	}
       }
@@ -2676,8 +2678,8 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
       double psiStar = exp(logpsiStar);
       //loglik * prior of the new value
       double logFPsiStar = gsl_ran_gamma_log_pdf(psiStar,a_psi,1/b_psi) + logpsiStar;
-      for (register long i=1; i<=I; i++) {
-	for (register long t=2; t<=n; t++) {
+      for (register int i=1; i<=I; i++) {
+	for (register int t=2; t<=n; t++) {
 	  logFPsiStar += gsl_ran_gamma_log_pdf(omega[i][t],psiStar,1/psiStar);
 	}
       }
@@ -2713,7 +2715,7 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
     }
 
     if(varnu){
-      // Unterprogramme f�r den Update von alpha und beta
+      // Unterprogramme fuer den Update von alpha und beta
       if (I>=2)
 	{
 	  alphaupdate(gamma, alpha, beta, delta, lambda, 1, I, n, Y, X, acc_alpha, taualpha, ncov, xcov, xreg, omega, omega, scov,1);
@@ -2741,7 +2743,7 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
 	}
 
 
-      //Update f�r zeitlichen effekt mit RW
+      //Update fuer zeitlichen effekt mit RW
 
       if (rw>0)
 	{
@@ -2810,26 +2812,26 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
 
 
       if ((sampleCounter>burnin) && ((sampleCounter-burnin) % filter == 0)) {
-	//     for (register long i=1;i<=I; i++) {
-	//       for (register long t=1; t<=n; t++) {
+	//     for (register int i=1;i<=I; i++) {
+	//       for (register int t=1; t<=n; t++) {
 	// 	 logfile << nu[i][t] << "\t";
 	//       }
 	//     }
 	//    logfile << mu << "\t";
-	for (register long j=0; j<ncov; j++) {
+	for (register int j=0; j<ncov; j++) {
 	  logfile << gamma[j] << "\t";
 	}
 	if(delta_rev){
 	  if ((sampleCounter>burnin) && ((sampleCounter-burnin) % filter == 0)) {
 	    logfile << Km1_delta<<"\t"<< xi_delta<<"\t";
-	    for (register long j=2; j<=n; j++) {
+	    for (register int j=2; j<=n; j++) {
 	      logfile << delta[j] << "\t";
 	    }
 	  }
 
 	  if (sampleCounter>burnin) {
-	    for (register long k=1; k<=K_delta; k++) {
-	      for (register long j=2; j<=n; j++) {
+	    for (register int k=1; k<=K_delta; k++) {
+	      for (register int j=2; j<=n; j++) {
 		if (breakpoints_delta[k]==j){
 		  bp_delta[j]+=1;
 		}
@@ -2847,14 +2849,14 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
 
       if ((sampleCounter>burnin) && ((sampleCounter-burnin) % filter == 0)) {
         logfile << Km1_epsilon<<"\t"<< xi_epsilon<<"\t";
-	for (register long j=2; j<=n; j++) {
+	for (register int j=2; j<=n; j++) {
 	  logfile << epsilon[j] << "\t";
         }
       }
 
       if (sampleCounter>burnin) {
-        for (register long k=1; k<=K_epsilon; k++) {
-          for (register long j=2; j<=n; j++) {
+        for (register int k=1; k<=K_epsilon; k++) {
+          for (register int j=2; j<=n; j++) {
             if (breakpoints_epsilon[k]==j){
   	      bp_epsilon[j]+=1;
             }
@@ -2873,14 +2875,14 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
 
 	  if ((sampleCounter>burnin) && ((sampleCounter-burnin) % filter == 0)) {
 	    logfile << Km1[1]<<"\t"<< xi_lambda[1]<<"\t";
-	    for (register long j=2; j<=n; j++) {
+	    for (register int j=2; j<=n; j++) {
 	      logfile << lambda[1][j] << "\t";
 	    }
 	  }
-	  for (register long i=1;i<=I; i++) {
+	  for (register int i=1;i<=I; i++) {
 	    if (sampleCounter>burnin) {
-	      for (register long k=1; k<=K[i]; k++) {
-		for (register long j=2; j<=n; j++) {
+	      for (register int k=1; k<=K[i]; k++) {
+		for (register int j=2; j<=n; j++) {
 		  if (breakpoints[i][k]==j){
 		    bp[i][j]+=1;
 		  }
@@ -2893,8 +2895,8 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
     // cout << S[1][106] << endl;
     //   cout << "test" << endl;
     //Loop over the individual X[t], Y[t], S[t], and omega[t]
-    for (register long i=1;i<=I; i++) {
-      for (register long t=2; t<=n; t++) {
+    for (register int i=1;i<=I; i++) {
+      for (register int t=2; t<=n; t++) {
         //Update X
         double binp = nu[i][t]*xi[i] / (epsilon[t] + nu[i][t]*xi[i] + lambda[i][t] * Z[i][t-1]);
 	X[i][t] =  gsl_ran_binomial( binp, Z[i][t]);
@@ -2931,8 +2933,8 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
     // cout << S[1][2] << endl;
 
 
-    //Praediktive Verteilung f�r variables nu
-    for (register long i=1;i<=I;i++) {
+    //Praediktive Verteilung fuer variables nu
+    for (register int i=1;i<=I;i++) {
       if(!theta_pred_estim){
 	double p_thetanp1 = ((double(K[i]))/double(n)); //(1+double(K[i]))
 	if(K_geom){
@@ -3067,7 +3069,7 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
 
   //Write means to logfile2
 
-  for (register long t=1;t<=n;t++) {
+  for (register int t=1;t<=n;t++) {
     logfile2 << (double)sumX[1][t]/((double)samples*(double)filter) << "\t" << (double)sumY[1][t]/((double)samples*(double)filter)<< "\t" << (double)sumomega[1][t]/((double)samples*(double)filter) << "\t"<< (double)bp[1][t]/((double)samples*(double)filter) << "\t";
   }
   logfile2 << (double)bp[1][n+1]/((double)samples*(double)filter) << "\t";
@@ -3095,9 +3097,9 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
 
 extern "C" { 
 
-  void twins (long *x_ptr, long *n_ptr, long *I_ptr,
+  void twins (int *x_ptr, int *n_ptr, int *I_ptr,
 	      char **logFile_ptr, char **logFile2_ptr, 
-	      long *burnin_ptr, long *filter_ptr,  long *sampleSize_ptr, 
+	      int *burnin_ptr, int *filter_ptr,  int *sampleSize_ptr, 
 	      double *alpha_xi_ptr,  double *beta_xi_ptr, 
 	      int *T_ptr, int *nfreq_ptr, 
 	      double *psiRWSigma_ptr, double *alpha_psi_ptr, double *beta_psi_ptr,		int *nu_trend_ptr) {
@@ -3143,9 +3145,9 @@ extern "C" {
   gamma_b = 0.000001;
 
   /* hoehle -- new code to fetch params  if called through interface */
-  long burnin = *burnin_ptr;
-  long filter = *filter_ptr;
-  long sampleSize = *sampleSize_ptr;
+  int burnin = *burnin_ptr;
+  int filter = *filter_ptr;
+  int sampleSize = *sampleSize_ptr;
   int T = *T_ptr;
   int nfreq = *nfreq_ptr;
 
@@ -3185,8 +3187,8 @@ extern "C" {
   logfile2.open(logFile2);
   accfile.open(accFile);
 
-  if (!logfile) { REprintf("Error opening the log file.\n");exit(-1);}
-  if (!accfile) { REprintf("Error opening the acc file.\n");exit(-1);}
+  if (!logfile) { Rf_error("Error opening the log file.\n");}
+  if (!accfile) { Rf_error("Error opening the acc file.\n");}
 
   /* Allocate a random number generator -- this is now the R RNG and
      Fix seed of generator to reproduce results (i.e. fetch current seed
@@ -3195,8 +3197,8 @@ extern "C" {
   GetRNGstate();
 
   //Read Data
-  long I = *I_ptr;
-  long n = *n_ptr;
+  int I = *I_ptr;
+  int n = *n_ptr;
 
   LongMatrix Z = surveillancedata2twin(x_ptr,n,I);
   /*  Z = readData(dataFile,&n,&I);*/

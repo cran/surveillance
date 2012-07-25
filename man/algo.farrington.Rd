@@ -2,39 +2,74 @@
 \alias{algo.farrington}
 \encoding{latin1}
 
-\title{Surveillance for a time series using the Farrington procedure.}
+\title{Surveillance for a count data time series using the Farrington method.}
 \description{
-  The function takes \code{range} values of the time series \code{counts} and for each uses a GLM to predict the number of counts according to the procedure by Farrington et. al. This is then compared to the observed number of counts and in case an exceedance of the confidence interval calculated is seen an alarm is raised. 
+%
+  The function takes \code{range} values of the surveillance time
+  series \code{disProgObj} and for each time point uses a GLM to
+  predict the number of counts according to the procedure by
+  Farrington et al. (1996). This is then compared to the observed
+  number of counts. If the observation is above a specific quantile of
+  the prediction interval, then an alarm is raised.
+%
 }
 \usage{
   algo.farrington(disProgObj, control=list(range=NULL, b=3, w=3,
   reweight=TRUE,verbose=FALSE,alpha=0.01,trend=TRUE,limit54=c(5,4),
-  powertrans="2/3",fitFun=c("algo.farrington.fitGLM.fast","algo.farrington.fitGLM")))
+  powertrans="2/3",
+  fitFun=c("algo.farrington.fitGLM.fast","algo.farrington.fitGLM",
+           "algo.farrington.fitGLM.populationOffset")))
 }
 \arguments{
-\item{disProgObj}{object of class disProgObj (including the observed and the state chain)}
+\item{disProgObj}{object of class disProgObj (including the \code{observed} and the \code{state} time series.)}
 \item{control}{Control object
-    \itemize{
-    \item{range}{Specifies the index of all timepoints which should be tested. If range is \code{NULL} the maximum number of possible weeks is used.}
-    \item{b}{how many years back in time to include when forming the base counts.}
-    \item{w}{windows size, i.e. number of weeks to include before and after the current week}
-    \item{reweight}{Boolean specifying whether to perform reweight step}
-    \item{trend}{If \code{true} a trend is included and kept in case
-        the conditions in the Farrington et. al. paper are met (see
-        the results). If \code{false} then NO trend is fit.}
-    \item{verbose}{show extra debugging information}
-    \item{plot}{shows the final GLM model fit graphically (use History|Recording to see all pictures)}
-    \item{powertrans}{Power transformation to apply to the data. Use either "2/3" for skewness correction (Default), "1/2" for variance stabilizing transformation or "none" for no transformation}
-    \item{alpha}{An approximate (two-sided) \eqn{(1-\alpha)\%}\ prediction interval is calculated}
-    \item{limit54}{To avoid alarms in cases where the time series only has about 0-2 cases the algorithm uses the following heuristic criterion (see Section 3.8 of the Farrington paper) to protect against low counts: no alarm is sounded if fewer than \eqn{cases=5} reports were received in the past \eqn{period=4} weeks. \code{limit54=c(cases,period)} is a vector allowing the user to change these numbers. Note: As of version 0.9-7 The term "last" period of weeks includes the current week - otherwise no alarm is sounded for horrible large numbers if the four weeks before that are too low.}
-\item{fitFun}{String containing the name of the fit function to be used for fitting the GLM. The options are \code{algo.farrington.fitGLM.fast} (default) and \code{algo.farrington.fitGLM}. See \code{\link{algo.farrington.fitGLM}} for details.
-    }}}
+    \describe{
+    \item{\code{range}}{Specifies the index of all timepoints which
+        should be tested. If range is \code{NULL} the maximum number
+        of possible weeks is used.}
+    \item{\code{b}}{how many years back in time to include when
+        forming the base counts.}
+    \item{\code{w}}{windows size, i.e. number of weeks to include
+        before and after the current week}
+    \item{\code{reweight}}{Boolean specifying whether to perform reweight step}
+    \item{\code{trend}}{If \code{true} a trend is included and kept in
+        case the conditions in the Farrington et. al. paper are met
+        (see the results). If \code{false} then NO trend is fit.}
+    \item{\code{verbose}}{show extra debugging information}
+    \item{\code{plot}}{shows the final GLM model fit graphically (use
+        History|Recording to see all pictures)}
+    \item{\code{powertrans}}{Power transformation to apply to the
+        data. Use either "2/3" for skewness correction (Default),
+        "1/2" for variance stabilizing transformation or "none" for no
+        transformation}
+    \item{\code{alpha}}{An approximate (two-sided) \eqn{(1-\alpha)\%}\
+        prediction interval is calculated}
+    \item{\code{limit54}}{To avoid alarms in cases where the time series only
+        has about 0-2 cases the algorithm uses the following heuristic
+        criterion (see Section 3.8 of the Farrington paper) to protect
+        against low counts: no alarm is sounded if fewer than
+        \eqn{cases=5} reports were received in the past \eqn{period=4}
+        weeks. \code{limit54=c(cases,period)} is a vector allowing the
+        user to change these numbers. Note: As of version 0.9-7 The
+        term "last" period of weeks includes the current week -
+        otherwise no alarm is sounded for horrible large numbers if
+        the four weeks before that are too low.}
+    \item{\code{fitFun}}{String containing the name of the fit
+        function to be used for fitting the GLM. The options are
+        \code{algo.farrington.fitGLM.fast} (default) and
+        \code{algo.farrington.fitGLM} or 
+        \code{algo.farrington.fitGLM.populationOffset}. See details of
+        \code{\link{algo.farrington.fitGLM}} for more information.}
+      % 
+      }
+    }
 }
 \details{
   The following steps are perfomed according to the Farrington
-  et. al. (1996) paper.
+  et al. (1996) paper.
 \enumerate{
-\item fit of the initial model and initial estimation of mean and overdispersion.
+\item fit of the initial model and initial estimation of mean and
+  overdispersion.
 \item calculation of the weights omega (correction for past outbreaks)
 \item refitting of the model
 \item revised estimation of overdispersion
@@ -68,16 +103,18 @@ x <- matrix(rpois(1000,lambda=1),ncol=1)
 sts <- new("sts", observed=x, epoch=1:nrow(x), state=x*0, freq=52)
 
 #Compare timing of the two possible fitters for algo.farrington (here using S4)
-system.time( sts1 <- farrington(sts, control=list(range=c(500:1000),fitFun="algo.farrington.fitGLM.fast")))
-system.time( sts2 <- farrington(sts, control=list(range=c(500:1000),fitFun="algo.farrington.fitGLM")))
+system.time( sts1 <- farrington(sts, control=list(range=c(500:1000),
+                       fitFun="algo.farrington.fitGLM.fast")))
+system.time( sts2 <- farrington(sts, control=list(range=c(500:1000),
+                       fitFun="algo.farrington.fitGLM")))
 
 #Check if results are the same
 sum(upperbound(sts1) - upperbound(sts2))
 }
 }
-\author{M. \enc{HÃ¶hle}{Hoehle}}
+\author{M. \enc{Höhle}{Hoehle}}
 \seealso{\code{\link{algo.farrington.fitGLM}},\code{\link{algo.farrington.threshold}}}
 \keyword{classif}
-\source{A statistical algorithm for the early detection of outbreaks of infectious disease, Farrington, C.P., Andrews, N.J, Beale A.D. and Catchpole, M.A. (1996). , J. R. Statist. Soc. A, 159, 547-563.}
+\source{A statistical algorithm for the early detection of outbreaks of infectious disease, Farrington, C.P., Andrews, N.J, Beale A.D. and Catchpole, M.A. (1996), J. R. Statist. Soc. A, 159, 547-563.}
 
 

@@ -1,6 +1,6 @@
 ######################################################################
 #  Demo of the code used in the book chapter
-#  Höhle, M. and A. Mazick, A. (2009) Aberration detection in R
+#  Hoehle, M. and A. Mazick, A. (2009) Aberration detection in R
 #  illustrated by Danish mortality monitoring,  Book chapter to appear in
 #  T. Kass-Hout and X. Zhang (Eds.) Biosurveillance: A Health Protection
 #  Priority, CRC Press.

@@ -2,7 +2,7 @@
 ### chunk number 1: 
 ###################################################
 
-algo.hmm <- function(disProgObj, control = list(range=range, Mtilde=-1, noStates=2, trend=TRUE, noHarmonics=1,covEffectEqual=FALSE, saveHMMs = FALSE )){
+algo.hmm <- function(disProgObj, control = list(range=range, Mtilde=-1, noStates=2, trend=TRUE, noHarmonics=1,covEffectEqual=FALSE, saveHMMs = FALSE, extraMSMargs=list() )){
 
   # Set the default values if not yet set
   if(is.null(control$Mtilde)){ control$Mtilde <- -1 }
@@ -11,6 +11,7 @@ algo.hmm <- function(disProgObj, control = list(range=range, Mtilde=-1, noStates
   if(is.null(control$noHarmonics)){ control$noHarmonics <- 1 }
   if(is.null(control$covEffectEqual)){ control$covEffectEqual <- FALSE }
   if(is.null(control$saveHMMs)){ control$saveHMMs <- FALSE }
+  if(is.null(control$extraMSMargs)){ control$extraMSMargs <- list() }
 
   #Stop if not enough for estimation
   if(min(control$range) < 2) {
@@ -70,18 +71,22 @@ algo.hmm <- function(disProgObj, control = list(range=range, Mtilde=-1, noStates
       }
     }
 
+    #Prepare object for msm fitting
+    msm.args <- list(formula = observed ~ t,
+        data = counts,
+        #HMM with "noStates" states having equal initial values
+        qmatrix = matrix(1/control$noStates,control$noStates,control$noStates),
+        #y|x \sim Po( \mu[t] ) with some initial values
+        hmodel = hmodel,
+        #Models for \log \mu_t^1 and \log \mu_t^2
+        hcovariates = hcovariates,
+        #Force the effects of the trend and harmonics to be equal for all states
+        hconstraint=hconstraint)
+    #Add additional msm arguments
+    msm.args <- modifyList(msm.args, control$extraMSMargs)
 
     # fit the HMM
-    hmm <- msm(observed ~ t, data=counts,
-               #Two state HMM with initial values
-               qmatrix = matrix(1/control$noStates,control$noStates,control$noStates),
-               #y|x \sim Po( \mu[t] ) with some initial values
-               hmodel = hmodel,
-               #Models for \log \mu_t^1 and \log \mu_t^2
-               hcovariates = hcovariates,
-               #Force the effects of the trend and harmonics to be equal for all states
-               hconstraint=hconstraint
-               )
+    hmm <- do.call(what="msm", args=msm.args)
     
     #In case the model fits should be saved.
     if (control$saveHMMs) {

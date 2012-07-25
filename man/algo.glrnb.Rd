@@ -152,11 +152,11 @@ plot(glr.ts2,xaxis.years=FALSE)
 \keyword{classif}
 \source{
 Count data regression charts for the monitoring of surveillance time
-series (2008), M. \enc{HÃ¶hle}{Hoehle} and M. Paul, Computational Statistics and
+series (2008), M. \enc{Höhle}{Hoehle} and M. Paul, Computational Statistics and
 Data Analysis, 52(9), pp. 4357--4368.
 
 Poisson regression charts for the monitoring of surveillance time
-series (2006), \enc{HÃ¶hle}{Hoehle}, M., SFB386 Discussion Paper 500.
+series (2006), \enc{Höhle}{Hoehle}, M., SFB386 Discussion Paper 500.
 }
 
 

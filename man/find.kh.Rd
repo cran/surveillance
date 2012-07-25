@@ -20,7 +20,7 @@
      Returns a list with reference value k and decision interval h.
 }
 \details{
-        Functions from the spc package are used in a simple univariate
+        Functions from the \pkg{spc} package are used in a simple univariate
         root finding problem.
 }
 %\seealso{}

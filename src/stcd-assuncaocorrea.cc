@@ -6,10 +6,12 @@
  */
 
 #include "stcd-assuncaocorrea.h"
+
 #include <cmath>
 #include <iostream>
 
 using namespace std;
+
 
 // Calculate the number of events in the cylinder B( (xk,yk), rho)
 // (i.e. represented by the boolean matrix MSpace) between event times
@@ -40,6 +42,8 @@ int ContaEvt(short **MSpace, const int EvtN, const int EvtJ)
     Soma += MSpace[EvtJ][i];
   return(Soma);
 }
+
+
 
 //////////////////////////////////////////////////////////////////////
 // Comment: Unfortunately, this function has not been commented in the 
@@ -279,7 +283,7 @@ int CalculaLambda(SVEventLst &ev, const double RaioC, const double epslon, std::
 
 extern "C" {
 
-  void SRspacetime(double *x, double *y, double *t, long *n, double *radius,
+  void SRspacetime(double *x, double *y, double *t, int *n, double *radius,
 		   double *epsilon, double *areaA, double *areaAcapBk,
 		   int *cusum, double *threshold, 
 		   double *Rarray, int *idxFirstAlarm, int *idxClusterCenter) {
@@ -288,7 +292,7 @@ extern "C" {
   SVEvent e;
   SVEventLst eList;
   unsigned int i;
-  long j;
+  int j;
   //Fill coordinates of event list
   for(j=0;j<*n;j++){
     e.x = x[j];

@@ -6,12 +6,16 @@
 # lag.range =c(lag.neg, lag.pos) 
 #  i.e. (1,0) for t-1,t (DEFAULT)
 #       (2,2) for t-2,t-1,t,t+1,t+2
-algo.hhh<-function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE, 
-   linear=FALSE, nseason=0,
-   negbin=c("none", "single", "multiple"), 
-   proportion=c("none", "single", "multiple"),
-   lag.range=NULL),
-               thetastart=NULL, verbose=TRUE){
+algo.hhh <- function(disProgObj, 
+                     control=list(lambda=TRUE, 
+                                  neighbours=FALSE, 
+                                  linear=FALSE, 
+                                  nseason=0,
+                                  negbin=c("none", "single", "multiple"), 
+                                  proportion=c("none", "single", "multiple"),
+                                  lag.range=NULL),
+                     thetastart=NULL, 
+                     verbose=TRUE){
         
   #Convert sts objects
   if (class(disProgObj) == "sts") disProgObj <- sts2disProg(disProgObj)
@@ -56,6 +60,8 @@ algo.hhh<-function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
                            max(c(-lags,0), na.rm=TRUE))
   }
 
+  # check if observed is a vector and convert to matrix if necessary
+  if(is.vector(disProgObj$observed)) disProgObj$observed <- as.matrix(disProgObj$observed)
   n <- nrow(disProgObj$observed)
   nareas <- ncol(disProgObj$observed)
 
@@ -77,8 +83,9 @@ algo.hhh<-function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
   
   # check neighbourhood matrix if neighbours=TRUE or proportion!="none"
   if(sum(!is.na(control$neighbours))>0 | control$proportion != "none"){
-    if(any(is.na(disProgObj$neighbourhood)))
-    stop("No correct neighbourhood matrix given\n")
+    # is there a neighbourhood matrix?
+    if(is.null(disProgObj$neighbourhood)) stop("No neighbourhood matrix is provided\n")
+    if(any(is.na(disProgObj$neighbourhood))) stop("No correct neighbourhood matrix given\n")
   }
 
   #make "design" matrices
@@ -839,8 +846,12 @@ make.design <- function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
 
   Y <- matrix(data[t.min:t.max,],nrow=length(t.min:t.max),ncol=nareas)
   
-  # population sizes n_{i,t} 
-  population <- matrix(disProgObj$populationFrac[t.min:t.max,],nrow=length(t.min:t.max),ncol=nareas)
+  # population sizes n_{i,t}
+  if(is.null(disProgObj$populationFrac)){
+	population <- matrix(1, nrow=length(t.min:t.max),ncol=nareas)
+  } else {
+	population <- matrix(disProgObj$populationFrac[t.min:t.max,],nrow=length(t.min:t.max),ncol=nareas)
+  }
 
   # observed counts at time point t-lag
   # NOTE: the same lag (the maximum lag) is used for all areas
@@ -872,7 +883,12 @@ make.design <- function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
   # now define design matrix (for trend and seasonality) for each time point
 
   #t<- disProgObj$week[t.min:t.max]
-  t<- disProgObj$week[(t.min:t.max)-1]
+  # if no $week is given 
+  if(is.null(disProgObj$week)){
+	t <- (t.min:t.max)-1
+  } else {
+	t<- disProgObj$week[(t.min:t.max)-1]
+  }
   #t <- t - mean(t)
 
   form<-function(mod=ifelse(dimTrend == 0,"~-1","~-1+t"),
@@ -1109,6 +1125,7 @@ coef.ahg <- function(object,se=FALSE, amplitudeShift=FALSE, reparamPsi=FALSE,...
 ###################################################
 ### chunk number 11: 
 ###################################################
+## convert between sin/cos and amplitude/shift formulation
 ###################################################
 # y = gamma*sin(omega*t)+delta*cos(omega*t)
 #   =  A*sin(omega*t + phi)
@@ -1131,6 +1148,22 @@ sinCos2amplitudeShift <- function(params){
     return(c(amplitude,shift))
   }
   return(c(sapply(index.sin,one,params=params)))
+}
+
+amplitudeShift2sinCos <- function(params){
+    lengthParams <- length(params)
+    if (lengthParams%%1 != 0) 
+        stop("wrong number of params")
+    index.A <- seq(1, lengthParams, by = 2)
+    one <- function(i = 1, params) {
+        coef.A <- params[i]
+        coef.shift <- params[i + 1]
+        coef.cos <- -coef.A*tan(coef.shift)/sqrt(1+tan(coef.shift)^2)
+        coef.sin <- -coef.A/sqrt(1+tan(coef.shift)^2)
+        return(c(coef.sin,coef.cos))
+    }
+    return(c(sapply(index.A, one, params = params)))
+
 }
 
 ##############################################
@@ -1478,12 +1511,12 @@ gradient <- function(theta,designRes){
         grSeason[j-(designRes$dimTheta$trend>0),(j > (2*control$nseason)+(designRes$dimTheta$trend>0))] <- NA
       }  
       # gradient now is in order sin(omega_1)_A, sin(omega_1)_B, sin(omega_1)_C, ...  
-      #									cos(omega_1)_A, cos(omega_1)_B, cos(omega_1)_C, ...
-      #									sin(omega_2)_A, sin(omega_2)_B, sin(omega_2)_C, ...  
-      #									...
+      #                          cos(omega_1)_A, cos(omega_1)_B, cos(omega_1)_C, ...
+      #                          sin(omega_2)_A, sin(omega_2)_B, sin(omega_2)_C, ...  
+      #                          ...
       # and needs to be in the following order:
-      # 		sin(omega_1)_A, cos(omega_1)_A, sin(omega_2)_A, ..., cos(omega_S.max)_A
-      # 		sin(omega_1)_B, cos(omega_1)_B, sin(omega_2)_B, ..., cos(omega_S.max)_B
+      #     sin(omega_1)_A, cos(omega_1)_A, sin(omega_2)_A, ..., cos(omega_S.max)_A
+      #     sin(omega_1)_B, cos(omega_1)_B, sin(omega_2)_B, ..., cos(omega_S.max)_B
   
       # remove NA's, i.e. only derivatives for {gamma_{ij}: j <=2*S_i}
       # check if there are any NaN's
@@ -1596,6 +1629,7 @@ jacobian <- function(thetahat, designRes){
   nseason <- designRes$control$nseason
   
   alpha <- colnames(designRes$disProgObj$observed)
+  if(is.null(alpha)) alpha <- paste("obs",1:nareas, sep="")
   thetaNames <- c(thetaNames, alpha)
 
   if(dimLambda >0){
@@ -1706,14 +1740,7 @@ getLambda <- function(theta.epidemic, designRes, t.weights=1){
     else return(NULL)
   }
   
-  nhood <- designRes$disProgObj$neighbourhood
-  # time-varying weights w_ji
-  if(length(dim(nhood))==3)
-    nhood <- nhood[,,t.weights]
-    
-  diag(nhood) <- 0
-  nareas <- ncol(nhood)
-  nOfNeighbours <- colSums(nhood>0)
+   nareas <- ncol(designRes$Y) #ncol(nhood)
   
   if(designRes$control$proportion=="none"){
     # no lambda
@@ -1730,6 +1757,16 @@ getLambda <- function(theta.epidemic, designRes, t.weights=1){
     Lambda <- diag(lambda,nareas)
     
     if(dimPhi>0){
+      # extract neighbourhood, i.e. weight matrix
+      nhood <- designRes$disProgObj$neighbourhood
+      # time-varying weights w_ji
+      if(length(dim(nhood))==3)
+        nhood <- nhood[,,t.weights]
+      
+      # ensure the diagonal is zero
+      diag(nhood) <- 0
+      nOfNeighbours <- colSums(nhood>0)
+    
       # single phi for all units
       if(length(designRes$control$neighbours)==1 & sum(!is.na(designRes$control$neighbours))==1){
         phi <-rep(coef.phi,nareas)
@@ -1737,7 +1774,7 @@ getLambda <- function(theta.epidemic, designRes, t.weights=1){
         phi <- rep(0,nareas)
         phi[!is.na(designRes$control$neighbours)] <- coef.phi
       }  
-      phi.weights <- matrix(phi,nrow=nareas,ncol=nareas,byrow=FALSE)*nhood#designRes$disProgObj$neighbourhood
+      phi.weights <- matrix(phi,nrow=nareas,ncol=nareas,byrow=FALSE)*nhood
       Lambda[nhood>0] <- phi.weights[nhood>0]
     }
 
@@ -1764,18 +1801,18 @@ expAlpha.mm <- function(Lambda,Y){
 
 ########
 logLik.ah <- function(object,...){
-	if(!inherits(object, "ah"))
-		stop("expected object to be an object of class ah\n")
-	if(!object$convergence)
-		stop("algorithm did not converge\n")
-	val <- object$loglikelihood
-	attr(val, "df") <- length(coef(object))
-	attr(val, "nobs") <- object$nObs
-	class(val) <- "logLik"
-	return(val)
+   if(!inherits(object, "ah"))
+      stop("expected object to be an object of class ah\n")
+   if(!object$convergence)
+      stop("algorithm did not converge\n")
+   val <- object$loglikelihood
+   attr(val, "df") <- length(coef(object))
+   attr(val, "nobs") <- object$nObs
+   class(val) <- "logLik"
+   return(val)
 }
 logLik.ahg <- function(object, ...){
-	logLik.ah(object$best)
+   logLik.ah(object$best)
 }
 
 
