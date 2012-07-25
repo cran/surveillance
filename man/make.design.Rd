@@ -19,7 +19,7 @@ make.design(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
               parameter \eqn{\lambda} is included, if \code{lambda} is a vector of logicals,
               unit-specific parameters \eqn{\lambda_i} are included. By default, observations \eqn{y_{t-lag}}{y_t-lag}
               at the previous time points, i.e. \eqn{lag=1}, are used for the autoregression. Other lags can be
-              used by specifying \code{lambda} as a vector of integers, see Examples and \code{\link{meanResponse}} for details.}
+              used by specifying \code{lambda} as a vector of integers, see \code{\link{algo.hhh}} for details.}
         \item{\code{neighbours}}{If \code{TRUE} an autoregressive parameter for 
               adjacent units \eqn{\phi} is included, if \code{neighbours} is a vector of logicals,
               unit-specific parameters \eqn{\phi_i} are included. By default, observations \eqn{y_{t-lag}}{y_t-lag}
@@ -32,12 +32,11 @@ make.design(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
               of integers, each unit \eqn{i} gets its own seasonal parameters }
         \item{\code{negbin}}{if \code{"single"} negative binomial rather than poisson is used,
               if \code{"multiple"} unit-specific overdispersion parameters are used.}
-        \item{\code{proportion}}{see details in \code{\link{meanResponse}} }
+        \item{\code{proportion}}{see details in \code{\link{algo.hhh}} }
         \item{\code{lag.range}}{determines which observations are used to fit the model }
         }}        
 }
-\value{\item{list}{
-    \itemize{
+\value{Returns a list with elements 
     \item{Y}{matrix with number of cases \eqn{y_{it}}{y_it} in unit \eqn{i} at 
           time \eqn{t} as elements, i.e. data without the first time point.} 
     \item{Ym1}{matrix with previous number of cases \eqn{y_{i,t-1}}{y_i,t-1},
@@ -50,12 +49,11 @@ make.design(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
     \item{dimTheta}{list with number of parameters used in model}
     \item{control}{control object}
     \item{disProgObj}{Object of class \code{disProg}}
-    \item{lag}{which lag is used for the autoregressive parameters \eqn{lambda} and \eqn{phi} }
+    \item{lag}{which lag is used for the autoregressive parameters \eqn{\lambda} and \eqn{\phi} }
     \item{nObs}{number of observations}
-    }}
 }
 \author{M.Paul, L. Held}
-\keyword{misc}
+\keyword{internal}
 
 
 

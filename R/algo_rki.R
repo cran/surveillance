@@ -1,5 +1,8 @@
+### R code from vignette source 'Rnw/algo_rki.Rnw'
+### Encoding: ISO8859-1
+
 ###################################################
-### chunk number 1: 
+### code chunk number 1: algo_rki.Rnw:96-214
 ###################################################
 
 
@@ -25,7 +28,7 @@ algo.rkiLatestTimepoint <- function(disProgObj, timePoint = NULL, control = list
         stop("The vector of observed is too short!")
   }
 
-  # construct the reference values
+  # Extract the reference values from the historic time series
   basevec <- c()
   # if actY == TRUE use also the values of the year of timepoint
   if(control$actY){
@@ -49,6 +52,9 @@ algo.rkiLatestTimepoint <- function(disProgObj, timePoint = NULL, control = list
   }
   else{ # use the poisson distribution.
     # take the upper limit of the 95% CI from the table CIdata.txt.
+    #data("CIdata", envir=environment())   # only local assignment -> SM: however, should not use data() here
+    #CIdata <- read.table(system.file("data", "CIdata.txt", package="surveillance"), header=TRUE)
+    #SM: still better: use R/sysdata.rda (internal datasets being lazy-loaded into the namespace environment)
     # for the table-lookup mu must be rounded down.
     mu <- floor(mu)
     # we need the third column in the row mu + 1
@@ -65,9 +71,6 @@ algo.rkiLatestTimepoint <- function(disProgObj, timePoint = NULL, control = list
 # 'algo.rki' calls 'algo.bayesLatestTimepoint' for data points given by range.
 
 algo.rki <- function(disProgObj, control = list(range = range, b = 2, w = 4, actY = FALSE)){
-  # Load CIdata for algo.rkiLatestTimePoint, if it isn't loaded from .First.Lib() (zzz.Rnw)
-  data(CIdata)
-
   # Set the default values if not yet set
   if(is.null(control$b)){
     # value from rki 3

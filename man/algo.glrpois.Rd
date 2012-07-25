@@ -142,7 +142,7 @@ plot(lr.ts,xaxis.years=FALSE)
 \keyword{classif}
 \source{
 Poisson regression charts for the monitoring of surveillance time
-series (2006), \enc{HÃ¶hle}{Hoehle}, M., SFB386 Discussion Paper 500.
+series (2006), \enc{Höhle}{Hoehle}, M., SFB386 Discussion Paper 500.
 }
 
 

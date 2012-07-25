@@ -1,7 +1,6 @@
 \name{wrap.algo}
 \alias{wrap.algo}
 \alias{bayes}
-\alias{cdc}
 \alias{rki}
 \alias{hmm}
 \alias{cusum}
@@ -24,7 +23,6 @@ wrap.algo(sts, algo, control,control.hook=function(k)
 %Derived functions fixing the control object and the "algo" argument
 farrington(sts, control=list(range=NULL, b=3, w=3,reweight=TRUE,
          verbose=FALSE,alpha=0.01),...)
-cdc(sts, control= list(range = range,alpha=0.025),...)
 bayes(sts, control = list(range = range, b = 0, w = 6,
          actY = TRUE,alpha=0.05),...)
 rki(sts, control = list(range = range, b = 2, w = 4,
@@ -59,7 +57,6 @@ outbreakP(sts, control=list(range = range, k=100,
   surveillance algorithm. 
 }
 \seealso{
-  \code{\link{algo.bayes}}, \code{\link{algo.cdc}},
   \code{\link{algo.rki}}, \code{\link{algo.farrington}},
   \code{\link{algo.cusum}}, \code{\link{algo.glrpois}},
   \code{\link{algo.glrnb}}, \code{\link{algo.outbreakP}}

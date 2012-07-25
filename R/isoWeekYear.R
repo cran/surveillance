@@ -64,6 +64,8 @@ isoWeekYear<-function(Y,M=NULL,D=NULL){
 # Not very beautiful function implementing a platform independent
 # format.Date function. See format.Date, which for the %V and %G
 # format strings does not work on windows.
+# Added format string %Q for formatting of the quarter (1-4) the month
+# belongs to.
 #
 # Params:
 #  x - An object of type Date to be converted.
@@ -76,8 +78,12 @@ formatDate <- function(x, format) {
     res <- switch(format,
            "%G"=isoWeekYear(x)$ISOYear,
            "%V"=isoWeekYear(x)$ISOWeek,
-            format.Date(x, format))
+           "%Q"=as.character((as.numeric(format(x,"%m"))-1) %/% 3 + 1),
+                  format.Date(x, format))
   } else {
-    format.Date(x, format)
+    res <- switch(format,
+                  "%Q"=as.character((as.numeric(format(x,"%m"))-1) %/% 3 + 1),
+                  format.Date(x, format))
   }
+  return(res)
 }

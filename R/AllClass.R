@@ -1,6 +1,6 @@
 # -------------  class sts  ----------------------------------------
 
-setClass( "sts", representation(week = "numeric",
+setClass( "sts", representation(epoch = "numeric",  ##this slot used to be named week
                                 freq = "numeric",
                                 start = "numeric",
                                 observed = "matrix",
@@ -11,7 +11,16 @@ setClass( "sts", representation(week = "numeric",
                                 populationFrac= "matrix",
                                 map = "SpatialPolygonsDataFrame",
                                 control = "list",
-#New slots add
+#New slots added to handle proportion time series 
                                 epochAsDate="logical",
                                 multinomialTS="logical"))
 
+
+
+######################################################################
+# Definition of the stsBP class for backprojections.
+######################################################################
+
+setClass( "stsBP", representation(ci = "array",
+                                  lambda = "array"),
+                    contains = "sts")

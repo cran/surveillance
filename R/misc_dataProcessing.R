@@ -14,7 +14,9 @@ readData <- function(abb,week53to52=TRUE,sysPath=TRUE){
   #Read depending on which path is requested
   if (sysPath) {
     #Prepend the systempath/data to the filename
-    file <- file.path(.path.package('surveillance'),'data',paste(abb,".txt",sep=""))
+    #hoehle 2012-07-24 - this does not work when package is not
+    #installed. Use extdata as recommended in the file package structure.
+    file <- file.path(.path.package('surveillance'),'extdata',paste(abb,".txt",sep=""))
   } else {
     file <- file.path(paste(abb,".txt",sep=""))
   }

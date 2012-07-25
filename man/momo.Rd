@@ -39,7 +39,7 @@ data("momo")
 plot(momo,legend.opts=NULL)
 }
 \references{
-  HÃ¶hle, M. and A. Mazick, A. (2009) Aberration detection in R
+  Höhle, M. and A. Mazick, A. (2009) Aberration detection in R
   illustrated by Danish mortality monitoring,  Book chapter to appear in
   T. Kass-Hout and X. Zhang (Eds.) Biosurveillance: A Health Protection
   Priority, CRC Press.
@@ -62,4 +62,4 @@ plot(momo,legend.opts=NULL)
 %population(momo) <- as.matrix(read.csv("~/Surveillance/EuroMoMo/Data/population-dk.csv",check.names=FALSE))
 %save(file="~/Surveillance/surveillance/pkg/data/momo.RData",list=c("momo"))
 
-	   
+

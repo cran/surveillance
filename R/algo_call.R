@@ -121,11 +121,10 @@ print.algoQV <- function(x,...) {
 ###################################################
 xtable.algoQV <- function(x, caption = NULL, label = NULL, align = NULL,  
     digits = NULL, display = NULL, ...)  {
-
   n <- names(x)
   x <- matrix(x,nrow=1)
   dimnames(x)[[2]] <- n
-  xtable(x,caption, label, align, digits, display, ...)
+  xtable::xtable(x,caption, label, align, digits, display, ...)
 }
 
 
