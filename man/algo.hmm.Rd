@@ -1,3 +1,4 @@
+\encoding{latin1}
 \name{algo.hmm}
 \alias{algo.hmm}
 \title{Hidden Markov Model (HMM) method}
@@ -5,7 +6,7 @@
   %
   This function implements on-line HMM detection of outbreaks based on
   the retrospective procedure described in Le Strat and Carret (1999).
-  Using the function \code{msm} (library \code{msm}) a specified HMM
+  Using the function \code{\link[msm]{msm}} (from package \pkg{msm}) a specified HMM
   is estimated, the decoding problem, i.e. the most probable state
   configuration, is found by the Viterbi algorithm and the most
   probable state of the last observation is recorded. On-line
@@ -16,7 +17,7 @@
 \usage{
   algo.hmm(disProgObj, control = list(range=range, Mtilde=-1, 
              noStates=2, trend=TRUE, noHarmonics=1,
-             covEffectEqual=FALSE, saveHMMs = FALSE))
+             covEffectEqual=FALSE, saveHMMs = FALSE, extraMSMargs=list()))
 }
 \arguments{
         \item{disProgObj}{object of class disProg (including the observed and the state chain)}
@@ -30,19 +31,20 @@
                 estimating the HMM}
             \item{\code{Mtilde}}{number of observations back in time
                 to use for fitting the HMM (including
-                current). Reasonable values are a multiple of
+                the current observation). Reasonable values are a multiple of
                 \code{disProgObj$freq}, the default is
                 \code{Mtilde=-1}, which means to use all possible
                 values - for long series this might take very long time!}
             \item{\code{noStates}}{number of hidden states in the HMM
                 -- the typical choice is 2. The initial rates are set
-                such that the \code{noState}'th state is the one
-                having the highest rate. I.e. this state is considered
+                such that the \code{noStates}'th state is the one
+                having the highest rate. In other words: this state is considered
                 the outbreak state.}
             \item{\code{trend}}{Boolean stating whether a linear time trend exists, i.e. if \code{TRUE} (default) then \eqn{\beta_j \neq 0}{\beta != 0}}
             \item{\code{noHarmonics}}{number of harmonic waves to include in the linear predictor. Default is 1.}
             \item{\code{covEffectEqual}}{see details}
             \item{\code{saveHMMs}}{Boolean, if \code{TRUE} then the result of the fitted HMMs is saved. With this option the function can also be used to analyse data retrospectively. Default option is \code{FALSE}}
+            \item{\code{extraMSMArgs}}{A named list with additional arguments to send to the \code{\link[msm:msm]{msm}} HMM fitting function. Note that the \code{msm} arguments \code{formula}, \code{data}, \code{qmatrix}, \code{hmodel}, \code{hcovariates} and \code{hconstraint} are automatically filled by \code{algo.hmm}, thus these should NOT be modified.}
             }
           }
 }
@@ -53,7 +55,8 @@
     \code{upperbound} can be specified and is put equal to zero.
     
     The resulting object contains a slot \code{control$hmm}, which
-    contains the \code{msm} object with the fitted HMM.  } } 
+    contains the \code{msm} object with the fitted HMM.  }
+}
 \details{
 
   For each time point t the reference values values are extracted. If
@@ -82,7 +85,7 @@
   In case more complicated HMM models are to be fitted it is possible to
   modify the \code{msm} code used in this function. Using
   e.g. \code{AIC} one can select between different models (see the
-  \code{msm} package for further details). 
+  \pkg{msm} package for further details). 
 
   Using the Viterbi algorithms the most probable state configuration
   is obtained for the reference values and if the most probable
@@ -96,7 +99,7 @@
 
 }
 \seealso{\code{\link[msm:msm]{msm}}}
-\author{M. \enc{HÃ¶hle}{Hoehle}}
+\author{M. \enc{Höhle}{Hoehle}}
 \examples{
 \dontrun{
 set.seed(123)
@@ -110,7 +113,7 @@ counts <- sim.pointSource(p = 0.98, r = 0.8, length = 3*52,
 #window of two years is used to fit the HMM
 surv <- algo.hmm(counts, control=list(range=(2*52):length(counts$observed),
                                    Mtilde=2*52,noStates=2,trend=FALSE,
-                                   covEffectsEqual=TRUE))
+                                   covEffectsEqual=TRUE,extraMSMargs=list()))
 plot(surv,legend=list(x="topright"))
 
 #Retrospective use of the function, i.e. monitor only the last time point

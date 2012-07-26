@@ -3,13 +3,7 @@
 \docType{class}
 \alias{sts-class}
 %
-% other names
-%\alias{aggregate,sts-method}
-%\alias{plot,sts-method}
-%\alias{plot,sts,missing-method}
-\alias{nrow,sts-method}
-\alias{ncol,sts-method}
-\alias{dim,sts-method}
+% accessing the slots
 \alias{alarms,sts-method}
 \alias{alarms<-,sts-method}
 \alias{upperbound,sts-method}
@@ -18,23 +12,35 @@
 \alias{control<-,sts-method}
 \alias{epoch,sts-method}
 \alias{epoch<-,sts-method}
-\alias{epochInYear,sts-method}
 \alias{observed,sts-method}
 \alias{observed<-,sts-method}
 \alias{population,sts-method}
 \alias{population<-,sts-method}
+\alias{multinomialTS,sts-method}
+\alias{multinomialTS<-,sts-method}
+\alias{neighbourhood,sts-method}
+\alias{neighbourhood<-,sts-method}
+% other access methods
+\alias{nrow,sts-method}
+\alias{ncol,sts-method}
+\alias{dim,sts-method}
 \alias{colnames,sts,missing,missing-method}
+\alias{epochInYear}
+\alias{epochInYear,sts-method}
+\alias{year}
+\alias{year,sts-method}
+% other methods
 \alias{initialize,sts-method}
 \alias{as.data.frame,sts-method}
 
 \encoding{latin1}
 
-\title{Class "sts" -- surveillance time series}
+\title{Class \code{"sts"} -- surveillance time series}
 
 \description{
 
-  This is a rather leightweight class to implement multivariate time
-  series of count used for public health surveillance data. The class
+  This is a leightweight S4 class to implement multivariate time
+  series of counts used for public health surveillance data. The class
   captures the time series data as well as the spatial layout of the
   regions, where the data originate from.
 
@@ -42,8 +48,16 @@
 
 \section{Slots}{
   \describe{
-    \item{\code{week}:}{Object of class \code{numeric} specifying the week
-      numbers. Actually this is not really used at the moment. }
+    \item{\code{epoch}:}{Object of class \code{numeric} or specifying
+      the time of observation. In old versions of the package this used to
+      be the week numbers. However, depending on
+      the \code{freq} argument, it can now be day or month as
+      well. Furthermore, if \code{epochAsDate=TRUE} then 
+      it is the \code{as.numeric} representation of \code{Date} objects
+      giving the exact date of the observation. Note: This slot used to be
+      called \code{week} in earlier versions of the package, but has now been
+      renamed to reflect the greater 
+      flexibility in the choice of observation time.}
     \item{\code{freq}:}{If weekly data \code{freq} corresponds to 52, in
       case of monthly data \code{freq} is 12.}
     \item{\code{start}:}{vector of length two denoting the year and the
@@ -90,6 +104,10 @@
       slot of an \code{sts} object.}
     \item{population}{\code{signature(x = "sts")}: extract the \code{population}
       slot of an \code{sts} object.}
+    \item{multinomialTS}{\code{signature(x = "sts")}: extract the
+      \code{multinomialTS} slot of an \code{sts} object.}
+    \item{neighbourhood}{\code{signature(x = "sts")}: extract the
+	  \code{neighbourhood} slot of an \code{sts} object.}
     \item{alarms}{\code{signature(x = "sts")}: extract the \code{alarm}
       slot of an \code{sts} object.}
     \item{upperbound}{\code{signature(x = "sts")}: extract the \code{upperbound}
@@ -128,10 +146,19 @@
 
 \author{M. \enc{Höhle}{Hoehle}}
 \examples{
-  data("ha")
-  shp <- system.file("shapes/berlin.shp",package="surveillance")
-  ha <- disProg2sts(ha, map=readShapePoly(shp,IDvar="SNAME"))
-  plot(ha,type=observed ~ 1 | unit)
-
+  if (require("maptools")) {
+    # load disProg-object "ha" and convert to S4-class "sts"
+    data("ha")
+    shp <- system.file("shapes/berlin.shp",package="surveillance")
+    ha.sts <- disProg2sts(ha, map=maptools::readShapePoly(shp,IDvar="SNAME"))
+  } else {
+    # load pre-built sts-object
+    data("ha.sts")
+    # the only difference is that here German umlauts have been removed from
+    # 'ha.sts@map@data$BEZIRK' for compatibility reasons
+  }
+  
+  plot(ha.sts, type=observed ~ 1 | unit)
+  
 }
 \keyword{classes}

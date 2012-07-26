@@ -23,7 +23,7 @@ estimateGLRNbHook()
  This hook function allows the user to customize the behaviour of the algorithm.
 }
 \seealso{
-\code{\link{algo.glrpois}}
+\code{\link{algo.glrnb}} and \code{\link{algo.glrpois}}
 }
 \author{M. Hoehle}
 \examples{

@@ -28,9 +28,10 @@ loglikelihood(theta, designRes)
 \value{
     Returns the loglikelihood
 }
-\seealso{\code{\link{meanResponse}}}
+\seealso{\code{\link{algo.hhh}}}
 \author{M. Paul, L. Held}
-\keyword{models}
+\keyword{internal}
+%\keyword{models}
 
 
 % meanResponse

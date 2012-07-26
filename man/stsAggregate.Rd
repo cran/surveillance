@@ -39,7 +39,7 @@
   \code{\link{aggregate}}
 }
 \examples{
-  data(ha)
+  data("ha")
   has4 <- disProg2sts(ha)
   dim(has4)
   dim(aggregate(has4,by="unit"))

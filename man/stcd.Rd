@@ -18,17 +18,27 @@ stcd(x, y,t,radius,epsilon,areaA, areaAcapBk, threshold, cusum=FALSE)
   \item{radius}{Radius of the cluster to detect.}
   \item{epsilon}{Relative change of event-intensity within the cluster
     to detect. See reference paper for an explicit definition.}
-  \item{areaA}{???}
-  \item{areaAcapBk}{???}
+  \item{areaA}{Area of the observation region A (single number) -- This
+    argument is currently ignored!}
+  \item{areaAcapBk}{Area of A \ B(s_k,rho) for all k=1,\ldots,n
+    (vector). This argument is currently ignored!}
   \item{threshold}{Threshold limit for the alarm and should be equal to
     the desired Average-Run-Length (ARL) of the detector.}
-  \item{cusum}{???}
+  \item{cusum}{(logical) If \code{FALSE} (default) then the
+    Shiryaev-Roberts detector is used as in the original article by
+    Assuncao & Correa (2009), i.e. \eqn{R_n = \sum_{k=1}^n
+      \Lambda_{k,n}}, where \eqn{\Lambda_{k,n}} denotes the likelihood
+    ratio between the in-control and out-of control model. If
+    \code{TRUE}, CUSUM test statistic is 
+    used instead. Here, \deqn{R_n = \max_{1\leq k \leq n}
+      \Lambda_{k,n}}. Note that this has implications on what threshold
+    will sound the alarm (CUSUM threshold needs to be smaller).}
 }
 \details{
  Shiryaev-Roberts based spatio-temporal cluster detection based
  on the work in Assuncao and Correa (2009). The implementation
- is based on C++ code originally written by Marcos Oliveira Prates, UMFG,
- Brazil and provided by Thais Correa, UMFG, Brazil during her research
+ is based on C++ code originally written by Marcos Oliveira Prates, UFMG,
+ Brazil and provided by Thais Correa, UFMG, Brazil during her research
  stay in Munich. This stay was financially supported by the Munich
  Center of Health Sciences.
 

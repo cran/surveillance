@@ -1,6 +1,4 @@
-\keyword{ts}
 \name{display-methods}
-\alias{plot}
 \alias{plot,sts,missing-method}
 %\alias{print}
 %\alias{print,sts-method}
@@ -47,7 +45,7 @@
 	  \code{observed} matrix. It is possible to redirect the output
 	  into files, e.g. to generate an animated GIF. See the
 	  examples.}
-	\item{code{alarm ~ time}}{Generates a so called alarmplot for a
+	\item{\code{alarm ~ time}}{Generates a so called alarmplot for a
 	  multivariate \code{sts} object. For each time point and each
 	  series it is shown whether there is an alarm. In case of
 	  hierarchical surveillance the user can pass
@@ -114,16 +112,13 @@ The methods are called for their side-effects.
 }
 
 \examples{
-data(ha)
-shp <- system.file("shapes/berlin.shp",package="surveillance")
-has4 <- disProg2sts(ha, map=readShapePoly(shp,IDvar="SNAME"))
-
-print(has4)
-plot(has4, type= observed ~ time)
-plot(has4, type= observed ~ time | unit)
-plot(has4, type= observed ~ 1 | unit)
-plot(has4[1:20,1:2], type= observed ~ 1 | unit)
-plot(aggregate(has4,nfreq=13), type= observed ~ 1 | unit * time)
+data("ha.sts")
+print(ha.sts)
+plot(ha.sts, type= observed ~ time)
+plot(ha.sts, type= observed ~ time | unit)
+plot(ha.sts, type= observed ~ 1 | unit)
+plot(ha.sts[1:20,1:2], type= observed ~ 1 | unit)
+plot(aggregate(ha.sts,nfreq=13), type= observed ~ 1 | unit * time)
 
 
 \dontrun{
@@ -132,7 +127,7 @@ dev.printer <-
 list(device=png,extension=".png",width=640,height=480,name="/tmp/berlin")
 
 #Do the animation
-plot(aggregate(has4,nfreq=13), type = observed ~ 1 | unit * time,
+plot(aggregate(ha.sts,nfreq=13), type = observed ~ 1 | unit * time,
          dev.printer=dev.printer)
 
 #Use ImageMagick -- replace /sw/bin/convert by your path to convert
@@ -141,3 +136,6 @@ system(paste("/sw/bin/convert -delay 50 ",dev.printer$name,
 }
 
 }
+
+\keyword{ts}
+\keyword{hplot}

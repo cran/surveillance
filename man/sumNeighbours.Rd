@@ -14,7 +14,4 @@
 }
 \value{matrix of dimension \eqn{n \times m}{n x m}
 }
-\keyword{hplot}
-
-
-% aggregate.disProg
+\keyword{internal}

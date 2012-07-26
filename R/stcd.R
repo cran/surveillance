@@ -1,8 +1,8 @@
 ######################################################################
 # Shiryaev-Roberts based spatio-temporal cluster detection based
 # on the work in Assuncao & Correa (2009). The implementation
-# is based on C++ code was originally written by Marcos Oliveira Prates, UMFG,
-# Brazil and provided by Thais Correa, UMFG, Brazil during her research
+# is based on C++ code was originally written by Marcos Oliveira Prates, UFMG,
+# Brazil and provided by Thais Correa, UFMG, Brazil during her research
 # stay in Munich. This stay was financially supported by the Munich
 # Center of Health Sciences.
 #
@@ -24,7 +24,7 @@
 
 
 stcd <- function(x, y,t,radius,epsilon,areaA, areaAcapBk, threshold,cusum=FALSE) {
-  #check that x,y,t are of the same length.
+  #check that the vectors x,y,t are of the same length.
   n <- length(x)
   if ((length(y) != n) | (length(t) != n)) {
     stop("Vectors x,y,t not of same size.")
@@ -40,7 +40,7 @@ stcd <- function(x, y,t,radius,epsilon,areaA, areaAcapBk, threshold,cusum=FALSE)
   res$idxCC <- res$idxCC+1
   
   #Missing: compute which indices are part of the cluster.
-  #Thais
+  #--> Thais R-code
   
-  return(list(R=res$R,idxFA=res$idxFA+1,idxCC=res$idxCC+1))
+  return(list(R=res$R,idxFA=res$idxFA,idxCC=res$idxCC))
 }

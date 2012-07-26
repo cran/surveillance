@@ -1,7 +1,6 @@
-\name{[-methods}
+\name{[,sts-methods}
 \docType{methods}
-\alias{[-methods}
-\title{Methods for "[": Extraction or Subsetting in Package 'surveillance'}
+\title{Extraction and Subsetting of \pkg{sts} objects}
 %
 % This is stolen from the Matrix package. 
 %\alias{[,sts,missing,missing,ANY-method}
@@ -12,7 +11,7 @@
 %
 \description{
   Methods for \code{"["}, i.e., extraction or subsetting of the
-  \code{sts} class in package \pkg{surveillance}.
+  \code{"\linkS4class{sts}"} class in package \pkg{surveillance}.
 
   Note that \code{[<--methods} methods (i.e. subassigments) are
   currently not supported.
@@ -29,20 +28,18 @@
 }
 
 \examples{
-data(ha)
-#Convert to S4 object
-shp <- system.file("shapes/berlin.shp",package="surveillance")
-has4 <- aggregate(disProg2sts(ha,map=readShapePoly(shp,IDvar="SNAME")),nfreq=13)
+data("ha.sts")
+haagg <- aggregate(ha.sts, nfreq=13)
 
 #A suite of of simple tests (inspired by the Matrix package)
-stopifnot(identical(has4, has4[]))
+stopifnot(identical(ha.sts, ha.sts[]))
 
 
-plot(has4[, 3])       # Single series
-plot(has4[1:30, 3])   # Somewhat shorter
+plot(haagg[, 3])       # Single series
+plot(haagg[1:30, 3])   # Somewhat shorter
 
 #Counts at time 20
-plot(has4[20, ],type = observed ~1 |unit)
+plot(haagg[20, ], type = observed ~1 |unit)
 
 }
 \keyword{methods}

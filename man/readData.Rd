@@ -10,7 +10,8 @@
 \arguments{
         \item{abb}{abbreviation of the diseasename.}
         \item{week53to52}{Boolean indicating whether to convert RKI 53 Weeks System to 52 weeks a year} 
-          \item{sysPath}{Boolean, if \code{TRUE} then R automatically looks in the data directory of the surveillance package.}
+          \item{sysPath}{Boolean, if \code{TRUE} then R automatically looks in the data directory of the
+          \pkg{surveillance} package.}
 }
 \value{
         \item{disProg}{a object \code{disProg} (disease progress) including a list of the observed and the state chain.}

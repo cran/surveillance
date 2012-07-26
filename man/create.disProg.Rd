@@ -1,5 +1,6 @@
 \name{create.disProg}
 \alias{create.disProg}
+\alias{print.disProg}
 \encoding{latin1}
 
 \title{Creating an object of class disProg}
@@ -34,19 +35,22 @@
 \author{M. Paul}
 \examples{
 
-  # create an univariate disProg object for the salmonella.agona data
-  data(salmonella.agona)
-  week <- 1:length(salmonella.agona$observed)
-  salmonellaDisProg <- create.disProg(week=week, observed=salmonella.agona$observed,
-  state=salmonella.agona$state)
+  # create an univariate disProg object 
+  # read in salmonella.agona data
+  salmonella <- read.table(system.file("extdata/salmonella.agona.txt", 
+                                      package = "surveillance"), header = TRUE)
+  # look at data.frame
+  str(salmonella)
+
+  salmonellaDisProg <- create.disProg(week = 1:nrow(salmonella), 
+        observed = salmonella$observed,
+        state = salmonella$state, start = c(1990, 1))
+
+  # look at disProg object
+  salmonellaDisProg
   
-  # plot salmonella cases
-  title <- "Salmonella Agona cases in the UK"
-  plot(salmonellaDisProg, title = title, xaxis.years=TRUE, legend.opts=NULL,
-        startyear = 1990, firstweek = 1)
 }
 \keyword{hplot}
 
 
 
-% sumNeighbours

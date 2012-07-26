@@ -62,7 +62,7 @@ wrap.algo <- function(sts, algo, control,
   start.year <- start[1] + (new.sampleNo - 1) %/% sts@freq 
   start.sampleNo <- (new.sampleNo - 1) %% sts@freq + 1
   sts@start <- c(start.year,start.sampleNo)
-  sts@week <- sts@week[control$range]
+  sts@epoch <- sts@epoch[control$range]
   sts@epochAsDate <- sts@epochAsDate
   
   #Ensure dimnames in the new object
@@ -74,14 +74,6 @@ wrap.algo <- function(sts, algo, control,
 #Farrington wrapper
 farrington <- function(sts, control=list(range=NULL, b=3, w=3, reweight=TRUE, verbose=FALSE,alpha=0.01),...) {
   wrap.algo(sts,algo="algo.farrington",control=control,...)
-}
-
-#CDC wrapper
-cdc <- function(sts, control= list(range = range,alpha=0.025),...) {
-  if (sts@epochAsDate) {
-    warning("algo.cdc currently can't handle Date entries. Computing reference values based on freq")
-  }
-  wrap.algo(sts,algo="algo.cdc",control=control,...)
 }
 
 #Bayes wrapper (this can be implemented more efficiently)
