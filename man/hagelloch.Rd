@@ -17,7 +17,7 @@ data("hagelloch")
   \code{hagelloch} and \code{hagelloch.df}. The former is an
   \code{epidata} object for use with \code{twinSIR} containing the
   entire process history of outbreak in the population of 188 children.
-  The latter is a simple \code{data.frame} containing the a single line
+  The latter is a simple \code{data.frame} containing a single line
   with individual information of each infected child. 
 
   The covariate information in either \code{hagelloch} or
@@ -94,20 +94,19 @@ data("hagelloch")
   #Represented as epidata object
   summary(hagelloch)
 
-  ###################################################
-  #Use data.frame to illustrate the basics
-  ##################################################
+  ### Use data.frame to illustrate the basics
 
   #Show case locations as in Neal & Roberts (different scaling) using
-  #the data.frame
+  #the data.frame (promoted to a SpatialPointsDataFrame)
   coordinates(hagelloch.df) <- c("HNX","HNY")
   plot(hagelloch.df,xlab="x [m]",ylab="x [m]",pch=15,axes=TRUE,cex=sqrt(multiplicity(hagelloch.df)))
 
   #Epicurve
   hist(as.numeric(hagelloch.df$tS),xlab="Time (days)",ylab="Cases",main="")
 
-  #SIR model information for population & individuals
-  plot(hagelloch,col=c("green","red","darkgray"))
+  ### SIR model information for population & individuals
+
+  plot(hagelloch, col=c("green","red","darkgray"))
   stateplot(hagelloch, id=c("187"))
 
   \dontrun{
@@ -115,7 +114,7 @@ data("hagelloch")
     animate(hagelloch,time.spacing=0.1,legend.opts=list(x="topleft"),sleep=10/550)
   }
 
-  #For an analysis of the data see also the example of twinSIR. (@Michael: TODO)
+  #For an analysis of the data see also the example of twinSIR.
 }
 
 \references{
@@ -128,7 +127,7 @@ data("hagelloch")
   in Hagelloch, M.D. Thesis, Eberhard-Karls Universit\enc{ä}{ae}at,
   T\enc{ü}{ue}bingen.
 
-  Neal, P. J. and Robert, G. O (2004). Statistical inference and model
+  Neal, P. J. and Roberts, G. O (2004). Statistical inference and model
   selection for the 1861 Hagelloch measles epidemic, Biostatistics
   5(2):249-261
 }

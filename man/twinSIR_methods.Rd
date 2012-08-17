@@ -4,7 +4,6 @@
 \alias{summary.twinSIR}
 \alias{AIC.twinSIR}
 \alias{extractAIC.twinSIR}
-\alias{coef.twinSIR}
 \alias{vcov.twinSIR}
 \alias{logLik.twinSIR}
 \alias{print.summary.twinSIR}
@@ -16,7 +15,7 @@ Print, Summary and Extraction Methods for \code{"twinSIR"} Objects
 \description{
 Besides \code{print} and \code{summary} methods there are also some standard
 extraction methods defined for objects of class \code{"twinSIR"}:
-\code{coef}, \code{vcov}, \code{logLik} and especially \code{AIC} and
+\code{vcov}, \code{logLik} and especially \code{AIC} and
 \code{extractAIC}, which extract Akaike's Information Criterion.  Note that
 special care is needed, when fitting models with parameter constraints such as
 the epidemic effects \eqn{\alpha} in \code{twinSIR} models.  Parameter
@@ -35,7 +34,6 @@ calculation of the so-called one-sided AIC (OSAIC).
 \method{extractAIC}{twinSIR}(fit, scale = 0, k = 2, one.sided = NULL,
            nsim = 1e3, ...)
 
-\method{coef}{twinSIR}(object, ...)
 \method{vcov}{twinSIR}(object, ...)
 \method{logLik}{twinSIR}(object, ...)
 
@@ -64,7 +62,7 @@ calculation of the so-called one-sided AIC (OSAIC).
     For the \code{summary} method: arguments passed to
     \code{\link{extractAIC.twinSIR}}.\cr
     For the \code{AIC} method, optionally more fitted model objects.\cr
-    For the \code{print}, \code{extractAIC}, \code{coef}, \code{vcov} and
+    For the \code{print}, \code{extractAIC}, \code{vcov} and
     \code{logLik} methods: unused (argument of the generic).
   }
   \item{k}{
@@ -98,7 +96,10 @@ calculation of the so-called one-sided AIC (OSAIC).
   additionally the number of infections per log-baseline \code{interval}, 
   the (one-sided) AIC and the number of log-likelihood evaluations.  They both
   append a big \dQuote{WARNING}, if the optimization algorithm did not converge.
-  
+
+  The estimated coefficients may be extracted by using the default
+  \code{coef}-method from package \pkg{stats}.
+    
   The two AIC functions differ only in that \code{AIC} can take more than one
   fitted model object and that \code{extractAIC} always returns the number of
   parameters in the model (\code{AIC} only does with more than one fitted model
@@ -119,8 +120,8 @@ calculation of the so-called one-sided AIC (OSAIC).
 
 \value{
   The \code{print} methods return their first argument, invisibly, as
-  they always should. The \code{coef}, \code{vcov}, and \code{logLik}
-  methods return the estimated coefficients, the estimated variance-covariance
+  they always should. The \code{vcov} and \code{logLik}
+  methods return the estimated variance-covariance
   matrix of the parameters (here, the inverse of the estimate of the
   expected Fisher information matrix), and the maximum log-likelihood
   value of the model, respectively.

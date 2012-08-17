@@ -4,10 +4,11 @@
 ### Author: Sebastian Meyer
 ################################################################################
 
-coef.twinstim <- function (object, ...)
-{
-    object$coefficients
-}
+### don't need a specific coef-method (identical to stats:::coef.default)
+## coef.twinstim <- function (object, ...)
+## {
+##     object$coefficients
+## }
 
 # asymptotic variance-covariance matrix (inverse of fisher information matrix)
 vcov.twinstim <- function (object, ...)
@@ -170,14 +171,20 @@ ret <- capture.output({
         tab <- get(tabname)
         if (nrow(tab) > 0L) {
             rownames(tab) <- gsub(" ", "", rownames(tab))
-            tab_char <- capture.output(printCoefmat(tab,digits=digits,signif.stars=FALSE,na.print=""))[-1]
-            tab_char <- sub("([<]?)[ ]?([0-9]+)e([+-][0-9]+)$", "\\1\\2\\\\cdot{}10^{\\3}", tab_char)
+            tab_char <- capture.output(
+                        printCoefmat(tab,digits=digits,signif.stars=FALSE,na.print="NA")
+                        )[-1]
+            tab_char <- sub("([<]?)[ ]?([0-9]+)e([+-][0-9]+)$",
+                            "\\1\\2\\\\cdot{}10^{\\3}",
+                            tab_char)
             con <- textConnection(tab_char)
             tab2 <- read.table(con, colClasses="character")
             close(con)
-            parnames <- paste0("\\texttt{",tab2[,1],"}")
-            tab2 <- as.data.frame(lapply(tab2[,-1], function(x) paste0("$",x,"$")))
-            rownames(tab2) <- parnames
+            rownames(tab2) <- paste0("\\texttt{",tab2[,1],"}")
+            tab2 <- tab2[,-1]
+            tab2[] <- lapply(tab2, function(x) {
+                ifelse(is.na(x), "", paste0("$",x,"$")) # (test.iaf=FALSE)
+            })
             print(xtable::xtable(tab2), only.contents=TRUE, hline.after=NULL,
                   include.colnames=FALSE, sanitize.text.function=identity)
             cat("\\hline\n")
@@ -203,9 +210,8 @@ intensityplot.twinstim <- function (x,
     aggregate = c("time", "space"),
     types = 1:nrow(x$qmatrix), tiles, tiles.idcol = NULL,
     plot = TRUE, add = FALSE, tgrid = 101, rug.opts = list(),
-    sgrid = 128, polygons.args = list(), points.args = list(),
-    cex.fun = function (counts) sqrt(1.5*counts/pi/min(counts)),
-    ...)
+    sgrid = 128, polygons.args = list(), points.args = list(cex=0.5),
+    cex.fun = sqrt, ...)
 {
     ## check arguments
     if (is.null(environment(x))) {
@@ -312,9 +318,12 @@ intensityplot.twinstim <- function (x,
             eventCoords.types <- eventCoords.types[!duplicated(coordinates(eventCoords.types)),]
             nms.points <- names(points.args)
             if(! "pch" %in% nms.points) points.args$pch <- 1
+            pointcex <- cex.fun(eventCoords.types$mult)
+            pointcex <- pointcex * points.args$cex
+            points.args$cex <- NULL
             lobjs <- c(lobjs,
                        list(c(list("sp.points", eventCoords.types, first=FALSE,
-                                   cex=cex.fun(eventCoords.types$mult)), points.args)))
+                                   cex=pointcex), points.args)))
         }
         if ("sp.layout" %in% nms) {
             if (!is.list(dotargs$sp.layout[[1]])) { # let sp.layout be a list of lists
@@ -346,16 +355,18 @@ intensity.twinstim <- function (x, aggregate = c("time", "space"),
               !anyDuplicated(types))
 
     ## model environment
-    modelenv <- environment(x)            # for the functions to be returned
-    parent.env(modelenv) <- environment()   # => 'types' is visible inside with(modelenv,...)
-    ## attach(modelenv, name="_mylocalenv_", warn.conflicts=FALSE) # for nicer coding
-    ## on.exit(detach("_mylocalenv_"))     # unload model environment at the end
-    qmatrix <- x$qmatrix                    # not part of modelenv
+    modelenv <- environment(x)          # for the functions to be returned
+    thisenv <- environment()
+    parent.env(thisenv) <- modelenv     # objects of modelenv become visible
+    ## CAVE: The R manual says:
+    ## "The replacement function 'parent.env<-' is extremely dangerous [...].
+    ##  It may be removed in the near future."
+    qmatrix <- x$qmatrix                # not part of modelenv
     force(types)                        # evaluate types before rm(x)
     rm(x)                               # don't need this anymore
     
     ## endemic component on the spatial or temporal grid
-    hInt <- with(modelenv, {
+    hInt <-
         if (hash) {
             eta <- drop(mmhGrid %*% beta)
             if (!is.null(offsetGrid)) eta <- offsetGrid + eta
@@ -373,17 +384,16 @@ intensity.twinstim <- function (x, aggregate = c("time", "space"),
             } else nlevels(gridTiles)
             rep.int(0, ngrid)
         }
-    })
 
     ## endemic component as a function of time or location
-    hIntFUN <- if (modelenv$hash) {
+    hIntFUN <- if (hash) {
         if (aggregate == "time") {
             function (tp) {
                 stopifnot(isScalar(tp))
-                if (tp == modelenv$t0) hInt[1L] else {
-                    starts <- modelenv$histIntervals$start
-                    idx <- match(TRUE, c(starts,modelenv$T) >= tp) - 1L
-                    block <- modelenv$histIntervals$BLOCK[idx]
+                if (tp == t0) hInt[1L] else {
+                    starts <- histIntervals$start
+                    idx <- match(TRUE, c(starts,T) >= tp) - 1L
+                    block <- histIntervals$BLOCK[idx]
                     hInt[as.character(block)]
                 }
             }
@@ -392,7 +402,7 @@ intensity.twinstim <- function (x, aggregate = c("time", "space"),
             tilesIDs <- if (is.null(tiles.idcol)) {
                 sapply(tiles@polygons, slot, "ID")
             } else tiles@data[[tiles.idcol]]
-            if (!all(levels(modelenv$gridTiles) %in% tilesIDs)) {
+            if (!all(levels(gridTiles) %in% tilesIDs)) {
                 stop("'tiles' is incomplete for 'x' (check 'tiles.idcol')")
             }
             .tiles <- as(tiles, "SpatialPolygons") # for over-method (drop data)
@@ -411,34 +421,34 @@ intensity.twinstim <- function (x, aggregate = c("time", "space"),
     } else function (...) 0
 
     ## epidemic component
-    eInt <- if (modelenv$hase) {
-        qSum_types <- rowSums(qmatrix[,types,drop=FALSE])[modelenv$eventTypes]
-        fact <- qSum_types * modelenv$gammapred
+    eInt <- if (hase) {
+        qSum_types <- rowSums(qmatrix[,types,drop=FALSE])[eventTypes]
+        fact <- qSum_types * gammapred
         if (aggregate == "time") {      # as a function of time (int over W & types)
-            factS <- fact * modelenv$siafInt
+            factS <- fact * siafInt
             function (tp) {
                 stopifnot(isScalar(tp))
-                tdiff <- tp - modelenv$eventTimes
-                infectivity <- qSum_types > 0 & (tdiff > 0) & (modelenv$removalTimes >= tp)
+                tdiff <- tp - eventTimes
+                infectivity <- qSum_types > 0 & (tdiff > 0) & (removalTimes >= tp)
                 if (any(infectivity)) {
-                    gsources <- modelenv$tiaf$g(tdiff[infectivity],
-                                                modelenv$tiafpars,
-                                                modelenv$eventTypes[infectivity])
+                    gsources <- tiaf$g(tdiff[infectivity],
+                                       tiafpars,
+                                       eventTypes[infectivity])
                     intWj <- factS[infectivity] * gsources
                     sum(intWj)
                 } else 0
             }
         } else {                        # as a function of location (int over time and types)
-            factT <- fact * modelenv$tiafInt
+            factT <- fact * tiafInt
             function (xy) {
                 stopifnot(is.vector(xy, mode="numeric"), length(xy) == 2L)
-                point <- matrix(xy, nrow=nrow(modelenv$eventCoords), ncol=2L, byrow=TRUE)
-                sdiff <- point - modelenv$eventCoords
-                proximity <- qSum_types > 0 & rowSums(sdiff^2) <= modelenv$eps.s^2
+                point <- matrix(xy, nrow=nrow(eventCoords), ncol=2L, byrow=TRUE)
+                sdiff <- point - eventCoords
+                proximity <- qSum_types > 0 & rowSums(sdiff^2) <= eps.s^2
                 if (any(proximity)) {
-                    fsources <- modelenv$siaf$f(sdiff[proximity,,drop=FALSE],
-                                                modelenv$siafpars,
-                                                modelenv$eventTypes[proximity])
+                    fsources <- siaf$f(sdiff[proximity,,drop=FALSE],
+                                       siafpars,
+                                       eventTypes[proximity])
                     intTj <- factT[proximity] * fsources
                     sum(intTj)
                 } else 0
@@ -564,8 +574,7 @@ plot.twinstim <- function (x, which, ...)
 ### Calculates the basic reproduction number R0 for individuals
 ### with marks given in 'newevents'
 
-R0.twinstim <- function (object, newevents, trimmed = TRUE,
-                         dimyx = NULL, eps = NULL, ...)
+R0.twinstim <- function (object, newevents, trimmed = TRUE, ...)
 {
     ## extract model information
     npars <- object$npars
@@ -582,18 +591,11 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE,
     nTypes <- length(typeNames)
     types <- seq_len(nTypes)
     form <- formula(object)
-    Fcircle <- form$siaf$Fcircle
-    G <- form$tiaf$G
+    siaf <- form$siaf
+    tiaf <- form$tiaf
     coefs <- coef(object)
     tiafpars <- coefs[sum(npars[1:4]) + seq_len(npars["ntiafpars"])]
     siafpars <- coefs[sum(npars[1:3]) + seq_len(npars["nsiafpars"])]
-    ## nCub.adaptive <- !is.null(form$siaf$effRange) &&
-    ##                         (is.null(object$call$nCub.adaptive) ||
-    ##                          object$call$nCub.adaptive)
-    if (is.null(eps) && !object$nCub.adaptive) {
-        ## try(nCub <- eval(object$call$nCub, parent.frame()))
-        eps <- object$nCub
-    }
     
     if (missing(newevents)) {
         ## if no newevents are supplied, use original events
@@ -602,8 +604,8 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE,
         } else {    # untrimmed version (spatio-temporal integral over R+ x R^2)
             ## extract relevant data from model environment
             if (is.null(modelenv <- environment(object))) {
-                stop("need model environment for untrimmed R0 of fitted events",
-                     " -- re-fit 'object' with 'model=TRUE'")
+                stop("need model environment for untrimmed R0 of fitted events\n",
+                     " -- re-fit with 'model=TRUE'")
             }
             eventTypes <- modelenv$eventTypes
             eps.t <- modelenv$eps.t
@@ -657,48 +659,36 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE,
     qSumTypes <- rowSums(object$qmatrix)
     qSum <- unname(qSumTypes[eventTypes])
 
-    ## calculate R0 values
-    if (trimmed) {                      # calculate trimmed R0 for newevents
+
+    ## calculate remaining factors of the R0 formula, i.e. siafInt and tiafInt
+    
+    if (trimmed) {                      # trimmed R0 for newevents
         
         ## integral of g over the observed infectious periods
-        tiafInt <- local({
-            gIntUpper <- pmin(T - eventTimes, eps.t)
-            gIntLower <- pmax(0, t0 - eventTimes)
-            stopifnot(gIntUpper > gIntLower)
-            tiafIntUpper <- G(gIntUpper, tiafpars, eventTypes)
-            tiafIntLower <- G(gIntLower, tiafpars, eventTypes)
-            tiafIntUpper - tiafIntLower
-        })
+        .tiafInt <- .tiafIntFUN()
+        gIntUpper <- pmin(T - eventTimes, eps.t)
+        gIntLower <- pmax(0, t0 - eventTimes)
+        tiafInt <- .tiafInt(tiafpars, from=gIntLower, to=gIntUpper,
+                            type=eventTypes, G=tiaf$G)
         ## integral of f over the influenceRegion
+        bdist <- newevents[[".bdist"]]
         influenceRegion <- newevents[[".influenceRegion"]]
         if (is.null(influenceRegion)) {
             stop("missing \".influenceRegion\" component in 'newevents'")
         }
-        siafInt <- if (attr(form$siaf, "constant")) {
-            sapply(influenceRegion, spatstat::area.owin)
-        } else if (is.null(Fcircle)) {
-            sapply(1:nrow(newevents), function (i) {
-                polyCub.midpoint(influenceRegion[[i]], form$siaf$f,
-                                 siafpars, eventTypes[i], dimyx=dimyx, eps=eps)
-            })
-        } else {
-            bdist <- newevents[[".bdist"]]
+        noCircularIR <- if (is.null(bdist)) FALSE else all(eps.s > bdist)
+        if (attr(form$siaf, "constant")) {
+            iRareas <- sapply(influenceRegion, spatstat::area.owin)
+            ## will be used by .siafInt()
+        } else if (! (is.null(siaf$Fcircle) ||
+               (is.null(siaf$effRange) && noCircularIR))) {
             if (is.null(bdist)) {
                 stop("missing \".bdist\" component in 'newevents'")
             }
-            sapply(1:nrow(newevents), function (i) {
-                if (eps.s[i] <= bdist[i]) {
-                    ## influence region is completely inside W
-                    Fcircle(eps.s[i], siafpars, eventTypes[i])
-                } else {
-                    ## numerically integrate over polygonal influence region
-                    polyCub.midpoint(influenceRegion[[i]], form$siaf$f,
-                                     siafpars, eventTypes[i],
-                                     dimyx=dimyx, eps=eps)
-                }
-            })
         }
-        qSum * gammapred * siafInt * tiafInt
+        nCub <- object$nCub
+        .siafInt <- .siafIntFUN(siaf, nCub.adaptive=object$nCub.adaptive, noCircularIR=noCircularIR)
+        siafInt <- .siafInt(siafpars)
         
     } else {                     # untrimmed R0 for original events or newevents
 
@@ -712,20 +702,19 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE,
         typeTcombis <- expand.grid(type=types, eps.t=unique(eps.t),
                                    KEEP.OUT.ATTRS=FALSE)
         typeTcombis$gInt <-
-            with(typeTcombis, G(eps.t, tiafpars, type)) -
-                G(rep.int(0,nTypes), tiafpars, types)[typeTcombis$type]
+            with(typeTcombis, tiaf$G(eps.t, tiafpars, type)) -
+                tiaf$G(rep.int(0,nTypes), tiafpars, types)[typeTcombis$type]
         
         typeScombis <- expand.grid(type=types, eps.s=unique(eps.s),
                                    KEEP.OUT.ATTRS=FALSE)
         typeScombis$fInt <- apply(typeScombis, MARGIN=1, FUN=function (type_eps.s) {
             type <- type_eps.s[1]
             eps.s <- type_eps.s[2]
-            if (is.null(Fcircle)) {
+            if (is.null(siaf$Fcircle)) { # implies that nCub was non-adaptive
                 polyCub.midpoint(discpoly(c(0,0), eps.s, class="owin"),
-                                 form$siaf$f, siafpars, type,
-                                 dimyx=dimyx, eps=eps)
+                                 form$siaf$f, siafpars, type, eps=object$nCub)
             } else {
-                Fcircle(eps.s, siafpars, type)
+                siaf$Fcircle(eps.s, siafpars, type)
             }
         })
         
@@ -734,12 +723,15 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE,
                                  with(typeScombis,paste(type,eps.s,sep=".")))
         eventscombiidxT <- match(paste(eventTypes,eps.t,sep="."),
                                  with(typeTcombis,paste(type,eps.t,sep=".")))
+
+        siafInt <- typeScombis$fInt[eventscombiidxS]
+        tiafInt <- typeTcombis$gInt[eventscombiidxT]
         
-        ## return untrimmed R0 values
-        qSum * gammapred *
-            typeScombis$fInt[eventscombiidxS] *
-                typeTcombis$gInt[eventscombiidxT]
     }
+
+    ## return R0 values
+    R0s <- qSum * gammapred * siafInt * tiafInt
+    R0s
 }
 
 
@@ -752,11 +744,11 @@ residuals.twinstim <- function (object, ...)
 {
   res <- object$tau
   if (is.null(res)) {
-      if (is.null(environment(object))) {
+      if (is.null(modelenv <- environment(object))) {
           stop("residuals not available; re-fit the model with 'cumCIF = TRUE'")
       } else {
-          modelenv <- environment(object)
-          cat("'object' was fit with disabled 'cumCIF' -> calculate it now...\n")
+          cat("'", substitute(object), "' was fit with disabled 'cumCIF'",
+              " -> calculate it now...\n", sep="")
           res <- with(modelenv, LambdagEvents(cumCIF.pb = TRUE))
           cat("Done.\n")
           try({
@@ -912,3 +904,73 @@ profile.twinstim <- function (fitted, profile, alpha = 0.05,
 }
 
 
+
+### update-method for the twinstim-class
+## stats::update.default would also work but is not adapted to the specific
+## structure of twinstim: optim.args (use modifyList), two formulae, model, ...
+## However, this specific method is inspired by and copies parts of the
+## update.default method from the stats package developed by The R Core Team
+
+update.twinstim <- function (object, endemic, epidemic, optim.args, model,
+                             ..., evaluate = TRUE)
+{
+    call <- object$call
+    thiscall <- match.call(expand.dots=FALSE)
+
+    if (!missing(model)) {
+        call$model <- model
+        ## Special case: update model component only
+        if (evaluate &&
+            all(names(thiscall)[-1] %in% c("object", "model", "evaluate"))) {
+            if (model) {                # add model environment
+                call$optim.args$par <- coef(object)
+                call$optim.args$fixed <- seq_along(coef(object))
+                call$cumCIF <- FALSE
+                cat("Setting up the model environment ...\n")
+                capture.output(suppressMessages(
+                    objectWithModel <- eval(call, parent.frame())
+                ))
+                cat("Done.\n")
+                object$formula <- objectWithModel$formula
+                object$functions <- objectWithModel$functions
+                ## CAVE: order of components of the twinstim-object
+                object <- object[c(1:match("formula", names(object)),
+                                 match(c("functions", "call", "runtime"), names(object)))]
+                environment(object) <- environment(objectWithModel)
+                ## re-add class attribute (dropped on re-ordering)
+                class(object) <- "twinstim"
+            } else {                    # remove model environment
+                environment(object$formula$epidemic) <-
+                    environment(object$formula$endemic) <- .GlobalEnv
+                object$functions <- NULL
+                environment(object) <- NULL
+            }
+            object$call$model <- model
+            return(object)
+        }
+    }
+    if (!missing(endemic))
+        call$endemic <- stats::update.formula(formula(object)$endemic, endemic)
+    if (!missing(epidemic))
+        call$epidemic <- stats::update.formula(formula(object)$epidemic, epidemic)
+    if (!missing(optim.args)) {
+        oldargs <- call$optim.args
+        call$optim.args <-
+            if (is.listcall(oldargs) && is.list(optim.args)) {
+                modifyListcall(oldargs, thiscall$optim.args)
+            } else thiscall$optim.args
+    }
+    extras <- thiscall$...
+    ## CAVE: the remainder is copied from stats::update.default (as at R-2.15.0)
+    if(length(extras)) {
+	existing <- !is.na(match(names(extras), names(call)))
+	## do these individually to allow NULL to remove entries.
+	for (a in names(extras)[existing]) call[[a]] <- extras[[a]]
+	if(any(!existing)) {
+	    call <- c(as.list(call), extras[!existing])
+	    call <- as.call(call)
+	}
+    }
+    if(evaluate) eval(call, parent.frame())
+    else call
+}

@@ -16,17 +16,12 @@
 # models. Furthermore, one can simulate data from the cox-model:
 # no removal (i.e. infPeriod = function(ids) rep(Inf, length(ids)) and
 # no epidemic component (i.e. no alpha and no f).
-#
-# TODO: 
-# optimisation: precalculation of f[[m]](distances) may be faster. This depends
-#               on the complexity of the functions in f and on the number of
-#               iterations (which is unknown beforehand...).
 ################################################################################
 
 simEpidata <- function (formula, data, id.col, I0.col, coords.cols,
     subset, beta, h0, f = list(), alpha, infPeriod,
     remPeriod = function(ids) rep(Inf, length(ids)),
-    end = Inf, trace = FALSE, .allocate = 500L)
+    end = Inf, trace = FALSE, .allocate = NULL)
 {
     cl <- match.call()
     
@@ -106,8 +101,12 @@ simEpidata <- function (formula, data, id.col, I0.col, coords.cols,
     }
     
     ### Check .allocate
-    if (!isScalar(.allocate) || .allocate < nBlocks) {
-        stop("'.allocate' must be >= ", nBlocks)
+    if (is.null(.allocate)) {
+        .allocate <- max(500, ceiling(nBlocks/100)*100)
+    } else {
+        if (!isScalar(.allocate) || .allocate < nBlocks) {
+            stop("'.allocate' must be >= ", nBlocks)
+        }
     }
     
     ### Check that all blocks are complete (all id's present)
@@ -466,8 +465,8 @@ simEpidata <- function (formula, data, id.col, I0.col, coords.cols,
         ## Simulated time point is beyond the next time of intensity change
         ## (removal or covariate or upper baseline change point)
             ct <- nextChangePoint
-            if (ct %in% externalChangePoints) {
-                # update covariates
+            if (nPredCox > 0L && ct %in% externalChangePoints) {
+                # update endemic covariates
                 eval(coxUpdate)
             }
             if (.Reventidx <- match(ct, Revents[,2L], nomatch = 0L)) {
@@ -561,17 +560,23 @@ simEpidata <- function (formula, data, id.col, I0.col, coords.cols,
 
 simulate.twinSIR <- function (object, nsim = 1, seed = 1,
     infPeriod = NULL, remPeriod = NULL,
-    end = diff(range(object$intervals)), trace = FALSE, .allocate = 500L,
+    end = diff(range(object$intervals)), trace = FALSE, .allocate = NULL,
     data = object$data, ...)
 {
     theta <- coef(object)
     px <- ncol(object$model$X)
     pz <- ncol(object$model$Z)
     nh0 <- attr(object$terms, "intercept") * length(object$nEvents)
-    f <- object$model$f
-    formulaLHS <- "cbind(start, stop) ~"
-    formulaRHS <- paste(names(theta)[px+nh0+seq_len(pz-nh0)], collapse = " + ")
-    formula <- formula(paste(formulaLHS, formulaRHS),
+    f <- object$model$f[colnames(object$model$X)]
+    if (any(missingf <- is.na(names(f)))) {
+        stop("simulation requires distance functions 'f', missing for: ",
+             paste(colnames(object$model$X)[missingf], collapse=", "))
+    }
+    formulaLHS <- "cbind(start, stop)"
+    formulaRHS <- paste(c(as.integer(nh0 > 0), # endemic intercept?
+                          names(theta)[px+nh0+seq_len(pz-nh0)]),
+                        collapse = " + ")
+    formula <- formula(paste(formulaLHS, formulaRHS, sep="~"),
                        env = environment(formula(object)))
     h0 <- if (nh0 == 0L) {
               if (pz == 0L) {
@@ -587,7 +592,7 @@ simulate.twinSIR <- function (object, nsim = 1, seed = 1,
           }
     
     if (!inherits(data, "epidata")) {
-        stop("invalid data argument: use function 'twinSIR' with ",
+        stop("invalid 'data' argument: use function 'twinSIR' with ",
              "'keep.data = TRUE'")
     }
     if (is.null(infPeriod) || is.null(remPeriod)) {
@@ -637,15 +642,14 @@ simulate.twinSIR <- function (object, nsim = 1, seed = 1,
         }
     }
     set.seed(seed)
-    replicate(nsim,
+    res <- replicate(nsim,
         simEpidata(formula, data = data,
                    beta = theta[px + nh0 + seq_len(pz-nh0)],
-                   h0 = h0,
-                   f = f[match(colnames(object$model$X),names(f),nomatch=0)],
-                   alpha = theta[seq_len(px)],
+                   h0 = h0, f = f, alpha = theta[seq_len(px)],
                    infPeriod = infPeriod, remPeriod = remPeriod,
                    end = end, trace = trace, .allocate = .allocate),
         simplify = FALSE
     )
+    if (nsim == 1L) res[[1L]] else res
 }
 

@@ -22,9 +22,8 @@ location (integrated over the other dimension).
     aggregate = c("time", "space"), types = 1:nrow(x$qmatrix),
     tiles, tiles.idcol = NULL, plot = TRUE, add = FALSE,
     tgrid = 101, rug.opts = list(),
-    sgrid = 128, polygons.args = list(), points.args = list(),
-    cex.fun = function(counts) sqrt(1.5 * counts/pi/min(counts)),
-    ...)
+    sgrid = 128, polygons.args = list(), points.args = list(cex=0.5),
+    cex.fun = sqrt, ...)
 
 intensity.twinstim(x,
     aggregate = c("time", "space"), types = 1:nrow(x$qmatrix), 
@@ -101,7 +100,8 @@ intensity.twinstim(x,
     coercible to that class) representing the locations where to
     evaluate \code{which}, or a scalar representing the total
     number of points of a grid constructed on the bounding box of
-    \code{tiles}. \code{sgrid} is internally subsetted to contain only
+    \code{tiles} (which requires the package \pkg{maptools}).
+    \code{sgrid} is internally subsetted to contain only
     points inside \code{tiles}.
     This argument is unused for \code{aggregate = "time"}.
 }
@@ -116,9 +116,10 @@ intensity.twinstim(x,
     if a list, its elements are passed as arguments to
     \code{\link{sp.points}}, which will add the event locations to the plot
     if \code{aggregate = "space"} (it is unused for the temporal plot).
-    By default, the plot symbol ist set to \code{pch=1}. The size
-    of the points (argument \code{cex} of \code{sp.points}) is set by
-    the function \code{cex.fun} to account for multiple events at the
+    By default, the plot symbol ist set to \code{pch=1}. The sizes
+    of the points are determined as the product of the argument \code{cex}
+    (default: 0.5) of this list and the sizes obtained from
+    the function \code{cex.fun} which accounts for multiple events at the
     same location.
 }
   \item{cex.fun}{
@@ -126,6 +127,9 @@ intensity.twinstim(x,
     at each unique location and returns a (vector of) \code{cex}
     value(s) for the sizes of the points at the event locations used in
     \code{points.args}.
+    Defaults to the \code{sqrt()} function, which for the default
+    circular \code{pch=1} means that the area of each point is
+    proportional to the number of events at its location.
 }
   \item{\dots}{
     further arguments passed to \code{plot} or \code{lines} (if
@@ -148,8 +152,52 @@ intensity.twinstim(x,
   Sebastian Meyer
 }
 
+\seealso{
+  \code{\link{plot.twinstim}}, which calls this function.
+}
+
 \examples{
-## TODO...
+data(imdepi)
+data(imdepifit)
+
+# for the intensityplot we need the model environment, which can be
+# easily added by the intelligent update method (no need to refit the model)
+imdepifit <- update(imdepifit, model=TRUE)
+
+## path of the total intensity
+opar <- par(mfrow=c(2,1))
+intensityplot(imdepifit, which="total intensity",
+              aggregate="time", tgrid=500)
+plot(imdepi, breaks=100)
+par(opar)
+
+## path of the proportion of the epidemic component by event
+intensityplot(imdepifit, which="epidemic proportion",
+              aggregate="time", tgrid=500, types=1)
+intensityplot(imdepifit, which="epidemic proportion",
+              aggregate="time", tgrid=500, types=2, add=TRUE, col=2)
+legend("topright", legend=levels(imdepi$events$type), lty=1, col=1:2,
+       title = "event type")
+
+## spatial shape of the intensity (aggregated over time)
+# load borders of Germany's districts (obtained from the
+# Bundesamt für Kartographie und Geodäsie, Frankfurt am Main, Germany,
+# www.geodatenzentrum.de), simplified by the "special" Visvalingam
+# algorithm (level=60\%) using www.MapShaper.org:
+load(system.file("shapes", "districtsD.RData", package="surveillance"))
+if (require("maptools")) {
+    # total intensity
+    intensityplot(imdepifit, which="total intensity",
+                  aggregate="space", tiles=districtsD, sgrid=2000)
+    # epidemic proportion by type
+    maps_epiprop <- lapply(1:2, function (type) {
+        intensityplot(imdepifit, which="epidemic", aggregate="space",
+                      types=type, tiles=districtsD, sgrid=1000,
+                      at=seq(0,1,by=0.1), col.regions=rev(heat.colors(20)))
+    })
+    plot(maps_epiprop[[1]], split=c(1,1,2,1), more=TRUE)
+    plot(maps_epiprop[[2]], split=c(2,1,2,1))
+}
 }
 
 \keyword{hplot}

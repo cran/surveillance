@@ -46,7 +46,7 @@ Sebastian Meyer
 }
 
 \examples{
-### TODO ...
+# see the examples for iafplot() and intensityplot.twinstim()
 }
 
 \keyword{hplot}

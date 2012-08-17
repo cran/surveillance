@@ -119,8 +119,25 @@ iafplot(object, which = c("siaf", "tiaf"),
 }
 
 \examples{
-# TODO...
+data(imdepifit)
+iafplot(imdepifit, "tiaf", types=1)   # tiaf.constant(), not very exciting
+iafplot(imdepifit, "siaf", xlim=c(0,200), types=1,   # same for types=2
+     col.estimate=1, lwd=c(2,1))
+# alternative: bootstrap-CI (actually only useful if iaf$npars > 1)
+iafplot(imdepifit, "siaf", add=TRUE, types=1, col.estimate=0, ngrid=500,
+     conf.type="bootstrap", col.conf=2)
+
+\dontshow{
+## FIXME: fit model with 2-parameter Lomax kernel as siaf (this takes a
+##        while and does not converge properly...)
+#data(imdepi)
+#imdepifit_lomax <- update(imdepifit,
+#    siaf = siaf.lomax(1),
+#    optim.args = list(par=c(coef(imdepifit), 0), control=list(REPORT=1)),
+#    nCub = 3, nCub.adaptive = FALSE, model = FALSE, cumCIF = FALSE
+#)
+}
 }
 
-\keyword{ hplot }
-\keyword{ aplot }
+\keyword{hplot}
+\keyword{aplot}

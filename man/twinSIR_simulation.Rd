@@ -26,11 +26,11 @@ Simulation of Epidemic Data
 simEpidata(formula, data, id.col, I0.col, coords.cols, subset,
            beta, h0, f = list(), alpha, infPeriod,
            remPeriod = function(ids) rep(Inf, length(ids)),
-           end = Inf, trace = FALSE, .allocate = 500L)
-              
+           end = Inf, trace = FALSE, .allocate = NULL)
+
 \method{simulate}{twinSIR}(object, nsim = 1, seed = 1,
          infPeriod = NULL, remPeriod = NULL,
-         end = diff(range(object$intervals)), trace = FALSE, .allocate = 500L,
+         end = diff(range(object$intervals)), trace = FALSE, .allocate = NULL,
          data = object$data, ...)
 }
 
@@ -194,10 +194,12 @@ simEpidata(formula, data, id.col, I0.col, coords.cols, subset,
     rejection sampling step) should be \code{cat}ed.  Defaults to \code{FALSE}.
   }
   \item{.allocate}{
-    number of blocks to initially allocate for the event history;
-    defaults to 500, i.e. \code{500*N} rows.  Each time the simulated
-    epidemic exceeds the allocated space, the event history will be enlarged
-    by \code{.allocate} blocks.
+    number of blocks to initially allocate for the event history (i.e.
+    \code{.allocate*N} rows). By default (\code{NULL}), this number is set to
+    \code{max(500, ceiling(nBlocks/100)*100)}, i.e. 500 but at least the
+    number of blocks in \code{data} (rounded to the next multiple of 100).
+    Each time the simulated epidemic exceeds the allocated space, the
+    event history will be enlarged by \code{.allocate} blocks.
   }
   \item{object}{
     an object of class \code{"twinSIR"}.  This must contain the original
@@ -265,6 +267,10 @@ simEpidata(formula, data, id.col, I0.col, coords.cols, subset,
   }
   \item{call}{the matched call.}
   \item{terms}{the \code{terms} object used.}
+
+  If \code{nsim > 1} epidemics are simulated by the
+  \code{simulate}-method for fitted \code{"twinSIR"} models, these are
+  returned in a list.
 }
 
 \references{
@@ -337,11 +343,11 @@ plot(foofit$data)
 ## simulate a new epidemic using the model and parameter estimates of 'foofit'
 ## and set simulation period = observation period
 # with observed infPeriods (i.e. fixed length 3 days):
-simfitepi1 <- simulate(foofit, nsim = 1)[[1]]
+simfitepi1 <- simulate(foofit)
 plot(simfitepi1)
 # with new infPeriods (simuluated from the Exp(0.3) distribution):
-simfitepi2 <- simulate(foofit, nsim = 1,
-                       infPeriod=function(ids) rexp(length(ids), rate=0.3))[[1]]
+simfitepi2 <- simulate(foofit,
+                       infPeriod=function(ids) rexp(length(ids), rate=0.3))
 plot(simfitepi2)
 intensityplot(simfitepi2, which="total", aggregate=FALSE,
               col=rgb(0,0,0,alpha=if(getRversion() < "2.7.0") 1 else 0.1))
