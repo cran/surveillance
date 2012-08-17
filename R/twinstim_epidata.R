@@ -511,10 +511,13 @@ update.epidataCS <- function (object, eps.t, eps.s, qmatrix, nCircle2Poly, ...)
 }
 
 
-## subset method is copied from base::subset.data.frame with slight
-## modifications only
-## FIXME: when the bug in sp::subset.Spatial discovered in sp version 0.9-99
-## has been removed we can embed this method
+## The subset method for epidataCS-objects is adapted from
+## base::subset.data.frame (authored by Peter 
+## Dalgaard and Brian Ripley, Copyright (C) 1995-2012
+## The R Core Team) with slight modifications only
+
+## FIXME: when the bug in sp::subset.Spatial, which we have reported for sp
+## version 0.9-99 has been removed we can embed this method
 subset.epidataCS <- function (x, subset, select, drop = FALSE, ...)
 {
     if (missing(subset)) 
@@ -573,12 +576,11 @@ tail.epidataCS <- function (x, n = 6L, ...)
 
 print.epidataCS <- function (x, n = 6L, digits = getOption("digits"), ...)
 {
-    nRowsGrid <- nrow(x$stgrid)
-    timeRange <- c(x$stgrid$start[1], x$stgrid$stop[nRowsGrid])
+    timeRange <- c(x$stgrid$start[1], x$stgrid$stop[nrow(x$stgrid)])
     bboxtxt <- paste(apply(sp::bbox(x$W), 1,
         function (int) paste0("[", paste(format(int, trim=TRUE, digits=digits), collapse=", "), "]")
         ), collapse = " x ")
-    nBlocks <- x$stgrid$BLOCK[nRowsGrid]
+    nBlocks <- length(unique(x$stgrid$BLOCK))
     nTiles <- nlevels(x$stgrid$tile)
     typeNames <- levels(x$events$type)
     nEvents <- nrow(x$events@coords)
@@ -614,7 +616,7 @@ summary.epidataCS <- function (object, ...)
     times <- object$events$time
     nEvents <- length(times)
     timeRange <- with(object$stgrid, c(start[1], stop[length(stop)]))
-    nBlocks <- object$stgrid$BLOCK[nrow(object$stgrid)]
+    nBlocks <- length(unique(object$stgrid$BLOCK))
     tiles <- object$events$tile
     bbox <- sp::bbox(object$W)
     tileTable <- c(table(tiles))
@@ -627,7 +629,7 @@ summary.epidataCS <- function (object, ...)
 
     removalTimes <- times + object$events$eps.t
     tps <- sort(unique(c(times, removalTimes[is.finite(removalTimes)])))
-    nInfectious <- sapply(tps, function(t) sum(times < t & removalTimes >= t))
+    nInfectious <- sapply(tps, function(t) sum(times <= t & removalTimes > t))
     counter <- stepfun(tps, c(0,nInfectious), right = TRUE)
 
     res <- list(timeRange = timeRange, bbox = bbox, nBlocks = nBlocks,
@@ -824,10 +826,7 @@ plot.epidataCS <- function (x, aggregate = c("time", "space"), subset, ...)
 {
     aggregate <- match.arg(aggregate)
     FUN <- paste("plot.epidataCS", aggregate, sep="_")
-    cl <- match.call()
-    cl[[1]] <- as.name(FUN)
-    cl$aggregate <- NULL
-    eval(cl)
+    do.call(FUN, args=list(x=quote(x), subset=substitute(subset), ...))
 }
 
 
@@ -869,9 +868,10 @@ plot.epidataCS_time <- function (x, subset, t0.Date = NULL, freq = TRUE,
     if (is.null(ylab)) {
         ylab <- if (freq) "Number of cases" else "Density of cases"
     }
-    plot(x = xlim, y = ylim, xlab = xlab, ylab = ylab, main = main, type = "n")
+    plot(x=xlim, y=ylim, xlab=xlab, ylab=ylab, main=main, type="n", bty="n")
     force(panel.first)
     plot(histdata, freq = freq, add = TRUE, col = col, ...)
+    box()          # because white filling of bars might overdraw the inital box
     invisible(histdata)
 }
 
@@ -898,7 +898,7 @@ plot.epidataCS_space <- function (x, subset,
     pointcex <- pointcex * points.args$cex
     points.args$cex <- NULL
     if (is.null(points.args[["col"]])) {
-        points.args$col <- colTypes[x$events$type]
+        points.args$col <- colTypes[events$type]
     }
     plot(x$W, ...)
     do.call("points", c(alist(x=events, cex=pointcex), points.args))
@@ -967,7 +967,7 @@ as.epidata.epidataCS <- function (data, tileCentroids, eps = 0.001, ...)
     class(stgrid) <- c("epidataCS", "data.frame")
     attr(stgrid, "timeRange") <- c(stgrid$start[1], tail(stgrid$stop,1))
     cat("Inserting extra stop times in 'stgrid' (this might take a while)... ")
-    evHist <- intersperse(stgrid, requiredStopTimes)
+    evHist <- intersperse(stgrid, requiredStopTimes) # this resets the BLOCK index
     class(evHist) <- "data.frame"
     ### <- THIS IS THE MOST TIME-CONSUMING PART OF THIS FUNCTION !!!
     cat("Done.\n")

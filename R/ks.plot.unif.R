@@ -1,7 +1,32 @@
 #################
 # Plot the empirical distribution function of a sample from U(0,1)
-# together with a confidence band of the corresponding K-S-test
-# large parts are taken from stats::ks.test
+# together with a confidence band of the corresponding K-S-test.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+#  A copy of the GNU General Public License is available at
+#  http://www.r-project.org/Licenses/
+#
+# Parts of the code are taken from stats::ks.test, which has
+# copyright 1995-2012 by The R Core Team under GPL-2 (or later).
+# Furthermore, the C function calls are taken from
+# http://svn.r-project.org/R/trunk/src/library/stats/src/ks.c (as at 2012-08-16),
+# which similarly is Copyright (C) 1999-2009 by the R Core Team 
+# and available under GPL-2. Somewhat disguised in their code is a reference
+# that parts of their code uses code published in
+# George Marsaglia and Wai Wan Tsang and Jingbo Wang (2003),
+# "Evaluating Kolmogorov's distribution".
+# Journal of Statistical Software, Volume 8, 2003, Issue 18.
+# URL: http://www.jstatsoft.org/v08/i18/.
+#
 #
 # Parameters:
 #    U - numeric vector containing the sample (NA's are silently removed)
@@ -26,20 +51,23 @@ ks.plot.unif <- function (U, conf.level = 0.95, exact = NULL,
     }
     if (is.null(exact)) exact <- (n < 100) && !TIES
     
-    ## Helper function to invert the K-S test
+    ## Helper function to invert the K-S test. The function
     ## pkolmogorov2x is the CDF of the Kolmogorov test statistic
+    ## and is taken from the R project sources, which
+    ## is (C) 1995-2009 by The R Core Team under GPL-2 
     f <- if (exact) {
         function (x, p) {               # x is the test statistic
-            PVAL <- 1 - .C("pkolmogorov2x", p = as.double(x), as.integer(n),
-                           PACKAGE = "stats")$p
+            PVAL <- 1 - .C("pkolmogorov2x", p = as.double(x),
+                           as.integer(n), PACKAGE = "surveillance")$p
             PVAL - p
         }
     } else {
         pkstwo <- function(x, tol = 1e-06) { # x is the test statistic
             ## stopifnot(length(x) == 1L)
+            #Same copyright as above applies to the C code.
             if (is.na(x)) NA_real_ else if (x == 0) 0 else {
-                .C(stats:::C_pkstwo, 1L, p = as.double(x), 
-                  as.double(tol), PACKAGE = "stats")$p
+                .C("pkstwo", 1L, p = as.double(x), 
+                  as.double(tol), PACKAGE = "surveillance")$p
             }
         }
         function (x, p) {
@@ -97,7 +125,8 @@ checkResidualProcess <- function (object, plot = 1:2, mfrow = n2mfrow(length(plo
     }
     
     ## extract residual process
-    tau <- residuals(object)
+    tau <- do.call("residuals", args = list(substitute(object)),
+                   envir = parent.frame())
     
     ## Transform to uniform variable
     Y <- diff(c(0,tau))

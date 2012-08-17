@@ -54,3 +54,42 @@ dotprod <- function (x,y)
     sum(x*y)
 }
 
+
+### Function 'base::paste0()' only exists as of R version 2.15.0
+### Define it as a wrapper for base::paste() for older versions
+
+if (getRversion() < "2.15.0" || R.version$"svn rev" < 57795 ||
+    !exists("paste0", baseenv())) {
+    paste0 <- function (..., collapse = NULL) {
+        ## the naive way: paste(..., sep = "", collapse = collapse)
+        ## probably better: establish appropriate paste() call:
+        cl <- match.call()
+        names(cl) <- sub("sep", "", names(cl)) # no sep argument
+        cl$sep <- ""
+        cl[[1]] <- as.name("paste")
+        eval(cl, envir = parent.frame())
+    }
+}
+
+
+### Function which modifies a list _call_ according to another one similar to
+### what the function utils::modifyList (by Deepayan Sarkar) does for list objects
+## modifyListcall is used by update.twinstim
+
+is.listcall <- function (x)
+{
+    is.call(x) &&
+    as.character(x[[1]]) %in% c("list", "alist")
+}
+
+modifyListcall <- function (x, val)
+{
+    stopifnot(is.listcall(x), is.listcall(val))
+    xnames <- names(x)[-1]
+    for (v in names(val)[nzchar(names(val))]) {
+        x[[v]] <-
+            if (v %in% xnames && is.listcall(x[[v]]) && is.listcall(val[[v]]))
+                modifyListcall(x[[v]], val[[v]]) else val[[v]]
+    }
+    x
+}

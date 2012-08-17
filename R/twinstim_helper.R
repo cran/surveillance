@@ -120,3 +120,137 @@ gridcellOfEvent <- function (t, tilename, stgrid)
 
 
 
+### Really internal helper function, which constructs the function that
+### integrates the two-dimensional 'siaf' function over the influence regions of
+### the events. The only argument of the returned function is 'siafpars'.
+### The returned function is defined in the callers environment, where the
+### variables used in the function are available (inside twinstim() or
+### simEpidataCS()). It also modifies nCub and nCub.adaptive in the callers
+### environment accordingly.
+
+.siafIntFUN <- function (siaf, nCub.adaptive,
+   noCircularIR #= all(eps.s > bdist) = all(sapply(influenceRegion, function(x)
+                #                           is.null(attr(x,"radius"))))
+){
+    ## the following variables are unused here, because the environment of
+    ## FUN will be set to the parent.frame(), where the variables exist
+    ## they are only included to avoid the notes in R CMD check 
+    iRareas <- influenceRegion <- eventTypes <- nCub <- eps.s <- bdist <-
+        nTypes <- NULL 
+    
+    ## define the siaf integration function depending on the siaf specification 
+    FUN <- if (attr(siaf, "constant"))
+    {
+        assign("nCub", NA_real_, parent.frame())
+        assign("nCub.adaptive", FALSE, parent.frame())
+        if (exists("iRareas", where=parent.frame(), mode="numeric")) {
+            ## in twinstim(), 'iRareas' are pre-defined to save
+            ## computation time (data are fixed during fitting)
+            function (siafpars) iRareas
+        } else {
+            function (siafpars) sapply(influenceRegion, attr, "area")
+        }
+    } else if (is.null(siaf$Fcircle) || # if siaf$Fcircle not available
+               (is.null(siaf$effRange) && noCircularIR))
+    {
+        assign("nCub.adaptive", FALSE, parent.frame())
+        function (siafpars) {
+            siafInts <- sapply(seq_along(influenceRegion), function (i) {
+                polyCub.midpoint(influenceRegion[[i]], siaf$f,
+                                 siafpars, eventTypes[i], eps = nCub)
+            })
+            siafInts
+        }
+    } else if (is.null(siaf$effRange)) # use Fcircle but only delta-trick
+    {
+        assign("nCub.adaptive", FALSE, parent.frame())
+        function (siafpars) {
+            ## Compute the integral of 'siaf' over each influence region
+            siafInts <- numeric(length(influenceRegion))
+            for(i in seq_along(siafInts)) {
+                eps <- eps.s[i]
+                bdisti <- bdist[i]
+                siafInts[i] <- if (eps <= bdisti) {
+                    ## influence region is completely inside W
+                    siaf$Fcircle(eps, siafpars, eventTypes[i])
+                } else {
+                    ## numerically integrate over polygonal influence region
+                    polyCub.midpoint(influenceRegion[[i]], siaf$f,
+                                     siafpars, eventTypes[i], eps = nCub)
+                }
+            }
+            siafInts
+        }
+    } else { # fast Fcircle integration considering the delta-trick AND effRange
+        .ret <- function (siafpars) {
+            ## Compute computationally effective range of the 'siaf' function
+            ## for the current 'siafpars' for each event (type)
+            effRangeTypes <- rep(siaf$effRange(siafpars), length.out=nTypes)
+            effRanges <- effRangeTypes[eventTypes]   # N-vector
+            ## automatic choice of h (pixel spacing in image)
+            hs <- effRanges / nCub      # CAVE: this line will be modified below
+                                        #       for non-adaptive integration
+            ## Compute the integral of 'siaf' over each influence region
+            siafInts <- numeric(length(influenceRegion))
+            for(i in seq_along(siafInts)) {
+                eps <- eps.s[i]
+                bdisti <- bdist[i]
+                effRange <- effRanges[i]
+                siafInts[i] <- if (effRange <= bdisti) { # effective region completely inside W
+                    siaf$Fcircle(min(eps,effRange), siafpars, eventTypes[i])
+                } else if (eps <= bdisti) { # influence region is completely inside W
+                    siaf$Fcircle(eps, siafpars, eventTypes[i])
+                } else { # integrate over polygonal influence region
+                    polyCub.midpoint(influenceRegion[[i]], siaf$f,
+                                     siafpars, eventTypes[i], eps = hs[i])
+                }
+            }
+            siafInts
+        }
+        if (!nCub.adaptive) {
+            body(.ret)[[grep("^hs <-", body(.ret))]] <-
+                quote(hs <- rep(nCub, length.out = length(influenceRegion)))
+        }
+        if (exists("effRangeTypes", where=parent.frame(), mode="numeric")) {
+            ## in simEpidataCS effRangeTypes is pre-calculated outside siafInt to
+            ## save computation time ('siafpars' is constant during simulation)
+            body(.ret)[[grep("^effRangeTypes <-", body(.ret))]] <- NULL
+        }
+        .ret
+    }
+    
+    ## set the environment of the siafInt function to the callers environment
+    ## (i.e. inside twinstim() or simEpidataCS())
+    ## where the variables used in the function are defined
+    environment(FUN) <- parent.frame()
+    FUN
+}
+
+
+### Helper function, which constructs the function that integrates the 'tiaf'.
+### The returned function is defined in the callers environment, where the
+### variables used in the function are available (inside twinstim() or
+### simEpidataCS()).
+
+.tiafIntFUN <- function ()
+{
+    ## the following variables are unused here, because the environment of
+    ## FUN will be set to the parent.frame(), where the variables exist
+    ## they are only included to avoid the notes in R CMD check 
+    gIntLower <- gIntUpper <- eventTypes <- tiaf <- NULL
+    
+    ## from, to and type may be vectors of compatible lengths
+    FUN <- function(tiafpars, from = gIntLower, to = gIntUpper,
+                    type = eventTypes, G = tiaf$G)
+    {
+        tiafIntUpper <- G(to, tiafpars, type)
+        tiafIntLower <- G(from, tiafpars, type)
+        tiafIntUpper - tiafIntLower
+    }
+    
+    ## set the environment of the tiafInt function to the callers environment
+    ## (i.e. inside twinstim() or simEpidataCS())
+    ## where the default argument values are defined
+    environment(FUN) <- parent.frame()
+    FUN
+}

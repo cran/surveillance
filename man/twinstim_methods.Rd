@@ -2,7 +2,6 @@
 \name{twinstim_methods}
 \alias{print.twinstim}
 \alias{summary.twinstim}
-\alias{coef.twinstim}
 \alias{vcov.twinstim}
 \alias{logLik.twinstim}
 \alias{print.summary.twinstim}
@@ -15,10 +14,10 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
 \description{
   Besides \code{\link{print}} and \code{\link{summary}} methods there
   are also some standard extraction methods defined for objects of class
-  \code{"twinstim"}: \code{\link{coef}}, \code{\link{vcov}}, and \code{\link{logLik}}. This
-  also enables the use of, e.g., \code{\link{AIC}}. The model
-  \code{summary} can be exported to LaTeX by the corresponding
-  \code{\link{toLatex}} method.
+  \code{"twinstim"}: \code{\link{vcov}} and \code{\link{logLik}}. This
+  also enables the use of, e.g., \code{\link{confint}} and
+  \code{\link{AIC}}. The model \code{summary} can be exported to LaTeX
+  by the corresponding \code{\link{toLatex}} method.
 }
 
 \usage{
@@ -26,7 +25,6 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
 \method{summary}{twinstim}(object, test.iaf = FALSE,
         correlation = FALSE, symbolic.cor = FALSE, ...)
 
-\method{coef}{twinstim}(object, ...)
 \method{vcov}{twinstim}(object, ...)
 \method{logLik}{twinstim}(object, ...)
 
@@ -83,13 +81,16 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
   -- separately for the endemic and the epidemic component -- and 
   additionally the AIC, the number of log-likelihood and score
   evaluations, and the runtime.  They both append a big
-  \dQuote{WARNING}, if the optimization algorithm did not converge. 
+  \dQuote{WARNING}, if the optimization algorithm did not converge.
+
+  The estimated coefficients may be extracted by using the default
+  \code{coef}-method from package \pkg{stats}.
 }
 
 \value{
   The \code{print} methods return their first argument, invisibly, as
-  they always should. The \code{coef}, \code{vcov}, and \code{logLik}
-  methods return the estimated coefficients, the estimated variance-covariance
+  they always should. The \code{vcov} and \code{logLik}
+  methods return the estimated variance-covariance
   matrix of the parameters (here, the inverse of the estimate of the
   expected Fisher information matrix), and the maximum log-likelihood
   value of the model, respectively.
@@ -106,7 +107,31 @@ Sebastian Meyer
 }
 
 \examples{
-# TODO ...
+# load a fit of the 'imdepi' data, see the example in ?twinstim
+data(imdepifit)
+
+# print method
+imdepifit
+
+# extract point estimates
+coef(imdepifit)
+
+# variance-covariance matrix of endemic parameters
+# (inverse of expected Fisher information)
+unname(vcov(imdepifit)[1:4,1:4])
+
+# the default confint() method may be used for Wald CI's
+confint(imdepifit, parm="e.typeC", level=0.95)
+
+# log-likelihood and AIC of the fitted model
+logLik(imdepifit)
+AIC(imdepifit)
+
+# summary method
+summary(imdepifit, test.iaf=FALSE, correlation=TRUE, symbolic.cor=TRUE)
+
+# create LaTeX code of coefficient table
+toLatex(summary(imdepifit), withAIC=FALSE)
 }
 
 \keyword{methods}

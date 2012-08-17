@@ -11,9 +11,9 @@
 
 siaf.constant <- function () {
     res <- list(
-        f = as.function(alist(s=, pars=, types=, rep.int(1, nrow(s))), envir = parent.frame()),
+        f = as.function(alist(s=, pars=, types=, rep.int(1, nrow(s))), envir = .GlobalEnv),
         deriv = NULL,
-        Fcircle = as.function(alist(r=, pars=, types=, pi*r^2), envir = parent.frame()),
+        Fcircle = as.function(alist(r=, pars=, types=, pi*r^2), envir = .GlobalEnv),
         simulate = NULL, # will be handled specially in simEpidataCS
         npars = 0L, validpars = NULL
     )
@@ -37,7 +37,7 @@ siaf.constant <- function () {
 ##   terms of multiples of the parameter, i.e. with effRangeMult=6 numerical
 ##   integration only considers the 6-sigma area around the event instead of the
 ##   whole observation region W.
-## validpars: see 'twinstim'. If logsd = FALSE, you should either use
+## validpars: If logsd = FALSE, you should either use
 ##   constrained optimisation (L-BFGS-B) or set 'validpars' to function (pars)
 ##   pars > 0. 
 
@@ -69,7 +69,7 @@ siaf.gaussian <- function (nTypes, logsd = TRUE, density = FALSE,
     body(f) <- as.call(c(as.name("{"),
         tmp1, tmp2,
         expression(fvals <- exp(-sLengthSquared/2/sdss^2)),
-        if (density) expression(fvals <- fvals / (2*pi*sdss^2))
+        if (density) expression(fvals / (2*pi*sdss^2)) else expression(fvals)
     ))
 
     # derivative of f wrt pars
@@ -269,7 +269,7 @@ siaf.lomax <- function (nTypes = 1, logpars = TRUE, density = FALSE,
 ##                 ((alpha-1)*(r+sigma))
 ##         intfinvsq.fof0 - intfinvsq.fofr
 ##     }
-##     ## check if identical (TODO: drop this check after some time of testing)
+##     ## check if identical
 ##     if (!isTRUE(all.equal(intfinvsq2, intfinvsq))) {
 ##         browser("the two integrations of lomax^-1 differ")
 ##     }
@@ -319,8 +319,8 @@ tiaf.exponential <- function (nTypes)
 
 tiaf.constant <- function () {
     res <- list(
-        g = as.function(alist(t=, pars=, types=, rep.int(1, length(t))), envir = parent.frame()),
-        G = as.function(alist(t=, pars=, types=, t), envir = parent.frame()),
+        g = as.function(alist(t=, pars=, types=, rep.int(1, length(t))), envir = .GlobalEnv),
+        G = as.function(alist(t=, pars=, types=, t), envir = .GlobalEnv),
         deriv = NULL, Deriv = NULL, npars = 0L, validpars = NULL
     )
     attr(res, "constant") <- TRUE
@@ -335,30 +335,30 @@ tiaf.constant <- function () {
 .checkiaf0 <- function(iaf, npars, validpars, type = c("siaf", "tiaf"))
 {
     type <- match.arg(type)
-    if (npars > 0L) {
-        testpars <- rep.int(pi, npars)
+    testpars <- rep.int(0.5, npars)
+    if (!is.null(validpars)) {
         valid <- validpars(testpars)
         if (length(valid) != 1 || !is.logical(valid)) {
             stop("the '", type, "'/'validpars' function must return a single ",
                  "logical value")
         }
         if (!valid) {
-            testpars <- rep.int(0.5, npars)
+            testpars <- rep.int(pi, npars)
             valid <- validpars(testpars)
         }
     } else valid <- TRUE
     if (valid) {
         ctext <- switch(type, siaf = "coordinate (0,0)", tiaf = "time point 0")
         iaf0 <- switch(type,
-            siaf = if (npars>0L) iaf(t(c(0,0)), testpars, 1) else iaf(t(c(0,0)),,1),
-            tiaf = if (npars>0L) iaf(0, testpars, 1) else iaf(0,,1))
+            siaf = iaf(t(c(0,0)), testpars, 1),
+            tiaf = iaf(0, testpars, 1))
         if (!isTRUE(all.equal(iaf0, 1))) {
-            warning("the '", type, "' function should usually evaluate to 1 ",
+            message("CAVE: the '", type, "' function does not evaluate to 1 ",
                     "at ", ctext)
         }
     } else {
-        message("make sure that the maximum value returned by the '", type,
-                "' function is 1")
+        message("the maximum value returned by the '", type,
+                "' function should be 1")
     }
     NULL
 }
@@ -429,9 +429,9 @@ checksiaf <- function (f, deriv, Fcircle, effRange, simulate, npars, validpars, 
     if (missing(simulate)) simulate <- NULL
     if (!is.null(simulate)) simulate <- .checknargs3(simulate, "siaf$simulate")
     ## Check if the validpars are of correct form
-    validpars <- if (!haspars) NULL else if (missing(validpars) || is.null(validpars)) {
-        as.function(alist(pars=, TRUE), envir = parent.frame(3))
-    } else match.fun(validpars)
+    validpars <- if (!haspars || missing(validpars) || is.null(validpars))
+        NULL else match.fun(validpars)
+    ## Check if the siaf has value 1 at (0,0)
     .checkiaf0(f, npars, validpars, "siaf")
     ## Done, return result.
     list(f = f, deriv = deriv, Fcircle = Fcircle, effRange = effRange,
@@ -469,9 +469,9 @@ checktiaf <- function (g, G, deriv, Deriv, npars, validpars, knots)
     if (!haspars || missing(Deriv)) Deriv <- NULL
     if (!is.null(deriv)) deriv <- .checknargs3(deriv, "tiaf$deriv")
     if (!is.null(Deriv)) Deriv <- .checknargs3(Deriv, "tiaf$Deriv")
-    validpars <- if (!haspars) NULL else if (missing(validpars) || is.null(validpars)) {
-            as.function(alist(pars=, TRUE), envir = parent.frame(3))
-        } else match.fun(validpars)
+    validpars <- if (!haspars || missing(validpars) || is.null(validpars))
+        NULL else match.fun(validpars)
+    ## Check if the tiaf has value 1 at the origin
     .checkiaf0(g, npars, validpars, "tiaf")
     list(g = g, G = G, deriv = deriv, Deriv = Deriv, npars = npars, validpars = validpars)
 }
@@ -485,9 +485,10 @@ checktiaf <- function (g, G, deriv, Deriv, npars, validpars, knots)
 {
     name <- as.character(substitute(iaf))
     if (missing(iaf) || is.null(iaf)) {
-        message("no ", switch(name, siaf="spatial", tiaf="temporal"),
-                " interaction function in model")
-        NULL
+        message("assuming constant ",
+                switch(name, siaf="spatial", tiaf="temporal"),
+                " interaction '", name, ".constant()'")
+        do.call(paste(name, "constant", sep="."), args=alist())
     } else if (is.list(iaf)) {
         ret <- do.call(paste0("check",name), args = iaf)
         attr(ret, "constant") <- isTRUE(attr(iaf, "constant"))

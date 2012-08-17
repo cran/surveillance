@@ -98,21 +98,36 @@ Spatio-Temporal Animation of an Epidemic
     \code{NULL}.  By default (\code{NULL}), time stops after the last event.
   }
   \item{generate.snapshots}{
-    \code{NULL} (the default) or a list of arguments passed to function
-    \code{\link{dev.print}}, which then is executed at each time point of the
-    grid defined by \code{time.spacing}.  Note that this only works with
-    \code{time.spacing} not being \code{NULL}.  Essentially, this is used for 
+    By default (\code{NULL}), the animation is not saved to image files
+    but only shown on the on-screen device. In order to do that,
+    \code{time.spacing} must not be \code{NULL}, and there
+    are two options:\cr
+    If the framework of the \pkg{animation} package
+    should be used, i.e. the \code{animate}-call is passed as the
+    \code{expr} argument to one of the \code{save*} functions of the
+    \pkg{animation} package, then set
+    \code{generate.snapshots = img.name}, where \code{img.name} is the
+    base name for the generated images (the same as passed to the
+    \code{save*} function). The path and format (type, width, height)
+    for the generated images is derived from
+    \code{\link[animation]{ani.options}}. See the last example below.\cr
+    Alternatively, \code{generate.snapshots} may be a list of arguments
+    passed to the function \code{\link{dev.print}}, which then is
+    executed at each time point of the grid defined by
+    \code{time.spacing}.  Essentially, this is used for 
     saving the produced snapshots to files, e.g.
 
     \code{generate.snapshots = %
-    list(device=pdf, file=quote(paste("epidemic_",sprintf(form,t0),".pdf",%
+    list(device=pdf, file=quote(paste("epidemic_",sprintf(form,tp),".pdf",%
     sep="")))}
 
     will store the animation steps in pdf-files in the current
     working directory, where the file names each end with the time point
-    represented by the corresponding plot.  Because the variables \code{t0} and
-    \code{form} are evaluated inside the function the \code{file} argument is
-    \code{quote}d.
+    represented by the corresponding plot.  Because the variables \code{tp}
+    and \code{form} should only be evaluated inside the function the
+    \code{file} argument is \code{quote}d. Alternatively, the file name
+    could also make use of the internal plot index \code{i}, e.g., use
+    \code{file=quote(paste("epidemic",i,".pdf",sep=""))}.
   }
   \item{\dots}{
     further graphical parameters passed to the basic call of \code{plot}, e.g.
@@ -133,7 +148,7 @@ Sebastian Meyer
 \code{\link{plot.epidata}} for plotting the evolution of an epidemic by
 the numbers of susceptible, infectious and removed individuals.
 
-%The contributed \R package \pkg{animation}.
+The contributed \R package \pkg{animation}.
 }
 
 \examples{
@@ -141,10 +156,19 @@ data("fooepidata")
 s <- summary(fooepidata)
 
 # plot the ordering of the events only
-animate(s)   # or animate(fooepidata)
+animate(s, sleep=0.01)   # or: animate(fooepidata)
 
-# with timer
-animate(s, time.spacing = 0.1)
+# with timer (animate only up to t=10)
+animate(s, time.spacing=0.1, end=10, sleep=0.01)
+
+\dontrun{
+# using features of the animation package:
+require("animation")
+saveHTML(
+    animate(s, time.spacing = 1, sleep = 0, generate.snapshots = "epiani"),
+    img.name = "epiani", use.dev = FALSE, ani.type = "png", width = 600
+)
+}
 }
 
 \keyword{hplot}

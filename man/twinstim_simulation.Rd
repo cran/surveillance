@@ -21,12 +21,14 @@
 \usage{
 simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     events, stgrid, tiles, beta0, beta, gamma, siafpars, tiafpars,
-    t0 = stgrid$start[1], T = tail(stgrid$stop,1), nEvents = 1e5, nCub,
+    t0 = stgrid$start[1], T = tail(stgrid$stop,1), nEvents = 1e5,
+    nCub, nCub.adaptive = FALSE,
     W = NULL, trace = 5, nCircle2Poly = 32, gmax = NULL, .allocate = 500,
-    .skipChecks = FALSE, .onlyEvents = FALSE,...)
+    .skipChecks = FALSE, .onlyEvents = FALSE)
 
 \method{simulate}{twinstim}(object, nsim = 1, seed = NULL, data, tiles,
-    rmarks = NULL, t0 = NULL, T = NULL, nEvents = 1e5, nCub,
+    rmarks = NULL, t0 = NULL, T = NULL, nEvents = 1e5,
+    nCub = object$nCub, nCub.adaptive = object$nCub.adaptive,
     W = NULL, trace = FALSE, nCircle2Poly = 32, gmax = NULL,
     .allocate = 500, simplify = TRUE, ...)
 }
@@ -35,7 +37,7 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
   \item{endemic}{
     see \code{\link{twinstim}}. Note that type-specific endemic
     intercepts are specified by \code{beta0} here, not by the term
-    \code{(1|type)}. 
+    \code{(1|type)}.
   }
   \item{epidemic}{
     see \code{\link{twinstim}}. Marks appearing in this formula must
@@ -70,8 +72,8 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     function of single time (1st arg) and location
     (2nd arg) returning a one-row \code{data.frame} of marks (named
     according to the variables in \code{epidemic}) for an event at this
-    point. This includes the columns \code{eps.s} and \code{eps.t}, i.e.
-    the values of the spatial and temporal interaction ranges at this
+    point. This must include the columns \code{eps.s} and \code{eps.t}, 
+    i.e. the values of the spatial and temporal interaction ranges at this
     point. Only \code{"numeric"} and \code{"factor"} columns are
     allowed. Assure that factor variables are coded equally 
     (same levels and level order) for each new sample. If there is no
@@ -85,7 +87,9 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
   \item{events}{
     \code{NULL} or missing (default) in case of an empty prehistory,
     or a \code{\link{SpatialPointsDataFrame}} containing events of the
-    prehistory (-Inf;\code{t0}] of the process (having the same
+    prehistory (-Inf;\code{t0}] of the process (required for the
+    epidemic to start in case of no endemic component in the model).
+    The \code{SpatialPointsDataFrame} must have the same
     \code{proj4string} as \code{tiles} and \code{W}). The attached
     \code{data.fram}e (data slot) must contain the typical 
     columns as described in \code{\link{as.epidataCS}} (\code{time},
@@ -123,13 +127,13 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     fitting of the \code{"twinstim"} \code{object}.
   }
   \item{T, nEvents}{
-    simulate \code{nEvents} events up to time \code{T},
+    simulate a maximum of \code{nEvents} events up to time \code{T},
     then stop. For \code{simEpidataCS}, by default, and also if
     \code{T=NULL}, \code{T} equals the last stop time in \code{stgrid}
     (it cannot be greater) and \code{nEvents} is bounded above by 10000.
     For the \code{simulate.twinstim} method, \code{T=NULL} means to use
     the same same time range as for the fitting of the \code{"twinstim"}
-    \code{object}.
+    \code{object}. 
   } 
   \item{W}{
     see \code{\link{as.epidataCS}}. Must have the same
@@ -153,9 +157,10 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     to the first of the \code{nsim} simulations.
   }
   \item{.allocate}{
-    number of rows to initially allocate for the event history; defaults to
-    500.  Each time the simulated epidemic exceeds the allocated space,
-    the event data.frame will be enlarged by \code{.allocate} rows.
+    number of rows (events) to initially allocate for the event history;
+    defaults to 500.  Each time the simulated epidemic exceeds the
+    allocated space, the event \code{data.frame} will be enlarged by
+    \code{.allocate} rows.
   }
   \item{.skipChecks,.onlyEvents}{
     these logical arguments are not meant to be set by the user.
@@ -192,7 +197,7 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     simulation is stored as an attribute \code{"runtime"} to each simulated
     \code{events}. See also the \dQuote{Value} section below.
   }
-  \item{nCub}{see \code{\link{twinstim}}.}
+  \item{nCub, nCub.adaptive}{see \code{\link{twinstim}}.}
   \item{nCircle2Poly}{see \code{\link{as.epidataCS}}.}
   \item{gmax}{
     maximum value the temporal interaction function
@@ -225,6 +230,18 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
   a single object of class \code{"simEpidataCS"}, but with \code{events}
   replaced by an \code{eventsList} containing the \code{events} returned
   by each of the simulations.
+
+  The \code{stgrid} component of the returned \code{"simEpidataCS"}
+  will be truncated to the actual end of the simulation, which might
+  be \eqn{<T}, if the upper bound \code{nEvents} is reached during
+  simulation.
+  
+  CAVE: Currently, \code{simplify=TRUE} in \code{simulate.twinstim}
+  ignores that multiple simulated epidemics
+  (\code{nsim > 1}) may have different \code{stgrid} 
+  time ranges. In a \code{"simEpidataCSlist"}, the \code{stgrid} shared
+  by all of the simulated epidemics is just the \code{stgrid}
+  returned by the \emph{first} simulation.
 }
 
 \note{
@@ -232,7 +249,7 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
   algorithm is. Often it can be advantageous to sacrifice some detail
   for speed by reducing polygon complexity using, e.g., the
   Douglas and Peucker (1973) reduction method available at
-  \url{http://mapshaper.com/test/demo.html} or as function \code{dp()}
+  \url{MapShaper.org} or as function \code{dp()}
   in the (slightly outdated) package \pkg{shapefiles}, or by passing by
   \pkg{spatstat}'s \code{\link[spatstat]{simplify.owin}} procedure.
 }
@@ -264,16 +281,43 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
 The \code{\link{plot.epidataCS}} and \code{\link{animate.epidataCS}}
 methods for plotting and animating continuous-space epidemic data,
 respectively, which also work for simulated epidemics (by inheritance).
-% FIXME:
-% The \code{\link{intensityplot}} method for plotting the path of the
-% infection intensity (or its two components) in time or space.
 
 Function \code{\link{twinstim}} for fitting
 spatio-temporal conditional intensity models to epidemic data.
 }
 
 \examples{
-# TODO...
+data(imdepi)
+data(imdepifit)
+
+## load borders of Germany's districts (obtained from the
+## Bundesamt für Kartographie und Geodäsie, Frankfurt am Main, Germany,
+## www.geodatenzentrum.de), simplified by the "special" Visvalingam
+## algorithm (level=60\%) using www.MapShaper.org:
+load(system.file("shapes", "districtsD.RData", package="surveillance"))
+plot(districtsD)
+plot(stateD, add=TRUE, border=2, lwd=2)
+# 'stateD' is the union of the polygons in 'districtsD'
+# (created by maptools::unionSpatialPolygons)
+
+## simulate two "epidemics" from an endemic-only model (during a short period)
+m_noepi <- update(imdepifit, epidemic=~0, siaf=NULL,
+    optim.args=list(par=coef(imdepifit)[1:4]), model=FALSE, cumCIF=FALSE)
+mysim <- simulate(m_noepi, nsim=2, seed=399, data=imdepi,
+    tiles=districtsD, W=stateD, t0=31, T=182, trace=20, nCircle2Poly=16,
+    .allocate=100, simplify=TRUE)
+
+# extract the first realization -> object of class simEpidataCS
+mysim1 <- mysim[[1]]
+plot(mysim1, aggregate="space")
+
+# use the plot-method for simEpidataCSlist's
+plot(mysim, aggregate="time", subset=type=="B")
+
+## simulate 1 realization from the imdepifit-model
+simimdepifit <- simulate(imdepifit, seed=1, data=imdepi,
+    tiles=districtsD, W=stateD, t0=31, T=182, trace=50)
+summary(simimdepifit)
 }
 
 \keyword{datagen}

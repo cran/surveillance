@@ -65,8 +65,8 @@ number of events along the time axis (aggregated over space) using
     (\code{aggregate = "space"}):
     \describe{
       \item{cex.fun}{function which takes a vector of counts of events
-	at each unique location and returns a vector of \code{cex}
-	values for the sizes of the corresponding \code{points}.
+	at each unique location and returns a (vector of) \code{cex}
+	value(s) for the sizes of the corresponding \code{points}.
 	Defaults to the \code{sqrt()} function, which for the default
 	circular \code{pch=1} means that the area of each point is
 	proportional to the number of events at its location.}

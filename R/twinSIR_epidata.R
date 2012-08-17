@@ -765,23 +765,38 @@ animate.summary.epidata <- function (object,
             if (is.null(timer.opts$bg))      timer.opts$bg <- "white"
             do.call(legend, c(list(legend = sprintf(form, 0)), timer.opts))
         }
-        if (!is.null(generate.snapshots)) {
+        oldtp <- tp <- attr(object, "timeRange")[1L]
+        i <- 1L                   # to be used in the file argument in dev.print
+        if (is.vector(generate.snapshots, mode="character") &&
+            length(generate.snapshots) == 1L && require("animation")) {
+            img.name <- generate.snapshots
+            ani.dev <- ani.options("ani.dev")
+            if (is.character(ani.dev)) ani.dev <- get(ani.dev)
+            imgdir <- file.path(ani.options("outdir"), ani.options("imgdir"))
+            generate.snapshots <- list(
+                device = ani.dev,
+                file = quote(file.path(imgdir,
+                       paste0(img.name, i, ".", ani.options("ani.type")))),
+                width = ani.options("ani.width"),
+                height = ani.options("ani.height"))
+        }
+        if (is.list(generate.snapshots)) {
             do.call(dev.print, generate.snapshots)
         }
-        t0 <- attr(object, "timeRange")[1L]
-        for(t in timeGrid) {
+        for(i in 1L+seq_along(timeGrid)) {
+            tp <- timeGrid[i-1L]
             Sys.sleep(sleep)
-            timeIndex <- which(eventTable[["time"]] > t0 & eventTable[["time"]] <= t)
+            timeIndex <- which(eventTable[["time"]] > oldtp & eventTable[["time"]] <= tp)
             if (length(timeIndex) > 0L) {
                 tmp <- eventTable[timeIndex,]  # c(time, type, id)
                 points(coords[as.character(tmp[["id"]]),,drop=FALSE],
                        pch = pch[tmp[["type"]]], col = col[tmp[["type"]]])
             }
             if (is.list(timer.opts)) {
-                do.call(legend, c(list(legend = sprintf(form,t)), timer.opts))
+                do.call(legend, c(list(legend = sprintf(form,tp)), timer.opts))
             }
-            t0 <- t
-            if (!is.null(generate.snapshots)) {
+            oldtp <- tp
+            if (is.list(generate.snapshots)) {
                 do.call(dev.print, generate.snapshots)
             }
         }

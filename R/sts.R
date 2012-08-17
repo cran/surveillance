@@ -337,7 +337,7 @@ setMethod("plot", signature(x="sts", y="missing"), function(x, y, type,...) {
 })
 
 ######################################################################
-# Helper function taken from the RCurl package
+# Helper function to merge two lists taken from the RCurl package
 ######################################################################
 
 merge.list <- function (x, y, ...) 
@@ -610,22 +610,6 @@ plot.sts.alarm <- function(x, lvl=rep(1,nrow(x)), ylim=NULL,xaxis.years=TRUE, xa
   invisible()
 }
 
-######################################################################
-# Helper function to merge two lists - taken from the RCurl
-# package
-######################################################################
-
-function (x, y, ...) {
-  if (length(x) == 0) 
-    return(y)
-  if (length(y) == 0) 
-    return(x)
-  i = match(names(y), names(x))
-  i = is.na(i)
-  if (any(i)) 
-    x[names(y)[which(i)]] = y[which(i)]
-  return(x)
-}
 
 #xaxis.years=TRUE,startyear = 2001, firstweek = 1, legend=TRUE
 plot.sts.time <- function(x, type, method=x@control$name, disease=x@control$data,same.scale=TRUE,par.list=list(mfrow=magic.dim(nAreas),mar=par()$mar),...) {

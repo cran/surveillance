@@ -118,23 +118,23 @@ plot(ha.sts, type= observed ~ time)
 plot(ha.sts, type= observed ~ time | unit)
 plot(ha.sts, type= observed ~ 1 | unit)
 plot(ha.sts[1:20,1:2], type= observed ~ 1 | unit)
-plot(aggregate(ha.sts,nfreq=13), type= observed ~ 1 | unit * time)
-
 
 \dontrun{
-#Configure a png device printer for the plot command
-dev.printer <-
-list(device=png,extension=".png",width=640,height=480,name="/tmp/berlin")
+# space-time animation
+plot(aggregate(ha.sts,nfreq=13), type= observed ~ 1 | unit * time)
 
-#Do the animation
+#Configure a png device printer to save the frames
+dev.printer <- list(device=png, extension=".png", width=640, height=480,
+                    name=file.path(tempdir(),"berlin"))
+
+#Do the animation (without extra sleeping time between frames)
 plot(aggregate(ha.sts,nfreq=13), type = observed ~ 1 | unit * time,
-         dev.printer=dev.printer)
+     wait.ms=0, dev.printer=dev.printer)
 
-#Use ImageMagick -- replace /sw/bin/convert by your path to convert
-system(paste("/sw/bin/convert -delay 50 ",dev.printer$name,
-           "*.png /tmp/animated.gif",sep=""))
+#Use ImageMagick (you might have to adjust the path to 'convert')
+system(paste("convert -delay 50 ",dev.printer$name,
+           "*.png ", dev.printer$name, "-animated.gif",sep=""))
 }
-
 }
 
 \keyword{ts}
