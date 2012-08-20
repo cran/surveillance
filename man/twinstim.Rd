@@ -35,11 +35,12 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     component in the model.
   }
   \item{siaf}{
-    spatial interaction function. May be \code{NULL} (or missing,
-    corresponding to constant infectivity independent of the spatial
-    distance from the host), a list (specifying a continuous kernel, as
-    e.g., returned by \code{\link{siaf.gaussian}} or
-    \code{\link{siaf.lomax}}), or numeric (knots of a step function). 
+    spatial interaction function. May be \code{NULL} or missing
+    (corresponding to \code{siaf.constant()}, i.e. constant infectivity 
+    independent of the spatial distance from the host), a list
+    (specifying a continuous kernel, as e.g., returned by the functions
+    \code{\link{siaf.gaussian}} or \code{\link{siaf.lomax}}), or numeric
+    (knots of a step function).
   }
   \item{tiaf}{
     temporal interaction function. May be \code{NULL} (or missing,
@@ -79,20 +80,23 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     \code{data$stgrid} are not accepted.
   }
   \item{nCub, nCub.adaptive}{
-    determines the accuracy of the numerical cubature of the \code{siaf}
-    function. If \code{siaf$Fcircle} and \code{siaf$effRange} are both
-    specified and \code{nCub.adaptive = TRUE}, then \code{nCub} is
-    interpreted as 
-    \code{siaf$effRange()}/\code{eps}, where \code{eps} is used as pixel
-    width and height in the two-dimensional midpoint rule (see
-    \code{\link{polyCub.midpoint}}). Thus \code{nCub} is the desired
-    number of subdivions of the effective integration range in both
-    dimensions (for the current \code{siaf} parameters during
+    determine the accuracy of the numerical cubature for non-constant
+    \code{siaf} specifications. These arguments are ignored in the case
+    \code{siaf=siaf.constant()} (which is the default if \code{siaf} is
+    unspecified).\cr
+    If \code{siaf$Fcircle} and \code{siaf$effRange} are
+    both specified and \code{nCub.adaptive = TRUE}, then \code{nCub} is
+    interpreted as \code{siaf$effRange()}/\code{eps}, where \code{eps}
+    is used as pixel width and height in the two-dimensional midpoint
+    rule (see \code{\link{polyCub.midpoint}}). Thus \code{nCub} is the
+    desired number of subdivions of the effective integration range in
+    both dimensions (for the current \code{siaf} parameters during
     optimisation), and \code{eps} thus equals
-    \code{siaf$effRange()}/\code{nCub} (e.g.,
-    if 6\eqn{\sigma} is used as the effective integration range of the
-    Gaussian \code{siaf} kernel, and \code{nCub = 24}, then a bandwidth
-    of \eqn{\sigma / 4} is used in the midpoint rule.\cr
+    \code{siaf$effRange()}/\code{nCub}. This is intended and especially
+    useful for the Gaussian \code{\link[=siaf.gaussian]{siaf}} kernel:
+    if, e.g., 6\eqn{\sigma} is used as the effective integration range
+    and \code{nCub = 24}, then a bandwidth of \eqn{\sigma / 4} is used
+    in the midpoint rule.\cr 
     If \code{siaf$Fcircle} or \code{siaf$effRange} is unspecified or
     \code{nCub.adaptive = FALSE}, then \code{nCub} equals the above
     mentioned \code{eps} in \code{polyCub.midpoint} (in this case may
@@ -108,15 +112,32 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     at least the element \code{par}, the start values of the parameters in
     the order \code{par = c(endemic, epidemic, siaf, tiaf)}.
     Note that \code{optim} receives the negative log-likelihood for minimization
-    (thus, if used, \code{optim.args$control$fnscale} should be positive).
+    (thus, if used, \code{optim.args$control$fnscale} should be
+    positive).
+
+    There may be an extra component \code{fixed} in the
+    \code{optim.args} list, which determines which parameters should stick
+    to their initial (\code{par}) values. This can be specified by a
+    logical vector of the same length as the \code{par} component, by an
+    integer vector indexing \code{par} or by a character vector following
+    the \code{twinstim} naming conventions (e.g. \code{"h.(Intercept)"} for
+    the endemic intercept, \code{"e.siaf.1"} for the first \code{siaf}
+    parameter).
     
-    Exceptionally, the \code{method} argument may also be \code{"nlminb"}, in
+    Importantly, the \code{method} argument in the \code{optim.args}
+    list may also be \code{"nlminb"}, in 
     which case the \code{\link{nlminb}} optimizer is used. This is also the
-    default. In this case, the only parameters available in the
+    default. In this case, not only the score function but also the
+    expected Fisher information is used during optimization (as
+    estimated by what Martinussen and Scheike (2006, p. 64) call the
+    \dQuote{optional variation process}, or see Rathbun (1996, equation
+    (4.7))). In our experience this gives better convergence than \code{optim}.
+    For \code{method="nlminb"}, the only parameters available in the
     \code{optim.args$control} list are
-    \code{maxit}, \code{REPORT}, \code{abstol}, and \code{reltol}, which are
-    passed appropriately to \code{\link{nlminb}}. Furthermore, there is no
-    \code{hessian} argument for \code{nlminb}.
+    \code{maxit}, \code{REPORT} (default: 5), \code{abstol}, and
+    \code{reltol} (default: \code{1e-6}), which are passed appropriately
+    to \code{\link{nlminb}}. There is no \code{hessian} argument for
+    \code{nlminb}.
     
     If \code{optim.args} is \code{NULL}, then no optimization will be performed
     but the necessary functions will be returned in a list (similar to what is
@@ -131,7 +152,7 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     logical. If \code{TRUE} the result contains an element \code{functions} with
     the log-likelihood function (or partial log-likelihood function, if
     \code{partial = TRUE}), and optionally the score function and
-    the fisher information function (not for the partial likelihood, and
+    the Fisher information function (not for the partial likelihood, and
     only if \code{siaf} and \code{tiaf} provide the necessary
     derivatives).
     The environment of those functions equals the evaluation environment
@@ -188,8 +209,8 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
   \item{fitted}{fitted values of the conditional intensity function at the events.}
   \item{fittedComponents}{two-column matrix with columns \code{"h"} and
     \code{"e"} containing the fitted values of the endemic and epidemic
-    components, respectively. (Note that
-    \code{rowSums(fittedComponents) == fitted}.)}
+    components, respectively.\cr
+    (Note that \code{rowSums(fittedComponents) == fitted}.)}
   \item{tau}{fitted cumulative ground intensities at the event times.
     Only calculated and returned if \code{cumCIF = TRUE}.
     This is the \dQuote{residual process} of the model, see
@@ -228,7 +249,11 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
 \references{
   Diggle, P. J., Kaimi, I. & Abellana, R. (2010):
   Partial-likelihood analysis of spatio-temporal point-process data.
-  \emph{Biometrics}, 66, 347-354.
+  \emph{Biometrics}, \bold{66}, 347-354.
+
+  Martinussen, T. and Scheike, T. H. (2006):
+  Dynamic Regression Models for Survival Data.
+  Springer.
   
   Meyer, S., Elias, J. and H\enc{ö}{oe}hle, M. (2012):
   A space-time conditional intensity model for invasive meningococcal
@@ -240,10 +265,15 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
   Master's Thesis, Ludwig-Maximilians-Universit\enc{ä}{ae}t
   M\enc{ü}{ue}nchen.\cr
   Available as \url{http://epub.ub.uni-muenchen.de/11703/}
+
+  Rathbun, S. L. (1996):
+  Asymptotic properties of the maximum likelihood estimator for
+  spatio-temporal point processes.
+  \emph{Journal of Statistical Planning and Inference}, \bold{51}, 55-74.
 }
 
 \author{
-  S. Meyer with documentation contributions by M. \enc{Höhle}{Hoehle}.
+  Sebastian Meyer with documentation contributions by Michael H\enc{ö}{oe}hle.
 }
 
 \seealso{
@@ -256,55 +286,132 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
 # Load invasive meningococcal disease data
 data("imdepi")
 
-# TODO...
+### first, fit an endemic-only model
 
-\dontshow{
-TODO <- function () {
-#Indicator - we only take cases with all necessary covariates observed
-allEpiCovNonNA <- !is.na(imdepi$events@data$agegrp) &
-                     !is.na(imdepi$events@data$type)
+## As a start value for the endemic intercept use the crude estimate
+## assuming the model only had a single-cell endemic component
+## (rate of homogeneous Poisson process scaled for population density)
+popdensity.overall <- with(subset(imdepi$stgrid, BLOCK == 1),
+    weighted.mean(popdensity, area))
+popdensity.overall   # pop. density in Germany is ~230 inhabitants/km^2
+W.area <- with(subset(imdepi$stgrid, BLOCK == 1), sum(area))
+W.area               # area of Germany is about 357100 km^2
+# this should actually be the same as
+sum(sapply(imdepi$W@polygons, slot, "area"))
+# which here is not exactly the case because of polygon simplification
 
-#Define spatial interaction function to be a isotropic bivariate
-#Gaussian with same parameters for both finetypes
-siaf_log1 <- siaf.gaussian(1, logsd = TRUE, density = FALSE, effRangeMult = 6)
-siaf_constant <- siaf.constant()
+## start value for the endemic intercept
+h.intercept <- with(summary(imdepi),
+    log(nEvents/popdensity.overall/diff(timeRange)/W.area))
 
-#Start values (taken from the best model in fits5 of the Epi/mydata)
-#startvalues <-  c(-20.36516096, -0.04926598, 0.26183958, 0.26681968,
-#-12.57458928, 0.64631559, -0.18675885, -0.84955802, 2.82866154)
-#Crude intercept estimate -> if model only has an endemic component with
-#a single population
-#popdensity.overall <- mean(subset(imdepi$stgrid, BLOCK == 1)$popdensity)
-#h.intercept <- with(as(imdepi$events,"data.frame"),log(length(ID)/max(time)))/popdensity.overall
+## fit the endemic-only model
+m_noepi <- twinstim(
+    endemic = ~ 1 + offset(log(popdensity)) + I(start/365) +
+                sin(start * 2 * pi/365) + cos(start * 2 * pi/365),
+    data = imdepi, subset = !is.na(agegrp),
+    optim.args = list(par=c(h.intercept,rep(0,3)),
+                      method="nlminb", control = list(REPORT=1)),
+    model = FALSE, cumCIF = FALSE   # for reasons of speed
+)
 
-#Define start values
-optim.args <- list(par = rep(0,6), method = "nlminb", control = list(fnscale = -10000,trace=4,REPORT=1))
+## look at the model summary
+summary(m_noepi)
 
-#Fit a twinstim model (no space interaction)
-imdepi.fit0 <- twinstim(endemic  = ~1 + offset(log(popdensity)) + I(start/365) +
-              sin(start * 2 * pi/365) + cos(start * 2 * pi/365),
-              epidemic = ~1 + type, #+agegrp causes problems
-              data = imdepi, subset = allEpiCovNonNA,
-              optim.args = optim.args, finetune=FALSE, model=TRUE,
-              nCub = 24,
-              typeSpecificEndemicIntercept = FALSE)
+## type-dependent endemic intercept?
+m_noepi_type <- update(m_noepi,
+                       endemic = ~(1|type) + .,
+                       optim.args=list(par=coef(m_noepi)[c(1,1:4)]))
+summary(m_noepi_type)
 
-#Now with spatial interaction function
-optim.args <- modifyList(optim.args,list(par=c(coef(imdepi.fit0),3)))
-imdepi.fit1 <- twinstim(endemic  = ~1 + offset(log(popdensity)) + I(start/365) +
-              sin(start * 2 * pi/365) + cos(start * 2 * pi/365),
-              epidemic = ~1 + type, #agegrp works here.
-              siaf = siaf_log1,
-              data = imdepi, subset = allEpiCovNonNA,
-              optim.args = optim.args, finetune=FALSE, model=TRUE,
-              nCub = 24,
-              typeSpecificEndemicIntercept = FALSE)
+# LR-test for a type-dependent intercept in the endemic-only model
+pchisq(2*(logLik(m_noepi_type)-logLik(m_noepi)), df=1, lower.tail=FALSE)
 
 
-summary(imdepi.fit)
+### add an epidemic component with just the intercept, i.e.
+### assuming uniform dispersal in time and space up to a distance of
+### eps.s = 200 km and eps.t = 30 days (see summary(imdepi))
+
+m0 <- update(m_noepi, epidemic = ~1,
+             optim.args = list(par=c(coef(m_noepi),-10)), model = TRUE)
+
+\dontrun{
+## NOTE: optim's BFGS would not identify the epidemic intercept
+m0_BFGS <- update(m_noepi, epidemic = ~1,
+                  optim.args = list(par=c(coef(m_noepi),-10),
+                                    method="BFGS"))
+format(cbind(coef(m0), coef(m0_BFGS)), digits=3, scientific=FALSE)
+m0_BFGS$fisherinfo   # singular Fisher information matrix here
+m0$fisherinfo
+logLik(m0_BFGS)
+logLik(m0)
+## nlminb is more powerful since it makes use of the fisherinfo as
+## estimated by the model during optimization, which optim cannot
 }
+
+## summarize the model fit
+s <- summary(m0, correlation = TRUE, symbolic.cor = TRUE)
+s
+# output the table of coefficients as LaTeX code
+toLatex(s, digits=2, withAIC=FALSE)
+
+## the default confint-method can be used for Wald-CI's
+confint(m0, level=0.95)
+
+## same (untrimmed) R0 estimate for every event (epidemic intercept only)
+summary(R0(m0, trimmed=FALSE))
+
+## plot the path of the total intensity or of the epidemic proportion
+plot(m0, "total intensity", tgrid=1000)
+plot(m0, "epidemic proportion", tgrid=1000)
+
+\dontrun{
+## extract "residual process" integrating over space (takes some seconds)
+res <- residuals(m0)
+# if the model describes the true CIF well _in the temporal dimension_,
+# then this residual process should behave like a stationary Poisson
+# process with intensity 1
+plot(res, type="l"); abline(h=c(0, length(res)), lty=2)
+# -> use the function checkResidualProcess
+checkResidualProcess(m0)
 }
 
+## NB: the model fit environment is kept in the workspace with model=TRUE
+sort(sapply(environment(m0), object.size))
+# saving m0 to RData will include this model environment, thus might
+# consume quiet a lot of disk space (as it does use memory)
+
+
+### try with spatially decreasing interaction kernel
+## Likelihood evaluation takes much longer than for constant spatial spread
+## Here we use the kernel of an isotropic bivariate Gaussian with same
+## standard deviation for both finetypes
+
+m1 <- update(m0,
+    siaf = siaf.gaussian(1, logsd = TRUE),
+    optim.args = list(par=c(coef(m0), 2.8),  # exp(2.8) = sigma = 16 km
+                      fixed="e.siaf.1"),
+                      # for reasons of speed of the example, the siaf
+                      # parameter log(sigma) is fixed to 2.8 here
+    nCub = 24, nCub.adaptive = TRUE  # use adaptive eps=6*sigma/24=sigma/4
+)
+
+AIC(m_noepi, m0, m1)   # further improvement
+summary(m1, test.iaf=FALSE)   # nonsense to test H0: log(sigma) = 0
+plot(m1, "siaf", xlim=c(0,200), types=1)   # the same for types=2
+
+
+### add epidemic covariates
+
+m2 <- update(m1,
+    epidemic = ~ 1 + type + agegrp,
+    optim.args = list(par=c(coef(m0), 0, 0, 0, coef(m1)["e.siaf.1"]))
+)
+
+AIC(m1, m2)   # further improvement
+summary(m2)
+
+# look at estimated R0 values by event type
+tapply(R0(m2), imdepi$events@data[names(R0(m2)), "type"], summary)
 }
 
 \keyword{models}

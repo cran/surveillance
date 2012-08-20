@@ -7,29 +7,56 @@
 \alias{tiaf.exponential}
 
 \title{
-  Temporal and spatial interaction functions for \code{twinstim}
+  Temporal and Spatial Interaction Functions for \code{twinstim}
 }
+
 \description{
-  Predefined functional forms for the spatial and temporal dispersal
-  (\eqn{f} and \eqn{g}, respectively) for use in \code{twinstim} models as
-  described in Meyer et al. (2012). 
+  A \code{twinstim} model as described in Meyer et al. (2012) requires
+  the specification of the spatial and temporal interaction functions
+  (\eqn{f} and \eqn{g}, respectively), 
+  i.e. how infectivity decays with increasing spatial and temporal
+  distance from the source of infection.
+  It is of course possible to define own functions (which are
+  implemented as list objects with required components described in the
+  \dQuote{Value} section below), but the package also predefines some 
+  dispersal kernels returned by the constructor functions documented
+  here.
 }
+
 \usage{
+# spatial interaction functions
 siaf.constant()
 siaf.gaussian(nTypes, logsd = TRUE, density = FALSE, effRangeMult = 6,
               validpars = NULL)
 siaf.lomax(nTypes = 1, logpars = TRUE, density = FALSE, effRangeProb = 0.99,
            validpars = NULL)
 
+# temporal interaction functions
 tiaf.constant()
 tiaf.exponential(nTypes)
 }
+
 \arguments{
-  \item{nTypes}{Number of different types, i.e. \eqn{|\mathcal{K}|}{|K|}}
-  \item{logsd}{Parametrize standard deviation parameter
-  \eqn{\sigma>0}{sigma>0} on log scale to enforce parameter
-  constraint. Default: \code{TRUE}}
-  \item{density}{logical. If \code{TRUE}, a density is used as the
+  \item{nTypes}{
+    determines the number of parameters ((log-)scales or (log-)shapes)
+    of the kernels. In a multitype epidemic, the different types may
+    share the same spatial interaction function, in which case
+    \code{nTypes=1}. Otherwise \code{nTypes} should equal the number of
+    event types of the epidemic, in which case every type has its own
+    (log-)scale or (log-)shape, respectively. Currently, the constructor
+    function for the Lomax kernel \code{siaf.lomax} only allows a
+    type-invariant kernel (\code{nTypes=1}). 
+  }
+  \item{logsd, logpars}{
+    logical indicating if the Gaussian (or Lomax) kernel should be parametrized
+    with the log-standard deviation (or log(scale) and log(shape)) as
+    the parameter(s) in question to enforce positivity. This
+    is the recommended default and avoids constrained optimisation
+    (L-BFGS-B) or the use of \code{validpars}. The alternative
+    (\code{FALSE}) is even not implemented for \code{siaf.lomax}.
+  }
+  \item{density}{
+    logical. If \code{TRUE}, a density is used as the
     interaction function: for \code{siaf.gaussian}, the density of the
     bivariate, isotropic normal distribution, for \code{siaf.lomax},
     \eqn{f(||\bold{s}||)} is the density of the (univariate) Lomax
@@ -39,24 +66,158 @@ tiaf.exponential(nTypes)
     which might interfere with the identification of an epidemic
     intercept. Hence, by default (\code{density = FALSE}), the density
     is normalized to unity at the origin, i.e.
-    \eqn{f(\bold{s}) / f(\bold{0})} is used.}
-  \item{effRangeMult}{Determines the effective range for numerical integration
-  in terms of multiples of \eqn{\sigma}, i.e. with \code{effRangeMult=6} numerical
-  integration only considers the 6-sigma area around the event instead of the whole
-  observation region W.}
-  \item{validpars}{See \code{\link{twinstim}}. If \code{logsd = FALSE}, you should
-  either use constrained optimisation (L-BFGS-B) or set \code{validpars} to
-  \code{function (pars) pars > 0}.}
-  \item{logpars}{logical. Parametrize the Lomax distribution with log(scale) and
-    log(shape) to enforce positive parameters. The alternative
-    (\code{FALSE}) is not implemented.}
-  \item{effRangeProb}{Determines the effective range for numerical integration
-  in terms of the corresponding quantile of the univariate Lomax distribution.}
+    \eqn{f(\bold{s}) / f(\bold{0})} is used. This is also the case for
+    the exponential temporal decay function \code{tiaf.exponential},
+    where the kernel \eqn{\exp(-\alpha t)} of the exponential
+    distribution density function is used.
+  }
+  \item{effRangeMult}{
+    determines the effective range for numerical integration
+    in terms of multiples of the standard deviation \eqn{\sigma} of the
+    Gaussian kernel, i.e. with \code{effRangeMult=6} numerical
+    integration only considers the \eqn{6 \sigma} area around the event instead
+    of the whole observation region \code{W}.
+  }
+  \item{effRangeProb}{
+    determines the effective range for numerical integration
+    in terms of the corresponding quantile of the univariate Lomax
+    distribution.
+  }
+  \item{validpars}{
+    function taking one argument, the parameter vector, indicating if it
+    is valid. If \code{logsd=FALSE} or \code{logpars=FALSE} and one
+    prefers not to use \code{method="L-BFGS-B"} for fitting the
+    \code{twinstim}, then \code{validpars} should be set to
+    \code{function (pars) pars > 0}.
+  }
 }
+
+\details{
+  The readily available spatial interaction functions are defined as
+  follows:
+  \describe{
+    \item{\code{siaf.constant}:}{
+      \eqn{f(s) = 1}
+    }
+    \item{\code{siaf.gaussian}:}{
+      \eqn{f(s|\kappa) = \exp(-||s||/2/\sigma_\kappa^2)}\cr
+      If \code{nTypes=1} (single-type epidemic or type-invariant
+      \code{siaf} in multi-type epidemic), then
+      \eqn{\sigma_\kappa = \sigma} for all types \eqn{\kappa}.
+      If \code{density=TRUE}, then the kernel formula above is
+      additionally divided by \eqn{2 \pi \sigma_\kappa^2}, yielding the
+      density of the bivariate, isotropic Gaussian distribution with
+      zero mean and covariance matrix \eqn{\sigma_\kappa^2 I_2}.
+    }
+    \item{\code{siaf.lomax}:}{
+      \eqn{f(s) = (\sigma / (||s|| + \sigma))^{\alpha+1}},\cr
+      which is the density of the univariate Lomax distribution scaled
+      to 1 at the origin, i.e. divided by \eqn{\alpha / \sigma}.
+    }
+  }
+  
+  Furthermore, there are two predefined temporal interaction functions:
+  \describe{
+    \item{\code{tiaf.constant}:}{
+      \eqn{g(t) = 1}
+    }
+    \item{\code{tiaf.exponential}:}{
+      \eqn{g(t|\kappa) = \exp(-\alpha_\kappa t)},\cr
+      which is the density of the exponential distribution scaled to 1
+      at the origin, i.e. divided by \eqn{\alpha_\kappa}.
+      If \code{nTypes=1} (single-type epidemic or type-invariant
+      \code{tiaf} in multi-type epidemic), then
+      \eqn{\alpha_\kappa = \alpha} for all types \eqn{\kappa}.
+    }
+  }
+}
+
 \value{
-A list containing the interaction function, its derivative, ...
-%TODO
+  The specification of an interaction function, which is a list.
+  For spatial kernels, this list contains the following components:
+  \item{f}{spatial interaction function (\code{siaf}). It must accept
+    two arguments, the first one being a (2-column) coordinate matrix, the
+    second one a parameter vector. For marked \code{twinstim}, it must
+    accept the type of the event (integer code) as its third argument
+    (either a single type for all locations or separate types for each
+    location).}
+  \item{deriv}{optional derivative of \eqn{f(s)} \emph{with respect to
+      the parameters}. It takes the same arguments as \code{f} but
+    returns a matrix with as many rows as there were coordinates in the
+    input and \code{npars} columns. This derivative is necessary for the
+    calculation of the score function in \code{twinstim()}, which is
+    advantageous for the numerical log-likelihood maximization.} 
+  \item{Fcircle}{optional function for fast calculation of the
+    (two-dimensional) integral of \eqn{f(s)} over a circle with radius
+    \code{r} (first argument). Further arguments are as for \code{f}. It
+    must not be vectorized (will always be called with single radius
+    and a single type). If this function is specified, integration of
+    the \code{siaf} over the spatial influence region of an event will
+    be faster if the region is actually circular. This is the case if
+    the event is located at least a distance \code{eps.s} from the border
+    of the observation region \code{W}, or if the distance to the border
+    is larger than the effective integration range (if specified, see
+    \code{effRange} below).}
+  \item{effRange}{optional function returning the \dQuote{effective}
+    range of \eqn{f(s)} for the given set of parameters (the first and
+    only argument) such that the circle with radius \code{effRange}
+    contains the numerically essential proportion of the 
+    integral mass. For the Gaussian kernel the default is
+    \code{function (logsd) 6*exp(logsd)}. The return value must be a
+    vector of length \code{nTypes} (effective range for each type). This
+    function is only used if \code{Fcircle} is also specified.}
+  \item{simulate}{optional function returning a sample drawn from the
+    spatial kernel (only required for the simulation of \code{twinstim}
+    models).  Its first argument is the size of the sample to
+    generate, further arguments are as for \code{f} (but the optional
+    third argument specifies a single event type only).  The function must
+    return a two-column \emph{matrix} of the sampled locations.
+    Note that the simulation method actually samples only one location
+    at a time, thus it is sufficient to have a working
+    \code{function(n=1, pars, type)}. For \code{siaf.constant()}, the
+    \code{simulate} component is \code{NULL}, but this will be handled
+    specially by \code{simEpidataCS}.
+  }
+  \item{npars}{the number of parameters of the spatial interaction
+    function \code{f} (i.e. the length of its second argument).}
+    
+  For temporal kernels, the components are:
+  \item{g}{temporal interaction function (\code{tiaf}). It must accept
+    two arguments, the first one being a vector of time points, the
+    second one a parameter vector. For marked \code{twinstim}, it must
+    accept the type of the event (integer code) as its third argument
+    (either a single type for all locations or separate types for each
+    location).}
+  \item{G}{a primitive of \eqn{g(t)} (with respect to time). It must
+    accept the same arguments as \code{g}, for instance a \emph{vector}
+    of time points (not just a single one).}
+  \item{deriv}{optional derivative of \eqn{g(t)} \emph{with respect to
+      the parameters}. It takes the same arguments as \code{g} but
+    returns a matrix with as many rows as there were time points in the
+    input and \code{npars} columns. This derivative is necessary for the
+    calculation of the score function in \code{twinstim()}, which is
+    advantageous for the numerical log-likelihood maximization.}
+  \item{Deriv}{optional primitive of \code{deriv} (with respect to
+    time). It must accept the same arguments as \code{deriv}, \code{g} and
+    \code{G} and returns a matrix with as many rows as there were time
+    points in the input and \code{npars} columns. The integrated
+    derivative is necessary for the score function in \code{twinstim}.}
+  \item{npars}{the number of parameters of the temporal interaction
+    function \code{g} (i.e. the length of its second argument).}
+  
+  In \emph{both} cases, there may be an additional component
+  \code{validpars} as a way to specify parameter constraints:
+  \item{validpars}{
+    optional function taking one argument, the parameter vector, indicating if it
+    is valid. This function is rarely needed in practice, because usual
+    box-constrained parameters can be taken into account by using L-BFGS-B
+    as the optimization method in \code{twinstim} (with arguments
+    \code{lower} and \code{upper}), and positivity constraints by using
+    log-parametrizations. This component is not necessary (and ignored) if
+    \code{npars == 0}.
+  }
 }
+
 \references{
   Meyer, S., Elias, J. and H\enc{ö}{oe}hle, M. (2012):
   A space-time conditional intensity model for invasive meningococcal
@@ -69,16 +230,22 @@ A list containing the interaction function, its derivative, ...
   M\enc{ü}{ue}nchen.\cr
   Available as \url{http://epub.ub.uni-muenchen.de/11703/}
 }
+
 \author{
-  S. Meyer with documentation contributions by M. \enc{Höhle}{Hoehle}.
+  Sebastian Meyer
 }
+
 \seealso{
 \code{\link{twinstim}}.
 }
+
 \examples{
-#Finetype indenepdent spatial interaction function used in the twinstim paper
-siaf_log1 <- siaf.gaussian(1, logsd = TRUE, density = FALSE, effRangeMult = 6)
+# constant temporal dispersal
+tiaf.constant()
+
+# Type-independent Gaussian spatial interaction function
+siaf.gaussian(1, logsd = TRUE, density = FALSE, effRangeMult = 6)
 }
+
 \keyword{models}
 \keyword{utilities}
-

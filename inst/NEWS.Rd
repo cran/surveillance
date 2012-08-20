@@ -5,7 +5,112 @@
 \title{News for Package 'surveillance'}
 \encoding{latin1}
 
-\section{Changes in surveillance version 1.4}{
+
+\section{Changes in surveillance version 1.4-2 (2012-08-17)}{
+  
+  \subsection{SYNOPSIS}{
+    \itemize{
+      \item This is mainly a patch release for the \code{twinstim}-related
+      functionality of the package.
+      \item Apart from that, the package is now again compatible with older
+      releases of \R (< 2.15.0) as intended (by defining \code{paste0()} in
+      the package namespace if it is not found in \R \pkg{base} at
+      installation of the \pkg{surveillance} package).
+    }
+  }
+  
+  \subsection{NEW FEATURES}{
+    \itemize{
+      \item Important new \code{twinstim()}-feature: fix parameters
+      during optimization.
+      \item Useful \code{update}-method for \code{"twinstim"}-objects.
+      \item New \code{[[}- and \code{plot}-methods for
+      \code{"simEpidataCSlist"}-objects.
+      \item \code{simEpidataCS()} received tiny bug fixes and is now
+      able to simulate from epidemic-only models.
+      \item \code{R0}-method for \code{"simEpidataCS"}-objects (actually
+      a wrapper for \code{R0.twinstim()}).
+      \item Removed \code{dimyx} and \code{eps} arguments from
+      \code{R0.twinstim()}; now uses \code{nCub} and
+      \code{nCub.adaptive} from the fitted model and applies the same
+      (numerical) integration method.
+      \item \code{animate.epidata} is now compatible with the
+      \pkg{animation} package.
+      \item More thorough documentation of \code{"twinstim"}-related
+      functions \emph{including many examples}.
+    }
+  }
+  
+  \subsection{BUG FIXES (\code{"twinstim"}-related)}{
+    \itemize{
+      \item \code{nlminb} (instead of \code{optim}'s \code{"BFGS"}) is
+      now the default optimizer (as already documented).
+      \item The \code{twinstim}-argument \code{nCub} can now be omitted when
+      using \code{siaf.constant()} (as documented) and is internally set to
+      \code{NA_real_} in this case. Furthermore, \code{nCub} and
+      \code{nCub.adaptive} are set to \code{NULL} if there is 
+      no epidemic component in the model.
+      \item \code{toLatex.summary.twinstim} now again works for
+      \code{summary(*, test.iaf=FALSE)}.
+      \item \code{print}- and \code{summary}-methods for
+      \code{"epidataCS"} no longer assume that the \code{BLOCK} index
+      starts at 1, which may not be the case when using a subset in
+      \code{simulate.twinstim()}.
+      \item The \code{"counter"} step function returned by
+      \code{summary.epidataCS()} does no longer produce false
+      numbers of infectives (they were lagged by one timepoint).
+      \item \code{plot.epidataCS()} now resolves \dots correctly and
+      the argument \code{colTypes} takes care of a possible
+      \code{subset}.
+      \item \code{simEpidataCS()} now also works for endemic-only models
+      and is synchronised with \code{twinstim()} regarding the
+      way how \code{siaf} is numerically integrated (including the
+      argument \code{nCub.adaptive}).
+      \item Fixed problem with \code{simEpidataCS()} related to missing
+      \file{NAMESPACE} imports (and re-exports) of \code{marks.ppp} and
+      \code{markformat.default} from \pkg{spatstat}, which are required
+      for \code{spatstat::runifpoint()} to work, probably because
+      \pkg{spatstat} currently does not register its S3-methods.
+      \item Improved error handling in \code{simEpidataCS()}. Removed a
+      \code{browser()}-call and avoid potentially infinite loop.
+    }
+  }
+  
+  \subsection{BUG FIXES (\code{"twinSIR"}-related)}{
+    \itemize{
+      \item The \code{.allocate} argument of \code{simEpidata()} has
+      now a fail-save default.
+      \item Simulation without endemic \code{cox()}-terms now works.
+    }
+  }
+  
+  \subsection{MINOR CHANGES}{
+    \itemize{
+      \item Simplified \code{imdepi} data to monthly instead of weekly
+      intervals in \code{stgrid} for faster examples and reduced package
+      size.
+      \item The environment of all predefined interaction functions for
+      \code{twinstim()} is now set to the \code{.GlobalEnv}. The previous
+      behaviour of defining them in the \code{parent.frame()} could have
+      led to huge \code{save()}'s of \code{"twinstim"} objects even with
+      \code{model=FALSE}.
+      \item \code{simulate.twinSIR} only returns a list of epidemics if
+      \code{nsim > 1}.
+      \item \code{simulate.twinstim} uses \code{nCub} and
+      \code{nCub.adaptive} from fitted object as defaults.
+      \item Removed the \dots-argument from \code{simEpidataCS()}.
+      \item The coefficients returned by \code{simEpidataCS()} are now stored
+      in a vector rather than a list for compatibility with
+      \code{"twinstim"}-methods. 
+      \item Argument \code{cex.fun} of \code{intensityplot.twinstim()} now
+      defaults to the \code{sqrt} function (as in \code{plot.epidataCS()}.
+    }
+  }
+}
+
+
+\section{Changes in surveillance version 1.4 (2012-07-26)}{
+  
   \subsection{SYNOPSIS}{
     \itemize{
       \item Besides minor bug fixes, additional functionality has entered the package
@@ -13,6 +118,7 @@
             (version 1.3 has not appeared on CRAN), including a proper \file{NAMESPACE}.
     }
   }
+  
   \subsection{NEW FEATURES}{
     \itemize{
       \item Support for non-parametric back-projection using the function
@@ -35,6 +141,7 @@
 	    below).
     }
   }
+  
   \subsection{NEW FEATURES AND SIGNIFICANT CHANGES FOR \code{"twinstim"}}{
     \itemize{
       \item Modified arguments of \code{twinstim()}: new ordering, new
@@ -58,6 +165,7 @@
       \item \code{plot}-method for \code{"epidataCS"}
     }
   }
+  
   \subsection{MINOR CHANGES}{
     \itemize{
       \item Improved documentation for the new functionalities.
@@ -67,6 +175,7 @@
     }
   }
 }
+
 
 \section{Changes in surveillance version 1.3 (2011-04-25)}{
   \subsection{SYNOPSIS}{
@@ -99,7 +208,7 @@
             That means continuous-time discrete-space \acronym{SIR} models.
       \item Support for \code{"twinstim"} models as described in
             \cite{Meyer et al (2012)}. That means continuous-time
-            continuous-space infectious models .
+            continuous-space infectious disease models.
       \item Added functionality for non-parametric back projection
             (\code{backprojNP()}) and 
             now-casting (\code{nowcast()}) based on \code{"sts"} objects.

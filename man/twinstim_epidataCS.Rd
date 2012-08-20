@@ -7,9 +7,11 @@
 \alias{tail.epidataCS}
 \alias{[.epidataCS}
 \alias{subset.epidataCS}
-\alias{marks}              % to make R CMD check happy (the generic
-                           % marks is imported from spatstat and then
-                           % exported (unchanged) -> documentation required)
+\alias{marks}	       % to make R CMD check happy (the generic
+                       % marks is imported from spatstat and then
+                       % exported (unchanged) -> documentation required)
+\alias{marks.ppp}               % dito
+\alias{markformat.default}      % dito
 \alias{marks.epidataCS}
 \alias{summary.epidataCS}
 \alias{print.summary.epidataCS}
@@ -58,10 +60,11 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
       \item{type}{optional type of event in a marked \code{twinstim}
 	model. Will be converted to a factor variable dropping unused
         levels. If missing, all events will be attribute the single type 1.}
-      \item{eps.t}{maximum temporal influence radius (e.g. length of
-	infectious period, time to culling, etc.), may be \code{Inf}.}
-      \item{eps.s}{maximum spatial influence radius (e.g. 100 [km]),
-        may be \code{Inf}.}
+      \item{eps.t}{maximum \emph{temporal} influence radius (e.g. length of
+	infectious period, time to culling, etc.); must be positive and
+        may be \code{Inf}.} 
+      \item{eps.s}{maximum \emph{spatial} influence radius (e.g. 100 [km]);
+        must be positive and may be \code{Inf}.}
     }
     The \code{data.frame} may contain columns with further marks of
     the events, e.g. sex, age of infected individuals, which may
@@ -215,7 +218,7 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
   operations will be. Often it can be advantageous to sacrifice some detail
   for speed by reducing polygon complexity using, e.g., the
   Douglas and Peucker (1973) reduction method available at
-  \url{http://mapshaper.com/test/demo.html} or as function \code{dp()}
+  \url{MapShaper.org} or as function \code{dp()}
   in the (slightly outdated) package \pkg{shapefiles}, or by passing by
   \pkg{spatstat}'s \code{\link[spatstat]{simplify.owin}} procedure.
 }
@@ -274,7 +277,7 @@ plot(table(s$nSources), xlab="Number of \"close\" infective individuals",
 ## the summary object contains further information
 str(s)
 
-## see the help on the imdepi dataset for more insight
+## see the help page on the 'imdepi' dataset for more insight
 
 ## extraction methods subset the 'events' component
 ## (thereby taking care of the validity of the epidataCS object,
@@ -311,10 +314,10 @@ qmatrix <- imdepi$qmatrix
 qmatrix
 
 ## now construct an object of class "epidataCS" from these components
-imdepi_repro <- as.epidataCS(events, stgrid, W, qmatrix, nCircle2Poly=32)
+myimdepi <- as.epidataCS(events, stgrid, W, qmatrix, nCircle2Poly=16)
 
 \dontshow{
-#isTRUE(all.equal(imdepi, imdepi_repro))
+#isTRUE(all.equal(imdepi, myimdepi))
 ## should be equal as long as the internal structures of the embedded
 ## classes (SpatialPolygons, etc.) don't change
 }

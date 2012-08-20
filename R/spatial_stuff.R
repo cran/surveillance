@@ -2,14 +2,17 @@
 ### Spatial helper functions
 ###
 ### Author: Sebastian Meyer
-### $Date: 2012-07-23 17:58:36 +0200 (Mo, 23. Jul 2012) $
+### $Date: 2012-08-17 17:48:09 +0200 (Fr, 17. Aug 2012) $
 ################################################################################
 
 
 ## Returns a Polygon representing a disc (in planar coordinates)
+## as an object of one of three possible classes: gpc.poly, owin, or Polygon.
+## This function is inspired by the disc() function from package 'spatstat'
+## authored by Adrian Baddeley and Rolf Turner
 
 # center: center of the disc
-# r: radius in km
+# r: radius
 # npoly: Number of edges of the polygonal approximation
 # hole: hole flag of the polygon
 discpoly <- function (center, r, npoly = 64,
@@ -26,6 +29,7 @@ discpoly <- function (center, r, npoly = 64,
         return(res)
     }
 
+    stopifnot(r > 0, isScalar(npoly), npoly > 2)
     theta <- seq(2*pi, 0, length = npoly+1)[-(npoly+1)]   # for clockwise order
     if (hole) theta <- rev(theta)   # for anticlockwise order
     x <- center[1] + r * cos(theta)

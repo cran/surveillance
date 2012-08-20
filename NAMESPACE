@@ -14,7 +14,8 @@ import(methods)
 
 ## import generics to define own methods
 importFrom(graphics, plot)
-importFrom(stats, coef, vcov, logLik, residuals, confint, AIC, extractAIC, profile, simulate)
+importFrom(stats, coef, vcov, logLik, residuals, confint, AIC, extractAIC,
+           profile, simulate, update) # we actually _depend_ on stats (for ks.plot.unif)
 importFrom(utils, head, tail, toLatex)
 importFrom(xtable, xtable)
 
@@ -24,7 +25,7 @@ importFrom(xtable, xtable)
 #   However, we don't need to import it here, because we depend on package sp, which makes plot generic
 
 ## basic methods used in different parts of the package
-importFrom(stats, pnorm, cov2cor, ks.test)
+importFrom(stats, pnorm, cov2cor, ks.test, formula)
 importFrom(utils, packageDescription, modifyList)
 
 ## sp classes, utility functions (bbox, coordinates, dimensions, overlay, ...), plot methods
@@ -59,6 +60,9 @@ importClassesFrom(gpclib, gpc.poly)
 importMethodsFrom(gpclib, "[", get.bbox, intersect, append.poly, get.pts, scale.poly, tristrip)
 importFrom(spatstat, as.owin, as.owin.gpc.poly, coords, coords.ppp, area.owin, distppl,
                      as.im.function, disc, shift, shift.owin, plot.owin, marks,
+                     marks.ppp, markformat.default, # required for runifpoint() in
+                                        # simulate.twinstim because spatstat
+                                        # does not register its S3 methods 
                      bounding.box, runifpoint, inside.owin)
 importFrom(intervals, Intervals, reduce)
 
@@ -188,7 +192,6 @@ S3method(plot, twinSIR)
 S3method(intensityplot, twinSIR)
 export(intensityplot.twinSIR)           # for convenience
 S3method(profile, twinSIR)
-S3method(coef, twinSIR)
 S3method(vcov, twinSIR)
 S3method(logLik, twinSIR)
 S3method(AIC, twinSIR)
@@ -220,7 +223,7 @@ S3method(summary, epidataCS)
 S3method(print, summary.epidataCS)
 S3method(animate, epidataCS)
 export(animate.epidataCS)               # for convenience
-export(marks)                           # as imported from spatstat
+export(marks, marks.ppp, markformat.default) # as imported from spatstat
 S3method(marks, epidataCS)
 export(marks.epidataCS)            # for convenience since its a foreign generic
 S3method(plot, epidataCS)
@@ -236,16 +239,19 @@ export(iafplot)
 export(intensity.twinstim)
 S3method(intensityplot, twinstim)
 export(intensityplot.twinstim)          # for convenience
-#S3method(profile, twinstim)   # FIXME @Michael: what is the status of this method?
-S3method(coef, twinstim)
+S3method(profile, twinstim)
 S3method(vcov, twinstim)
 S3method(logLik, twinstim)
 S3method(simulate, twinstim)
 export(simulate.twinstim)               # for convenience
 S3method(R0, twinstim)
 S3method(residuals, twinstim)
+S3method(update, twinstim)
 
+S3method(R0, simEpidataCS)
 S3method(print, simEpidataCSlist)
+S3method("[[", simEpidataCSlist)
+S3method(plot, simEpidataCSlist)
 
 
 ### hhh-specific

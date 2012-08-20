@@ -2,6 +2,7 @@
 \name{R0}
 \alias{R0}
 \alias{R0.twinstim}
+\alias{R0.simEpidataCS}
 
 \title{Computes basic reproduction numbers from fitted models}
 
@@ -12,13 +13,15 @@ The package currently defines a method for the \code{"\link{twinstim}"} class, w
 computes mean numbers of infections caused by infected individuals depending on the event type
 and marks attached to the individual, which contribute to the infection pressure
 in the epidemic predictor of that class.
+There is also a method for simulated epidemics (internally just a
+wrapper for the \code{"twinstim"}-method).
 }
 
 \usage{
 R0(object, ...)
 
-\method{R0}{twinstim}(object, newevents, trimmed = TRUE,
-   dimyx = NULL, eps = NULL, ...)
+\method{R0}{twinstim}(object, newevents, trimmed = TRUE, ...)
+\method{R0}{simEpidataCS}(object, trimmed = TRUE, ...)
 }
 
 \arguments{
@@ -56,14 +59,6 @@ R0(object, ...)
     domain have lower reproduction numbers (ceteris paribus) because
     events outside the observation domain are not observed.
   }
-  \item{dimyx, eps}{
-    control parameters for the numericalintegration of the spatial
-    interaction function by the two-dimensional midpoint rule (see
-    \code{\link{polyCub.midpoint}}).
-    If \code{eps = NULL} (the default) and \code{!object$nCub.adaptive},
-    \code{eps} is set to \code{object$nCub}.
-    Note that \code{dimyx} takes precedence over \code{eps}.
-  }
   \item{\dots}{additional arguments passed to methods.
     Currently unused for the \code{twinstim} method.}
 }
@@ -88,6 +83,10 @@ influence region with the observation region \code{W}
 and \eqn{g} over the intersection of the observed infectious period with
 the observation period \eqn{(t_0;T]} (i.e. over
 \eqn{(0; \min(T-t_j,\epsilon)]}).
+
+(Numerical) Integration is performed exactly as during the fitting of
+\code{object}, for instance \code{object$nCub} and
+\code{object$nCub.adaptive} are used if necessary.
 }
 
 \value{
@@ -106,7 +105,14 @@ supplied) or the original fitted events including events of the prehistory.
 \author{Sebastian Meyer}
 
 \examples{
-# TODO...
+# load the 'imdepi' data and a model fit
+data(imdepi)
+data(imdepifit)
+
+R0s <- R0(imdepifit)
+tapply(R0s, imdepi$events@data[names(R0s), "type"], summary)
+
+R0(imdepifit, newevents=marks(imdepi)[1,], trimmed=FALSE)
 }
 
 \keyword{methods}

@@ -12,10 +12,11 @@
 # - profile: Calculates the profile log-likelihood (-> likelihood.ci)
 ################################################################################
 
-coef.twinSIR <- function (object, ...)
-{
-    object$coefficients
-}
+### don't need a specific coef-method (identical to stats:::coef.default)
+## coef.twinSIR <- function (object, ...)
+## {
+##     object$coefficients
+## }
 
 # asymptotic variance-covariance matrix (inverse of fisher information matrix)
 vcov.twinSIR <- function (object, ...)
