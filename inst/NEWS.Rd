@@ -6,9 +6,24 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.5-1 (2012-12-13)}{
+
+\subsection{SYNOPSIS}{
+  \itemize{
+    \item The \pkg{surveillance} package is again backward-compatible
+    with \R version 2.14.0, which is now declared as the minimum
+    required version.
+  }
+}
+
+}
+
+
+
 \section{Changes in surveillance version 1.5-0 (2012-12-12)}{
 
-  \subsection{SYNOPSIS}{\itemize{
+\subsection{SYNOPSIS}{
+  \itemize{
     \item This new version mainly improves upon the \code{twinstim()} and
     \code{hhh4()} implementations (see below).
     \item As requested by the CRAN team, examples now run faster. Some
@@ -24,9 +39,11 @@
     explicit acceptance of the \pkg{gpclib} license via setting
     \code{surveillance.options(gpclib = TRUE)}. Otherwise,
     \code{as.epidataCS()} and \code{simEpidataCS()} may not be used.
-  }}
+  }
+}
 
-  \subsection{NEW FEATURES (\code{twinstim()}-related)}{\itemize{
+\subsection{NEW FEATURES (\code{twinstim()}-related)}{
+  \itemize{
     \item Speed-up by memoisation of the \code{siaf} cubature (using
     the \CRANpkg{memoise} package).
     \item Allow for \code{nlm}-optimizer (really not recommended).
@@ -77,9 +94,11 @@
     \code{"Polygon"}.
     \item An \code{intensityplot()}-method is now also implemented for
     \code{"simEpidataCS"}.
-  }}
+  }
+}
 
-  \subsection{NEW FEATURES (\code{hhh4()}-related)}{\itemize{
+\subsection{NEW FEATURES (\code{hhh4()}-related)}{
+  \itemize{
     \item Significant speed-up (runs about 6 times faster now, amongst
     others by many code optimizations and by using sparse \CRANpkg{Matrix}
     operations).
@@ -98,9 +117,11 @@
     from a binary adjacency matrix (depends on package \CRANpkg{spdep}).
     \item New argument \code{check.analyticals} (default \code{FALSE})
     mainly for development purposes.
-  }}
+  }
+}
 
-  \subsection{BUG FIXES}{\itemize{
+\subsection{BUG FIXES}{
+  \itemize{
     \item Fixed sign of observed Fisher information matrix in
     \code{twinstim}.
     \item Simulation from the Lomax kernel is now correct (via polar
@@ -127,9 +148,11 @@
     \item Improved \file{NAMESPACE} imports.
     \item Some additional tiny bug fixes, see the subversion log on
     R-Forge for details.
-  }}
+  }
+}
 
 }
+
 
 
 \section{Changes in surveillance version 1.4-2 (2012-08-17)}{

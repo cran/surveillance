@@ -1,14 +1,14 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.5-0
+Version: 1.5-1
 Date: 2012-12-12
 Author: M. Höhle, S. Meyer and M. Paul with contributions from T.
         Correa, L. Held, M. Hofmann, C. Lang, A. Riebler, D. Sabanés
         Bové, S. Steiner, M. Virtanen, and V. Wimmer.  A few code
         segments are modified versions of code by The R Core Team
         (available under GPL-2).
-Depends: R (>= 2.10.1), grDevices, graphics, stats, utils, xtable,
+Depends: R (>= 2.14.0), grDevices, graphics, stats, utils, xtable,
         methods, Rcpp, sp
 Imports: MASS, Matrix, spatstat (>= 1.17-0)
 LinkingTo: Rcpp
@@ -49,6 +49,6 @@ License: GPL-2
 URL: http://surveillance.r-forge.r-project.org/
 ZipData: no
 Encoding: latin1
-Packaged: 2012-12-11 08:45:47 UTC; hoehle
+Packaged: 2012-12-13 21:20:55 UTC; hoehle
 Repository: CRAN
-Date/Publication: 2012-12-12 09:14:08
+Date/Publication: 2012-12-14 09:54:42
