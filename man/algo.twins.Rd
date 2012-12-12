@@ -7,12 +7,14 @@
   Fits a negative binomial model (as described in Held et al. (2006)
   to an univariate time series of counts.  
 }
+
 \usage{
 algo.twins(disProgObj, control=list(burnin=1000, filter=10,
    sampleSize=2500, noOfHarmonics=1, alpha_xi=10, beta_xi=10,
    psiRWSigma=0.25,alpha_psi=1, beta_psi=0.1, nu_trend=FALSE,
    logFile="twins.log"))
 }
+
 \arguments{
   \item{disProgObj}{object of class \code{disProg}}
   \item{control}{control object:
@@ -38,6 +40,7 @@ algo.twins(disProgObj, control=list(burnin=1000, filter=10,
 }
 }
 }
+
 \details{Note that for the time being this function is not a
   surveillance algorithm, but only a modelling approach as described in
   the Held et. al (2006) paper.
@@ -57,32 +60,30 @@ algo.twins(disProgObj, control=list(burnin=1000, filter=10,
   model for counts of infectious diseases, Biostatistics, \bold{7}, pp.
   422--437.
 }
+
 \author{M. Hofmann and M. \enc{Höhle}{Hoehle} and D. \enc{Sabanés
   Bové}{Sabanes Bove}}
-\examples{
 
+\examples{
 # Load the data used in the Held et al. (2006) paper
 data("hepatitisA")
 
 # Fix seed - this is used for the MCMC samplers in twins
 set.seed(123)
 
-# Call algorithm and save result.
-otwins <- algo.twins(hepatitisA)
+# Call algorithm and save result (use short chain without filtering for speed)
+otwins <- algo.twins(hepatitisA,
+                     control=list(burnin=500, filter=1, sampleSize=1000))
 
 # This shows the entire output (use ask=TRUE for pause between plots)
 plot(otwins, ask=FALSE)
 
 # Direct access to MCMC output
 hist(otwins$logFile$psi,xlab=expression(psi),main="")
-require("coda")
-print(summary(mcmc(otwins$logFile[,c("psi","xipsi","K")])))
-
+if (require("coda")) {
+    print(summary(mcmc(otwins$logFile[,c("psi","xipsi","K")])))
 }
+}
+
 \keyword{ts}
 \keyword{regression}
-
-
-
-
-

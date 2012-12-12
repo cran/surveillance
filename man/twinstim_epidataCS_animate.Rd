@@ -116,26 +116,28 @@ The contributed \R package \pkg{animation}.
 \examples{
 \dontrun{
   data("imdepi")
-  library("animation")
-  ani.options(interval = 0.1, nmax = 60)
+  imdepiB <- subset(imdepi, type == "B")
+  if (require("animation")) ani.options(interval = 0.1, nmax = 60)
 
   # Animate the first year of type B with a step size of 7 days
   animate(imdepiB, interval=c(0,365), time.spacing=7)
 
   # Animate the whole time range but with nmax=60 snapshots only and
-  # omitting the painting of influence regions
-  animate(imdepiB, time.spacing=NA, col.influence=NA)
+  # omitting the painting of (quiet artificial) influence regions
+  animate(imdepiB, time.spacing=NA, col.influence=NA, nmax=60)
 
   # Sequential animation of events
-  animate(imdepiB, time.spacing=NULL)
+  animate(imdepiB, time.spacing=NULL, nmax=60)
 
   # Such an animation can be saved in various ways using the tools of
   # the animation package, e.g., saveHTML()
-  ani.options(outdir = tempdir())
-  saveHTML(animate(imdepiB, interval=c(0,365), time.spacing=7),
-           img.name = "imdepi_year1", htmlfile = "imdepi_animation.html",
-           autobrowse = TRUE, title = "Animation of the first year",
-           description = c("Take a look into the first-year dynamics."))
+  if (require("animation")) {
+    ani.options(outdir = tempdir())
+    saveHTML(animate(imdepiB, interval=c(0,365), time.spacing=7),
+             img.name = "imdepi_year1", htmlfile = "imdepi_animation.html",
+             autobrowse = TRUE, title = "Animation of the first year",
+             description = c("Take a look into the first-year dynamics."))
+  }
 }
 }
 

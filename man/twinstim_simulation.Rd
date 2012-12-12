@@ -22,13 +22,13 @@
 simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     events, stgrid, tiles, beta0, beta, gamma, siafpars, tiafpars,
     t0 = stgrid$start[1], T = tail(stgrid$stop,1), nEvents = 1e5,
-    nCub, nCub.adaptive = FALSE,
+    control.siaf = list(F=list(), Deriv=list()),
     W = NULL, trace = 5, nCircle2Poly = 32, gmax = NULL, .allocate = 500,
     .skipChecks = FALSE, .onlyEvents = FALSE)
 
 \method{simulate}{twinstim}(object, nsim = 1, seed = NULL, data, tiles,
     rmarks = NULL, t0 = NULL, T = NULL, nEvents = 1e5,
-    nCub = object$nCub, nCub.adaptive = object$nCub.adaptive,
+    control.siaf = object$control.siaf,
     W = NULL, trace = FALSE, nCircle2Poly = 32, gmax = NULL,
     .allocate = 500, simplify = TRUE, ...)
 }
@@ -197,7 +197,7 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     simulation is stored as an attribute \code{"runtime"} to each simulated
     \code{events}. See also the \dQuote{Value} section below.
   }
-  \item{nCub, nCub.adaptive}{see \code{\link{twinstim}}.}
+  \item{control.siaf}{see \code{\link{twinstim}}.}
   \item{nCircle2Poly}{see \code{\link{as.epidataCS}}.}
   \item{gmax}{
     maximum value the temporal interaction function
@@ -252,6 +252,12 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
   \url{MapShaper.org} or as function \code{dp()}
   in the (slightly outdated) package \pkg{shapefiles}, or by passing by
   \pkg{spatstat}'s \code{\link[spatstat]{simplify.owin}} procedure.
+  
+  Note also that generation of \code{"epidataCS"} depends on the
+  computation of polygon intersections via the \pkg{gpclib} package,
+  which has a restricted license. In order to use \code{as.epidataCS},
+  this license must be explicitly accepted by setting
+  \code{\link{surveillance.options}(gpclib=TRUE)}.
 }
 
 \references{
@@ -295,29 +301,32 @@ data(imdepifit)
 ## www.geodatenzentrum.de), simplified by the "special" Visvalingam
 ## algorithm (level=60\%) using www.MapShaper.org:
 load(system.file("shapes", "districtsD.RData", package="surveillance"))
+
+## map of Germany's districts
 plot(districtsD)
 plot(stateD, add=TRUE, border=2, lwd=2)
 # 'stateD' is the union of the polygons in 'districtsD'
 # (created by maptools::unionSpatialPolygons)
 
-## simulate two "epidemics" from an endemic-only model (during a short period)
-m_noepi <- update(imdepifit, epidemic=~0, siaf=NULL,
-    optim.args=list(par=coef(imdepifit)[1:4]), model=FALSE, cumCIF=FALSE)
-mysim <- simulate(m_noepi, nsim=2, seed=399, data=imdepi,
-    tiles=districtsD, W=stateD, t0=31, T=182, trace=20, nCircle2Poly=16,
-    .allocate=100, simplify=TRUE)
+if (require("gpclib")) {
+    oopt <- surveillance.options(gpclib=TRUE)
 
-# extract the first realization -> object of class simEpidataCS
-mysim1 <- mysim[[1]]
-plot(mysim1, aggregate="space")
+    ## simulate 2 realizations (during a VERY short period -- for speed)
+    ## considering events from data(imdepi) before t=31 as pre-history
+    mysims <- simulate(imdepifit, nsim=2, seed=1, data=imdepi,
+	               tiles=districtsD, W=stateD, t0=31, T=61, trace=FALSE,
+                       nCircle2Poly=16, .allocate=100, simplify=TRUE)
 
-# use the plot-method for simEpidataCSlist's
-plot(mysim, aggregate="time", subset=type=="B")
+    ## extract the first realization -> object of class simEpidataCS
+    mysim1 <- mysims[[2]]
+    summary(mysim1)
+    plot(mysim1, aggregate="space")
 
-## simulate 1 realization from the imdepifit-model
-simimdepifit <- simulate(imdepifit, seed=1, data=imdepi,
-    tiles=districtsD, W=stateD, t0=31, T=182, trace=50)
-summary(simimdepifit)
+    ## plot both epidemics using the plot-method for simEpidataCSlist's
+    plot(mysims, aggregate="time", subset=type=="B")
+
+    surveillance.options(oopt)
+}
 }
 
 \keyword{datagen}

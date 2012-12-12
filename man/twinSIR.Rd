@@ -316,13 +316,13 @@ plot(fit3)
 
 \dontshow{
 ### TODO (@Michael): Analysis of the 1861 hagelloch measles epidemic
-data(hagelloch)
-m <- twinSIR(~c1 + c2 + household + local1, data = hagelloch)
+#data(hagelloch)
+#m <- twinSIR(~c1 + c2 + household + local1, data = hagelloch)
 #FIXME: what is "local1"? what is "local"? what about c1, c2, household?
 #       describe this on the help page of data(hagelloch)?
 #FIXME: there are no functions to generate c1 and c2 in attr(hagelloch, "f")
 #       which implies that the simulate-method doesn't work for this model
-summary(m)
+#summary(m)
 }
 }
 

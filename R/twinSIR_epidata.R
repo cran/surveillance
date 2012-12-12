@@ -387,11 +387,12 @@ summary.epidata <- function (object, ...)
     
     ### summary 1: event table with columns id, time and type (of event, S/I/R)
     # Extract time points of the S events for each id
-    StimesID <- by(object, list(object[["id"]]), function(x) {
-        SeventIdx <- which(diff(x[["atRiskY"]]) == 1)
-        x[["stop"]][SeventIdx]
-        }) # simplify argument only exists since R 2.8.0 but was and is TRUE by default
-    names(StimesID) <- paste(names(StimesID), ":", sep="")
+    StimesID <- by(object[c("atRiskY", "stop")], object["id"],
+                   function(x) {
+                       SeventIdx <- which(diff(x[["atRiskY"]]) == 1)
+                       x[["stop"]][SeventIdx]
+                   }, simplify=TRUE)
+    names(StimesID) <- paste0(names(StimesID), ":")
     StimesVec <- c(unlist(StimesID, use.names = TRUE)) # c() if by() returned an array
     .Sids <- sub("(.+):.*", "\\1", names(StimesVec))
     Stimes <- data.frame(id = factor(.Sids, levels = idlevels),

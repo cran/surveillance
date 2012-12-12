@@ -23,6 +23,7 @@
 \usepackage{relsize}
 \usepackage{epsfig}
 \usepackage{comment}
+\usepackage[english]{babel}
 
 \usepackage{pdfpages}
 
@@ -70,7 +71,7 @@ University of Zurich, Switzerland
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-<<echo=F,results=hide>>=
+<<setup, echo=F,results=hide>>=
 library("surveillance")  
 library("maptools")
 gpclibPermit()
@@ -129,9 +130,8 @@ detection methods is given by \cite{hoehle-mazick-2010}.
 
 This document illustrates the functionality of the function \hhh\ for
 the modelling of univariate and multivariate time series of infectious
-disease counts.  The function is currently incorporated in the
-development version of \surveillance\ available from
-R-Forge\footnote{\url{http://surveillance.r-forge.r-project.org/}}.
+disease counts.  It is part of the \surveillance\ package as 
+of version 1.3. 
 Section~\ref{sec:data} introduces the S4 class data structure used to
 store surveillance time series data within the package. Access and
 visualization methods are outlined by means of built-in data sets.  In
@@ -174,7 +174,7 @@ database\footnote{\url{http://www3.rki.de/SurvStat}}, maintained by
 the Robert Koch Institute (RKI), Germany. Selected data sets will be
 analyzed in Section~\ref{sec:hhh} and are introduced in the
 following. Note that many of the built-in datasets are stored in the
-S3 class data structure \code{disProg}.  They can be easily converted
+S3 class data structure \mbox{\code{disProg}}.  They can be easily converted
 into the S4 \sts\ data structure using the function
 \code{disProg2sts}. The resulting \sts\ object can be accessed similar
 as standard \code{matrix} objects and allows easy temporal and spatial
@@ -186,7 +186,7 @@ aggregation as will be shown in the remainder of this section. \\
 
 As a first example, the weekly number of influenza and meningococcal disease 
 cases in Germany is considered.
-<<>>=
+<<loadInfluMen>>=
 # load data
 data("influMen")
 # convert to sts class and print basic information about the time series
@@ -194,14 +194,14 @@ print(fluMen <- disProg2sts(influMen))
 @
 The univariate time series of meningococcal disease counts can be obtained
 with
-<<keep.source=F>>=
+<<getMen, keep.source=F>>=
 meningo <- fluMen[, "meningococcus"]
 dim(meningo)
 @
 The \code{plot} function provides an interface to the visual representation
 of the multivariate time series in time, space and space-time which is
 controlled by the \code{type} argument:
-<<fluMen, fig=T, keep.source=T>>=
+<<plotfluMen, fig=T, keep.source=T>>=
 plot(fluMen, type = observed ~ time | unit, # type of plot
              same.scale = FALSE,            # unit-specific ylim ?
              col = "grey"                   # color of bars
@@ -217,7 +217,7 @@ The spatio-temporal spread of influenza in the 140 Kreise (districts)
 of Bavaria and Baden-W\"urttemberg  is analyzed using the weekly number of 
 cases reported to the RKI~\citep{survstat-fluByBw} in the years 2001--2008.
 An \sts\ object containing the data is created as follows:
-<<eval=F>>=
+<<readInFlu, eval=F>>=
 # read in observed number of cases
 flu.counts <- as.matrix(read.table(system.file("extdata/counts_flu_BYBW.txt", 
                                       package = "surveillance")))
@@ -244,7 +244,7 @@ nhood <- as.matrix(read.table(system.file("extdata/neighbourhood_BYBW.txt", pack
 print(image(Matrix(nhood)))
 @
 \end{center}
-<<keep.source=T>>=
+<<fluAsSTS, keep.source=T>>=
 # read in a shapefile of the districts in Bavaria and Baden-Wuerttemberg
 map <- readShapePoly(system.file("shapes/districts_BYBW.shp",
                         package = "surveillance"), IDvar = "id")
@@ -269,7 +269,7 @@ A map of the total number of cases in the year 2001 may be obtained as follows:
 \setkeys{Gin}{width=.5\textwidth}
 %\vspace*{-2em}
 \begin{center}
-<<flu-ByBw, fig=T,width=6,height=6, include=T,echo=T>>=
+<<plot-flu-ByBw, fig=T,width=6,height=6, include=T,echo=T>>=
 par(mar=c(0,0,0,0))
 plot(flu[year(flu) == 2001, ],    # select year 2001
      type = observed ~ 1 | unit,  # map of counts aggregated over times t
@@ -288,7 +288,7 @@ bi-weekly periods.
 
 \setkeys{Gin}{width=1\textwidth}
 \begin{center}
-<<measles, fig=T, echo=T>>=
+<<plot-measles, fig=T, echo=T>>=
 data("measlesDE")
 # aggregate into successive bi-weekly periods
 measles2w <- aggregate(measlesDE, nfreq = 26)
@@ -342,7 +342,7 @@ describing the onset of the sine wave.
 
 To account for overdispersion, the Poisson model may be replaced by
 a negative binomial model. Then, the conditional mean $\mu_t$ remains
-the same but the conditional variance increases to $\mu_t (1+\mu_t/\psi)$
+the same but the conditional variance increases to $\mu_t (1+\mu_t \psi)$
 with additional unknown overdispersion parameter $\psi>0$.
 
 The model is extended to multivariate time series $\{y_{it}\}$ in 
@@ -407,7 +407,7 @@ may be omitted in parts or as a whole.
 \section{Function call and control settings}\label{sec:hhh}
 
 The estimation procedure is called with
-<<eval=F>>=
+<<hhh4, eval=F>>=
 hhh4(sts, control)
 @
 where \code{sts} denotes a (multivariate) surveillance time series and
@@ -415,7 +415,7 @@ the model is specified in the argument \code{control} in consistency
 with other algorithms in \surveillance.
 The \code{control} setting is a list of the following arguments:
 
-<<eval=F, keep.source=T>>=
+<<controlObj, eval=F, keep.source=T>>=
 control = list(
     ar = list(f = ~ -1),       # formula: exp(u'alpha) * y_i,t-1 
     ne = list(f = ~ -1,        # formula: exp(x'beta) * sum_j {w_ji * y_j,t-1} 
@@ -469,20 +469,20 @@ As a first example, consider the univariate time series of meningococcal infecti
 in Germany, 01/2001--52/2006 \citep[cf.~Tab.~1 in ][]{paul-etal-2008}.
 A Poisson model without autoregression and $S=1$ seasonal term is specified 
 as follows:
-<<eval=T, echo=T>>=
+<<fitMeningo1, eval=T, echo=T>>=
 # specify formula object for endemic component
 ( f_S1 <- addSeason2formula(f = ~ 1, S = 1, period = 52) )
 # fit Poisson model
 summary(hhh4(meningo, control = list(end = list(f = f_S1), family = "Poisson")))
 @
 A corresponding negative binomial model is obtained via
-<<eval=T, echo=T>>=
+<<fitMeningo2, eval=T, echo=T>>=
 result1 <- hhh4(meningo, control = list(end = list(f = f_S1), 
                                         family = "NegBin1")) 
 @
 As default, the autoregressive component is omitted with \code{$\sim$ -1} 
 in the formula specification. In can be included in the model with
-<<eval=T, echo=T>>=
+<<fitMeningo3, eval=T, echo=T>>=
 m2 <- list(ar = list(f = ~ 1),     # log(lambda) = alpha
            end = list(f = f_S1), 
            family = "NegBin1",
@@ -529,7 +529,7 @@ and is fitted with
 <<echo=F>>=
 neighbourhood(fluMen) <- matrix(c(0,0,1,0),2,2)
 @
-<<eval=T,echo=T>>=
+<<fitFluMen, eval=T,echo=T>>=
 # create formula for endemic component
 f.end <- addSeason2formula(f = ~ -1 + fe(1, which = c(TRUE, TRUE)), 
                                            # disease-specific intercepts
@@ -550,7 +550,7 @@ A plot of the estimated mean for the meningococcal disease data,
 decomposed into the three components, is obtained with
 \setkeys{Gin}{width=.8\textwidth}
 \begin{center}
-<<fit_men, fig=T, width=8,height=5>>=
+<<plot-fit_men, fig=T, width=8,height=5>>=
 plot(result, i = 2, col = c("orange", "blue", "grey85"), legend = TRUE)
 @
 \end{center}
@@ -568,7 +568,7 @@ number of influenza cases in \Sexpr{ncol(flu)} districts of Southern Germany.
 For example, consider a model with random intercepts in the endemic component: 
 $c_i \sim \n(0,\sigma^2_\nu), i=1,\ldots,I$.
 Such effects are specified in a formula object as
-<<eval=F>>=
+<<ri, eval=F>>=
 f.end <- ~ -1 + ri(type = "iid", corr = "all")
 @
 Setting \code{type = "car"} would assume that the random effects are spatially 
@@ -581,7 +581,7 @@ linear trend and $S=3$ seasonal terms in the endemic component and
 a fixed autoregressive parameter $\lambda$ to the influenza data 
 \citep[cf. model B2 in Tab.~3 in][]{paul-held-2011}.
 
-<<eval=TRUE, echo=F>>=
+<<computeFluBYBW, eval=TRUE, echo=F>>=
 # weight matrix w_ji = 1/(No. neighbors of j) if j ~ i, and 0 otherwise
 wji <- neighbourhood(flu)/rowSums(neighbourhood(flu))
 
@@ -609,7 +609,7 @@ if(compute){
 }
 @
 
-<<eval=F, echo=T>>=
+<<fitFluBYBW, eval=F, echo=T>>=
 # weight matrix w_ji = 1/(No. neighbors of j) if j ~ i, and 0 otherwise
 wji <- neighbourhood(flu)/rowSums(neighbourhood(flu))
 
@@ -644,11 +644,11 @@ See \cite{czado-etal-2009} and \cite{paul-held-2011} for further details.
 
 One-step-ahead predictions for the last 2 years for model B2 are obtained as 
 follows:
-<<eval=F, echo=T>>=
+<<oneStepAhead, eval=F, echo=T>>=
 pred.B2 <- oneStepAhead(result.B2, tp = nrow(flu) - 2 * 52)
 @
 The mean logarithmic and mean ranked probability score are then computed with
-<<eval=F>>=
+<<scores, eval=F>>=
 colMeans(scores(pred.B2)[, c("logs", "rps")])
 @
 <<echo=F, eval=T>>=
@@ -658,7 +658,7 @@ meanSc.B2[ c("logs", "rps")]
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Measles data
-<<eval=T, echo=F>>=
+<<createVacc, eval=T, echo=F>>=
 data(MMRcoverageDE)
 cardVac1 <- MMRcoverageDE[1:16,3:4]
 
@@ -690,7 +690,7 @@ vac0[1:2, 1:5]
 A Poisson model which links the autoregressive parameter with this covariate
 and contains $S=1$ seasonal term in the endemic component 
 \citep[cf.~model A0 in Tab.~3 in ][]{herzog-etal-2010} is obtained with
-<<>>=
+<<fitMeasles>>=
 # endemic component: Intercept + S = 1 sine/cosine pair
 f.end <- addSeason2formula(f = ~ 1, S = 1, period = 26)
 # autoregressive component: Intercept + vaccination coverage information

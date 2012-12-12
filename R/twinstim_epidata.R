@@ -1,7 +1,14 @@
 ################################################################################
+### Part of the surveillance package, http://surveillance.r-forge.r-project.org
+### Free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at http://www.r-project.org/Licenses/.
+###
 ### Data structure for CONTINUOUS SPATIO-temporal infectious disease case data
 ### and a spatio-temporal grid of endemic covariates
-### Author: Sebastian Meyer
+###
+### Copyright (C) 2009-2012 Sebastian Meyer
+### $Revision: 467 $
+### $Date: 2012-12-10 16:36:54 +0100 (Mo, 10. Dez 2012) $
 ################################################################################
 
 
@@ -58,7 +65,7 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
     cat("Checking 'W' and 'nCircle2Poly'...\n")
     # Check class and proj4string of W
     W <- as(W, "SpatialPolygons")
-    stopifnot(proj4string(W) == proj4string(events))
+    stopifnot(identical(proj4string(W), proj4string(events)))
     # Check nCircle2Poly
     stopifnot(isScalar(nCircle2Poly))
     nCircle2Poly <- as.integer(nCircle2Poly)
@@ -87,7 +94,8 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
     cat("Checking if all events are covered by 'stgrid'...\n")
     ## FIXME: what about pre-history events? don't need stgrid-data for them
     if (events$time[1] <= timeRange[1] || events$time[nEvents] > timeRange[2]) {
-        stop("event times are not covered by 'stgrid': must be in (begin;end]")
+        stop("event times are not covered by 'stgrid': must be in (",
+             timeRange[1L],",",timeRange[2L],"]")
     }
 
     # Are all events$tile references really part of the stgrid?
@@ -369,8 +377,11 @@ checkstgrid <- function (stgrid, T)
 # An attribute "area" gives the area of the influenceRegion.
 # If it is actually a circular influence region, then there is an attribute
 # "radius" denoting the radius of the influence region.
-.influenceRegions <- function (events, Wgpc, npoly) {
-    ext <- sqrt(sum(sapply(gpclib::get.bbox(Wgpc), diff)^2))   # length of the diagonal of the bounding box
+.influenceRegions <- function (events, Wgpc, npoly)
+{
+    gpclibCheck()
+    ext <- sqrt(sum(sapply(gpclib::get.bbox(Wgpc), diff)^2))
+    ##<- length of the diagonal of the bounding box of W
     eventCoords <- coordinates(events)
     nEvents <- nrow(eventCoords)
     res <- vector(nEvents, mode = "list")
@@ -378,14 +389,14 @@ checkstgrid <- function (stgrid, T)
         eps <- events$eps.s[i]
         center <- eventCoords[i,]
         res[[i]] <- if (eps > ext) {   # influence region is whole region of W
-                spatstat::as.owin(scale.poly(Wgpc, center = center))
+                gpc2owin(scale(Wgpc, center = center))
             } else {   # influence region is a subset of W
-                spatstat::as.owin(intersectCircle(Wgpc, center, eps, npoly))
+                gpc2owin(intersectCircle(Wgpc, center, eps, npoly))
             }
         # if influence region actually is a circle of radius eps, attach eps as attribute
         r <- if (eps <= events$.bdist[i]) eps else NULL
         attr(res[[i]], "radius") <- r
-        attr(res[[i]], "area") <- if(is.null(r)) spatstat::area.owin(res[[i]]) else pi*r^2
+        attr(res[[i]], "area") <- if(is.null(r)) area.owin(res[[i]]) else pi*r^2
     }
     attr(res, "nCircle2Poly") <- npoly
     return(res)
@@ -515,9 +526,8 @@ update.epidataCS <- function (object, eps.t, eps.s, qmatrix, nCircle2Poly, ...)
 ## base::subset.data.frame (authored by Peter 
 ## Dalgaard and Brian Ripley, Copyright (C) 1995-2012
 ## The R Core Team) with slight modifications only
+## (we just replace 'x' by 'x$events@data' for evaluation of subset and select)
 
-## FIXME: when the bug in sp::subset.Spatial, which we have reported for sp
-## version 0.9-99 has been removed we can embed this method
 subset.epidataCS <- function (x, subset, select, drop = FALSE, ...)
 {
     if (missing(subset)) 
@@ -525,8 +535,7 @@ subset.epidataCS <- function (x, subset, select, drop = FALSE, ...)
     else {
         e <- substitute(subset)
         r <- eval(e, x$events@data, parent.frame()) # HERE IS A MOD
-        if (!is.logical(r)) 
-            stop("'subset' must evaluate to logical")
+        if (!is.logical(r)) stop("'subset' must evaluate to logical")
         r <- r & !is.na(r)
     }
     if (missing(select)) 
@@ -540,32 +549,19 @@ subset.epidataCS <- function (x, subset, select, drop = FALSE, ...)
 }
 
 
-
-### extract marks of the events (actually also including time and tile)
-
-marks.epidataCS <- function (x, ...) {
-    noEventMarks <- setdiff(reservedColsNames_events, "ID")
-    endemicCovars <- setdiff(names(x$stgrid),
-        c(reservedColsNames_stgrid, obligColsNames_stgrid))
-    idxnonmarks <- match(c(noEventMarks, endemicCovars), names(x$events))
-    as.data.frame(x$events[-idxnonmarks])
-}
-
-
-
-### printing methods
+## Subset epidataCS object using head and tail methods (which use [.epidataCS)
 
 head.epidataCS <- function (x, n = 6L, ...)
 {
     ## cl <- match.call()
     ## cl[[1]] <- quote(utils:::head.data.frame)
     ## eval(cl, parent.frame())
-    utils:::head.data.frame(x, n = n, ...)
+    utils:::head.data.frame(x, n = n, ...) # we need the data.frame method
 }
 
 tail.epidataCS <- function (x, n = 6L, ...)
 {
-    # little hack for utils:::tail.data.frame because I don't want to register a
+    # ugly hack for utils:::tail.data.frame because I don't want to register a
     # dim-method for class "epidataCS"
     nrow <- function (x) base::nrow(x$events)
     my.tail.data.frame <- utils:::tail.data.frame
@@ -574,10 +570,30 @@ tail.epidataCS <- function (x, n = 6L, ...)
     my.tail.data.frame(x, n = n, ...)
 }
 
+
+
+### extract marks of the events (actually also including time and tile)
+
+marks.epidataCS <- function (x, coords = TRUE, ...) {
+    noEventMarks <- setdiff(reservedColsNames_events, "ID")
+    endemicCovars <- setdiff(names(x$stgrid),
+        c(reservedColsNames_stgrid, obligColsNames_stgrid))
+    idxnonmarks <- match(c(noEventMarks, endemicCovars), names(x$events))
+    if (coords) {          # use as.data.frame method for SpatialPointsDataFrame
+        as.data.frame(x$events[-idxnonmarks])
+    } else {                            # return marks without coordinates
+        x$events@data[-idxnonmarks]
+    }
+}
+
+
+
+### printing methods
+
 print.epidataCS <- function (x, n = 6L, digits = getOption("digits"), ...)
 {
     timeRange <- c(x$stgrid$start[1], x$stgrid$stop[nrow(x$stgrid)])
-    bboxtxt <- paste(apply(sp::bbox(x$W), 1,
+    bboxtxt <- paste(apply(bbox(x$W), 1,
         function (int) paste0("[", paste(format(int, trim=TRUE, digits=digits), collapse=", "), "]")
         ), collapse = " x ")
     nBlocks <- length(unique(x$stgrid$BLOCK))
@@ -618,7 +634,7 @@ summary.epidataCS <- function (object, ...)
     timeRange <- with(object$stgrid, c(start[1], stop[length(stop)]))
     nBlocks <- length(unique(object$stgrid$BLOCK))
     tiles <- object$events$tile
-    bbox <- sp::bbox(object$W)
+    bbox <- bbox(object$W)
     tileTable <- c(table(tiles))
     types <- object$events$type
     nTypes <- nlevels(types)
@@ -769,7 +785,8 @@ animate.epidataCS <- function (object, interval = c(0,Inf), time.spacing = NULL,
             tps <- seq(from = start, to = end, by = time.spacing)
             if (length(tps) > nmax) {
                 message("Generating only the first ",
-                    sQuote("ani.options(\"nmax\")"), " (=", nmax, ") snapshots")
+                        sQuote(if (with.animation) "ani.options(\"nmax\")" else "nmax"),
+                        " (=", nmax, ") snapshots")
                 head(tps, nmax)
             } else tps
         }
@@ -782,7 +799,8 @@ animate.epidataCS <- function (object, interval = c(0,Inf), time.spacing = NULL,
         idxs <- which(s$eventTimes >= interval[1] & s$eventTimes <= interval[2])
         if (length(idxs) > nmax) {
             message("Generating only the first ",
-                sQuote("ani.options(\"nmax\")"), " (=", nmax, ") events")
+                    sQuote(if (with.animation) "ani.options(\"nmax\")" else "nmax"),
+                    " (=", nmax, ") events")
             head(idxs, nmax)
         } else idxs
     }
@@ -801,7 +819,7 @@ animate.epidataCS <- function (object, interval = c(0,Inf), time.spacing = NULL,
             iRids <- which(infectious)
             if (sequential) setdiff(iRids, it)
             for(j in iRids) {
-                iR <- spatstat::shift(object$events@data$.influenceRegion[[j]],
+                iR <- shift(object$events@data$.influenceRegion[[j]],
                             vec = s$eventCoords[j,])
                 plot(iR, add = TRUE, col = col.influence, border = NA)
             }
@@ -917,6 +935,10 @@ plot.epidataCS_space <- function (x, subset,
 # tileCentroids is a coordinate matrix whose row names are the tile levels
 as.epidata.epidataCS <- function (data, tileCentroids, eps = 0.001, ...)
 {
+    if (!require("intervals"))
+        stop("conversion from ", dQuote("epidataCS"), " to ", dQuote("epidata"),
+             " requires the ", dQuote("intervals"), " package")
+    
     ### generate twinSIR's epidata object from stgrid (no events)
     centroidIdx <- match(levels(data$stgrid$tile), rownames(tileCentroids), nomatch = NA_integer_)
     if (any(is.na(centroidIdx))) {
@@ -1004,4 +1026,120 @@ as.epidata.epidataCS <- function (data, tileCentroids, eps = 0.001, ...)
     )
     cat("Done.\n")
     epi
+}
+
+
+
+
+
+###############################################
+### Spatial and temporal tie-breaking of events
+###############################################
+
+
+untie.epidataCS <- function (x, amount = list(t=NULL, s=NULL),
+                             keep.sources = FALSE, ...)
+{
+    stopifnot(is.list(amount), !is.null(names(amount)))
+    do.spatial <- pmatch("s", names(amount), nomatch=0L) > 0L
+    do.temporal <- pmatch("t", names(amount), nomatch=0L) > 0L
+    if (!do.spatial && !do.temporal) {
+        stop("no amounts specified, nothing to do")
+    }
+
+    ## Generate new events data frame
+    events <- marks(x, coords=FALSE)[,-1L] # drop ID column
+    newcoords <- if (do.spatial) {      # untie spatial coordinates
+        untie.matrix(coordinates(x$events), amount$s, constraint=x$W)
+    } else coordinates(x$events)
+    if (do.temporal) {                  # untie event times
+        ## we shift event times (non-symmetrically) to the left such that the
+        ## shifted versions potentially stay in the same BLOCK of endemic
+        ## covariates (the CIF is left-continuous).
+        events$time <- untie.default(events$time, amount$t,
+                                     direction="left", sort=TRUE)
+    }
+
+    ## Generate epidataCS object with new events
+    coordinates(events) <- newcoords    # -> SpatialPointsDataFrame
+    #proj4string(events) <- proj4string(x$W)  # "proj4string<-" might change the
+                                        # string e.g. add +towgs84=0,0,0,0,0,0,0
+    events@proj4string <- x$W@proj4string
+    npoly <- attr(x$events$.influenceRegion, "nCircle2Poly")
+    res <- as.epidataCS(events, x$stgrid[,-1], x$W, x$qmatrix,
+                        nCircle2Poly=npoly)
+    if (keep.sources) {
+        res$events$.sources <- x$events$.sources
+    }
+
+    ## Done
+    res
+}
+
+## untie event times by uniform jittering
+untie.default <- function (x, amount = NULL,
+                           direction = c("symmetric", "left", "right"),
+                           sort = NULL, ...)
+{
+    stopifnot(is.numeric(x), is.vector(x))
+    distx <- dist(x)
+    if (all(distx > 0))                 # no ties
+        return(x)
+    if (is.null(amount))                # take smallest positive distance
+        amount <- min(distx[distx > 0])
+    direction <- match.arg(direction)
+    if (is.null(sort))                  # sort if x was sorted
+        sort <- identical(order(x, decreasing=FALSE), seq_along(x))
+
+    u <- if (direction == "symmetric") {
+        runif(length(x), -amount, amount)
+    } else {
+        u <- runif(length(x), 0, amount)
+        if (direction == "left") -u else u
+    }
+    res <- x + u
+    
+    if (sort) base::sort(res) else res
+}
+
+## untie spatial coordinates by moving them by vectors drawn uniformly from a
+## disc of radius 'amount', optionally respecting a region (constraint)
+## inside which the jittered points should be located (of course, the initial
+## points must also obey this constraint)
+untie.matrix <- function (x, amount = NULL, constraint = NULL, ...)
+{
+    stopifnot(is.numeric(x), is.matrix(x))
+    dimx <- dim(x)
+    if (dimx[2L] <= 1L) {
+        untie.default(c(x), amount = amount)
+    } else if (dimx[2L] > 2L) {
+        stop("spatial tie-breaking is only implemented for 2D coordinates")
+    }
+    distx <- dist(x)
+    if (all(distx > 0))                 # no ties
+        return(x)
+    if (is.null(amount))
+        ## take half of smallest distance, which guarantees that new points
+        ## will be closer to previously tied points than to others
+        amount <- min(distx[distx > 0]) / 2
+    if (!is.null(constraint)) {
+        stopifnot(inherits(constraint, "SpatialPolygons"))
+        if (any(is.na(overlay(SpatialPoints(x), constraint))))
+            stop("some points of the matrix 'x' don't respect the 'constraint'")
+    }
+
+    move <- rep.int(TRUE, dimx[1L])
+    ntry <- 0L
+    res <- x
+    while((nleft <- sum(move)) > 0L && ntry < 1000L) {
+        rvec <- runifdisc(nleft, amount)
+        res[move,] <- res[move,] + rvec
+        move[move] <- if (is.null(constraint)) FALSE else {
+            is.na(overlay(SpatialPoints(res[move,,drop=FALSE]), constraint))
+        }
+        ntry <- ntry + 1L
+    }
+    if (ntry >= 1000L)
+        warning("could not obey the 'constraint' for some points")
+    res
 }

@@ -51,8 +51,8 @@ linelist2sts(linelist,dateCol,aggregate.by="1 week",dRange=NULL,
 }
 
 \value{
-  The function returns an object of \code{"\linkS4class{sts}"}. The \code{freq}
-  slot might not be appropriate.
+  The function returns an object of class \code{"\linkS4class{sts}"}.
+  The \code{freq} slot might not be appropriate.
 }
 
 \author{
@@ -71,14 +71,15 @@ Michael \enc{Höhle}{Hoehle}
 #Load simulated outbreak data.
 url <- paste("http://www.stat.uni-muenchen.de/~hoehle/",
              "teaching/moid2011/tutorials/cast-backnow/outbreak.txt",sep="")
-D <- read.table(url,header=TRUE,colClasses=c("integer",rep("Date",3)))
+D <- try(read.table(url,header=TRUE,colClasses=c("integer",rep("Date",3))))
 
-#Convert line list to an sts object
-sts <- linelist2sts(D, dateCol="dOnset", aggregate.by="1 day")
+if (!inherits(D, "try-error")) {
+    #Convert line list to an sts object
+    sts <- linelist2sts(D, dateCol="dOnset", aggregate.by="1 day")
 
-#Plot the result
-plot(sts,xaxis.years=FALSE,legend.opts=NULL,xlab="time (days)")
-
+    #Plot the result
+    plot(sts,xaxis.years=FALSE,legend.opts=NULL,xlab="time (days)")
+}
 }
 
 \keyword{models}

@@ -1,6 +1,13 @@
 ################################################################################
-### Spatial/Temporal interaction functions for the epidemic component
-### Author: Sebastian Meyer
+### Part of the surveillance package, http://surveillance.r-forge.r-project.org
+### Free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at http://www.r-project.org/Licenses/.
+###
+### Spatial and temporal interaction functions for twinstim's epidemic component
+###
+### Copyright (C) 2009-2012 Sebastian Meyer
+### $Revision: 459 $
+### $Date: 2012-11-21 09:52:42 +0100 (Mi, 21. Nov 2012) $
 ################################################################################
 
 
@@ -10,12 +17,18 @@
 ## if (getRversion() >= "2.15.1") utils::globalVariables("r")
 
 siaf.constant <- function () {
+    r <- s <- n <- ub <- "just cheating on codetools::checkUsage"
     res <- list(
-        f = as.function(alist(s=, pars=, types=, rep.int(1, nrow(s))), envir = .GlobalEnv),
-        deriv = NULL,
-        Fcircle = as.function(alist(r=, pars=, types=, pi*r^2), envir = .GlobalEnv),
-        simulate = NULL, # will be handled specially in simEpidataCS
-        npars = 0L, validpars = NULL
+           f = as.function(alist(s=, pars=NULL, types=NULL, rep.int(1,nrow(s))),
+                           envir = .GlobalEnv),
+           Fcircle = as.function(alist(r=, pars=NULL, type=NULL, pi*r^2),
+                                 envir = .GlobalEnv),
+           ## simulation will be handled specially in simEpidataCS, this is only
+           ## included here for completeness
+           simulate = as.function(alist(n=, pars=NULL, type=NULL, ub=,
+                                        surveillance:::runifdisc(n, ub)),
+                                  envir = .GlobalEnv),
+           npars = 0L
     )
     attr(res, "constant") <- TRUE
     res
@@ -41,29 +54,44 @@ siaf.constant <- function () {
 ##   constrained optimisation (L-BFGS-B) or set 'validpars' to function (pars)
 ##   pars > 0. 
 
-siaf.gaussian <- function (nTypes, logsd = TRUE, density = FALSE,
-                           effRangeMult = 6, validpars = NULL)
+siaf.gaussian <- function (nTypes = 1, logsd = TRUE, density = FALSE,
+                           F.adaptive = TRUE, effRangeMult = 6, validpars = NULL)
 {
     nTypes <- as.integer(nTypes)
-    stopifnot(length(nTypes) == 1L, nTypes > 0L, isScalar(effRangeMult))
+    stopifnot(length(nTypes) == 1L, nTypes > 0L)
 
     f <- function (s, pars, types) {}       # coordinate matrix s, length(types) = 1 or nrow(s)
-    deriv <- function (s, pars, types) {}   # coordinate matrix s, length(types) = 1 or nrow(s)
+    F <- if (F.adaptive) {
+        function(polydomain, f, pars, type, adapt=0.1) {}
+    } else siaf.fallback.F
     Fcircle <- function (r, pars, type) {}  # single radius and type
     effRange <- function (pars) {}
-    simulate <- function (n, pars, type) {} # n=size of the sample, type=single type
+    deriv <- function (s, pars, types) {}   # coordinate matrix s, length(types) = 1 or nrow(s)
+    Deriv <- function (polydomain, deriv, pars, type, nGQ = 20L) {} # single "owin" and type
+    simulate <- function (n, pars, type, ub) {} # n=size of the sample,
+                                                # type=single type,
+                                                # ub=upperbound (unused here)
 
+    ## if there is only one type, we set the default type(s) argument to 1
+    ## (it is actually unused inside the functions)
+    if (nTypes == 1L) {
+        formals(f)$types <- formals(Fcircle)$type <- formals(deriv)$types <-
+            formals(Deriv)$type <- formals(simulate)$type <- 1L
+    }
+    
     # helper expressions
     tmp1 <- if (logsd) expression(sds <- exp(pars)) else expression(sds <- pars)
-    tmp2 <- expression(
-        sLengthSquared <- rowSums(s^2),
-        L <- length(sLengthSquared),
-        types <- rep(types, length.out = L),
-        # standard deviations vector sds may have length 1 (type-invariant siaf)
-        # thus we extend its length to fit the maximum type index
-        sds <- rep(sds, length.out = max(types)),
-        sdss <- sds[types]
-    )
+    tmp1.1 <- if (nTypes==1L) expression(sd <- sds) else expression(sd <- sds[type])
+    tmp2 <- c(
+            expression(
+                sLengthSquared <- rowSums(s^2),
+                L <- length(sLengthSquared)
+                ),
+            if (nTypes == 1L) expression(sdss <- sds) else expression(
+                types <- rep(types, length.out = L),
+                sdss <- sds[types]
+                )
+            )
 
     # spatial interaction function
     body(f) <- as.call(c(as.name("{"),
@@ -72,60 +100,101 @@ siaf.gaussian <- function (nTypes, logsd = TRUE, density = FALSE,
         if (density) expression(fvals / (2*pi*sdss^2)) else expression(fvals)
     ))
 
-    # derivative of f wrt pars
-    body(deriv) <- as.call(c(as.name("{"),
-        tmp1, tmp2,
-        expression(deriv <- matrix(0, L, length(pars))),
-        expression(frac <- sLengthSquared/2/sdss^2),
-        if (nTypes == 1L) expression(colidx <- 1L) else expression(colidx <- types),
-        if (logsd) { # derive f wrt psi=log(sd) !!
-            if (density) {
-                expression(deriv[cbind(1:L,colidx)] <- exp(-frac) / pi/sdss^2 * (frac-1))
-            } else {
-                expression(deriv[cbind(1:L,colidx)] <- exp(-frac) * 2*frac)
-            }
-        } else { # derive f wrt sd !!
-            if (density) {
-                expression(deriv[cbind(1:L,colidx)] <- exp(-frac) / pi/sdss^3 * (frac-1))
-            } else {
-                expression(deriv[cbind(1:L,colidx)] <- exp(-frac) * 2*frac/sdss)
-            }
-        },
-        expression(deriv)
-    ))
-
-    # calculate the integral over a circular domain around 0
+    # numerically integrate f over a polygonal domain
+    if (F.adaptive) {
+        body(F) <- as.call(c(as.name("{"),
+            tmp1, tmp1.1,
+            expression(
+                eps <- adapt * sd,
+                intf <- polyCub.midpoint(polydomain, f, pars, type, eps=eps),
+                intf
+                )
+        ))
+    }
+    
+    # calculate the integral of f over a circular domain around 0
     body(Fcircle) <- as.call(c(as.name("{"),
-        tmp1,
-        expression(
-            sd <- rep(sds, length.out=type)[type],
-            val <- pchisq((r/sd)^2, 2)   # cf. Abramowitz&Stegun formula 26.3.24
-        ),
+        tmp1, tmp1.1,
+        expression(val <- pchisq((r/sd)^2, 2)), # cf. Abramowitz&Stegun formula 26.3.24
         if (!density) expression(val <- val * 2*pi*sd^2),
         expression(val)
     ))
 
-    # effective integration range as a function of sd
-    body(effRange) <- as.call(c(as.name("{"),
-        tmp1,
-        substitute(effRangeMult*sds)
+    # effective integration range of f as a function of sd
+    if (isScalar(effRangeMult)) {
+        body(effRange) <- as.call(c(as.name("{"),
+            tmp1,
+            substitute(effRangeMult*sds)
+        ))
+    } else effRange <- NULL
+
+    # derivative of f wrt pars
+    derivexpr <- if (logsd) { # derive f wrt psi=log(sd) !!
+        if (density) {
+            quote(deriv[cbind(1:L,colidx)] <- exp(-frac) / pi/sdss^2 * (frac-1))
+        } else {
+            quote(deriv[cbind(1:L,colidx)] <- exp(-frac) * 2*frac)
+        }
+    } else { # derive f wrt sd !!
+        if (density) {
+            quote(deriv[cbind(1:L,colidx)] <- exp(-frac) / pi/sdss^3 * (frac-1))
+        } else {
+            quote(deriv[cbind(1:L,colidx)] <- exp(-frac) * 2*frac/sdss)
+        }
+    }
+    derivexpr <- do.call("substitute", args=list(expr=derivexpr,
+                         env=list(colidx=if (nTypes==1L) 1L else quote(types))))
+    body(deriv) <- as.call(c(as.name("{"),
+        tmp1, tmp2,
+        expression(
+            deriv <- matrix(0, L, length(pars)),
+            frac <- sLengthSquared/2/sdss^2
+            ),
+        derivexpr,
+        expression(deriv)
+    ))
+
+    # integrate 'deriv' over a polygonal domain
+    body(Deriv) <- as.call(c(as.name("{"),
+        ## Determine a = argmax(abs(deriv(c(x,0))))
+        if (density) {
+            expression(a <- 0)          # maximum absolute value is at 0
+        } else {
+            c(tmp1, tmp1.1,
+              expression(
+                  xrange <- polydomain$xrange,           # polydomain is a "owin"
+                  a <- min(max(abs(xrange)), sqrt(2)*sd), # maximum absolute value
+                  if (sum(xrange) < 0) a <- -a # is more of the domain left of 0?
+                  )
+              )
+        },
+        if (nTypes == 1L) {
+            expression(deriv.type <- function (s) deriv(s, pars, 1L)[,1L,drop=TRUE])
+        } else { # d f(s|type_i) / d sigma_{type_j} is 0 for i != j
+            expression(deriv.type <- function (s) deriv(s, pars, type)[,type,drop=TRUE])
+        },
+        expression(int <- polyCub.SV(polydomain$bdry, deriv.type, nGQ=nGQ, alpha=a)),
+        if (nTypes == 1L) expression(int) else expression(
+            res <- numeric(length(pars)), # zeros
+            res[type] <- int,
+            res
+            )
     ))
 
     # sampler
     body(simulate) <- as.call(c(as.name("{"),
-        tmp1,
-        expression(
-            sd <- rep(sds, length.out=type)[type],
-            matrix(rnorm(2*n, mean=0, sd=sd), nrow = n, ncol = 2L)
-        )
+        tmp1, tmp1.1,
+        expression(matrix(stats::rnorm(2*n, mean=0, sd=sd), nrow=n, ncol=2L))
     ))
 
     ## set function environments to the global environment
-    environment(f) <- environment(deriv) <- environment(Fcircle) <-
-    environment(effRange) <- environment(simulate) <- .GlobalEnv
+    environment(f) <- environment(F) <- environment(Fcircle) <-
+        environment(deriv) <- environment(Deriv) <-
+            environment(simulate) <- .GlobalEnv
+    if (is.function(effRange)) environment(effRange) <- .GlobalEnv
 
     ## return the kernel specification
-    list(f=f, deriv=deriv, Fcircle=Fcircle, effRange=effRange,
+    list(f=f, F=F, Fcircle=Fcircle, effRange=effRange, deriv=deriv, Deriv=Deriv,
          simulate=simulate, npars=nTypes, validpars=validpars)
 }
 
@@ -143,22 +212,25 @@ qlomax <- function (p, scale, shape) {
 ## density=FALSE returns standardized Lomax kernel, i.e. f(x) = f_Lomax(x)/f(0),
 ## such that the kernel function starts at 1. f_Lomax(0) = alpha / sigma
 siaf.lomax <- function (nTypes = 1, logpars = TRUE, density = FALSE,
-                        effRangeProb = 0.99, validpars = NULL)
+                        effRangeProb = 0.999, validpars = NULL)
 {
+    nTypes <- as.integer(nTypes)
+    stopifnot(length(nTypes) == 1L, nTypes > 0L)
+
     ## for the moment we don't make this type-specific
     if (nTypes != 1) stop("type-specific shapes are not yet implemented")
     if (!logpars) stop("only the 'logpars' parametrization is implemented")
 
     ## helper expression, note: logpars=c(logscale=logsigma, logshape=logalpha)
     tmp <- expression(
-        logsigma <- logpars[[1]],  # used "[[" to drop names
-        logalpha <- logpars[[2]],
+        logsigma <- logpars[[1L]],  # used "[[" to drop names
+        logalpha <- logpars[[2L]],
         sigma <- exp(logsigma),
         alpha <- exp(logalpha)
         )
 
     ## spatial kernel
-    f <- function (s, logpars) {}
+    f <- function (s, logpars, types = NULL) {}
     body(f) <- as.call(c(as.name("{"),
         tmp,
         expression(sLength <- sqrt(rowSums(s^2))),
@@ -171,29 +243,11 @@ siaf.lomax <- function (nTypes = 1, logpars = TRUE, density = FALSE,
         }
     ))
 
-    ## derivative wrt logpars
-    deriv <- function (s, logpars) {}
-    body(deriv) <- as.call(c(as.name("{"),
-        tmp,
-        expression(sLength <- sqrt(rowSums(s^2))),
-        expression(logsigma.xsigma <- logsigma - log(sLength+sigma)),
-        if (density) {
-            expression(
-                logfac <- logalpha - logsigma + (alpha+1) * logsigma.xsigma,
-                derivlogsigma.part <- (alpha*sLength-sigma) / (sLength+sigma),
-                derivlogalpha.part <- 1 + alpha * logsigma.xsigma
-                )
-        } else {
-            expression(
-                logfac <- (alpha+1) * logsigma.xsigma,
-                derivlogsigma.part <- (alpha+1) * sLength / (sLength+sigma),
-                derivlogalpha.part <- alpha * logsigma.xsigma
-                )
-        },
-        expression(exp(logfac) * cbind(derivlogsigma.part, derivlogalpha.part))
-    ))
+    ## numerically integrate f over a polygonal domain
+    F <- siaf.fallback.F
     
-    Fcircle <- function (r, logpars) {}
+    ## fast integration of f over a circular domain
+    Fcircle <- function (r, logpars, type = NULL) {}
     body(Fcircle) <- as.call(c(as.name("{"),
         tmp,
         ## integrate standardized f(x) = f_Lomax(x) / f_Lomax(0)
@@ -213,28 +267,121 @@ siaf.lomax <- function (nTypes = 1, logpars = TRUE, density = FALSE,
          if (density) expression(int * alpha / sigma) else expression(int)
     ))
 
-    effRange <- function (logpars) {}
-    body(effRange) <- as.call(c(as.name("{"),
-        substitute(qlomax(effRangeProb, exp(logpars[[1]]), exp(logpars[[2]])),
-                   list(effRangeProb=effRangeProb))
+    ## derivative of f wrt logpars
+    deriv <- function (s, logpars, types = NULL) {}
+    body(deriv) <- as.call(c(as.name("{"),
+        tmp,
+        expression(sLength <- sqrt(rowSums(s^2))),
+        expression(logsigma.xsigma <- logsigma - log(sLength+sigma)),
+        if (density) {
+            expression(
+                logfac <- logalpha - logsigma + (alpha+1) * logsigma.xsigma,
+                derivlogsigma.part <- (alpha*sLength-sigma) / (sLength+sigma),
+                derivlogalpha.part <- 1 + alpha * logsigma.xsigma
+                )
+        } else {
+            expression(
+                logfac <- (alpha+1) * logsigma.xsigma,
+                derivlogsigma.part <- (alpha+1) * sLength / (sLength+sigma),
+                derivlogalpha.part <- alpha * logsigma.xsigma
+                )
+        },
+        expression(exp(logfac) * cbind(derivlogsigma.part, derivlogalpha.part))
     ))
-    
-    simulate <- function (n, logpars)
+
+    ## Numerical integration of 'deriv' over a polygonal domain
+    Deriv <- function (polydomain, deriv, logpars, type = NULL, nGQ = 20L) {}
+    body(Deriv) <- as.call(c(as.name("{"),
+        ## Determine a = argmax(abs(deriv(c(x,0))))
+        if (density) {
+            expression(a <- c(0,0)) # max abs values are at 0
+        } else c(tmp, expression(
+            xrange <- polydomain$xrange,           # polydomain is a "owin"
+            maxxdist <- max(abs(xrange)),
+            a.logsigma <- min(maxxdist, sigma / (alpha+1)),
+            a.logalpha <- min(maxxdist, sigma * (exp(1/(alpha+1)) - 1)),
+            a <- c(a.logsigma, a.logalpha),
+            if (sum(xrange) < 0) a <- -a # is more of the domain left of 0?
+            )),
+        expression(
+            deriv1 <- function (s, paridx)
+                deriv(s, logpars, type)[,paridx,drop=TRUE],
+            intderiv1 <- function (paridx)
+                polyCub.SV(polydomain$bdry, deriv1, paridx=paridx,
+                           nGQ = nGQ, alpha = a[paridx]),
+            res.logsigma <- intderiv1(1L),
+            res.logalpha <- intderiv1(2L),
+            res <- c(res.logsigma, res.logalpha),
+            res
+            )
+    ))
+
+    ## "effective" integration range (based on some high quantile)
+    effRange <- if (isScalar(effRangeProb)) {
+        effRange <- function (logpars) {}
+        body(effRange) <- as.call(c(as.name("{"),
+            substitute(qlomax(effRangeProb, exp(logpars[[1]]), exp(logpars[[2]])),
+                       list(effRangeProb=effRangeProb))
+        ))
+        effRange
+    } else NULL
+
+    ## simulate from the Lomax kernel (within a maximum distance 'ub')
+    simulate <- function (n, logpars, type, ub)
     {
-        ## stopifnot(require("VGAM"))
-        samp1d <- VGAM::rlomax(n, scale=exp(logpars[[1]]),
-                               shape3.q=exp(logpars[[2]]))
+        ## Sampling from f(s) = dlomax(||s||), truncated to ||s|| <= ub is via
+        ## polar coordinates and applies the inverse transformation method
+        sigma <- exp(logpars[[1L]])
+        alpha <- exp(logpars[[2L]])
+        exp <- sigma / (alpha-1)        # only valid if alpha > 1
+        ##r <- VGAM::rlomax(n, scale=sigma, shape3.q=alpha)
+        ## NO, r must be sampled from a density proportional to r*dlomax(r)!!!
+        ##curve(x * alpha/sigma * (1+x/sigma)^-(alpha+1), 0, 200)
+
+        ## We need the primitive of the density, i.e. int_0^r x*dlomax(x) dx
+        cumd <- if (alpha == 1) {
+            function (r) sigma * (log(1+r/sigma) - r/(r+sigma))
+        } else {
+            function (r)
+                ifelse(is.infinite(r) & alpha > 1, exp,
+                       exp * (1 - (1+r/sigma)^-alpha * (r*alpha/sigma+1)))
+        }
+
+        ## cumulative distribution function: int_0^q x*dlomax(x) / c dx
+        ## the normalization constant c is only finite if alpha > 1 _or_ if 
+        ## the density is truncated (in simEpidataCS, simulation is always
+        ## bounded to eps.s and to the largest extend of W), otherwise the
+        ## distribution is improper
+        CDF <- if (is.finite(ub)) { # in this case any alpha > 0 is fine
+            normconst <- cumd(ub)
+            function (q) cumd(q) / normconst
+        } else { # for r in [0;Inf] the density is only proper if alpha > 1
+            stopifnot(alpha > 1)
+            function (q) cumd(q) / exp
+        }
+        
+        ## However, there is no closed form expression for the quantile function
+        ## of that distribution (inverse CDF), so we have to use uniroot
+        ## However, uniroot needs a finite upper bound
+        stopifnot(is.finite(ub))
+        QF <- function(p) uniroot(function(q) CDF(q)-p, lower=0, upper=ub)$root
+
+        ## now sample r as QF(U), where U ~ U(0,1)
+        r <- sapply(runif(n), QF)
+        
         ## now rotate each point by a random angle to cover all directions
-        theta <- runif(n, 0, 2*pi)
-        samp1d * cbind(cos(theta), sin(theta))
+        theta <- stats::runif(n, 0, 2*pi)
+        r * cbind(cos(theta), sin(theta)) 
     }
 
     ## set function environments to the global environment
-    environment(f) <- environment(deriv) <- environment(Fcircle) <-
-    environment(effRange) <- environment(simulate) <- .GlobalEnv
+    environment(f) <- environment(F) <- environment(Fcircle) <-
+        environment(deriv) <- environment(Deriv) <-
+            environment(simulate) <- .GlobalEnv
+    if (is.function(effRange)) environment(effRange) <- .GlobalEnv
 
     ## return the kernel specification
-    list(f=f, deriv=deriv, Fcircle=Fcircle, effRange=effRange,
+    list(f=f, F=F, Fcircle=Fcircle, effRange=effRange, deriv=deriv, Deriv=Deriv,
          simulate=simulate, npars=2L, validpars=validpars)
 }
 
@@ -278,10 +425,34 @@ siaf.lomax <- function (nTypes = 1, logpars = TRUE, density = FALSE,
 ## }
 
 
+### naive defaults for the siaf specification
+
+## numerical integration of f over a polygonal domain (single "owin" and type)
+siaf.fallback.F <- function(polydomain, f, pars, type, method = "SV", ...)
+{
+    if (identical(method,"SV"))
+        polyCub.SV(polydomain, f, pars, type, alpha=0, ...) # since max at origin
+    else 
+        polyCub(polydomain, f, method, pars, type, ...)
+}
+
+## numerical integration of deriv over a polygonal domain
+siaf.fallback.Deriv <- function (polydomain, deriv, pars, type, method = "SV", ...)
+{
+    deriv1 <- function (s, paridx)
+        deriv(s, pars, type)[,paridx,drop=TRUE]
+    intderiv1 <- function (paridx)
+        polyCub(polydomain, deriv1, method, paridx=paridx, ...)
+    derivInt <- sapply(seq_along(pars), intderiv1)
+    derivInt
+}
+
+
+
 ### Returns a list specifying an exponential temporal interaction function
 # nTypes: cf. parameter description for siaf.gaussian
 
-tiaf.exponential <- function (nTypes)
+tiaf.exponential <- function (nTypes = 1)
 {
     # time points vector t, length(types) = 1 or length(t)
     g <- function (t, alpha, types) {
@@ -386,15 +557,17 @@ tiaf.constant <- function () {
 
 ### Checks the siaf specification
 # f: spatial interaction function (siaf). must accept two arguments, a coordinate matrix and a parameter vector. for marked twinstim, it must accept a third argument which is the type of the event (either a single type for all locations or separate types for each location)
-# deriv: optional derivative of f with respect to the parameters. Takes the same arguments as f but returns a matrix with as many rows as there were coordinates in the input and npars columns. The derivative is necessary for the score function.
+# F: function that integrates 'f' (2nd argument) over a polygonal domain (of class "owin", 1st argument). The third and fourth arguments are the parameters and the type, respectively. There may be additional arguments which are passed by the control.siaf list in twinstim().
 # Fcircle: optional function for fast calculation of the integral of f over a circle with radius r (first argument). Further arguments like f. It must not be vectorized for model fitting (will be passed single radius and single type).
 # effRange: optional function returning the effective range (domain) of f for the given set of parameters such that the circle with radius effRange contains the numerical essential proportion the integral mass, e.g. function (sigma) 6*sigma. The return value must be a vector of length nTypes (effRange for each type). Must be supplied together with Fcircle.
-# simulate: optional function returning a sample drawn from the spatial kernel (i.e. a two-column matrix of 'n' points). The arguments are 'n' (size of the sample), 'pars' (parameter vector of the spatial kernel), and, for marked twinstim, 'type' (a single type of event being generated).
+# deriv: optional derivative of f with respect to the parameters. Takes the same arguments as f but returns a matrix with as many rows as there were coordinates in the input and npars columns. The derivative is necessary for the score function.
+# Deriv: function which integrates 'deriv' (2nd argument) over a polygonal domain (of class "owin", 1st argument). The third and fourth argument are the parameters and the type, respectively. There may be additional arguments which are passed by the control.siaf list in twinstim().
+# simulate: optional function returning a sample drawn from the spatial kernel (i.e. a two-column matrix of 'n' points). The arguments are 'n' (size of the sample), 'pars' (parameter vector of the spatial kernel), for marked twinstim also 'type' (a single type of event being generated), and optionally 'ub' (upper bound, truncation of the kernel)
 # npars: number of parameters
 # validpars: a function indicating if a specific parameter vector is valid. Not necessary if npars == 0. If missing or NULL, it will be set to function (pars) TRUE. This function is rarely needed in practice, because usual box constrained parameters can be taken into account by using L-BFGS-B as the optimization method (with arguments 'lower' and 'upper').
 # knots: not implemented. Knots (> 0) of a spatial interaction STEP function of the distance
 
-checksiaf <- function (f, deriv, Fcircle, effRange, simulate, npars, validpars, knots)
+checksiaf <- function (f, F, Fcircle, effRange, deriv, Deriv, simulate, npars, validpars, knots)
 {
     # if siaf is a step function specified by knots
     if (!missing(knots)) {
@@ -407,6 +580,13 @@ checksiaf <- function (f, deriv, Fcircle, effRange, simulate, npars, validpars, 
         stop("'siaf$npars' must be a single nonnegative number")
     }
     f <- .checknargs3(f, "siaf$f")
+    F <- if (missing(F) || is.null(F)) siaf.fallback.F else {
+        F <- match.fun(F)
+        if (length(formals(F)) < 4L)
+            stop("siaf$F() must accept >=4 arguments ",
+                 "(polydomain, f, pars, type)")
+        F
+    }
     haspars <- npars > 0L
     if (!haspars || missing(deriv)) deriv <- NULL
     if (!is.null(deriv)) deriv <- .checknargs3(deriv, "siaf$deriv")
@@ -425,17 +605,31 @@ checksiaf <- function (f, deriv, Fcircle, effRange, simulate, npars, validpars, 
             stop("the 'siaf$effRange' function must accept a parameter vector")
         }
     }
+    Deriv <- if (is.null(deriv)) NULL else if (missing(Deriv) || is.null(Deriv))
+        siaf.fallback.Deriv else {
+            Deriv <- match.fun(Deriv)
+            if (length(formals(Deriv)) < 4L)
+                stop("siaf$Deriv() must accept >=4 arguments ",
+                     "(polydomain, deriv, pars, type)")
+            Deriv
+        }
     ## Check if simulation function has proper format
     if (missing(simulate)) simulate <- NULL
-    if (!is.null(simulate)) simulate <- .checknargs3(simulate, "siaf$simulate")
+    if (!is.null(simulate)) {
+        simulate <- .checknargs3(simulate, "siaf$simulate")
+        if (length(formals(simulate)) == 3L)
+            formals(simulate) <- c(formals(simulate), alist(ub=))
+    }
     ## Check if the validpars are of correct form
     validpars <- if (!haspars || missing(validpars) || is.null(validpars))
         NULL else match.fun(validpars)
     ## Check if the siaf has value 1 at (0,0)
     .checkiaf0(f, npars, validpars, "siaf")
     ## Done, return result.
-    list(f = f, deriv = deriv, Fcircle = Fcircle, effRange = effRange,
-         simulate = simulate, npars = npars, validpars = validpars)
+    list(f = f, F = F, Fcircle = Fcircle, effRange = effRange,
+         deriv = deriv, Deriv = Deriv,
+         simulate = simulate,
+         npars = npars, validpars = validpars)
 }
 
 

@@ -7,8 +7,8 @@
 \description{
   Generic function for plotting paths of point process intensities.
   Methods currently defined in package \pkg{surveillance} are for
-  classes \code{"twinSIR"} and \code{"simEpidata"} (temporal), and
-  \code{"twinstim"} (spatio-temporal). 
+  classes \code{"twinSIR"} and \code{"simEpidata"} (temporal), as well as
+  \code{"twinstim"} and \code{"simEpidataCS"} (spatio-temporal). 
 }
 
 \usage{

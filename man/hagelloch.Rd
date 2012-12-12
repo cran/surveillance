@@ -87,34 +87,34 @@ data("hagelloch")
   National University. To cite the data, the main references are Pfeilsticker
   (1863) and Oesterle (1992). 
 }
+
 \examples{
   data("hagelloch")
   #Data frame with the original data documented in Oesterle (1992)
   head(hagelloch.df)
   #Represented as epidata object
-  summary(hagelloch)
+  (s <- summary(hagelloch))
 
   ### Use data.frame to illustrate the basics
 
   #Show case locations as in Neal & Roberts (different scaling) using
   #the data.frame (promoted to a SpatialPointsDataFrame)
   coordinates(hagelloch.df) <- c("HNX","HNY")
-  plot(hagelloch.df,xlab="x [m]",ylab="x [m]",pch=15,axes=TRUE,cex=sqrt(multiplicity(hagelloch.df)))
+  plot(hagelloch.df,xlab="x [m]",ylab="x [m]",pch=15,axes=TRUE,
+       cex=sqrt(multiplicity(hagelloch.df)))
 
   #Epicurve
   hist(as.numeric(hagelloch.df$tS),xlab="Time (days)",ylab="Cases",main="")
 
   ### SIR model information for population & individuals
 
-  plot(hagelloch, col=c("green","red","darkgray"))
-  stateplot(hagelloch, id=c("187"))
+  plot(s, col=c("green","red","darkgray"))
+  stateplot(s, id=c("187"))
 
   \dontrun{
     #Show a dynamic illustration of the spread of the infection
-    animate(hagelloch,time.spacing=0.1,legend.opts=list(x="topleft"),sleep=10/550)
+    animate(hagelloch,time.spacing=0.1,legend.opts=list(x="topleft"),sleep=1/100)
   }
-
-  #For an analysis of the data see also the example of twinSIR.
 }
 
 \references{

@@ -47,10 +47,14 @@ Sebastian Meyer
 }
 
 \examples{
-poly <- discpoly(c(0.5,0.5), 0.5, npoly=4, class="gpc.poly")
-pts <- cbind(x=runif(50), y=runif(50))
-plot(poly)
-points(pts, col=1+inside.gpc.poly(pts, polyregion=poly))
+if (require("gpclib")) {
+    oopt <- surveillance.options(gpclib=TRUE)
+    poly <- discpoly(c(0.5,0.5), 0.5, npoly=4, class="gpc.poly")
+    surveillance.options(oopt)
+    pts <- cbind(x=runif(50), y=runif(50))
+    plot(poly)
+    points(pts, col=1+inside.gpc.poly(pts, polyregion=poly))
+}
 }
 
 \keyword{utilities}

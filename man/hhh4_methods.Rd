@@ -30,7 +30,7 @@ from a call to \code{\link{hhh4}}.
 \method{coef}{ah4}(object, se = FALSE, reparamPsi = TRUE, 
        idx2Exp = NULL, amplitudeShift = FALSE, ...)
 \method{fixef}{ah4}(object, ...)
-\method{ranef}{ah4}(object, ...)
+\method{ranef}{ah4}(object, tomatrix = FALSE, ...)
 
 \method{AIC}{ah4}(object, ..., k = 2)
 \method{logLik}{ah4}(object, ...)
@@ -60,6 +60,15 @@ from a call to \code{\link{hhh4}}.
    for sine/cosine terms modelling seasonal patterns 
    (see \code{\link{addSeason2formula}}) should be transformed
    to an amplitude/shift formulation.}
+  \item{tomatrix}{logical. If \code{FALSE} (default), the vector of
+    all random effects is returned (as used internally). However, for
+    random intercepts of \code{type="car"}, the number of parameters is
+    one less than the number of regions and the individual parameters are
+    not obviously linked to specific regions. Setting \code{tomatrix} to
+    \code{TRUE} returns a more useful representation of random effects
+    in a matrix with as many rows as there are regions and as many
+    columns as there are random effects. Here, any CAR-effects are
+    transformed to region-specific effects.}
   \item{k}{
     numeric specifying the the \emph{penalty} per parameter to be used;
     \code{k = 2} is the classical AIC.

@@ -1,4 +1,5 @@
 % hhh4
+\encoding{latin1}
 \name{hhh4}
 \alias{hhh4}
 % functions without documentation atm
@@ -7,8 +8,8 @@
 \alias{permutationTest}
 \alias{pit}
 
-\encoding{latin1}
 \title{Random effects HHH model fit as described in Paul and Held (2011)} 
+
 \description{
   Fits a Poisson or negative binomial model with conditional mean
   \deqn{\mu_{it} = \lambda_{it} y_{i,t-1} + 
@@ -17,8 +18,11 @@
         \mu_it = \lambda_it y_i,t-1 + 
                  \phi_it sum_(j != i) w_ji y_j,t-1 +
                    e_it \nu_it  }
-  containing epidemic and endemic components to a multivariate time 
-  series of counts. Here, the three unknown quantities 
+  containing epidemic and endemic components to a multivariate time series
+  of counts. In the case of a negative binomial model, the conditional 
+  variance is \eqn{\mu_{it}(1+\psi\mu_{it})}{\mu_it(1+\psi*\mu_it)} 
+  with overdispersion parameter \eqn{\psi}. 
+  The three unknown quantities of the mean \eqn{\mu_{it}}{\mu_it}
   \itemize{
   \item \eqn{\lambda_{it}}{\lambda_it} in the autoregressive (\code{ar}) component, 
   \item \eqn{\phi_{it}}{\phi_it} in the neighbor-driven (\code{ne}) component, and
@@ -29,35 +33,38 @@
   and \eqn{e_{it}}{e_it} is a (multiplicative) offset.
   The linear predictors may contain random effects. 
 }
+
 \usage{
 hhh4(stsObj, 
      control = list(
-               ar = list(f = ~ -1,        
-                         lag = 1,         
-                         weights = NULL,  
-                         initial = NULL   
+               ar = list(f = ~ -1,
+                         lag = 1,
+                         weights = NULL,
+                         initial = NULL
                          ),
-               ne = list(f = ~ -1,        
-                         lag = 1,         
-                         weights = NULL,  
-                         initial = NULL   
+               ne = list(f = ~ -1,
+                         lag = 1,
+                         weights = neighbourhood(stsObj),
+                         initial = NULL
                          ),
-               end = list(f = ~ 1,         
-                          offset = NULL,   
-                          initial = NULL   
+               end = list(f = ~ 1,
+                          offset = 1,
+                          initial = NULL
                           ),
-               family = c("Poisson","NegBin1","NegBinM")[1],
-               subset = 2:nrow(stsObj),             
-               optimizer = list(tech = "nlminb",    
-                                stop.tol = 1e-5,
-                                stop.niter = 100),
+               family = c("Poisson","NegBin1","NegBinM"),
+               subset = 2:nrow(stsObj),
+               optimizer = list(stop = list(tol=1e-5, niter=100),
+                                regression = list(method="nlminb"),
+                                variance = list(method="nlminb")),
                verbose = FALSE,
                start = list(fixed=NULL, random=NULL, sd.corr=NULL),
                data = data.frame(t = epoch(stsObj)-1),
                keep.terms = FALSE
-               )
+               ),
+     check.analyticals = FALSE
    )
 }
+
 \arguments{
   \item{stsObj}{object of class \code{"\linkS4class{sts}"} containing the multivariate
     count data time series}
@@ -83,8 +90,9 @@ hhh4(stsObj,
 	  \item{f = ~ -1}{a formula specifying \eqn{\log(\phi_{it})}{log(\phi_it)}}
 	  \item{lag = 1}{autoregression on \eqn{y_{j,t-lag}}{y_j,t-lag}  
 	    (currently only \code{lag = 1} is possible)}
-	  \item{weights = NULL}{weights \eqn{w_{ji}}{w_ji}, if 
-	    \code{NULL} the neighbourhood matrix of \code{stsObj} is used}
+	  \item{weights = neighbourhood(stsObj)}{
+	    weights \eqn{w_{ji}}{w_ji}. By default, 
+	    the neighbourhood matrix of \code{stsObj} is used.}
 	  \item{initial = NULL}{vector with initial values for
 	    parameter if \code{f = ~1} (not really used ATM)}
 	}
@@ -93,20 +101,33 @@ hhh4(stsObj,
 	with the following components
 	\describe{
 	  \item{f = ~ 1}{a formula specifying \eqn{\log(\nu_{it})}{log(\nu_it)}}
-	  \item{offset = NULL}{optional multiplicative offset \eqn{e_{it}}{e_it}}
+	  \item{offset = 1}{optional multiplicative offset \eqn{e_{it}}{e_it}}
 	  \item{initial = NULL}{vector with initial values for
 	    parameter if \code{f = ~1} (not really used ATM)}
 	}
       }
-      \item{\code{family}}{Distributional family -- either Poisson,
-	or the negative Binomial distribution with one common
-	overdispersion parameter for all units (\code{NegBin1}) or a
-	overdispersion parameter for each unit (\code{NegBinM}).
+      \item{\code{family}}{Distributional family -- either \code{"Poisson"},
+	or the Negative Binomial distribution with one common
+	overdispersion parameter for all units (\code{"NegBin1"}) or an
+	overdispersion parameter for each unit (\code{"NegBinM"}).
       }
       \item{\code{subset}}{Typically \code{2:nrow(obs)} if model contains
 	autoregression}
-      \item{\code{optimizer}}{ Details for used optimizer (\code{nlminb} is 
-        default, the methods specified in the \code{method} argument of \code{\link{optim}} may also be used)}
+      \item{\code{optimizer}}{a list of three lists of control arguments.
+	The \code{"stop"} list specifies two criteria for the outer
+	optimization of regression and variance parameters: the relative
+	\code{tol}erance for parameter change using the criterion 
+	\code{max(abs(x[i+1]-x[i])) / max(abs(x[i]))},
+	and the maximum number \code{niter} of outer iterations.
+	Control arguments for the single optimizers are specified in the
+	lists named \code{"regression"} and \code{"variance"}.
+	\code{nlminb} is the default \code{method} for both (taking
+	advantage of the analytical Fisher information matrices), however,
+	the methods specified in the \code{method} argument of
+	\code{\link{optim}} may also be used (as well as
+	\code{\link{nlm}} but that one is not recommended here).
+	Especially for the variance updates, Nelder-Mead optimization is
+	an attractive alternative.}
       \item{\code{verbose}}{Logical if additional information is to be printed
 	during the computations}
       \item{\code{start}}{List with initials, overrides any initial
@@ -115,9 +136,17 @@ hhh4(stsObj,
       \item{\code{data}}{ data.frame or named list with covariates that
 	are specified in the formulas for the 3 components}
       \item{\code{keep.terms}}{ Logical if the terms object used in the fit
-    is to be returned }
+	is to be returned }
     }
   }
+  \item{check.analyticals}{logical (or a subset of
+    \code{c("numDeriv", "maxLik")}), indicating if (how) the implemented
+    analytical score vector and Fisher information matrix should be
+    checked against numerical derivatives at the parameter starting values,
+    using the packages \pkg{numDeriv} and/or \pkg{maxLik}. If activated,
+    \code{hhh4} will return a list containing the analytical and numerical
+    derivatives for comparison (no ML estimation will be performed). 
+    This is mainly intended for internal use by the package developers.}
 }
 
 \value{Returns an object of class \code{ah4} with elements
@@ -156,7 +185,7 @@ hhh4(stsObj,
 \seealso{\code{\link{algo.hhh}}, 
 \code{\link{fe}}, \code{\link{ri}}
 }
-\author{M. Paul and L. Held}
+\author{M. Paul and L. Held with contributions by S. Meyer}
 \examples{
 #####################################################################
 # Fit some models from ?algo.hhh
@@ -218,7 +247,9 @@ f.end <- addSeason2formula(f = ~ -1 + ri(type="iid", corr="all") +
                                I((t-208)/100), S=3, period=52)
 
 ## details for optimizer
-opt <- list(tech = "nlminb", stop.tol = 1e-5, stop.niter = 200)
+opt <- list(stop = list(tol=1e-5, niter=200),
+            regression = list(method="nlminb"),
+            variance = list(method="nlminb"))
 
 ##########################
 ## models 

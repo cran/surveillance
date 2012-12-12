@@ -1532,7 +1532,7 @@ gradient <- function(theta,designRes){
 
   # gradient for psi
   if(designRes$dimTheta$negbin>0){
-    dPsi <- psi*(psigamma(Y+psi)-psigamma(psi) +log(psi)+1 - log(psiPlusMu) -psi/psiPlusMu -Y/psiPlusMu)
+    dPsi <- psi*(digamma(Y+psi)-digamma(psi) +log(psi)+1 - log(psiPlusMu) -psi/psiPlusMu -Y/psiPlusMu)
     
     # multiple psi_i's or single psi?
     if(designRes$dimTheta$negbin >1)

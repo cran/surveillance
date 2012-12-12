@@ -1,13 +1,19 @@
 ################################################################################
-### Some internal helper functions for 'twinstim'.
+### Part of the surveillance package, http://surveillance.r-forge.r-project.org
+### Free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at http://www.r-project.org/Licenses/.
 ###
-### Author: Sebastian Meyer
-### $Date: 2010-11-16 04:08:22 +0100 (Tue, 16 Nov 2010) $
+### Some internal helper functions for "twinstim".
+###
+### Copyright (C) 2009-2012 Sebastian Meyer
+### $Revision: 446 $
+### $Date: 2012-10-23 15:54:41 +0200 (Di, 23. Okt 2012) $
 ################################################################################
 
 
 ## Compute distance from points to boundary
-## (adapted from spatstat::bdist.points, DEPENDS ON spatstat::distppl)
+## copied in part from function bdist.points() of the "spatstat" package authored
+## by A. Baddeley and R. Turner (DEPENDS ON spatstat::distppl)
 
 # xy is the coordinate matrix of the points
 # poly is a polygonal domain of class "gpc.poly"
@@ -18,11 +24,13 @@ bdist <- function (xy, poly)
     bdry <- poly@pts
     for (i in seq_along(bdry)) {
         polly <- bdry[[i]]
-        nsegs <- length(polly$x)
-        for (j in 1L:nsegs) {
+        px <- polly$x
+        py <- polly$y
+        nsegs <- length(px)
+        for (j in seq_len(nsegs)) {
             j1 <- if (j < nsegs) j + 1L else 1L
-            seg <- c(polly$x[j], polly$y[j], polly$x[j1], polly$y[j1])
-            result <- pmin(result, spatstat::distppl(xy, seg))
+            seg <- c(px[j], py[j], px[j1], py[j1])
+            result <- pmin(result, distppl(xy, seg))
         }
     }
     return(result)
@@ -125,24 +133,20 @@ gridcellOfEvent <- function (t, tilename, stgrid)
 ### the events. The only argument of the returned function is 'siafpars'.
 ### The returned function is defined in the callers environment, where the
 ### variables used in the function are available (inside twinstim() or
-### simEpidataCS()). It also modifies nCub and nCub.adaptive in the callers
-### environment accordingly.
+### simEpidataCS()).
 
-.siafIntFUN <- function (siaf, nCub.adaptive,
+.siafIntFUN <- function (siaf,
    noCircularIR #= all(eps.s > bdist) = all(sapply(influenceRegion, function(x)
                 #                           is.null(attr(x,"radius"))))
 ){
     ## the following variables are unused here, because the environment of
     ## FUN will be set to the parent.frame(), where the variables exist
     ## they are only included to avoid the notes in R CMD check 
-    iRareas <- influenceRegion <- eventTypes <- nCub <- eps.s <- bdist <-
-        nTypes <- NULL 
+    iRareas <- influenceRegion <- eventTypes <- eps.s <- bdist <- nTypes <- NULL
     
     ## define the siaf integration function depending on the siaf specification 
     FUN <- if (attr(siaf, "constant"))
     {
-        assign("nCub", NA_real_, parent.frame())
-        assign("nCub.adaptive", FALSE, parent.frame())
         if (exists("iRareas", where=parent.frame(), mode="numeric")) {
             ## in twinstim(), 'iRareas' are pre-defined to save
             ## computation time (data are fixed during fitting)
@@ -153,18 +157,15 @@ gridcellOfEvent <- function (t, tilename, stgrid)
     } else if (is.null(siaf$Fcircle) || # if siaf$Fcircle not available
                (is.null(siaf$effRange) && noCircularIR))
     {
-        assign("nCub.adaptive", FALSE, parent.frame())
-        function (siafpars) {
-            siafInts <- sapply(seq_along(influenceRegion), function (i) {
-                polyCub.midpoint(influenceRegion[[i]], siaf$f,
-                                 siafpars, eventTypes[i], eps = nCub)
-            })
+        function (siafpars, ...) {
+            siafInts <- sapply(seq_along(influenceRegion), function (i)
+                siaf$F(influenceRegion[[i]], siaf$f, siafpars, eventTypes[i], ...)
+            )
             siafInts
         }
     } else if (is.null(siaf$effRange)) # use Fcircle but only delta-trick
     {
-        assign("nCub.adaptive", FALSE, parent.frame())
-        function (siafpars) {
+        function (siafpars, ...) {
             ## Compute the integral of 'siaf' over each influence region
             siafInts <- numeric(length(influenceRegion))
             for(i in seq_along(siafInts)) {
@@ -175,41 +176,34 @@ gridcellOfEvent <- function (t, tilename, stgrid)
                     siaf$Fcircle(eps, siafpars, eventTypes[i])
                 } else {
                     ## numerically integrate over polygonal influence region
-                    polyCub.midpoint(influenceRegion[[i]], siaf$f,
-                                     siafpars, eventTypes[i], eps = nCub)
+                    siaf$F(influenceRegion[[i]], siaf$f, siafpars,
+                           eventTypes[i], ...)
                 }
             }
             siafInts
         }
     } else { # fast Fcircle integration considering the delta-trick AND effRange
-        .ret <- function (siafpars) {
+        .ret <- function (siafpars, ...) {
             ## Compute computationally effective range of the 'siaf' function
             ## for the current 'siafpars' for each event (type)
             effRangeTypes <- rep(siaf$effRange(siafpars), length.out=nTypes)
             effRanges <- effRangeTypes[eventTypes]   # N-vector
-            ## automatic choice of h (pixel spacing in image)
-            hs <- effRanges / nCub      # CAVE: this line will be modified below
-                                        #       for non-adaptive integration
             ## Compute the integral of 'siaf' over each influence region
             siafInts <- numeric(length(influenceRegion))
             for(i in seq_along(siafInts)) {
                 eps <- eps.s[i]
                 bdisti <- bdist[i]
                 effRange <- effRanges[i]
-                siafInts[i] <- if (effRange <= bdisti) { # effective region completely inside W
-                    siaf$Fcircle(min(eps,effRange), siafpars, eventTypes[i])
-                } else if (eps <= bdisti) { # influence region is completely inside W
+                siafInts[i] <- if (eps <= bdisti) { # influence region is completely inside W
                     siaf$Fcircle(eps, siafpars, eventTypes[i])
+                } else if (effRange <= bdisti) { # effective region completely inside W
+                    siaf$Fcircle(bdisti, siafpars, eventTypes[i])
                 } else { # integrate over polygonal influence region
-                    polyCub.midpoint(influenceRegion[[i]], siaf$f,
-                                     siafpars, eventTypes[i], eps = hs[i])
+                    siaf$F(influenceRegion[[i]], siaf$f, siafpars,
+                           eventTypes[i], ...)
                 }
             }
             siafInts
-        }
-        if (!nCub.adaptive) {
-            body(.ret)[[grep("^hs <-", body(.ret))]] <-
-                quote(hs <- rep(nCub, length.out = length(influenceRegion)))
         }
         if (exists("effRangeTypes", where=parent.frame(), mode="numeric")) {
             ## in simEpidataCS effRangeTypes is pre-calculated outside siafInt to
@@ -253,4 +247,23 @@ gridcellOfEvent <- function (t, tilename, stgrid)
     ## where the default argument values are defined
     environment(FUN) <- parent.frame()
     FUN
+}
+
+
+### rename control arguments with optim names to have names compatible with nlminb
+
+control2nlminb <- function (control, defaults)
+{
+    renamelist <- cbind(optim  = c("maxit", "REPORT", "abstol", "reltol"),
+                        nlminb = c("iter.max", "trace", "abs.tol", "rel.tol"))
+    for (i in which(renamelist[,"optim"] %in% names(control))) {
+        fromname <- renamelist[i, "optim"]
+        toname <- renamelist[i, "nlminb"]
+        if (is.null(control[[toname]])) {
+            control[[toname]] <- control[[fromname]]
+        }
+        control[[fromname]] <- NULL
+    }
+    defaults[names(control)] <- control
+    defaults
 }

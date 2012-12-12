@@ -96,13 +96,10 @@ pairedbinCUSUM.runlength <- function(p,w1,w2,h1,h2,h11,h22, sparse=FALSE) {
   #Use sparse matrix computations (or just ordinary matrix
   #computations) for the averafe run-length
   mom <- NULL
-  if (!sparse) { # non-sparse computing
-    mom <- solve(id-r) %*% matrix(1,mw,1) 
+  mom <- if (!sparse) { # non-sparse computing
+    solve(id-r) %*% matrix(1,mw,1) 
   } else { #sparse-computing
-    if(!require("Matrix")) {
-        stop("package 'Matrix' is required for 'sparse' matrix computations")
-    }
-    mom <- solve(Matrix::Matrix(id-r)) %*% matrix(1,mw,1)
+    Matrix::solve(Matrix::Matrix(id-r)) %*% matrix(1,mw,1)
   }
   arl <- mom[1]
   

@@ -32,6 +32,12 @@ print.ah4 <- function (x, digits = max(3, getOption("digits") - 3),reparamPsi=TR
 }
 
 summary.ah4 <- function(object, ...){
+  # do not summarize results in case of non-convergence
+  if(!object$convergence){
+    cat('Results are not reliable! Try different starting values. \n')
+	return(invisible(object))
+  }
+
   ret <- object[c("call","convergence","dim","loglikelihood","margll","nTime","nUnit")]
 
   # get estimated covariance matrix of random effects
@@ -126,12 +132,18 @@ coef.ah4 <- function(object,se=FALSE, reparamPsi=TRUE, idx2Exp=NULL, amplitudeSh
   coefs <- object$coefficients
   stdErr <- object$se
 
-  if(reparamPsi & object$control$family!="Poisson"){
+  if(reparamPsi && object$control$family!="Poisson"){
     #extract psi coefficients
-    index <- grep("overdisp",names(coefs))
-    psi.names <- names(coefs)[index]
-    # change labels
-    names(coefs)[index] <- paste("1/",psi.names,sep="")
+    index <- grep("-log(overdisp",names(coefs), fixed=TRUE)
+
+    if (length(index) == 0L) { # backward compatibility (internal psi coef
+                               # was named "overdisp" prior to r406)
+      index <- grep("^overdisp", names(coefs))
+    } else {
+      psi.names <- names(coefs)[index]
+      # change labels from "-log(overdisp.xxx)" to "overdisp.xxx"
+      names(coefs)[index] <- substr(psi.names, start=6, stop=nchar(psi.names)-1)
+    }
     
     #transform psi coefficients
     coefs[index] <- exp(-coefs[index])
@@ -186,10 +198,24 @@ fixef.ah4 <- function(object,...){
   } else return(NULL)
 }
 
-ranef.ah4 <- function(object,...){
+ranef.ah4 <- function(object, tomatrix = FALSE, ...){
   if(object$dim[2]>0){
-    return(tail(coef(object,...), object$dim[2]))
+    ranefvec <- tail(coef(object,...), object$dim[2])
   } else return(NULL)
+  if (!tomatrix) return(ranefvec)
+
+  model <- surveillance:::interpretControl(object$control,object$stsObj)
+  idxRE <- model$indexRE
+  idxs <- unique(idxRE)
+  names(idxs) <- model$namesFE[idxs]
+  mat <- sapply(idxs, function (idx) {
+      RE <- ranefvec[idxRE==idx]
+      Z <- model$terms["Z.intercept",][[idx]]
+      "%m%" <- get(model$terms["mult",][[idx]])
+      Z %m% RE
+  })
+  rownames(mat) <- colnames(model$response)
+  return(mat)
 }
 
 confint.ah4 <- function (object, parm, level = 0.95, reparamPsi = TRUE, idx2Exp = NULL, amplitudeShift = FALSE, ...) 
@@ -205,7 +231,7 @@ confint.ah4 <- function (object, parm, level = 0.95, reparamPsi = TRUE, idx2Exp 
     pct <- paste(format(100 * a, trim = TRUE, scientific = FALSE, digits = 3),"%")
     fac <- qnorm(a)
     ci <- array(NA, dim = c(length(parm), 2L), dimnames = list(parm, pct))
-    ses <- cf[parm,2][parm]
+    ses <- cf[parm,2]
     ci[] <- cf[parm,1] + ses %o% fac
     ci
 }
@@ -258,7 +284,7 @@ plot.ah4 <- function(x,i=1,ylim=NULL, ylab="No. infected",title=NULL,m=NULL,xlab
   m$mean[is.na(m$mean)] <- 0
     
   tp <- (1:(length(obs)))/x$stsObj@freq +x$stsObj@start[1] + x$stsObj@start[2]/x$stsObj@freq
-  if(!is.null(dim(as.matrix(m$epidemic)))) {
+  if(!is.null(dim(as.matrix(m$epidemic)))) { # FIXME: will this ever be FALSE?
     polygon(c(tp[1],tp,tail(tp,1)),c(0,as.matrix(m$mean)[,i],0),col=col[1],border=col[1])
     if(!is.null(dim(m$epi.own)))
       polygon(c(tp[1],tp,tail(tp,1)),c(0,as.matrix(m$endemic)[,i]+as.matrix(m$epi.own)[,i],0),col=col[2],border=col[2])
