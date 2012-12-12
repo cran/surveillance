@@ -771,15 +771,17 @@ animate.summary.epidata <- function (object,
         if (is.vector(generate.snapshots, mode="character") &&
             length(generate.snapshots) == 1L && require("animation")) {
             img.name <- generate.snapshots
-            ani.dev <- ani.options("ani.dev")
+            ani.dev <- animation::ani.options("ani.dev")
             if (is.character(ani.dev)) ani.dev <- get(ani.dev)
-            imgdir <- file.path(ani.options("outdir"), ani.options("imgdir"))
+            imgdir <- file.path(animation::ani.options("outdir"),
+                                animation::ani.options("imgdir"))
+            imgtype <- animation::ani.options("ani.type")
             generate.snapshots <- list(
                 device = ani.dev,
-                file = quote(file.path(imgdir,
-                       paste0(img.name, i, ".", ani.options("ani.type")))),
-                width = ani.options("ani.width"),
-                height = ani.options("ani.height"))
+                file = quote(file.path(imgdir, paste0(img.name,i,".",imgtype))),
+                width = animation::ani.options("ani.width"),
+                height = animation::ani.options("ani.height")
+            )
         }
         if (is.list(generate.snapshots)) {
             do.call(dev.print, generate.snapshots)

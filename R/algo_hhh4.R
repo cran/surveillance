@@ -7,8 +7,8 @@
 ### The function allows the incorporation of random effects and covariates.
 ###
 ### Copyright (C) 2012 Michaela Paul and Sebastian Meyer
-### $Revision: 433 $
-### $Date: 2012-10-08 11:55:23 +0200 (Mo, 08. Okt 2012) $
+### $Revision: 475 $
+### $Date: 2012-12-13 12:38:02 +0100 (Do, 13. Dez 2012) $
 ################################################################################
 
 # - some function arguments are currently not used (but will eventually)
@@ -205,10 +205,12 @@ setControl <- function (control, stsObj)
   defaultControl <- lapply(CONTROL.hhh4, eval, envir=environment())
   environment(defaultControl$ar$f) <- environment(defaultControl$ne$f) <-
       environment(defaultControl$end$f) <- .GlobalEnv
+  defaultControl$data <- as.list(defaultControl$data) # since we will add stsObj
+  ##<- NROW(stsObj) only works as intended since R 2.15.0, but this is required
+  ##   for adding stsObj to a data.frame; thus we switch to a list
   control <- modifyList(defaultControl, control)
 
-  ## convert data to a list and add stsObj
-  control$data <- as.list(control$data)
+  ## add stsObj (maybe overwrite an old one from the control object)
   control$data$.sts <- stsObj
   
   ## add nTime and nUnits to control list
