@@ -10,7 +10,7 @@
 }
 
 \description{
-The functions documented here will numerically integrate a two-dimensional
+The functions documented here numerically integrate a two-dimensional
 function over a polygonal domain. The first method uses the classical midpoint rule
 converting the polygons to binary pixel images using the
 \code{\link[spatstat]{as.im.function}} method from package \pkg{spatstat}.
@@ -26,29 +26,41 @@ experiment of those three (among others).
 }
 
 \usage{
-polyCub(polyregion, f, method = c("SV", "midpoint", "exact.Gauss"), ..., plot = FALSE)
+polyCub(polyregion, f, method = c("SV", "midpoint", "exact.Gauss"), ...,
+        plot = FALSE)
 
-polyCub.midpoint(polyregion, f, ..., eps = NULL, dimyx = NULL, plot = FALSE)
-polyCub.SV(polyregion, f, ..., N, a = 0, plot = FALSE)
-polyCub.exact.Gauss(polyregion, mean = c(0,0), Sigma = diag(2), plot = FALSE)
+polyCub.midpoint(polyregion, f, ...,
+                 eps = NULL, dimyx = NULL, plot = FALSE)
+polyCub.SV(polyregion, f, ...,
+           nGQ = 20, alpha = NULL, rotation = FALSE, plot = FALSE)
+polyCub.exact.Gauss(polyregion, mean = c(0,0), Sigma = diag(2),
+                    plot = FALSE)
 }
 
 \arguments{
   \item{polyregion}{
     a polygon representing the integration domain.
     For \code{polyCub.midpoint}, \code{polyregion} can be anything coercible to the
-    \pkg{spatstat} class \code{"\link{owin}"} (by \code{\link[spatstat]{as.owin}}).
-    In contrast, the \code{polyCub.SV} and \code{polyCub.exact.Gauss} methods
-    assume \code{polyregion} to be anything
-    coercible to a \code{"\link[gpclib:gpc.poly-class]{gpc.poly}"} polygon.
-    Unfortunately, there is no documented convention for the implementation of polygons
-    of class \code{"gpc.poly"}. The cubature methods here assume vertices
+    \pkg{spatstat} class \code{"\link[spatstat]{owin}"} (by
+    \code{\link[spatstat]{as.owin}}).
+    The \code{polyCub.SV} method allows for classes \code{"\link[spatstat]{owin}"},
+    \code{"\link[gpclib:gpc.poly-class]{gpc.poly}"}, and
+    \code{"\linkS4class{SpatialPolygons}"}.
+
+    Finally, the \code{polyCub.exact.Gauss} method assumes
+    \code{polyregion} to be anything coercible to a
+    \code{"\link[gpclib:gpc.poly-class]{gpc.poly}"} polygon.\cr
+    Unfortunately, it seems that there is no convention for the implementation of
+    polygons of class \code{"gpc.poly"}. Here we assume vertices
     ordered according to the \pkg{sp} convention, i.e. \emph{clockwise} for normal
     boundaries and \emph{anticlockwise} for holes. However, in contrast to \pkg{sp},
     the first vertex should \emph{not} be repeated!
-    The package \pkg{surveillance} adds some methods to convert objects between the
-    different spatial data classes, e.g. from class \code{"owin"} to class
-    \code{"gpc.poly"}, which follow the conventions stated above.
+    The package \pkg{surveillance} offers methods to convert
+    \code{"SpatialPolygons"} and \code{"owin"} objects to class
+    \code{"gpc.poly"}, which follow this convention. However,
+    \pkg{gpclib} has a restricted license, which has to be accepted
+    explicitly via setting \code{\link{surveillance.options}(gpclib=TRUE)}
+    prior to using \code{polyCub.exact.Gauss}.
 }
   \item{f}{
     two-dimensional function to be integrated. As its first argument the function must take
@@ -63,23 +75,37 @@ polyCub.exact.Gauss(polyregion, mean = c(0,0), Sigma = diag(2), plot = FALSE)
     further arguments passed to \code{f}.
 }
   \item{eps}{
-    numeric scalar specifying the (approximate) width/height of the pixels for the generation of the image.
+    numeric scalar specifying the (approximate) width/height of the
+    pixels for the generation of the image.
 }
   \item{dimyx}{
     vector of length two specifying the number of subdivisions in each dimension for the
     generation of the image. See \code{\link{as.im.function}} and \code{\link{as.mask}}.
 }
-  \item{N}{
-    degree of the one-dimensional Gauss-Legendre quadrature rule (see
-    \code{\link[statmod]{gauss.quad}} in package \pkg{statmod}, on which this function depends).
+  \item{nGQ}{
+    degree of the one-dimensional Gauss-Legendre quadrature rule
+    (default: 20). See \code{\link[statmod]{gauss.quad}} in package
+    \pkg{statmod}, on which this function depends.
 }
-  \item{a}{
-    base-line at \eqn{x = a} (see Sommariva & Vianello (2007) for an explication).
-    If \code{NULL}, the midpoint of the x-range of the polygon is chosen.
-    Defaults to the origin, because this seems to be reasonable if \code{f} has its
-    maximum value at (0,0), which is the case for the typical usage in this package
-    (bivariate normal density with zero mean).
-}
+  \item{alpha}{
+    base-line of the (rotated) polygon at \eqn{x = alpha} (see Sommariva
+    & Vianello (2007) for an explication).
+    If \code{NULL} (default), the midpoint of the x-range of the polygon is chosen
+    if no \code{rotation} is performed, and otherwise the \eqn{x}-coordinate
+    of the rotated point \code{"P"}.
+    If \code{f} has its maximum value at the origin (0,0), which is the
+    case for the typical usage in this package (spatial interaction
+    functions like \code{\link{siaf.gaussian}}), \code{alpha = 0} is a
+    reasonable choice.
+  }
+  \item{rotation}{
+    logical (default: \code{FALSE}) or a list of points \code{"P"} and
+    \code{"Q"} describing the preferred direction. If \code{TRUE}, the
+    polygon is rotated according to the vertices \code{"P"} and
+    \code{"Q"}, which are farthest apart (see Sommariva & Vianello,
+    2007). For convex polygons, this rotation guarantees that all nodes
+    fall inside the polygon.
+  }
   \item{mean, Sigma}{
     mean and covariance matrix of the bivariate normal density to be integrated.
   }
@@ -120,7 +146,9 @@ polyCub.exact.Gauss(polyregion, mean = c(0,0), Sigma = diag(2), plot = FALSE)
 }
 
 \author{
-   Sebastian Meyer
+  Sebastian Meyer;
+  the original MATLAB implementation on which the product Gauss cubature in
+  \code{polyCub.SV} is based, is due to Sommariva & Vianello (2007)
 }
 
 \note{
@@ -163,16 +191,19 @@ testmidpoint(0.2)
 
 # Product Gauss cubature by Sommariva & Vianello (2007)
 if (require("statmod")) {
-    for (N in c(1:5,10,20,60)) {
-        cat("N =", sprintf("\%2i",N), ": ",
-            format(polyCub.SV(disc.owin, f, N=N), digits=16),
+    for (nGQ in c(1:5,10,20,60)) {
+        cat("nGQ =", sprintf("\%2i",nGQ), ": ",
+            format(polyCub.SV(disc.owin, f, nGQ=nGQ), digits=16),
             "\n")
     }
 }
 
-# quasi-exact cubature by triangulation and using 'pmvnorm' from package 'mvtnorm' appropriately
-if (require("mvtnorm")) {
-    print(polyCub.exact.Gauss(disc.owin, mean=c(0,0), Sigma=5^2*diag(2), plot=TRUE), digits=16)
+# quasi-exact cubature by triangulation (gpclib) and using mvtnorm::pmvnorm()
+if (require("mvtnorm") && require("gpclib")) {
+    oopt <- surveillance.options(gpclib=TRUE)
+    print(polyCub.exact.Gauss(disc.owin, mean=c(0,0), Sigma=5^2*diag(2),
+                              plot=TRUE), digits=16)
+    surveillance.options(oopt)
 }
 }
 

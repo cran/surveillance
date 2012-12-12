@@ -2,35 +2,93 @@
 ### Hook functions for package start-up
 #######################################
 
-## .onLoad <- function (libname, pkgname)
+### not sure if we should query gpclib permission via spatstat or maptools:
+### within a single R session, spatstat might be used for commercial purposes
+### _without_ gpclib, whereas some functionality of the surveillance package might
+### be used non-commercially _with_ gpclib
+## gpclibPermitStatus <- function ()
 ## {
-##   #Load the CIdata thing
-##   #data("CIdata", package=pkgname)
-
-##   #Read the table of the hypgeom_2F1 function for parameters c(1/3,2/3) and
-##   #5/3 -- atm this is computed for the values seq(0,10,by=0.01) and 11:100
-##   #Load the pre-evaluated Hypergeometric function for computing Anscombe residuals
-##   #data("hypGeomSmall",package=pkgname)
-
-##   # <- those data sets should not be loaded into .GlobalEnv and be visible to the user!
-##   # moved CIdata to (internal) sysdata
+##     ## check global gpclib permission status
+##     ##globally <- isTRUE(getOption("gpclib"))
+##     ## -> CRAN team does not like packages which use own global options
+##
+##     ## check for permission via surveillance.options
+##     via.surveillance <- surveillance.options("gpclib")
+##
+##     ## check for permission via spatstat package
+##     via.spatstat <- spatstat.options("gpclib")
+##
+##     ## check for permission via maptools
+##     via.maptools <- if ("maptools" %in% loadedNamespaces())
+##         maptools::gpclibPermitStatus() else FALSE
+##
+##     ## return gpclib permission status
+##     via.surveillance | via.spatstat | via.maptools
 ## }
 
+gpclibCheck <- function (fatal = TRUE)
+{
+    gpclibOK <- surveillance.options("gpclib")
+    if (!gpclibOK && fatal) {
+        message("Note: The gpclib license is accepted by ",
+                sQuote("surveillance.options(gpclib=TRUE)"), ".")
+        stop("acceptance of the gpclib license is required")
+    }
+    gpclibOK
+}
+
+.onLoad <- function (libname, pkgname)
+{
+    ## Determine package version and store it as surveillance:::VERSION
+    v <- packageDescription(pkgname, lib.loc=libname, fields="Version", drop=TRUE)
+    ##<- a convenience function packageVersion() was only introduced in R 2.12.0
+    assign("VERSION", package_version(v), getNamespace(pkgname))
+
+    ## initialize options
+    reset.surveillance.options()
+}
+
 .onAttach <- function (libname, pkgname)
-{      
+{
     ## Startup message
-    vrs <- packageDescription(pkgname, lib.loc = libname, fields = "Version", drop = TRUE)
-    packageStartupMessage("This is ", pkgname, " ", vrs, ". ",
+    packageStartupMessage("This is ", pkgname, " ", VERSION, ". ",
                           "For overview type ",
-                          sQuote(paste("?", pkgname, sep="")), ".")
-    
+                          sQuote(paste0("help(", pkgname, ")")), ".")
+
     ## License limitation for package gpclib
-    packageStartupMessage(paste(
-        "\n\tNote: polygon geometry computations related to",
-        "\n\tthe \"epidataCS\" class in ", pkgname, " depend on",
-        "\n\tthe package gpclib, which has a restricted licence.\n",
-        #"(Free for non-commercial use; commercial use prohibited.)",
-        sep=""), appendLF = FALSE)
+    packageStartupMessage(
+        "Note: Polygon geometry computations required for the generation of",
+        "\n      \"epidataCS\" objects currently depend on the gpclib package,",
+        "\n      which has a restricted license.  This functionality is disabled",
+        "\n      by default, but may be enabled by setting",
+        "\n      ", sQuote("surveillance.options(gpclib=TRUE)"),
+                 ", if this license is applicable."
+    )
+
+    ## decide if we should run all examples (some take a few seconds)
+    allExamples <- if (interactive()) TRUE else {
+        .withTimings <- Sys.getenv("_R_CHECK_TIMINGS_")
+        withTimings <- !is.na(.withTimings) && nzchar(.withTimings)
+        !withTimings
+    }
+    surveillance.options(allExamples = allExamples)
+}
+
+
+### Function 'base::paste0()' only exists as of R version 2.15.0
+### Define it as a wrapper for base::paste() for older versions
+
+if (getRversion() < "2.15.0" || R.version$"svn rev" < 57795 ||
+    !exists("paste0", baseenv())) {
+    paste0 <- function (..., collapse = NULL) {
+        ## the naive way: paste(..., sep = "", collapse = collapse)
+        ## probably better: establish appropriate paste() call:
+        cl <- match.call()
+        names(cl) <- sub("sep", "", names(cl)) # no sep argument
+        cl$sep <- ""
+        cl[[1]] <- as.name("paste")
+        eval(cl, envir = parent.frame())
+    }
 }
 
 
@@ -55,41 +113,14 @@ dotprod <- function (x,y)
 }
 
 
-### Function 'base::paste0()' only exists as of R version 2.15.0
-### Define it as a wrapper for base::paste() for older versions
+### _c_onditional lapply, which only uses lapply() if X really is a list object
+### and otherwise applies FUN to X. The result is always a list (of length 1 in
+### the latter case). Used for neOffset in hhh4 models.
 
-if (getRversion() < "2.15.0" || R.version$"svn rev" < 57795 ||
-    !exists("paste0", baseenv())) {
-    paste0 <- function (..., collapse = NULL) {
-        ## the naive way: paste(..., sep = "", collapse = collapse)
-        ## probably better: establish appropriate paste() call:
-        cl <- match.call()
-        names(cl) <- sub("sep", "", names(cl)) # no sep argument
-        cl$sep <- ""
-        cl[[1]] <- as.name("paste")
-        eval(cl, envir = parent.frame())
-    }
-}
-
-
-### Function which modifies a list _call_ according to another one similar to
-### what the function utils::modifyList (by Deepayan Sarkar) does for list objects
-## modifyListcall is used by update.twinstim
-
-is.listcall <- function (x)
+clapply <- function (X, FUN, ...)
 {
-    is.call(x) &&
-    as.character(x[[1]]) %in% c("list", "alist")
+    if (is.list(X)) lapply(X, FUN, ...) else list(FUN(X, ...))
 }
 
-modifyListcall <- function (x, val)
-{
-    stopifnot(is.listcall(x), is.listcall(val))
-    xnames <- names(x)[-1]
-    for (v in names(val)[nzchar(names(val))]) {
-        x[[v]] <-
-            if (v %in% xnames && is.listcall(x[[v]]) && is.listcall(val[[v]]))
-                modifyListcall(x[[v]], val[[v]]) else val[[v]]
-    }
-    x
-}
+
+

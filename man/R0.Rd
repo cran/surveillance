@@ -85,8 +85,8 @@ the observation period \eqn{(t_0;T]} (i.e. over
 \eqn{(0; \min(T-t_j,\epsilon)]}).
 
 (Numerical) Integration is performed exactly as during the fitting of
-\code{object}, for instance \code{object$nCub} and
-\code{object$nCub.adaptive} are used if necessary.
+\code{object}, for instance \code{object$control.siaf} is queried if
+necessary.
 }
 
 \value{

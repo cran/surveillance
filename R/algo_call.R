@@ -124,7 +124,7 @@ xtable.algoQV <- function(x, caption = NULL, label = NULL, align = NULL,
   n <- names(x)
   x <- matrix(x,nrow=1)
   dimnames(x)[[2]] <- n
-  xtable::xtable(x,caption, label, align, digits, display, ...)
+  xtable(x,caption, label, align, digits, display, ...)
 }
 
 

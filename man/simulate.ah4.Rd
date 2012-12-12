@@ -96,7 +96,7 @@ plot(simData, main = "simulated data", legend.opts = NULL, xaxis.years = FALSE)
 
 # consider a Poisson instead of a NegBin model
 coefs <- coef(fit)
-coefs["1/overdisp"] <- 0
+coefs["overdisp"] <- 0
 
 simData2 <- simulate(fit, coefs = coefs)
 plot(simData2, main = "simulated data: Poisson model", 

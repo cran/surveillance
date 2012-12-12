@@ -4,7 +4,7 @@
 
 compMatrix.writeTable <- function (compMatrix)
 {
-    xtable::xtable(compMatrix, display = c("s", rep("d", 4), rep("G", 4)), vsep = "|")
+    xtable(compMatrix, display = c("s", rep("d", 4), rep("G", 4)), vsep = "|")
 }
 
 

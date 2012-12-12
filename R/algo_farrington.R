@@ -140,7 +140,9 @@ algo.farrington.fitGLM.fast <- function(response,wtime,timeTrend=TRUE,reweight=T
    model$response <- response
    model$terms <- terms(Formula)
    # cheating a bit, all methods for glm may not work
-   class(model)<-c("algo.farrington.glm","glm") 
+   class(model)<-c("algo.farrington.glm","glm","lm") # 23/10/2012 (SM):
+                                        # added "lm" class to avoid warnings
+                                        # from predict.lm about fake object
    #Done
   return(model)
 }

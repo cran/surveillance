@@ -4,6 +4,11 @@
 
 algo.hmm <- function(disProgObj, control = list(range=range, Mtilde=-1, noStates=2, trend=TRUE, noHarmonics=1,covEffectEqual=FALSE, saveHMMs = FALSE, extraMSMargs=list() )){
 
+  # check if the msm package is available
+  if (!require("msm")) {
+      stop("the HMM method requires package ", dQuote("msm"))
+  }
+  
   # Set the default values if not yet set
   if(is.null(control$Mtilde)){ control$Mtilde <- -1 }
   if(is.null(control$noStates)){ control$noStates <- 2 }

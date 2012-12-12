@@ -5,15 +5,19 @@ animate <- function (object, ...) UseMethod("animate")
 R0 <- function (object, ...) UseMethod("R0")
 as.epidata <- function (data, ...) UseMethod("as.epidata")
 intensityplot <- function (x, ...) UseMethod("intensityplot")
+untie <- function (x, amount, ...) UseMethod("untie")
 
 ## internal function with methods for "twinSIR" and "simEpidata"
 getModel <- function (object, ...) UseMethod("getModel")
 
-## (rather internal) generic with methods for "matrix" and "Spatial"
+## internal function with methods for SpatialPolygons, gpc.poly, and owin
+xylist <- function (object, ...) UseMethod("xylist")
+
+## (rather internal) generic with a default and a "Spatial" method
 multiplicity <- function (x, ...) UseMethod("multiplicity")
 
 
-### Define some function to be S4 generic
+### Define some functions to be S4 generic
 
 if(!isGeneric("plot")) setGeneric("plot", useAsDefault=plot)
 if(!isGeneric("aggregate")) setGeneric("aggregate", useAsDefault=aggregate)
@@ -22,6 +26,11 @@ if(!isGeneric("aggregate")) setGeneric("aggregate", useAsDefault=aggregate)
 ## Note: package "maptools" also registers "owin" as a virtual S4 class by setClass("owin")
 if (!isClass("owin")) {
     setOldClass("owin")
+    ## on unloadNamespace("surveillance"), this leads to the Warning message:
+    ## In FUN(X[[2L]], ...) :
+    ## Created a package name, '2012-08-28 17:36:02', when none found
+    ## should the setOldClass-call better be part of .onLoad() ?
+    ## Alternative: setClass("owin") like in "maptools" would not produce this warning
 }
 
 

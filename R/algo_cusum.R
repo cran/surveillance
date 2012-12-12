@@ -196,19 +196,24 @@ anscombeNB <- function(y,mu,alpha=0.1) {
 # Returns:
 #  list( k - reference value, h - decision interval)
 ######################################################################
-find.kh <- function(ARLa=500,ARLr=7,sided="one",method="BFGS",verbose=FALSE) {
+find.kh <- function(ARLa=500,ARLr=7,sided="one",method="BFGS",verbose=FALSE)
+{
+  if (!require("spc"))
+      stop("surveillance::find.kh() requires package ", dQuote("spc"))
   #Small helper function which is to be minimized
   fun <- function(k) {
     if (k>0) {
       #Compute decision interval
-      h <- xcusum.crit(L0=ARLa,k=k,r=50,sided=sided)
+      h <- spc::xcusum.crit(L0=ARLa,k=k,r=50,sided=sided)
 
       #Check if xcusum.crit managed to find a solution
-      if (is.nan(h)) stop(paste("xcusum.crit in package spc was not able to find a h corresponding to ARLa=",ARLa," and k=",k))
+      if (is.nan(h))
+          stop("spc::xcusum.crit was not able to find a h corresponding to ",
+               "ARLa=",ARLa," and k=",k)
 
       if (h > 0) {
         #Compute ARLr given the above computed h
-        arlr <- xcusum.arl(k,h,mu=2*k,r=50,sided=sided)
+        arlr <- spc::xcusum.arl(k,h,mu=2*k,r=50,sided=sided)
         #Deviation from the requested ARLr
         if (verbose) {
           cat("k=",k," score = ",(arlr-ARLr)^2,"\n")
@@ -222,10 +227,6 @@ find.kh <- function(ARLa=500,ARLr=7,sided="one",method="BFGS",verbose=FALSE) {
     }
   }
   k <- optim(1,fun,method=method)$par
-  return(list(k=k,h=xcusum.crit(L0=ARLa,k=k,r=50,sided=sided)))
+  return(list(k=k,h=spc::xcusum.crit(L0=ARLa,k=k,r=50,sided=sided)))
 }
-
-
-
-
 
