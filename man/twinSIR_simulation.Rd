@@ -294,58 +294,59 @@ models to epidemic data.
 }
 
 \examples{
+## Generate a data frame containing a hypothetic population with 100 individuals
 set.seed(1234)
-# Generate a data frame containing a hypothetic population with 100 individuals
 n <- 100
 pos <- matrix(rnorm(n*2), ncol=2, dimnames=list(NULL, c("x", "y")))
 pop <- data.frame(id=1:n,x=pos[,1], y=pos[,2], 
                   gender=sample(0:1, n, replace=TRUE),
                   I0col=rep(0,n),start=rep(0,n),stop=rep(Inf,n))
 
-# Simulate an epidemic in this population
+## Simulate an epidemic in this population
+set.seed(1)
 epi <- simEpidata(cbind(start,stop) ~ cox(gender), 
                   data = pop, 
                   id = "id", I0.col = "I0col", coords.cols = c("x","y"),
-                  beta = c(-3), h0 = -2, alpha = c(B1 = 0.1),
+                  beta = c(-2), h0 = -1, alpha = c(B1 = 0.1),
                   f = list(B1 = function(u) u <= 1),
                   infPeriod = function(ids) rexp(length(ids), rate=1))
 
 # Plot the numbers of susceptible, infectious and removed individuals
 plot(epi)
 
-# load data of an observed epidemic
-data("fooepidata")
-summary(fooepidata)
 
-# simulate a new evolution of the epidemic
-simepi <- simEpidata(cbind(start, stop) ~ cox(z1) + cox(z1):cox(z2),
-    data = fooepidata, 
-    beta = c(1,0.5), h0 = -7, alpha = c(B2 = 0.1, B1 = 0.05),
-    f = list(B1 = function(u) u<=1, B2 = function(u) u>1 & is.finite(u)),
-    infPeriod = function(ids) rexp(length(ids), rate=1), trace = FALSE)
-summary(simepi)
-plot(simepi)
+if (surveillance.options("allExamples"))
+{
+  ## load data of an artificial epidemic
+  data("fooepidata")
+  summary(fooepidata)
 
-\dontrun{
-animate(simepi)
+  ## simulate a new evolution of the epidemic
+  set.seed(1)
+  simepi <- simEpidata(cbind(start, stop) ~ cox(z1) + cox(z1):cox(z2),
+      data = fooepidata, 
+      beta = c(1,0.5), h0 = -7, alpha = c(B2 = 0.01, B1 = 0.005),
+      f = list(B1 = function(u) u<=1, B2 = function(u) u>1 & is.finite(u)),
+      infPeriod = function(ids) rexp(length(ids), rate=0.2), trace = FALSE)
+  summary(simepi)
+  plot(simepi)
+  intensityplot(simepi)
 }
 
-intensityplot(simepi)
 
-# load a fitted model object, which must contain the original data 
-# (use 'keep.data = TRUE' in the call of 'twinSIR')
+## load a fitted model object, which must contain the original data 
+## (use 'keep.data = TRUE' in the call of 'twinSIR')
 data("foofit")
 foofit
-
 # plot original epidemic
 plot(foofit$data)
 
 ## simulate a new epidemic using the model and parameter estimates of 'foofit'
 ## and set simulation period = observation period
-# with observed infPeriods (i.e. fixed length 3 days):
+# a) with observed infPeriods (i.e. fixed length 3 days):
 simfitepi1 <- simulate(foofit)
 plot(simfitepi1)
-# with new infPeriods (simuluated from the Exp(0.3) distribution):
+# b) with new infPeriods (simuluated from the Exp(0.3) distribution):
 simfitepi2 <- simulate(foofit,
                        infPeriod=function(ids) rexp(length(ids), rate=0.3))
 plot(simfitepi2)

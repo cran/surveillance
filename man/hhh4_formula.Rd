@@ -21,7 +21,8 @@ respectively, in formulae used in the function \code{\link{hhh4}}.
 }
 
 \arguments{
-  \item{x}{name of the covariate, use 1 for an intercept}
+  \item{x}{an expression like \code{sin(2*pi*t/52)} involving the time
+    variable \code{t} , or just \code{1} for an intercept.}
   \item{which}{vector of logicals indicating which unit
    should get an unit-specific parameter. If \code{NULL}, 
    the effect of the covariate is assumbed to be the same

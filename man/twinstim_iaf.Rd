@@ -26,14 +26,14 @@
 \usage{
 # spatial interaction functions
 siaf.constant()
-siaf.gaussian(nTypes, logsd = TRUE, density = FALSE, effRangeMult = 6,
-              validpars = NULL)
-siaf.lomax(nTypes = 1, logpars = TRUE, density = FALSE, effRangeProb = 0.99,
-           validpars = NULL)
+siaf.gaussian(nTypes = 1, logsd = TRUE, density = FALSE, F.adaptive = TRUE,
+              effRangeMult = 6, validpars = NULL)
+siaf.lomax(nTypes = 1, logpars = TRUE, density = FALSE,
+           effRangeProb = 0.999, validpars = NULL)
 
 # temporal interaction functions
 tiaf.constant()
-tiaf.exponential(nTypes)
+tiaf.exponential(nTypes = 1)
 }
 
 \arguments{
@@ -71,17 +71,34 @@ tiaf.exponential(nTypes)
     where the kernel \eqn{\exp(-\alpha t)} of the exponential
     distribution density function is used.
   }
+  \item{F.adaptive}{
+    If \code{F.adaptive = TRUE}, then an adaptive bandwidth of
+    \code{adapt*sd} will be used in the midpoint-cubature
+    (see \code{\link{polyCub.midpoint}}) of the Gaussian interaction
+    kernel, where \code{adapt} is an extra parameter of the returned
+    \code{siaf$F} function and defaults to 0.1, but it may also be
+    specified in the \code{control.siaf$F} argument list of
+    \code{twinstim}.\cr  
+    Otherwise, if \code{F.adaptive = FALSE}, a general cubature
+    method (\code{\link{polyCub}}) is returned as \code{siaf$F}
+    component, where the \code{method} and accuracy (\code{eps},
+    \code{dimyx}, or \code{nGQ}, depending on the method) should then be
+    specified in \code{twinstim}'s \code{control.siaf$F} argument.
+  }
   \item{effRangeMult}{
     determines the effective range for numerical integration
     in terms of multiples of the standard deviation \eqn{\sigma} of the
     Gaussian kernel, i.e. with \code{effRangeMult=6} numerical
     integration only considers the \eqn{6 \sigma} area around the event instead
     of the whole observation region \code{W}.
+    Setting \code{effRangeMult=NULL} will disable
+    the integral approximation with an effective integration range.
   }
   \item{effRangeProb}{
-    determines the effective range for numerical integration
-    in terms of the corresponding quantile of the univariate Lomax
-    distribution.
+    numeric scalar in \eqn{(0,1)}, which determines the effective range for
+    numerical integration in terms of the corresponding quantile of the
+    univariate Lomax distribution. May also be \code{NULL}, which disables
+    the integral approximation with an effective integration range.
   }
   \item{validpars}{
     function taking one argument, the parameter vector, indicating if it
@@ -133,7 +150,8 @@ tiaf.exponential(nTypes)
 }
 
 \value{
-  The specification of an interaction function, which is a list.
+  the specification of an interaction function, which is a list.
+  
   For spatial kernels, this list contains the following components:
   \item{f}{spatial interaction function (\code{siaf}). It must accept
     two arguments, the first one being a (2-column) coordinate matrix, the
@@ -141,12 +159,15 @@ tiaf.exponential(nTypes)
     accept the type of the event (integer code) as its third argument
     (either a single type for all locations or separate types for each
     location).}
-  \item{deriv}{optional derivative of \eqn{f(s)} \emph{with respect to
-      the parameters}. It takes the same arguments as \code{f} but
-    returns a matrix with as many rows as there were coordinates in the
-    input and \code{npars} columns. This derivative is necessary for the
-    calculation of the score function in \code{twinstim()}, which is
-    advantageous for the numerical log-likelihood maximization.} 
+  \item{F}{function computing the integral of \eqn{f(s)} (passed as
+    second argument) over a polygonal \code{"owin"} domain (first argument).
+    The third and fourth argument are
+    the parameter vector and the (\emph{single}) type, respectively.
+    There may be additional arguments, which can then be specified in
+    the \code{control.siaf$F} argument list of \code{twinstim}. If this
+    function is missing, a general default (\code{polyCub}) will be
+    used, with extra arguments \code{method} (default: \code{"SV"}) and
+    corresponding accuracy parameters.}
   \item{Fcircle}{optional function for fast calculation of the
     (two-dimensional) integral of \eqn{f(s)} over a circle with radius
     \code{r} (first argument). Further arguments are as for \code{f}. It
@@ -166,6 +187,21 @@ tiaf.exponential(nTypes)
     \code{function (logsd) 6*exp(logsd)}. The return value must be a
     vector of length \code{nTypes} (effective range for each type). This
     function is only used if \code{Fcircle} is also specified.}
+  \item{deriv}{optional derivative of \eqn{f(s)} \emph{with respect to
+      the parameters}. It takes the same arguments as \code{f} but
+    returns a matrix with as many rows as there were coordinates in the
+    input and \code{npars} columns. This derivative is necessary for the
+    calculation of the score function in \code{twinstim()}, which is
+    advantageous for the numerical log-likelihood maximization.} 
+  \item{Deriv}{function computing the integral of \code{deriv} (passed as
+    second argument) over a polygonal \code{"owin"} domain (first argument).
+    The third and fourth argument are
+    the parameter vector and the (\emph{single}) type, respectively.
+    There may be additional arguments, which can then be specified in
+    the \code{control.siaf$Deriv} argument list of \code{twinstim}. If this
+    function is missing, a general default (\code{polyCub}) will be
+    used, with extra arguments \code{method} (default: \code{"SV"}) and
+    corresponding accuracy parameters.}
   \item{simulate}{optional function returning a sample drawn from the
     spatial kernel (only required for the simulation of \code{twinstim}
     models).  Its first argument is the size of the sample to
@@ -243,8 +279,12 @@ tiaf.exponential(nTypes)
 # constant temporal dispersal
 tiaf.constant()
 
-# Type-independent Gaussian spatial interaction function
-siaf.gaussian(1, logsd = TRUE, density = FALSE, effRangeMult = 6)
+# Type-dependent Gaussian spatial interaction function using an adaptive
+# two-dimensional midpoint-rule to integrate it over polygonal domains
+siaf.gaussian(2, F.adaptive=TRUE)
+
+# Type-independent power-law kernel
+siaf.lomax()
 }
 
 \keyword{models}

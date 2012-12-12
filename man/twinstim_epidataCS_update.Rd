@@ -63,16 +63,20 @@ region.
 \examples{
 data("imdepi")
 
-## assume different interaction ranges and simplify polygons
-imdepi2 <- update(imdepi, eps.t = 20, eps.s = Inf, nCircle2Poly = 16)
-
-(s <- summary(imdepi))
-(s2 <- summary(imdepi2))
-## changed the number of infectives (along time), which is smaller now
-## because the length of the infectious periods is reduced, as well as
-## the set of potential sources of transmission for each event, since
-## the interaction is shorter in time but wider in space (eps.s=Inf
-## means interaction over the whole observation region)
+if (require("gpclib")) {
+    ## assume different interaction ranges and simplify polygons
+    oopt <- surveillance.options(gpclib=TRUE)
+    imdepi2 <- update(imdepi, eps.t = 20, eps.s = Inf, nCircle2Poly = 16)
+    surveillance.options(oopt)
+    
+    (s <- summary(imdepi))
+    (s2 <- summary(imdepi2))
+    ## The update reduced the number of infectives (along time)
+    ## because the length of the infectious periods is reduced. It also 
+    ## changed the set of potential sources of transmission for each
+    ## event, since the interaction is shorter in time but wider in space
+    ## (eps.s=Inf means interaction over the whole observation region).
+}
 }
 
 \keyword{manip}

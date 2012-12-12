@@ -1,14 +1,15 @@
 \name{wrap.algo}
 \alias{wrap.algo}
+\alias{farrington}
 \alias{bayes}
 \alias{rki}
-\alias{hmm}
 \alias{cusum}
-\alias{farrington}
 \alias{glrpois}
 \alias{glrnb}
 \alias{outbreakP}
-\alias{rogerson}
+%% FIXME: hmm and rogerson are currently undocumented and unexported
+%\alias{hmm}
+%\alias{rogerson}
 \encoding{latin1}
 
 \title{Multivariate Surveillance through independent univariate algorithms}

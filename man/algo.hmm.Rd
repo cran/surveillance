@@ -16,8 +16,8 @@
 }
 \usage{
   algo.hmm(disProgObj, control = list(range=range, Mtilde=-1, 
-             noStates=2, trend=TRUE, noHarmonics=1,
-             covEffectEqual=FALSE, saveHMMs = FALSE, extraMSMargs=list()))
+           noStates=2, trend=TRUE, noHarmonics=1,
+           covEffectEqual=FALSE, saveHMMs = FALSE, extraMSMargs=list()))
 }
 \arguments{
         \item{disProgObj}{object of class disProg (including the observed and the state chain)}
@@ -102,6 +102,7 @@
 \author{M. \enc{Höhle}{Hoehle}}
 \examples{
 \dontrun{
+library("msm")
 set.seed(123)
 #Simulate outbreak data from HMM
 counts <- sim.pointSource(p = 0.98, r = 0.8, length = 3*52,
@@ -127,7 +128,6 @@ viterbi.msm(surv$control$hmm[[1]])$fitted
 #How often correct?
 tab <- cbind( truth=counts$state + 1 , hmm=viterbi.msm(surv$control$hmm[[1]])$fitted)
 table(tab[,1],tab[,2])
-
 }
 }
 \references{

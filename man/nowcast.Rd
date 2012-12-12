@@ -136,34 +136,35 @@ Michael \enc{Höhle}{Hoehle}
 #Load simulated outbreak data.
 url <- paste("http://www.stat.uni-muenchen.de/~hoehle/",
              "teaching/moid2011/tutorials/cast-backnow/outbreak.txt",sep="")
-D <- read.table(url,header=TRUE,colClasses=c("integer",rep("Date",3)))
- 
-s <- as.Date("2011-06-02") ;
-k <- 10 ; l <- 3
-t <- seq(s-k-l+1,s-l,by="1 day")
-dRange <- as.Date(c("2011-05-01","2011-07-10"))
+D <- try(read.table(url,header=TRUE,colClasses=c("integer",rep("Date",3))))
 
-#Perform the nowcast
-nc <- nowcast(s=s,t=t,D=D,dEventCol="dHospital",dReportCol="dRegister",
-              method="bayes.nb",aggregate.by="1 day",control=list(dRange=dRange))
+if (!inherits(D, "try-error")) {
+    s <- as.Date("2011-06-02") ;
+    k <- 10 ; l <- 3
+    t <- seq(s-k-l+1,s-l,by="1 day")
+    dRange <- as.Date(c("2011-05-01","2011-07-10"))
 
-#Show result
-plot(nc,xaxis.years=FALSE,dx.upperbound=0,legend=NULL,lty=c(1,1,1),
-        lwd=c(1,1,2),ylab="Cases",xlab="Time (days)",main="",
-        ylim=c(0,max(nc@ci,na.rm=TRUE)))
-idx <- max(which(!is.na(upperbound(nc))))
-lines( c(idx-0.5,idx+0.5), rep(upperbound(nc)[idx,],2),lwd=2,col="blue")
-  
-##Show CIs
-for (i in 1:nrow(nc)) {
-  points(i, upperbound(nc)[i,], col="indianred")
-  lines( i+c(-0.3,0.3), rep(nc@ci[i,,1],2),lty=1,col="indianred2")
-  lines( i+c(-0.3,0.3), rep(nc@ci[i,,2],2),lty=1,col="indianred2")
-  lines( rep(i,each=2), nc@ci[i,,],lty=2,col="indianred2")
+    #Perform the nowcast
+    nc <- nowcast(s=s,t=t,D=D,dEventCol="dHospital",dReportCol="dRegister",
+                  method="bayes.nb",aggregate.by="1 day",control=list(dRange=dRange))
+
+    #Show result
+    plot(nc,xaxis.years=FALSE,dx.upperbound=0,legend=NULL,lty=c(1,1,1),
+            lwd=c(1,1,2),ylab="Cases",xlab="Time (days)",main="",
+            ylim=c(0,max(nc@ci,na.rm=TRUE)))
+    idx <- max(which(!is.na(upperbound(nc))))
+    lines( c(idx-0.5,idx+0.5), rep(upperbound(nc)[idx,],2),lwd=2,col="blue")
+
+    ##Show CIs
+    for (i in 1:nrow(nc)) {
+      points(i, upperbound(nc)[i,], col="indianred")
+      lines( i+c(-0.3,0.3), rep(nc@ci[i,,1],2),lty=1,col="indianred2")
+      lines( i+c(-0.3,0.3), rep(nc@ci[i,,2],2),lty=1,col="indianred2")
+      lines( rep(i,each=2), nc@ci[i,,],lty=2,col="indianred2")
+    }
+    #Add "now" on the x-axis
+    points( as.numeric(s-dRange[1])+1,0,pch=10,cex=1.5,col="red")
 }
-#Add "now" on the x-axis
-points( as.numeric(s-dRange[1])+1,0,pch=10,cex=1.5,col="red")
-
 }
 
 \keyword{models}

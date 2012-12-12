@@ -1,9 +1,15 @@
 ################################################################################
-### Function 'simEpidataCS' simulates a point pattern according to an
-### additive-multiplicative spatio-temporal intensity model of class 'twinstim'.
-### It basically uses Ogata's modified thinning algorithm
-### (cf. Daley & Vere-Jones, 2003, Algorithm 7.5.V.).
-### Author: Sebastian Meyer
+### Part of the surveillance package, http://surveillance.r-forge.r-project.org
+### Free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at http://www.r-project.org/Licenses/.
+###
+### Simulate a point pattern according to a spatio-temporal intensity model of
+### class "twinstim". The function basically uses Ogata's modified thinning
+### algorithm (cf. Daley & Vere-Jones, 2003, Algorithm 7.5.V.).
+###
+### Copyright (C) 2010-2012 Sebastian Meyer
+### $Revision: 472 $
+### $Date: 2012-12-11 00:42:11 +0100 (Di, 11. Dez 2012) $
 ################################################################################
 
 ### CAVE:
@@ -14,7 +20,7 @@
 simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     events, stgrid, tiles, beta0, beta, gamma, siafpars, tiafpars,
     t0 = stgrid$start[1], T = tail(stgrid$stop,1), nEvents = 1e5,
-    nCub, nCub.adaptive = FALSE,
+    control.siaf = list(F=list(), Deriv=list()),
     W = NULL, trace = 5, nCircle2Poly = 32, gmax = NULL, .allocate = 500,
     .skipChecks = FALSE, .onlyEvents = FALSE)
 {
@@ -108,7 +114,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     block_t0 <- stgrid$BLOCK[match(TRUE, stgrid$start > t0) - 1L]
     # BLOCK in stgrid such that stop time is equal to or just after T
     block_T <- stgrid$BLOCK[match(TRUE, stgrid$stop >= T)]
-    stgrid <- subset(stgrid, BLOCK >= block_t0 & BLOCK <= block_T)
+    stgrid <- stgrid[stgrid$BLOCK >= block_t0 & stgrid$BLOCK <= block_T,]
     stgrid$start[stgrid$BLOCK == block_t0] <- t0
     stgrid$stop[stgrid$BLOCK == block_T] <- T
     # matrix of BLOCKS and start times (used later)
@@ -121,19 +127,29 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
 
     stopifnot(inherits(tiles, "SpatialPolygons"),
               (tileLevels <- levels(stgrid$tile)) %in% row.names(tiles))
+    tiles <- as(tiles, "SpatialPolygons") # drop possible data attribute
+                                          # (-> correct over-method)
     if (is.null(W)) {
-    	if (require("maptools")) {
+    	if (require("maptools") && maptools::gpclibPermitStatus()) {
             cat("Building W as the union of 'tiles' ...\n")
             W <- maptools::unionSpatialPolygons(tiles,
                      IDs = rep.int(1,length(tiles@polygons)),
                      avoidGEOS = TRUE)
+            ## ensure that W has exactly the same proj4string as tiles
+            ## since the internal CRS()-call might have modified it
+            W@proj4string <- tiles@proj4string
         } else {
-            stop("automatic generation of 'W' from 'tiles' requires package \"maptools\"")
+            stop("generation of 'W' from 'tiles' requires package\n",
+                 "  \"maptools\" and \"gpclibPermit()\" therein")
         }
     } else {
         stopifnot(inherits(W, "SpatialPolygons"),
                   identical(proj4string(tiles), proj4string(W)))
     }
+
+    # get (upper bound for) maximum extent of W (i.e. the diagonal of the bbox)
+    bboxW <- bbox(W)
+    maxExtentOfW <- sqrt(sum(apply(bboxW, 1, diff)^2))
 
     # Transform W into a gpc.poly
     Wgpc <- as(W, "gpc.poly")
@@ -187,7 +203,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
         .stillInfective <- with(events@data, time <= t0 & time + eps.t > t0)
         Nout <- sum(.stillInfective)    # = number of events in the prehistory
         if (Nout > 0L) {
-            stopifnot(proj4string(events) == proj4string(W))
+            stopifnot(identical(proj4string(events), proj4string(W)))
             events <- events[.stillInfective,]
             # check event types
             events@data$type <- factor(events@data$type, levels=typeNames)
@@ -307,8 +323,12 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
 
     ### Build endemic model matrix on stgrid
 
-    mfhGrid <- model.frame(endemic, data = stgrid, na.action = na.fail, drop.unused.levels = FALSE,
+    BLOCK <- tile <- area <- "just cheating on codetools::checkUsage"
+    ## model.frame() will evaluate these variables in the context of 'stgrid'
+    mfhGrid <- model.frame(endemic, data = stgrid, na.action = na.fail,
+                           drop.unused.levels = FALSE,
                            BLOCK = BLOCK, tile = tile, ds = area)
+    rm(BLOCK, tile, area)
     # we don't actually need 'tile' in mfhGrid; this is only for easier identification when debugging
     mmhGrid <- model.matrix(endemic, mfhGrid)
     # exclude intercept from endemic model matrix below, will be treated separately
@@ -340,6 +360,11 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
                  ") does not match the 'tiaf' specification (", tiaf$npars, ")")
         }
 
+        ## Check control.siaf
+        if (constantsiaf) control.siaf <- NULL else {
+            stopifnot(is.null(control.siaf) || is.list(control.siaf))
+        }
+
         ## Define function that integrates the two-dimensional 'siaf' function
         ## over the influence regions of the events
         if (!constantsiaf && !is.null(siaf$Fcircle) && !is.null(siaf$effRange))
@@ -347,21 +372,9 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
             ## pre-compute effective range of the 'siaf' (used by .siafInt)
             effRangeTypes <- rep(siaf$effRange(siafpars), length.out = nTypes)
         }
-        .siafInt <- .siafIntFUN(siaf = siaf, nCub.adaptive = nCub.adaptive,
-                                noCircularIR = FALSE) # not certain beforehand
-        ## CAVE: nCub or nCub.adaptive might have been fixed by the above call
-
-        ## Check nCub
-        if (!constantsiaf) {
-            stopifnot(is.vector(nCub, mode="numeric"))
-            if (any(is.na(nCub) | nCub <= 0L)) {
-                stop("'nCub' must be positive")
-            }
-            if (isTRUE(cl[["nCub.adaptive"]]) && !nCub.adaptive) {
-                message("'nCub.adaptive' only works in conjunction with ",
-                        "specified 'siaf$effRange()'")
-            }
-        }
+        .siafInt <- .siafIntFUN(siaf = siaf, noCircularIR = FALSE)
+                                             # not certain beforehand
+        .siafInt.args <- c(list(siafpars), control.siaf$F)
 
         ## Check gmax
         if (is.null(gmax)) {
@@ -377,7 +390,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
         if (!missing(tiaf) && !is.null(tiaf))
             warning("'tiaf' can only be modelled in conjunction with an 'epidemic' process")
         siaf <- tiaf <- NULL
-        nCub <- nCub.adaptive <- NULL
+        control.siaf <- NULL
     }
 
 
@@ -454,7 +467,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
         # integrate the two-dimensional 'siaf' function over the influence region
         siafInts <- if (length(influenceRegion) == 0L) numeric(0L) else {
             environment(.siafInt) <- environment()
-            .siafInt(siafpars)
+            do.call(".siafInt", .siafInt.args)
         }
         # Matrix of terms in the epidemic component
         eTerms <- cbind(
@@ -698,20 +711,26 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
 
             # We now sample type and location
             if (.eventSource == 0L) {   # i.e. endemic source of infection
-                .eventType <- sample(typeNames, 1L, prob=if (nbeta0 > 1L) exp(beta0))
+                .eventType <- sample(typeNames, 1L,
+                                     prob=if (nbeta0 > 1L) exp(beta0))
                 stgrididx <- which(gridBlocks == tBLOCK)
-                .eventTile <- sample(stgrid$tile[stgrididx], 1L, prob=dsexpeta[stgrididx])  # this is a factor
-                # spsample doesn't guarantee that the sample will consist of exactly n points
-                # if no point is sampled (very unlikely though), there would be an error
+                .eventTile <- sample(stgrid$tile[stgrididx], 1L,
+                                     prob=dsexpeta[stgrididx])  # this is a factor
+                ## spsample doesn't guarantee that the sample will consist of
+                ## exactly n points. if no point is sampled (very unlikely
+                ## though), there would be an error
                 ntries <- 1L
+                .nsample <- 1L
                 while(
                 inherits(eventLocationSP <- try(
                     spsample(tiles[as.character(.eventTile),],
-                             n=1L, type="random"),
+                             n=.nsample, type="random"),
                     silent = TRUE), "try-error")) {
+                    .nsample <- 10L   # this also circumvents a bug in sp 1.0-0
+                                      # (missing drop=FALSE in sample.Spatial())
                     if (ntries >= 1000) {
-                        stop("'spsample()' did not succeed in sampling a random point ",
-                             "in tile '", as.character(.eventTile), "'")
+                        stop("'sp::spsample()' didn't succeed in sampling a ",
+                             "point from tile \"", as.character(.eventTile), "\"")
                     }
                     ntries <- ntries + 1L
                 }
@@ -720,27 +739,37 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
                 sourceType <- eventMatrix[.eventSource,"type"]
                 sourceCoords <- eventCoords[.eventSource,,drop=FALSE]
                 sourceIR <- influenceRegions[[.eventSource]]
+                sourceEpss <- eventMatrix[.eventSource,"eps.s"]
+                .upperRange <- min(sourceEpss, maxExtentOfW)
                 .eventType <- sample(typeNames[qmatrix[sourceType,]], 1L)
                 .eventTypeCode <- match(.eventType, typeNames)
                 eventLocationIR <- if (constantsiaf) {
-                        as.matrix(spatstat::coords(spatstat::runifpoint(1L, win=sourceIR, giveup=1000)))
-                    } else {
-                        eventInsideIR <- FALSE
-                        ntries <- 0L
-                        while(!eventInsideIR) {
-                            if (ntries >= 1000) {
-                                stop("event location sampled by siaf$simulate() was ",
-                                     "rejected 1000 times (outside influence region)")
-                            }
-                            ntries <- ntries + 1L
-                            eventLocationIR <- siaf$simulate(1L, siafpars, .eventTypeCode)
-                            eventInsideIR <- spatstat::inside.owin(eventLocationIR[,1],
-                                  eventLocationIR[,2], sourceIR)
+                    as.matrix(spatstat::coords(
+                        spatstat::runifpoint(1L, win=sourceIR, giveup=1000)
+                    ))
+                } else {
+                    eventInsideIR <- FALSE
+                    ntries <- 0L
+                    while(!eventInsideIR) {
+                        if (ntries >= 1000) {
+                            stop("event location sampled by siaf$simulate() was",
+                                 " rejected 1000 times (not in influence region)")
                         }
-                        eventLocationIR
+                        ntries <- ntries + 1L
+                        eventLocationIR <- siaf$simulate(1L, siafpars,
+                                                         .eventTypeCode,
+                                                         .upperRange)
+                        eventInsideIR <- spatstat::inside.owin(
+                                                   eventLocationIR[,1],
+                                                   eventLocationIR[,2],
+                                                   sourceIR)
                     }
+                    eventLocationIR
+                }
                 .eventLocation <- sourceCoords + eventLocationIR
-                whichTile <- overlay(SpatialPoints(.eventLocation, proj4string=CRS(proj4string(W))), tiles)
+                whichTile <- over(SpatialPoints(.eventLocation,
+                                                proj4string=tiles@proj4string),
+                                  tiles)
                 .eventTile <- row.names(tiles)[whichTile]
                 .eventTile <- factor(.eventTile, levels=tileLevels)
             }
@@ -883,11 +912,11 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
 
     events <- SpatialPointsDataFrame(
         coords = eventCoords[seqAlongEvents,,drop=FALSE], data = eventData,
-        proj4string = CRS(proj4string(W)), match.ID = FALSE
-        #, bbox = bbox(W)   # the bbox of SpatialPoints is defined as the actual
-                            # bbox of the points and is also updated every time 
-                            # when subsetting the SpatialPoints object
-                            # -> useless to specify it as the bbox of W
+        proj4string = W@proj4string, match.ID = FALSE
+        #, bbox = bboxW)   # the bbox of SpatialPoints is defined as the actual
+                           # bbox of the points and is also updated every time 
+                           # when subsetting the SpatialPoints object
+                           # -> useless to specify it as the bbox of W
     )
 
     if (.onlyEvents) {
@@ -904,6 +933,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
 
     cat("Done.\n")
     # append configuration of the model
+    epi$bbox <- bboxW
     epi$timeRange <- c(t0, T)
     epi$formula <- list(
                    endemic = if (typeSpecificEndemicIntercept) {
@@ -916,8 +946,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     epi$coefficients <- coefs  #list(beta0=beta0, beta=beta, gamma=gamma,
                                #     siafpars=siafpars, tiafpars=tiafpars)
     epi$npars <- c(nbeta0=nbeta0, p=p, q=q, nsiafpars=nsiafpars, ntiafpars=ntiafpars)
-    epi$nCub <- nCub                    # for R0.simEpidataCS
-    epi$nCub.adaptive <- nCub.adaptive  # for R0.simEpidataCS
+    epi$control.siaf <- control.siaf    # for R0.simEpidataCS
     epi$call <- cl
     epi$runtime <- proc.time()[[3]] - ptm
     class(epi) <- c("simEpidataCS", "epidataCS", "list")
@@ -926,7 +955,11 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
 
 
 
-### R0-method for "simEpidataCS"-objects (wrapper for R0.twinstim)
+####################################################
+### some twinstim-methods for "simEpidataCS" objects
+####################################################
+
+### wrapper for R0.twinstim
 
 R0.simEpidataCS <- function (object, trimmed = TRUE, ...)
 {
@@ -934,6 +967,40 @@ R0.simEpidataCS <- function (object, trimmed = TRUE, ...)
 }
 
 
+### wrapper for intensityplot.twinstim
+
+as.twinstim.simEpidataCS <- function (x)
+{
+    capture.output(
+    m <- do.call("twinstim",
+                 c(formula(x),
+                   alist(data=x),
+                   list(control.siaf = x$control.siaf,
+                        optim.args=list(par=coef(x), fixed=seq_along(coef(x))),
+                        model=TRUE, cumCIF=FALSE)
+                   ))
+    )
+    components2copy <- setdiff(names(m), names(x))
+    for (comp in components2copy) x[[comp]] <- m[[comp]]
+    environment(x) <- environment(m)
+    class(x) <- c("simEpidataCS", "epidataCS", "twinstim")
+    x
+}
+
+intensityplot.simEpidataCS <- function (x, ...)
+{
+    if (is.null(environment(x))) {
+        objname <- deparse(substitute(x))
+        cat("Setting up model environment ...\n")
+        x <- as.twinstim.simEpidataCS(x)
+        try({
+            assign(objname, x, envir=parent.frame())
+            cat("Note: added model environment to '", objname,
+                "' for future use.\n", sep="")
+        }, silent=TRUE)
+    }
+    intensityplot.twinstim(x, ...)
+}
 
 
 
@@ -947,7 +1014,7 @@ R0.simEpidataCS <- function (object, trimmed = TRUE, ...)
 
 simulate.twinstim <- function (object, nsim = 1, seed = NULL, data, tiles,
     rmarks = NULL, t0 = NULL, T = NULL, nEvents = 1e5,
-    nCub = object$nCub, nCub.adaptive = object$nCub.adaptive,
+    control.siaf = object$control.siaf,
     W = NULL, trace = FALSE, nCircle2Poly = 32, gmax = NULL, .allocate = 500, simplify = TRUE, ...)
 {
     ptm <- proc.time()[[3]]
@@ -1013,7 +1080,7 @@ simulate.twinstim <- function (object, nsim = 1, seed = NULL, data, tiles,
                     stgrid=quote(data$stgrid), tiles=quote(tiles), beta0=beta0,
                     beta=beta, gamma=gamma, siafpars=siafpars,
                     tiafpars=tiafpars, t0=t0, T=T, nEvents=nEvents,
-                    nCub=nCub, nCub.adaptive=nCub.adaptive,
+                    control.siaf=control.siaf,
                     W=quote(W), trace=trace, nCircle2Poly=nCircle2Poly,
                     gmax=gmax, .allocate=.allocate,
                     .skipChecks=TRUE, .onlyEvents=FALSE)

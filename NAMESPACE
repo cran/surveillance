@@ -7,64 +7,72 @@ useDynLib(surveillance)
 ### IMPORTS ###
 ###############
 
-import(methods)
+### Fully import all packages listed as Depends in the given order
+### (except for Rcpp, which is only used on the C-level, and
+### stats, utils, and xtable, from which only selected methods are imported)
 
+import(grDevices, graphics)
 
-### general imports
-
-## import generics to define own methods
-importFrom(graphics, plot)
+## required generics (that's why we "Depend" on these packages)
 importFrom(stats, coef, vcov, logLik, residuals, confint, AIC, extractAIC,
-           profile, simulate, update) # we actually _depend_ on stats (for ks.plot.unif)
+           profile, simulate, update)
 importFrom(utils, head, tail, toLatex)
-importFrom(xtable, xtable)
+importFrom(xtable, xtable) # if we wouldn't "Depend" on xtable, our
+                           # xtable-methods would not be useable except if the
+                           # user attaches the xtable package himself
+## required functions from stats and utils
+importFrom(stats, pnorm, cov2cor, ks.test, formula, rnorm, runif)
+importFrom(utils, packageDescription, modifyList)
+
+import(methods)
+##import(Rcpp)   # not used on the R-level
 
 #importMethodsFrom(stats4, plot)   # import S4-generic
 #<- would be nice, but then gives strange warnings for S3 methods from stats
 #   "Warning: found methods to import for function 'AIC' but not the generic itself"
 #   However, we don't need to import it here, because we depend on package sp, which makes plot generic
 
-## basic methods used in different parts of the package
-importFrom(stats, pnorm, cov2cor, ks.test, formula)
-importFrom(utils, packageDescription, modifyList)
-
-## sp classes, utility functions (bbox, coordinates, dimensions, overlay, ...), plot methods
-## (moved package sp to "Depends:" since it defines essential data classes and methods for surveillance)
+## sp classes & utilities (bbox, coordinates, dimensions, overlay, plot, ...)
+## (we "Depend" on package sp since it defines essential data classes & methods)
 import(sp)
 
 
 ### disProg-specific
 
 importFrom(MASS, glm.nb)   # for algo.glrnb
-importFrom(msm, msm, viterbi.msm)   # for algo.hmm
-importFrom(spc, xcusum.arl, xcusum.crit)   # for CUSUM control charts in junchoi.R and algo_cusum.R
+##importFrom(msm, msm, hmmPois, viterbi.msm)   # for algo.hmm()
+##importFrom(spc, xcusum.arl, xcusum.crit)     # for find.kh()
+## (packages msm and spc are now "suggested", not imported)
 
 
-### sts-specific
+### hhh4-specific
 
-# for colors in sts plots
-importFrom(colorspace, heat_hcl)
+importFrom(MASS, ginv)
+importClassesFrom(Matrix, ddiMatrix)
+importMethodsFrom(Matrix, coerce, diag, forceSymmetric, solve)
+## sparse matrix methods provide a significant speed-up in marFisher
 
 
 ### twinSIR-specific
 
 # for use in computing OSAIC weights by simulation
 importFrom(MASS, mvrnorm)
-importFrom(quadprog, solve.QP)
+#importFrom(quadprog, solve.QP)   # moved to "Suggests"
 
 
 ### twinstim-specific
 
-importClassesFrom(gpclib, gpc.poly)
-#importMethodsFrom(gpclib, coerce)   # we don't need to import coerce from gpclib because we import methods
-importMethodsFrom(gpclib, "[", get.bbox, intersect, append.poly, get.pts, scale.poly, tristrip)
-importFrom(spatstat, as.owin, as.owin.gpc.poly, coords, coords.ppp, area.owin, distppl,
-                     as.im.function, disc, shift, shift.owin, plot.owin, marks,
+## importClassesFrom(gpclib, gpc.poly)
+## importMethodsFrom(gpclib, "[", get.bbox, intersect, append.poly, tristrip)
+## -> we no longer strictly depend on gpclib for clarity of the package license
+importFrom(spatstat, gpc2owin, coords, coords.ppp, area.owin, distppl,
+                     as.im.function, disc, shift, shift.owin, plot.owin, plot.im, marks,
                      marks.ppp, markformat.default, # required for runifpoint() in
                                         # simulate.twinstim because spatstat
                                         # does not register its S3 methods 
-                     bounding.box, runifpoint, inside.owin)
-importFrom(intervals, Intervals, reduce)
+                     bounding.box, runifpoint, inside.owin, spatstat.options)
+##importFrom(intervals, Intervals, reduce)   # for as.epidata.epidataCS
+## package intervals is now "suggested", not imported
 
 
 
@@ -72,13 +80,13 @@ importFrom(intervals, Intervals, reduce)
 ### EXPORTS ###
 ###############
 
-# This might take a while before working correctly so we start by
-# exporting all variables that do not start with a period
+# just export all variables that do not start with a period:
 #exportPattern("^[^\\.]")
 
 
 ### general exports
 
+export(surveillance.options, reset.surveillance.options)
 export(animate)          # new S3-generic
 export(R0)               # new S3-generic
 export(intensityplot)    # new S3-generic
@@ -91,6 +99,7 @@ export(ks.plot.unif)
 export(checkResidualProcess)            # for twinstim and twinSIR
 
 # export S4 coerce-methods defined by the package
+#exportClasses(owin)      # FIXME: Should we export the virtual S4 class owin?
 exportMethods(coerce)     # from spatial_coerce-methods.R
 
 # numerical integration of two-dimensional function over polygonal domains
@@ -98,9 +107,18 @@ export(polyCub, polyCub.midpoint, polyCub.SV, polyCub.exact.Gauss)
 
 # spatial utilities
 export(discpoly)
+#export(runifdisc)          # don't export since package spatstat has a similar
+                            # but more general function also named runifdisc
 export(inside.gpc.poly)
-exportMethods(scale.poly)   # redefined method for gpc.poly in spatial_stuff.R
-#S3method(scale, gpc.poly)  # alternatively, if defined as S3 method for scale
+S3method(scale, gpc.poly)   # redefined method for gpc.poly in spatial_stuff.R
+export(nbOrder)
+
+# randomly break tied event times or coordinates
+export(untie)                           # new S3-generic
+#export(untie.default, untie.matrix, untie.epidataCS)
+S3method(untie, default)
+S3method(untie, matrix)
+S3method(untie, epidataCS)
 
 # little helper: multiplicity of points
 export(multiplicity)                    # new S3-generic
@@ -127,14 +145,14 @@ exportMethods("epoch<-","observed<-","alarms<-","upperbound<-","population<-","c
 
 export(linelist2sts)
 
-export(wrap.algo, farrington, bayes, rki, cusum, glrpois, glrnb, outbreakP)
+export(wrap.algo, farrington, bayes, rki, cusum, glrpois, glrnb, outbreakP) # rogerson, hmm
 export(categoricalCUSUM, pairedbinCUSUM, pairedbinCUSUM.runlength)
 export(nowcast, backprojNP)
 
 
 ### disProg-specific
 
-export(create.disProg, create.grid, readData, toFileDisProg)
+export(create.disProg, readData, toFileDisProg)
 S3method(print, disProg)
 S3method(plot, disProg)
 S3method(plot, disProg.one)
@@ -142,7 +160,7 @@ S3method(aggregate, disProg)
 
 export(sim.pointSource, sim.seasonalNoise)
 export(LRCUSUM.runlength, arlCusum, find.kh, findH, hValues, findK)
-exportPattern("^algo\\.")
+exportPattern("^algo\\.")               # export all algo.* functions
 export(compMatrix.writeTable, correct53to52, enlargeData)
 export(makePlot)
 export(estimateGLRNbHook)
@@ -232,6 +250,7 @@ export(as.epidata.epidataCS)            # for convenience
 
 S3method(print, twinstim)
 S3method(summary, twinstim)
+export(summary.twinstim)                # for convenience
 S3method(print, summary.twinstim)
 S3method(toLatex, summary.twinstim)
 S3method(plot, twinstim)
@@ -247,8 +266,11 @@ export(simulate.twinstim)               # for convenience
 S3method(R0, twinstim)
 S3method(residuals, twinstim)
 S3method(update, twinstim)
+export(update.twinstim)                 # for convenience
 
 S3method(R0, simEpidataCS)
+S3method(intensityplot, simEpidataCS)
+export(intensityplot.simEpidataCS)      # for convenience
 S3method(print, simEpidataCSlist)
 S3method("[[", simEpidataCSlist)
 S3method(plot, simEpidataCSlist)
@@ -274,6 +296,7 @@ S3method(logLik, ahg)
 
 export(hhh4) 
 export(addSeason2formula)
+export(zetaweights, powerlaw)
 export(ranef)  # S3-generic
 export(fixef)  # S3-generic
 

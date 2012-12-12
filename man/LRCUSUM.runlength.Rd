@@ -101,24 +101,29 @@ dY <- function(y,mu,log=FALSE, alpha, ...) {
 LRCUSUM.runlength( mu=t(mu0), mu0=t(mu0), mu1=kappa*t(mu0), h=5,
   dfun = dY, n=rep(100,length(mu0)), alpha=alpha)
 
-h.grid <- seq(3,6,by=0.1)
+h.grid <- seq(3,6,by=0.3)
 arls <- sapply(h.grid, function(h) {
   LRCUSUM.runlength( mu=t(mu0), mu0=t(mu0), mu1=kappa*t(mu0), h=h,
   dfun = dY, n=rep(100,length(mu0)), alpha=alpha,g=20)$arl
 })
 plot(h.grid, arls,type="l",xlab="threshold h",ylab=expression(ARL[0]))
 
-######################################################
-#Run length of a time varying negative binomial CUSUM
-######################################################
 
-mu0 <- matrix(5*sin(2*pi/52 * 1:200) + 10,ncol=1)
+if (surveillance.options("allExamples"))
+{
+  ######################################################
+  #Run length of a time varying negative binomial CUSUM
+  ######################################################
 
-rl <- LRCUSUM.runlength( mu=t(mu0), mu0=t(mu0), mu1=kappa*t(mu0), h=2,
-  dfun = dY, n=rep(100,length(mu0)), alpha=alpha,g=20)
+  mu0 <- matrix(5*sin(2*pi/52 * 1:200) + 10,ncol=1)
+  
+  rl <- LRCUSUM.runlength( mu=t(mu0), mu0=t(mu0), mu1=kappa*t(mu0), h=2,
+    dfun = dY, n=rep(100,length(mu0)), alpha=alpha,g=20)
 
-plot(1:length(mu0),rl$pmf,type="l",xlab="t",ylab="PMF")
-plot(1:length(mu0),rl$cdf,type="l",xlab="t",ylab="CDF")
+  plot(1:length(mu0),rl$pmf,type="l",xlab="t",ylab="PMF")
+  plot(1:length(mu0),rl$cdf,type="l",xlab="t",ylab="CDF")
+}
+
 
 ########################################################
 # Further examples contain the binomial, beta-binomial

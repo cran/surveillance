@@ -13,39 +13,45 @@
 
 \usage{
 iafplot(object, which = c("siaf", "tiaf"),
-    types = 1:nrow(object$qmatrix),
+    types = 1:nrow(object$qmatrix), scaled = FALSE,
     conf.type = if (length(pars) > 1) "bootstrap" else "parbounds",
     conf.level = 0.95, conf.B = 999,
-    ngrid = 101, col.estimate = rainbow(length(types)), col.conf = col.estimate,
-    alpha.B = 0.15, lwd = c(3,1), lty = c(1,2), xlim = c(0,eps), ylim = c(0,1),
+    xgrid = 101, col.estimate = rainbow(length(types)), col.conf = col.estimate,
+    alpha.B = 0.15, lwd = c(3,1), lty = c(1,2), xlim = NULL, ylim = NULL,
     add = FALSE, xlab = NULL, ylab = NULL, ...)
 }
 
 \arguments{
   \item{object}{
-    Object of class \code{"twinstim"} containing the fitted model.
+    object of class \code{"twinstim"} containing the fitted model.
   }
   \item{which}{
-    Argument indicating which of the two interaction functions to plot.
+    argument indicating which of the two interaction functions to plot.
     Possible values are \code{"siaf"} (default) for the spatial interaction
     function and \code{"tiaf"} for the temporal interaction function.
   }
   \item{types}{
-    In case of a marked twinstim, for which event \code{types} 
-    should the interaction function be plotted. 
+    integer vector indicating for which event \code{types} 
+    the interaction function should be plotted in case of a marked twinstim.
+  }
+  \item{scaled}{
+    logical indicating if the interaction function should be multiplied
+    by the epidemic intercept \eqn{exp(\gamma_0)}. This is especially
+    useful if different interaction functions are to be compared.
   }
   \item{conf.type}{
     type of confidence interval to produce. If \code{"bootstrap"},
     \code{conf.B} parameter values (vectors) are sampled from the
     asymptotic (multivariate) normal distribution of the ML estimate(s) of the
     interaction function parameters; the interaction function is then
-    evaluated on the grid of \code{ngrid} x-values (i.e. temporal or
+    evaluated on the \code{xgrid} (i.e. temporal or
     spatial distances from the host) for each parameter realization to
-    obtain a \code{conf.level} confidence interval at each point of the x-grid.
+    obtain a \code{conf.level} confidence interval at each point of the
+    \code{xgrid}. 
     If \code{"parbounds"}, the \code{conf.level} Wald confidence
     intervals for the interaction function parameters are calculated and
-    the interaction function is evaluated on the grid of \code{ngrid}
-    x-values (distances from the host) for all combinations of the bounds
+    the interaction function is evaluated on the \code{xgrid}
+    (distances from the host) for all combinations of the bounds
     of the parameters and the point-wise extremes of those functions are
     plotted. This type of confidence interval is actually only valid in
     the case of only one interaction function parameter, but could also
@@ -60,9 +66,10 @@ iafplot(object, which = c("siaf", "tiaf"),
   \item{conf.B}{
     number of samples for the \code{"bootstrap"} confidence interval.
   }
-  \item{ngrid}{
-    number of evaluation points of the interaction function in the
-    interval \code{c(0,xlim[2])}. 
+  \item{xgrid}{
+    either a numeric vector of x-values (distances from the host) where
+    to evaluate \code{which}, or a scalar representing the desired number of
+    evaluation points in the interval \code{c(0,xlim[2])}.
   }
   \item{col.estimate}{
     vector of colours to use for the function point estimates of the different \code{types}.
@@ -75,26 +82,28 @@ iafplot(object, which = c("siaf", "tiaf"),
     bootstrapped interaction functions in case \code{conf.level = NA}
   }
   \item{lwd, lty}{
-    Numeric vectors of length two specifying the line width and type of point
+    numeric vectors of length two specifying the line width and type of point
     estimates (first element) and confidence limits (second element),
     respectively. 
   }
   \item{xlim, ylim}{
-    Vectors of length two containing the x- and y-axis limit of the
-    plot. The default y-axis ranges from 0 to 1.
+    vectors of length two containing the x- and y-axis limit of the
+    plot. The default y-axis ranges from 0 to 1 (or to
+    \eqn{exp(\gamma_0)}, if \code{scaled}).
     The default x-axis ranges from 0 to the length of the
     observation period (\code{which="tiaf"}) or the length of the
     diagonale of the bounding box of the observation region
-    (\code{which="siaf"}), respectively.
+    (\code{which="siaf"}), respectively, or to the maximum of
+    \code{xgrid} if given as a vector of evaluation points.
   }
   \item{add}{
-    Add to an existing plot?
+    add to an existing plot?
   }
   \item{xlab, ylab}{
     labels for the axes with \code{NULL} providing sensible defaults.
   }
   \item{\dots}{
-    Additional arguments passed to the default \code{plot} method.
+    additional arguments passed to the default \code{plot} method.
   }
 }
 
@@ -121,22 +130,12 @@ iafplot(object, which = c("siaf", "tiaf"),
 \examples{
 data(imdepifit)
 iafplot(imdepifit, "tiaf", types=1)   # tiaf.constant(), not very exciting
-iafplot(imdepifit, "siaf", xlim=c(0,200), types=1,   # same for types=2
-     col.estimate=1, lwd=c(2,1))
-# alternative: bootstrap-CI (actually only useful if iaf$npars > 1)
-iafplot(imdepifit, "siaf", add=TRUE, types=1, col.estimate=0, ngrid=500,
-     conf.type="bootstrap", col.conf=2)
+iafplot(imdepifit, "siaf", types=1,   # same for types=2
+        xlim=c(0,200), col.estimate=1, lwd=c(2,1))
 
-\dontshow{
-## FIXME: fit model with 2-parameter Lomax kernel as siaf (this takes a
-##        while and does not converge properly...)
-#data(imdepi)
-#imdepifit_lomax <- update(imdepifit,
-#    siaf = siaf.lomax(1),
-#    optim.args = list(par=c(coef(imdepifit), 0), control=list(REPORT=1)),
-#    nCub = 3, nCub.adaptive = FALSE, model = FALSE, cumCIF = FALSE
-#)
-}
+# bootstrap-CI (used if more than one parameter is affected)
+iafplot(imdepifit, "siaf", types=1, scaled=TRUE, xlim=c(0,200), xgrid=500,
+        conf.type="bootstrap", col.estimate=2)
 }
 
 \keyword{hplot}

@@ -152,8 +152,9 @@ The contributed \R package \pkg{animation}.
 }
 
 \examples{
+\dontrun{
 data("fooepidata")
-s <- summary(fooepidata)
+(s <- summary(fooepidata))
 
 # plot the ordering of the events only
 animate(s, sleep=0.01)   # or: animate(fooepidata)
@@ -161,10 +162,8 @@ animate(s, sleep=0.01)   # or: animate(fooepidata)
 # with timer (animate only up to t=10)
 animate(s, time.spacing=0.1, end=10, sleep=0.01)
 
-\dontrun{
 # using features of the animation package:
-require("animation")
-saveHTML(
+if (require("animation")) saveHTML(
     animate(s, time.spacing = 1, sleep = 0, generate.snapshots = "epiani"),
     img.name = "epiani", use.dev = FALSE, ani.type = "png", width = 600
 )

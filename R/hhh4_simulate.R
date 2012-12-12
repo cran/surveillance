@@ -3,7 +3,7 @@ simHHH4 <- function(stsObj, # sts object
                     ar,  # lambda-component of matching size
                     ne,  # phi component
                     end, # nu component
-                    psi, # 1/overdisp param(s) if specified or numeric(0)
+                    psi, # overdisp param(s) if specified or numeric(0) (psi->0 corresponds to Poisson)
                     nhood, # weights matrix for phi-component from model
                     start # vector with starting counts
                     ){
