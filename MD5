@@ -1,4 +1,4 @@
-5295fdbcde8a9f74ce72ab944d9d964e *DESCRIPTION
+3b3bfbaea1bfa9c6a83529e43349b6a8 *DESCRIPTION
 17608235a0b17ab8f9c915c7439f26b5 *NAMESPACE
 8ac24e60df30f55fb70bd9f670712d8f *R/AllClass.R
 5d8c6d0be3580ca332072745b0e44b51 *R/AllGeneric.R
@@ -11,7 +11,7 @@ be214ec6475829e4205744ac732af81a *R/algo_cdc.R
 38955616c4e26e2c46c94f3c10047733 *R/algo_glrnb.R
 3db79eef3951132cc41d05eb095dc766 *R/algo_glrpois.R
 3b039ab8fbd280448ea8ab18cfc842d0 *R/algo_hhh.R
-ce97eee960549b061d4d48b71e0b87d1 *R/algo_hhh4.R
+d1f7ae370a90a23cdebe8afabf1d1d8d *R/algo_hhh4.R
 349714ac98e2734615f0aed696e0c056 *R/algo_hmm.R
 ffe30e0cf94d26af23fef991a0e66cc4 *R/algo_outbreakP.R
 7e59e5a1fd0c57754e6f123e04014da9 *R/algo_rki.R
@@ -48,7 +48,7 @@ d76738240acf75767e17440185a3503a *R/sim_background.R
 d611d4fe7a41669667b2371b203722d8 *R/sysdata.rda
 692aa77b1ee65f1269d73aaf2ea9905a *R/testcalls.R
 0b7d31235ccb9aeef2894e9f31402538 *R/twinSIR.R
-e48bff5566705c4d29085d54e7870aca *R/twinSIR_epidata.R
+8828c3fb3fc819640f7ee1f1f617da15 *R/twinSIR_epidata.R
 b7d4fa66e4a0bec1368d929cb154b26c *R/twinSIR_helper.R
 0c251c18648b2a2b03eff1a432d49698 *R/twinSIR_intensity.R
 ec75b2d0a4f9cd3eeebc538419fb73ca *R/twinSIR_methods.R
@@ -100,15 +100,15 @@ f976fafb219fc04b750e0e4117ba054c *data/shadar.RData
 9f8e0e0949c0163ae22effa6e0ca897a *demo/biosurvbook.R
 a6e5d4f6ba7b0dd2307175afc9460aac *demo/cost.R
 991ed5b783c7151e30064485c5778b95 *inst/CITATION
-27853a435009546511de07a90351d970 *inst/NEWS.Rd
+fe40cfa2d11334963a681dba6350cabf *inst/NEWS.Rd
 f777348428b5eb98ba1954089cbdfe86 *inst/doc/glrnb.Rnw
-9b4c1fe284dc1d39a05994fc4cdf75a8 *inst/doc/glrnb.pdf
+99812fefda0ec4bde27450f1e7ca535d *inst/doc/glrnb.pdf
 6967166f90c747bd7ea90c79c071b12f *inst/doc/hhh4-cache.RData
 04fdd5d19c3e3c0a4762491658071d3d *inst/doc/hhh4.Rnw
-4449bfdec829b55e7eb70e0d08366119 *inst/doc/hhh4.pdf
+177eb3e2615a2397c9e4a2c3fdc47bc3 *inst/doc/hhh4.pdf
 b1eda1570ac0b890180ee15fbd697485 *inst/doc/surveillance-cache.RData
 4a4876e6f6cc590ca5eee203502a7a57 *inst/doc/surveillance.Rnw
-7604c96e884178a93fb886019077dcd1 *inst/doc/surveillance.pdf
+3bfe7d440b3135e3bea8d316f7e6bc5b *inst/doc/surveillance.pdf
 e2e3d5a2b56513964a64fe6476d52818 *inst/extdata/counts_flu_BYBW.txt
 7475135b03ccdf173429ee21b85ca4f8 *inst/extdata/h1_nrwrp.txt
 6b1da7976e5a3a83fa4aef34a85fbc3b *inst/extdata/k1.txt
@@ -168,7 +168,7 @@ d3822596ea8c07c0ba128f7f70f2140f *man/animate.Rd
 af4a2443f164cb0761ab003ede106ce6 *man/arlCusum.Rd
 eb1975ee51d68ab0bd661dc03d550ac9 *man/backprojNP.Rd
 69323cec2352af38c3c91c2bb4e0f0ac *man/bestCombination.Rd
-24aa9da3c30a74b9077adb65d119a4fe *man/categoricalCUSUM.Rd
+ac6cd4ab8ced02be8cc921e2960df7b9 *man/categoricalCUSUM.Rd
 4c59feeeed54e43e4131f15cb76b8f68 *man/checkResidualProcess.Rd
 02e0109ce6d2ff2bec5220dc06cf63b3 *man/coerce-methods_gpcpoly.Rd
 2aa23e12ccfff25d1f3fa7ea1a061503 *man/compMatrix.writeTable.Rd
