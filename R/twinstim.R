@@ -6,17 +6,18 @@
 ### Maximum Likelihood inference for the two-component spatio-temporal intensity
 ### model described in Meyer et al (2012), DOI: 10.1111/j.1541-0420.2011.01684.x
 ###
-### Copyright (C) 2012 Sebastian Meyer
-### $Revision: 454 $
-### $Date: 2012-11-15 15:43:56 +0100 (Do, 15. Nov 2012) $
+### Copyright (C) 2009-2013 Sebastian Meyer
+### $Revision: 522 $
+### $Date: 2013-03-01 14:11:22 +0100 (Fr, 01. Mrz 2013) $
 ################################################################################
 
 
 twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
     data, subset, t0 = data$stgrid$start[1], T = tail(data$stgrid$stop,1),
-    na.action = na.fail, partial = FALSE,
-    control.siaf = list(F=list(), Deriv=list()), optim.args, finetune = FALSE,
-    model = FALSE, cumCIF = TRUE, cumCIF.pb = TRUE)
+    na.action = na.fail, start = NULL, partial = FALSE,
+    control.siaf = list(F=list(), Deriv=list()),
+    optim.args = list(), finetune = FALSE,
+    model = FALSE, cumCIF = TRUE, cumCIF.pb = TRUE, verbose = TRUE)
 {
 
     ####################
@@ -42,13 +43,15 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
     # Clean the model environment when exiting the function
     on.exit(suppressWarnings(rm(cl, cumCIF, cumCIF.pb, data, doHessian,
         eventDists, eventsData, finetune, neghess, fisherinfo, fit, fixed,
-        functions, globalEndemicIntercept, inmfe, initpars, ll, negll, loglik,
+        functions, globalEndemicIntercept, h.Intercept, inmfe, initpars,
+        ll, negll, loglik, 
         mfe, mfhEvents, mfhGrid, model, my.na.action, na.action, namesOptimUser,
         namesOptimArgs, nlminbControl, nlminbRes, nlmObjective, nlmControl,
         nlmRes, nmRes, optim.args, optimArgs, control.siaf,
-        optimMethod, optimRes, optimRes1, optimValid, partial,
-        partialloglik, ptm, qmatrix, res, negsc, score, subset, tmpexpr,
-        typeSpecificEndemicIntercept, useScore, whichfixed, 
+        optimMethod, optimRes, optimRes1, optimValid,
+        origenv.endemic, origenv.epidemic, partial,
+        partialloglik, ptm, qmatrix, res, negsc, score, start, subset, tmpexpr,
+        typeSpecificEndemicIntercept, useScore, verbose, whichfixed, 
         inherits = FALSE)))
 
 
@@ -113,10 +116,12 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
     ### Parse epidemic formula
 
     if (missing(epidemic)) {
+        origenv.epidemic <- .GlobalEnv
         epidemic <- ~ 0
     } else {
+        origenv.epidemic <- environment(epidemic)
         environment(epidemic) <- environment()
-        # so that t0 and T are found in the subset expressions below
+        ## such that t0 and T are found in the subset expression below
     }
     epidemic <- terms(epidemic, data = eventsData, keep.order = TRUE)
     if (!is.null(attr(epidemic, "offset"))) {
@@ -155,6 +160,7 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
                        obsInfLength = .obsInfLength, bdist = .bdist)
     rm(ID, tile, type, BLOCK, .obsInfLength, .bdist)
 
+    
     ### Extract essential information from model frame
 
     # inmfe=rowindex(data$events@data) is necessary for subsetting
@@ -177,7 +183,7 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
     eventTypes <- factor(mfe[["(type)"]])   # drop unused levels
     typeNames <- levels(eventTypes)
     nTypes <- length(typeNames)
-    if (nTypes > 1L) cat("marked point pattern of", nTypes, "types\n")
+    if (verbose && nTypes > 1L) cat("marked point pattern of", nTypes, "types\n")
     qmatrix <- checkQ(qmatrix, typeNames)
     # we only need the integer codes for the calculations
     eventTypes <- as.integer(eventTypes)
@@ -211,7 +217,14 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
         })
         # calculate sum_{k=1}^K q_{kappa_j,k} for all j = 1:N
         qSum <- unname(rowSums(qmatrix)[eventTypes])   # N-vector
-    } else message("no epidemic component in model")
+    } else if (verbose) message("no epidemic component in model")
+
+
+    ### Drop "terms" and restore original formula environment
+    
+    epidemic <- formula(epidemic)
+    environment(epidemic) <- origenv.epidemic
+
 
 
 
@@ -223,10 +236,12 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
     ### Parse endemic formula
 
     if (missing(endemic)) {
+        origenv.endemic <- .GlobalEnv
         endemic <- ~ 0
     } else {
+        origenv.endemic <- environment(endemic)
         environment(endemic) <- environment()
-        # so that t0 and T are found in the subset expressions below
+        ## such that t0 and T are found in the subset expressions below
     }
     endemic <- terms(endemic, data = data$stgrid, keep.order = TRUE)
 
@@ -293,7 +308,16 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
         offsetGrid <- model.offset(mfhGrid)
         dt <- mfhGrid[["(dt)"]]
         ds <- mfhGrid[["(ds)"]]
-    } else message("no endemic component in model")
+    } else if (verbose) message("no endemic component in model")
+
+    
+    ### Drop "terms" and restore original formula environment
+    
+    endemic <- if (typeSpecificEndemicIntercept) {
+        ## re-add it to the endemic formula
+        update.formula(formula(endemic), ~ (1|type) + .)
+    } else formula(endemic)
+    environment(endemic) <- origenv.endemic
 
 
     ### Check that there is at least one parameter
@@ -314,11 +338,11 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
     if (hase) {
 
         ## Check interaction functions
-        siaf <- do.call(".parseiaf", args = alist(siaf))
+        siaf <- do.call(".parseiaf", args = alist(siaf, "siaf", verbose))
         constantsiaf <- attr(siaf, "constant")
         nsiafpars <- siaf$npars
 
-        tiaf <- do.call(".parseiaf", args = alist(tiaf))
+        tiaf <- do.call(".parseiaf", args = alist(tiaf, "tiaf", verbose))
         constanttiaf <- attr(tiaf, "constant")
         ntiafpars <- tiaf$npars
 
@@ -337,12 +361,13 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
         .siafInt.args <- c(alist(siafpars), control.siaf$F)
 
         ## Memoisation of .siafInt
-        ..siafInt <- if (requireNamespace("memoise")) {
+        ..siafInt <- if (!constantsiaf && requireNamespace("memoise")) {
             memoise::memoise(.siafInt)
             ## => speed-up optimization since 'nlminb' evaluates the loglik and
             ## score for the same set of parameters at the end of each iteration
         } else {
-            cat("Continuing without memoisation of 'siaf$f' cubature ...\n")
+            if (!constantsiaf && verbose)
+                cat("Continuing without memoisation of 'siaf$f' cubature ...\n")
             ## However, trivial caching is used manually in case of fixed
             ## "siafpars" and in LambdagEvents()
             .siafInt
@@ -396,8 +421,9 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
     npars <- nbeta0 + p + q + nsiafpars + ntiafpars
 
     # REMINDER:
-    #  theta - parameter vector c(beta, gamma, siafpars, tiafpars), where
-    #    beta    - parameters of the endemic component exp(offset + eta_h(t,s))
+    #  theta - parameter vector c(beta0, beta, gamma, siafpars, tiafpars), where
+    #    beta0   - endemic intercept (maybe type-specific)
+    #    beta    - other parameters of the endemic component exp(offset + eta_h(t,s))
     #    gamma   - parameters of the epidemic term exp(eta_e(t,s))
     #    siafpars- parameters of the epidemic spatial interaction function
     #    tiafpars- parameters of the epidemic temporal interaction function
@@ -826,41 +852,45 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
 
     ### Check that optim.args is a list or NULL
 
-    if (missing(optim.args) || (!is.list(optim.args) && !is.null(optim.args))) {
-        stop("'optim.args' must be a list or NULL")
-    }
-
-    if (is.null(optim.args)) {          # no optimisation requested
+    if (is.null(optim.args)) {  # no optimisation requested
         setting <- functions
         on.exit(rm(setting), add = TRUE)
         # Append model information
         setting$npars <- c(nbeta0 = nbeta0, p = p,
                            q = q, nsiafpars = nsiafpars, ntiafpars = ntiafpars)
         setting$qmatrix <- qmatrix   # -> information about nTypes and typeNames
-        setting$formula <- list(endemic = formula(endemic), epidemic = formula(epidemic),
-                            siaf = siaf, tiaf = tiaf)
+        setting$formula <- list(endemic = endemic, epidemic = epidemic,
+                                siaf = siaf, tiaf = tiaf)
         setting$call <- cl
         # Return settings
-        message("optimization skipped (returning functions in data environment)")
+        if (verbose)
+            message("optimization skipped",
+                    " (returning functions in data environment)")
         return(setting)
-    }
+    } else if (!is.list(optim.args)) stop("'optim.args' must be a list or NULL")
 
-    
-    ### Check start value for theta
 
-    if (is.null(optim.args[["par"]])) {
-        stop("start values of parameters must be specified as 'optim.args$par'")
-    }
-    if (!is.vector(optim.args$par, mode="numeric")) {
-        stop("'optim.args$par' must be a numeric vector")
-    }
-    if (length(optim.args$par) != npars) {
-        stop(gettextf(paste("'optim.args$par' (%d) does not have the same",
-             "length as the number of unknown parameters (%d)"),
-             length(optim.args$par), npars))
+    ### Check initial value for theta
+
+    if (is.null(optim.args[["par"]])) { # set naive defaults
+        h.Intercept <- if (nbeta0 > 0) rep.int(crudebeta0(
+                nEvents = Nin, offset.mean = weighted.mean(offsetGrid, ds),
+                W.area = sum(ds[gridBlocks==histIntervals[1,"BLOCK"]]),
+                period = T-t0, nTypes = nTypes
+            ), nbeta0) else numeric(0L)
+        optim.args$par <- c(h.Intercept, rep.int(0, npars - nbeta0))
+    } else { # check validity of par-specification
+        if (!is.vector(optim.args$par, mode="numeric")) {
+            stop("'optim.args$par' must be a numeric vector")
+        }
+        if (length(optim.args$par) != npars) {
+            stop(gettextf(paste("'optim.args$par' (%d) does not have the same",
+                                "length as the number of unknown parameters (%d)"),
+                          length(optim.args$par), npars))
+        }
     }
     
-    # Set names for theta
+    ## Set names for theta
     names(optim.args$par) <- c(
         if (nbeta0 > 1L) {
             paste0("h.type",typeNames)
@@ -870,6 +900,21 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
         if (hassiafpars) paste("e.siaf",1:nsiafpars,sep="."),
         if (hastiafpars) paste("e.tiaf",1:ntiafpars,sep=".")
     )
+
+    ## values in "start" overwrite initial values given by optim.args$par
+    if (is.list(start)) { # convert allowed list specification to vector
+        stopifnot(names(start) %in% c("endemic", "epidemic", "h", "e",
+                                      "siaf", "tiaf", "e.siaf", "e.tiaf"))
+        names(start)[names(start) == "endemic"] <- "h"
+        names(start)[names(start) == "epidemic"] <- "e"
+        names(start)[names(start) == "siaf"] <- "e.siaf"
+        names(start)[names(start) == "tiaf"] <- "e.tiaf"
+        start <- unlist(start, use.names=TRUE)
+    }
+    if (is.vector(start, mode="numeric")) {
+        start <- start[names(start) %in% names(optim.args$par)]
+        optim.args$par[names(start)] <- start
+    }
 
 
     ### Fixed parameters during optimization
@@ -917,10 +962,12 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
         ## modify negll, negsc and neghess for subvector optimization
         initpars <- optim.args$par
         optim.args$par <- initpars[!fixed]
-        if (all(fixed)) {
-            cat("\nno numerical likelihood optimization, all parameters fixed:\n")
-        } else cat("\nfixed parameters during optimization:\n")
-        print(initpars[fixed])
+        if (verbose) {
+            if (all(fixed)) {
+                cat("\nno numerical likelihood optimization, all parameters fixed:\n")
+            } else cat("\nfixed parameters during optimization:\n")
+            print(initpars[fixed])
+        }
         tmpexpr <- expression(
             initpars[!fixed] <- theta,
             theta <- initpars
@@ -939,7 +986,7 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
 
         ## if siafpars or tiafpars are fixed, pre-evaluate integrals    
         if (fixedsiafpars) {
-            cat("pre-evaluating 'siaf' integrals with fixed parameters ...\n")
+            if (verbose) cat("pre-evaluating 'siaf' integrals with fixed parameters ...\n")
             .siafInt.args[[1]] <- initpars[paste("e.siaf", 1:nsiafpars, sep=".")]
             siafInt <- do.call(".siafInt", .siafInt.args)
             ## re-define .siafInt such that it just returns the pre-evaluated integrals
@@ -952,7 +999,7 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
             }, add=TRUE)
         }
         if (fixedtiafpars) {
-            cat("pre-evaluating 'tiaf' integrals with fixed parameters ...\n")
+            if (verbose) cat("pre-evaluating 'tiaf' integrals with fixed parameters ...\n")
             tiafInt <- .tiafInt(initpars[paste("e.tiaf", 1:ntiafpars, sep=".")])
             ## re-define .tiafInt such that it just returns the pre-evaluated
             ## integrals if called with the default arguments
@@ -1000,13 +1047,15 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
 
         ## Call 'optim', 'nlminb', or 'nlm' with the above arguments
 
-        cat("\nminimizing the negative", if (partial) "partial", "log-likelihood",
-            "using", if (optimMethod %in% c("nlm", "nlminb"))
-            paste0("'",optimMethod,"()'") else {
-                paste0("'optim()'s \"", optimMethod, "\"")
-            }, "...\n")
-        cat("initial parameters:\n")
-        print(optimArgs$par)
+        if (verbose) {
+            cat("\nminimizing the negative", if (partial) "partial", "log-likelihood",
+                "using", if (optimMethod %in% c("nlm", "nlminb"))
+                paste0("'",optimMethod,"()'") else {
+                    paste0("'optim()'s \"", optimMethod, "\"")
+                }, "...\n")
+            cat("initial parameters:\n")
+            print(optimArgs$par)
+        }
         optimRes1 <- if (optimMethod == "nlminb") {
             nlminbControl <- control2nlminb(optimArgs$control,
                                             defaults = list(trace=5L, rel.tol=1e-6))
@@ -1070,10 +1119,12 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
         ## Optional fine-tuning of ML estimates by robust Nelder-Mead
 
         optimRes <- if (finetune) {
-            cat("\nMLE from first optimization:\n")
-            print(optimRes1$par)
-            cat("loglik(MLE) =", optimRes1$value, "\n")
-            cat("\nfine-tuning MLE using Nelder-Mead optimization...\n")
+            if (verbose) {
+                cat("\nMLE from first optimization:\n")
+                print(optimRes1$par)
+                cat("loglik(MLE) =", optimRes1$value, "\n")
+                cat("\nfine-tuning MLE using Nelder-Mead optimization...\n")
+            }
             optimArgs$par <- optimRes1$par
             optimArgs$method <- "Nelder-Mead"
             optimArgs$hessian <- doHessian
@@ -1085,18 +1136,32 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
         } else optimRes1
 
         if (optimRes$convergence != 0) {
-            cat("\nWARNING: OPTIMIZATION ROUTINE DID NOT CONVERGE",
-                if (finetune || optimMethod != "nlminb")
-                paste0("(code ", optimRes$convergence, ")"),
-                "!\n")
-            if (!is.null(optimRes$message) && nzchar(optimRes$message)) {
-                cat("MESSAGE: \"", optimRes$message, "\"\n", sep="")
+            msgNotConverged <- paste("optimization routine did not converge",
+                if (finetune || optimMethod != "nlminb") {
+                    paste0("(code ", optimRes$convergence, ")")
+                } else paste0("(", optimRes$message, ")"))
+            warning(msgNotConverged)
+            if (verbose) {
+                cat("\nWARNING: ", msgNotConverged, "!\n", sep="")
+                if (!is.null(optimRes$message) && nzchar(optimRes$message)) {
+                    cat("MESSAGE: \"", optimRes$message, "\"\n", sep="")
+                }
+                if (useScore && !constantsiaf &&
+                    grepl("false", msgNotConverged)) {
+                    cat("SOLUTION: increase the precision of 'siaf$Deriv'\n")
+                    if (optimMethod == "nlminb") {
+                        cat("          otherwise increase nlminb's false",
+                            "convergence tolerance 'xf.tol'\n")
+                    }
+                }
             }
         }
 
-        cat("\n", if (finetune) "final ", "MLE:\n", sep = "")
-        print(optimRes$par)
-        cat("loglik(MLE) =", optimRes$value, "\n")
+        if (verbose) {
+            cat("\n", if (finetune) "final ", "MLE:\n", sep = "")
+            print(optimRes$par)
+            cat("loglik(MLE) =", optimRes$value, "\n")
+        }
 
     }
 
@@ -1195,7 +1260,7 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
         LambdagEvents
     }
     if (cumCIF) {
-        cat("\nCalculating the fitted cumulative intensities at events...\n")
+        if (verbose) cat("\nCalculating the fitted cumulative intensities at events...\n")
         fit$tau <- LambdagEvents(cumCIF.pb)
     }
 
@@ -1212,19 +1277,8 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
     fit$qmatrix <- qmatrix   # -> information about nTypes and typeNames
     fit$bbox <- bbox(data$W)            # for completeness and for iafplot
     fit$timeRange <- c(t0, T)           # for simulate.twinstim's defaults
-    if (!model) {
-        # Link formulae to the global environment such that the evaluation
-        # environment will be dropped at the end
-        environment(epidemic) <- environment(endemic) <- .GlobalEnv
-    }
-    # if typeSpecificEndemicIntercept, re-add this to the endemic formula
-    fit$formula <- list(
-                   endemic = if (typeSpecificEndemicIntercept) {
-                       update.formula(formula(endemic), ~ (1|type) + .)
-                   } else formula(endemic),
-                   epidemic = formula(epidemic),
-                   siaf = siaf, tiaf = tiaf
-                   )
+    fit$formula <- list(endemic = endemic, epidemic = epidemic,
+                        siaf = siaf, tiaf = tiaf)
     fit$control.siaf <- control.siaf
 
     
@@ -1239,7 +1293,7 @@ twinstim <- function (endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
 
     ### Return object of class "twinstim"
 
-    cat("\nDone.\n")
+    if (verbose) cat("\nDone.\n")
     fit$call <- cl
     fit$runtime <- proc.time()[[3]] - ptm
     class(fit) <- "twinstim"

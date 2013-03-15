@@ -6,8 +6,8 @@
 ### Additional coerce-methods between different spatial classes
 ###
 ### Copyright (C) 2012 Sebastian Meyer
-### $Revision: 467 $
-### $Date: 2012-12-10 16:36:54 +0100 (Mo, 10. Dez 2012) $
+### $Revision: 515 $
+### $Date: 2013-02-20 17:59:52 +0100 (Mi, 20. Feb 2013) $
 ################################################################################
 
 ### Note the varying polygon specifications in the packages:
@@ -27,12 +27,16 @@
 ### which give the coordinates of the vertices of the polygon
 ### following the "owin" convention (anticlockwise order without repeating any
 ### vertex). There may be additional elements "area" and "hole" in each
-### component, but these are not necessary.
+### component, but these are not necessary (ignored).
 
 xylist.owin <- function (object, ...) object$bdry
 xylist.gpc.poly <- function (object, ...) xylist.owin(gpc2owin(object))
 xylist.SpatialPolygons <- function (object, ...)
     xylist.owin(maptools::as.owin.SpatialPolygons(object))
+xylist.Polygons <- function (object, ...)
+    xylist.SpatialPolygons(SpatialPolygons(list(object)))
+xylist.Polygon <- function (object, ...)
+    xylist.Polygons(Polygons(list(object), "ID"))
 ## for the default method, no transformation is performed, we only check that
 ## polys are not closed (first vertex not repeated)
 xylist.default <- function (object, ...) {

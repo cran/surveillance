@@ -12,7 +12,7 @@ especially useful if one wants to add the \code{model} environment
 
 \usage{
 \method{update}{twinstim}(object, endemic, epidemic, optim.args, model,
-       ..., evaluate = TRUE)
+       ..., use.estimates = TRUE, evaluate = TRUE)
 }
 
 \arguments{
@@ -25,6 +25,9 @@ especially useful if one wants to add the \code{model} environment
     to update, re-fitting is cleverly circumvented.}
   \item{\dots}{Additional arguments to the call, or arguments with changed
     values.}
+  \item{use.estimates}{logical indicating if the estimates of
+  \code{object} should be used as initial values for the new fit
+  (in the \code{start} argument of \code{twinstim}). Defaults to \code{TRUE}.}
   \item{evaluate}{If \code{TRUE} (default), evaluate the new call else
     return the call.}
 }
@@ -56,10 +59,7 @@ if (surveillance.options("allExamples"))
 
   ## add another epidemic covariate
   imdepifit2 <- update(imdepifit, epidemic = ~. + log(popdensity),
-    # must also update vector of start values!
-    optim.args=list(par=c(head(coef(imdepifit),-1),0,tail(coef(imdepifit),1)),
-                    fixed="e.siaf.1"), # for reasons of speed
-    cumCIF=FALSE)
+    optim.args=list(fixed="e.siaf.1"), cumCIF=FALSE) # for reasons of speed
   
   ## compare with AIC
   AIC(imdepifit, imdepifit2)

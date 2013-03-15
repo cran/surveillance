@@ -29,7 +29,7 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
 \method{simulate}{twinstim}(object, nsim = 1, seed = NULL, data, tiles,
     rmarks = NULL, t0 = NULL, T = NULL, nEvents = 1e5,
     control.siaf = object$control.siaf,
-    W = NULL, trace = FALSE, nCircle2Poly = 32, gmax = NULL,
+    W = NULL, trace = FALSE, nCircle2Poly = NULL, gmax = NULL,
     .allocate = 500, simplify = TRUE, ...)
 }
 
@@ -49,13 +49,13 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     the \code{siaf} specification must also contain the element
     \code{simulate}, a function which draws random locations following the
     spatial kernel \code{siaf$f}. The first argument of the function is the
-    number of points to sample, the second one is the vector of parameters
+    number of points to sample (say \code{n}),
+    the second one is the vector of parameters
     \code{siafpars}, the third one is the type indicator (a character string
     matching a type name as specified by \code{dimnames(qmatrix)}). With the
     current implementation there will always be simulated only one
-    location at a time. Predefined specifications are
-    \code{\link{siaf.gaussian}}, \code{\link{siaf.lomax}}, and
-    \code{\link{siaf.constant}}.
+    location at a time, i.e. \code{n=1}.
+    The \link[=siaf.constant]{predefined siaf's} all provide simulation.
   } 
   \item{tiaf}{
     e.g. what is returned by the generating function
@@ -76,9 +76,7 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     i.e. the values of the spatial and temporal interaction ranges at this
     point. Only \code{"numeric"} and \code{"factor"} columns are
     allowed. Assure that factor variables are coded equally 
-    (same levels and level order) for each new sample. If there is no
-    epidemic component in the process, \code{rmarks} can be missing or
-    \code{NULL}.
+    (same levels and level order) for each new sample.
 
     For the \code{simulate.twinstim} method, the default (\code{NULL})
     means sampling from the empirical distribution function of the
@@ -198,7 +196,9 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     \code{events}. See also the \dQuote{Value} section below.
   }
   \item{control.siaf}{see \code{\link{twinstim}}.}
-  \item{nCircle2Poly}{see \code{\link{as.epidataCS}}.}
+  \item{nCircle2Poly}{see \code{\link{as.epidataCS}}. For
+    \code{simulate.twinstim}, \code{NULL} means to use the same value as
+    for \code{data}.}
   \item{gmax}{
     maximum value the temporal interaction function
     \code{tiaf$g} can attain. If \code{NULL}, then it is assumed as the
@@ -249,9 +249,9 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
   algorithm is. Often it can be advantageous to sacrifice some detail
   for speed by reducing polygon complexity using, e.g., the
   Douglas and Peucker (1973) reduction method available at
-  \url{MapShaper.org} or as function \code{dp()}
-  in the (slightly outdated) package \pkg{shapefiles}, or by passing by
-  \pkg{spatstat}'s \code{\link[spatstat]{simplify.owin}} procedure.
+  \url{http://MapShaper.org} (Harrower and Bloch, 2006) or as function
+  \code{dp()} in the (slightly outdated) package \pkg{shapefiles}, or by
+  passing by \pkg{spatstat}'s \code{\link[spatstat]{simplify.owin}} procedure.
   
   Note also that generation of \code{"epidataCS"} depends on the
   computation of polygon intersections via the \pkg{gpclib} package,
@@ -266,7 +266,12 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
   represent a digitized line or its caricature.
   \emph{Cartographica: The International Journal for Geographic
   Information and Geovisualization}, \bold{10}, 112-122
-  
+
+  Harrower, M. and Bloch, M. (2006):
+  MapShaper.org: A Map Generalization Web Service.
+  \emph{IEEE Computer Graphics and Applications}, \bold{26}(4), 22-27.\cr
+  DOI-Link: \url{http://dx.doi.org/10.1109/MCG.2006.85}
+
   Meyer, S., Elias, J. and H\enc{ö}{oe}hle, M. (2012):
   A space-time conditional intensity model for invasive meningococcal
   disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.\cr

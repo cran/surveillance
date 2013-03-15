@@ -6,9 +6,9 @@
 ### Methods for two-dimensional numerical integration over a polygonal domain
 ### cf. Section 3.2 of my Master's Thesis: http://epub.ub.uni-muenchen.de/11703/
 ###
-### Copyright (C) 2009-2012 Sebastian Meyer
-### $Revision: 463 $
-### $Date: 2012-12-06 17:26:39 +0100 (Do, 06. Dez 2012) $
+### Copyright (C) 2009-2013 Sebastian Meyer
+### $Revision: 515 $
+### $Date: 2013-02-20 17:59:52 +0100 (Mi, 20. Feb 2013) $
 ###
 ### The product Gauss cubature in 'polygauss()' is based on the corresponding
 ### MATLAB code ('polygauss') by Sommariva & Vianello (2007):
@@ -88,7 +88,7 @@ if (plot) {
 ### Alternative 2: Product Gauss cubature of two-dimensional functions
 ### over simple polygons proposed by Sommariva & Vianello (2007)
 ########################################################################
-## polyregion may be of classes "owin", "SpatialPolygons", or "gpc.poly"
+## polyregion: "owin", "SpatialPolygons", "Polygons", "Polygon", "gpc.poly"
 ## See function polygauss() below for further argument details
 
 polyCub.SV <- function (polyregion, f, ...,
@@ -99,10 +99,18 @@ polyCub.SV <- function (polyregion, f, ...,
                                 # which means anticlockwise vertex order with
                                 # first vertex not repeated
     f <- match.fun(f)
-    stopifnot(isScalar(nGQ), is.null(alpha) || (isScalar(alpha) && !is.na(alpha)))
+    stopifnot(isScalar(nGQ),
+              is.null(alpha) || (isScalar(alpha) && !is.na(alpha)))
 
+    ## COMPUTE NODES AND WEIGHTS OF 1D GAUSS QUADRATURE RULE.
+    ## DEGREE "N" (as requested) (ORDER GAUSS PRIMITIVE)
+    nw_N <- statmod::gauss.quad(n = nGQ, kind = "legendre")
+    ## DEGREE "M" = N+1 (ORDER GAUSS INTEGRATION)
+    nw_M <- statmod::gauss.quad(n = nGQ + 1, kind = "legendre")
+
+    ## Cubature of every single polygon of the "polys" list
     int1 <- function (poly) {
-        nw <- polygauss(poly, nGQ, alpha, rotation)
+        nw <- polygauss(poly, nw_N, nw_M, alpha, rotation)
         fvals <- f(nw$nodes, ...)
         cubature_val <- sum(nw$weights * fvals)
         ## if (!isTRUE(all.equal(0, cubature_val))) {
@@ -115,12 +123,16 @@ polyCub.SV <- function (polyregion, f, ...,
     int <- sum(respolys)
 
     if (plot) {
+        if (inherits(polyregion, "Polygon"))
+            polyregion <- Polygons(list(polyregion), "ID")
+        if (inherits(polyregion, "Polygons"))
+            polyregion <- SpatialPolygons(list(polyregion))
         if (inherits(polyregion, "gpc.poly")) {
             gpclibCheck()
             plot(polyregion, poly.args=list(lwd=2), ann=FALSE)
         } else plot(polyregion, lwd=2, axes=TRUE, main="")
         for (i in seq_along(polys)) {
-            nw <- polygauss(polys[[i]], nGQ, alpha, rotation)
+            nw <- polygauss(polys[[i]], nw_N, nw_M, alpha, rotation)
             points(nw$nodes, cex=0.6, pch = i) #, col=1+(nw$weights<=0)
         }
     }
@@ -129,14 +141,14 @@ polyCub.SV <- function (polyregion, f, ...,
 }
 
 
-### Function to calculate nodes and weights of the product Gauss cubature
+### Function to calculate 2D nodes and weights of the product Gauss cubature
 ### Code is based on the MATLAB implementation of Sommariva & Vianello (2007)
 ## Parameters:
 ## xy: list with elements "x" and "y" containing the polygon vertices in
 ##     _anticlockwise_ order (otherwise the result of the cubature will have a
 ##     negative sign) with first vertex not repeated at the end (like owin$bdry)
-## N: degree of the one-dimensional Gauss quadrature rule
-##    (see statmod::gauss.quad, on which this function depends)
+## nw_N, nw_M: lists of nodes and weights of one-dimensional Gauss quadrature rules
+##             of degrees N and M=N+1 (as returned by statmod::gauss.quad)
 ## alpha: base-line at x = alpha (see the referenced paper for an explication).
 ##        If NULL (the default), the midpoint of the x-range is chosen if
 ##        rotation=FALSE and otherwise the x-coordinate of the rotated point P.
@@ -144,9 +156,8 @@ polyCub.SV <- function (polyregion, f, ...,
 ##        e.g. for the bivariate normal density with zero mean
 ## rotation: do efficiency rotation for convex polygons? (possibly a list of
 ##           points P and Q describing the preferred direction)
-## kind: 1D quadrature rule (see statmod::gauss.quad)
 
-polygauss <- function (xy, N, alpha = NULL, rotation = FALSE, kind = "legendre")
+polygauss <- function (xy, nw_N, nw_M, alpha = NULL, rotation = FALSE)
 {
     ## convert to coordinate matrix
     xy <- cbind(x=xy[["x"]], y=xy[["y"]], deparse.level=0)
@@ -185,16 +196,6 @@ polygauss <- function (xy, N, alpha = NULL, rotation = FALSE, kind = "legendre")
     }
 
     
-    ## COMPUTE NODES AND WEIGHTS OF 1D GAUSS QUADRATURE RULE.
-    
-    ## DEGREE "N" (as requested) (ORDER GAUSS PRIMITIVE)
-    nw_N <- statmod::gauss.quad(n = N, kind = kind)
-
-    ## DEGREE "M" = N+1 (ORDER GAUSS INTEGRATION)
-    M <- N + 1L
-    nw_M <- statmod::gauss.quad(n = M, kind = kind)
-
-    
     ## COMPUTE 2D NODES AND WEIGHTS.
 
     xbd <- xyrot[,1L,drop=TRUE]
@@ -217,14 +218,14 @@ polygauss <- function (xy, N, alpha = NULL, rotation = FALSE, kind = "legendre")
 
 ### Main part which calculates nodes and weights of the product Gauss cubature
 ### Code is based on the MATLAB implementation of Sommariva & Vianello (2007)
-## TODO: The efficient implementation of this function in C
-## would increase the speed of the cubature
+## TODO: efficient implementation of this function (and .polygauss.side) in C
+##       would increase the speed of the cubature
 ## Parameters:
 ## x, y: coordinates of the polygon's vertices in _anticlockwise_ order
 ##       (otherwise the result of the cubature will have a negative sign)
 ##       with _REPEATED FIRST VERTEX_ at the end
 ## alpha: "base-line"
-## s/w_N/M: nodes and weights of univariate Gauss rules of orders N and M
+## s/w_N/M: nodes and weights of univariate Gauss rules of orders N and M=N+1
 
 .polygauss <- function (x, y, alpha, s_N, w_N, s_M, w_M)
 {

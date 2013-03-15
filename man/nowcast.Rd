@@ -28,7 +28,7 @@ nowcast(s, t, D, dEventCol = "dHospital", dReportCol = "dReport",
           control = list(
             dRange = NULL,
             timeDelay = function(d1,d2) {as.numeric(d2-d1)},
-            estimateF = "dynamic",
+            estimateF = NULL,
             alpha = 0.05,
             y.prior.max = 300,
             B = 1e5, 
@@ -73,12 +73,16 @@ nowcast(s, t, D, dEventCol = "dHospital", dReportCol = "dReport",
 	Default: \code{function(d1,d2) {as.numeric(d2-d1)}}. However,
 	more advanced function are imaginable. See examples.
       }
-      \item{estimateF}{Denotes how the CDF of the delay is computed.
-	If a string \code{"dynamic"} is given this a dynamic estimate of
-	the empirical cumulative distribution function for each time
-	point s. Otherwise, one can specify a function
+      \item{estimateF}{Denotes the estimation procedure for the CDF of
+	the delay distribution. The function should have a header of the form
+	\code{function(Ds,s,dReportCol)}, where \code{Ds} is the
+        linelist of all cases available at \code{s} and \code{dReportCol}
+        denotes the column containing the report data. If \code{NULL}
+	(Default) then the empirical CDF is computed each time based on
+        all available data. Otherwise, one can specify a function
 	based on more complex modelling. Results needs to be a CDF, e.g.
-	as a stepfunction. Default: \code{"dynamic"}}
+	as a stepfunction.
+      }
       \item{alpha}{Equal tailed (1-\eqn{\alpha}{alpha})*100\% prediction
 	intervals are calculated. Default: 0.05.}
       \item{y.prior.max}{Limit of the support of \eqn{y_t}{yt}. The

@@ -3,6 +3,7 @@
 \alias{siaf.constant}
 \alias{siaf.gaussian}
 \alias{siaf.lomax}
+\alias{siaf.powerlaw}
 \alias{tiaf.constant}
 \alias{tiaf.exponential}
 
@@ -24,14 +25,16 @@
 }
 
 \usage{
-# spatial interaction functions
+# predefined spatial interaction functions
 siaf.constant()
 siaf.gaussian(nTypes = 1, logsd = TRUE, density = FALSE, F.adaptive = TRUE,
               effRangeMult = 6, validpars = NULL)
 siaf.lomax(nTypes = 1, logpars = TRUE, density = FALSE,
-           effRangeProb = 0.999, validpars = NULL)
+           effRangeProb = NULL, validpars = NULL)
+siaf.powerlaw(nTypes = 1, logpars = TRUE,
+              effRangeProb = NULL, validpars = NULL)
 
-# temporal interaction functions
+# predefined temporal interaction functions
 tiaf.constant()
 tiaf.exponential(nTypes = 1)
 }
@@ -44,16 +47,18 @@ tiaf.exponential(nTypes = 1)
     \code{nTypes=1}. Otherwise \code{nTypes} should equal the number of
     event types of the epidemic, in which case every type has its own
     (log-)scale or (log-)shape, respectively. Currently, the constructor
-    function for the Lomax kernel \code{siaf.lomax} only allows a
-    type-invariant kernel (\code{nTypes=1}). 
+    function for the Lomax and the power law kernels \code{siaf.lomax}
+    and \code{siaf.powerlaw}, respectively, only allows a type-invariant
+    kernel (\code{nTypes=1}).
   }
   \item{logsd, logpars}{
-    logical indicating if the Gaussian (or Lomax) kernel should be parametrized
+    logical indicating if the kernel should be parametrized
     with the log-standard deviation (or log(scale) and log(shape)) as
     the parameter(s) in question to enforce positivity. This
     is the recommended default and avoids constrained optimisation
     (L-BFGS-B) or the use of \code{validpars}. The alternative
-    (\code{FALSE}) is even not implemented for \code{siaf.lomax}.
+    (\code{FALSE}) is not implemented for \code{siaf.lomax} and
+    \code{siaf.powerlaw}.
   }
   \item{density}{
     logical. If \code{TRUE}, a density is used as the
@@ -63,13 +68,16 @@ tiaf.exponential(nTypes = 1)
     distribution (\eqn{f(\bold{s})} is not a bivariate density here).
     However, in this case, the magnitude of the
     interaction function depends on the parameters of the distribution,
-    which might interfere with the identification of an epidemic
-    intercept. Hence, by default (\code{density = FALSE}), the density
-    is normalized to unity at the origin, i.e.
-    \eqn{f(\bold{s}) / f(\bold{0})} is used. This is also the case for
-    the exponential temporal decay function \code{tiaf.exponential},
-    where the kernel \eqn{\exp(-\alpha t)} of the exponential
-    distribution density function is used.
+    which interferes with the identification of an epidemic
+    intercept. Hence, the use of \code{density = TRUE} is not
+    recommended.\cr
+    For \code{density = FALSE}, \code{siaf.gaussian} uses the kernel of
+    the bivariate normal density, and \code{siaf.lomax} is normalized to
+    unity at the origin, i.e. \eqn{f(\bold{s}) / f(\bold{0})} is used.
+    However, the latter still has proportionality constants in the kernel,
+    which is why the use \code{siaf.lomax} is deprecated.
+    The new \code{siaf.powerlaw} replaces \code{siaf.lomax} and uses the
+    pure kernel of the Lomax density (see Details).
   }
   \item{F.adaptive}{
     If \code{F.adaptive = TRUE}, then an adaptive bandwidth of
@@ -97,8 +105,9 @@ tiaf.exponential(nTypes = 1)
   \item{effRangeProb}{
     numeric scalar in \eqn{(0,1)}, which determines the effective range for
     numerical integration in terms of the corresponding quantile of the
-    univariate Lomax distribution. May also be \code{NULL}, which disables
-    the integral approximation with an effective integration range.
+    univariate Lomax distribution. May also be \code{NULL} (default),
+    which disables the integral approximation with an effective
+    integration range.
   }
   \item{validpars}{
     function taking one argument, the parameter vector, indicating if it
@@ -130,6 +139,18 @@ tiaf.exponential(nTypes = 1)
       \eqn{f(s) = (\sigma / (||s|| + \sigma))^{\alpha+1}},\cr
       which is the density of the univariate Lomax distribution scaled
       to 1 at the origin, i.e. divided by \eqn{\alpha / \sigma}.
+      If \code{density=TRUE}, the original Lomax density is used.
+      Due to potential identifiability issues with an epidemic
+      intercept, \code{siaf.lomax} is deprecated and
+      \code{siaf.powerlaw} should be used instead!
+    }
+    \item{\code{siaf.powerlaw}:}{
+      \eqn{f(s) = (||s|| + \sigma)^{-d}},\cr
+      which is the pure kernel of the Lomax density, i.e. without any
+      proportionality constants. The parameters are optimized on the
+      log-scale to ensure positivity, i.e.
+      \eqn{\sigma = \exp(\tilde{\sigma})} and \eqn{d = \exp(\tilde{d})},
+      where \eqn{(\tilde{\sigma}, \tilde{d})} is the parameter vector.
     }
   }
   
@@ -140,8 +161,7 @@ tiaf.exponential(nTypes = 1)
     }
     \item{\code{tiaf.exponential}:}{
       \eqn{g(t|\kappa) = \exp(-\alpha_\kappa t)},\cr
-      which is the density of the exponential distribution scaled to 1
-      at the origin, i.e. divided by \eqn{\alpha_\kappa}.
+      which is the kernel of the exponential distribution.
       If \code{nTypes=1} (single-type epidemic or type-invariant
       \code{tiaf} in multi-type epidemic), then
       \eqn{\alpha_\kappa = \alpha} for all types \eqn{\kappa}.
@@ -150,7 +170,7 @@ tiaf.exponential(nTypes = 1)
 }
 
 \value{
-  the specification of an interaction function, which is a list.
+  The specification of an interaction function, which is a list.
   
   For spatial kernels, this list contains the following components:
   \item{f}{spatial interaction function (\code{siaf}). It must accept
@@ -284,7 +304,7 @@ tiaf.constant()
 siaf.gaussian(2, F.adaptive=TRUE)
 
 # Type-independent power-law kernel
-siaf.lomax()
+siaf.powerlaw()   # siaf.lomax() is deprecated
 }
 
 \keyword{models}

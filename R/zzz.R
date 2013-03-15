@@ -123,4 +123,19 @@ clapply <- function (X, FUN, ...)
 }
 
 
+### pretty p-value formatting
 
+formatPval <- function (pv, eps = 1e-4)
+{
+    format1 <- function (p)
+        format.pval(p, digits = if (p<10*eps) 1 else 2, eps = eps)
+    sapply(pv, format1)
+}
+
+
+### quantile function of the Lomax distribution
+### we could also use VGAM::qlomax (but this would be slightly slower)
+
+qlomax <- function (p, scale, shape) {
+    scale * ((1-p)^(-1/shape) - 1)
+}
