@@ -5,9 +5,9 @@
 ###
 ### Spatial helper functions
 ###
-### Copyright (C) 2009-2012 Sebastian Meyer
-### $Revision: 463 $
-### $Date: 2012-12-06 17:26:39 +0100 (Do, 06. Dez 2012) $
+### Copyright (C) 2009-2013 Sebastian Meyer
+### $Revision: 483 $
+### $Date: 2013-01-24 16:36:51 +0100 (Do, 24. Jan 2013) $
 ################################################################################
 
 
@@ -163,8 +163,8 @@ nbOrder <- function (neighbourhood, maxlag = 1)
     nb.lags <- spdep::nblag(nb, maxlag=maxlag)
 
     ## Side note: fast method to determine neighbours _up to_ specific order:
-    ## crossprod(neighbourhoud) > 0  # second order neighbours (+set diag to 0)
-    ## (neighbourhood %*% neighbourhood %*% neighbourhood) > 0  # order 3
+    ## crossprod(neighbourhoud) > 0  # up to second order neighbours (+set diag to 0)
+    ## (neighbourhood %*% neighbourhood %*% neighbourhood) > 0  # up to order 3
     ## and so on...
 
     ## convert to a single matrix

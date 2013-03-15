@@ -6,7 +6,75 @@
 \encoding{latin1}
 
 
-\section{Changes in surveillance version 1.5-1 (2012-12-13)}{
+\section{Changes in surveillance version 1.5-2 (2013-03-15)}{
+
+\subsection{SYNOPSIS}{
+  \itemize{
+    \item New method for outbreak detection: \code{earsC}
+    (CUSUM-method described in the CDC Early Aberration Reporting
+    System, see Hutwagner et al, 2003).
+    \item New features and minor bug fixes for the "\code{twinstim}"
+    part of the package (see below).
+    \item Yet another p-value formatting function \code{formatPval()}
+    is now also part of the \pkg{surveillance} package.
+    \item \code{polyCub.SV()} now also accepts objects of classes
+    \code{"Polygon"} and \code{"Polygons"} for convenience.
+    \item \code{siaf.lomax} is deprecated and replaced by
+    \code{siaf.powerlaw} (re-parametrization).
+  }
+}
+
+\subsection{NEW FEATURES (\code{twinstim()}-related)}{
+  \itemize{
+    \item The temporal \code{plot}-method for class \code{"epidataCS"}
+    now understands the \code{add} parameter to add the histogram to an
+    existing plot window, and auto-transforms the \code{t0.Date}
+    argument using \code{as.Date()} if necessary.
+    \item \code{nobs()} methods for classes \code{"epidataCS"} and
+    \code{"twinstim"}.
+    \item New argument \code{verbose} for \code{twinstim()} which, if
+    set to \code{FALSE}, disables the printing of information messages
+    during execution.
+    \item New argument \code{start} for \code{twinstim()}, where (some)
+    initial parameter values may be provided, which overwrite those in
+    \code{optim.args$par}, which is no longer required (as a naive
+    default, a crude estimate for the endemic intercept and zeroes for
+    the other parameters are used).
+    \item Implemented a wrapper \code{stepComponent()} for \code{step()}
+    to perform algorithmic component-specific model selection in
+    \code{"twinstim"} models. This also required the implementation of
+    suitable \code{terms()} and \code{extractAIC()} methods. The single-step
+    methods \code{add1()} and \code{drop1()} are also available.
+    \item The \code{update.twinstim()} method now by default uses the
+    parameter estimates from the previous model as initial values for
+    the new fit (new argument \code{use.estimates = TRUE}).
+    \item \code{as.epidataCS()} checks for consistency of the area of
+    \code{W} and the (now really obligatory) area column in
+    \code{stgrid}.
+    \item \code{simulate.twinstim()} now by default uses the previous
+    \code{nCircle2Poly} from the \code{data} argument.
+    \item \code{direction} argument for \code{untie.epidataCS()}.
+    \item The \code{toLatex}-method for \code{"summary.twinstim"} got
+    different defaults and a new argument \code{eps.Pvalue}.
+    \item New \code{xtable}-method for \code{"summary.twinstim"} for
+    printing the covariate effects as risk ratios (with CI's and p-values).
+  }
+}
+
+\subsection{NEW FEATURES (\code{hhh4()}-related)}{
+  \itemize{
+    \item New argument \code{hide0s} in the \code{plot}-method for class
+    \code{"ah4"}.
+    \item New argument \code{timevar} for \code{addSeason2formula()},
+    which now also works for long formulae.
+  }
+}
+
+}
+
+
+
+\section{Changes in surveillance version 1.5-1 (2012-12-14)}{
 
 \subsection{SYNOPSIS}{
   \itemize{

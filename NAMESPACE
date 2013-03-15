@@ -14,14 +14,15 @@ useDynLib(surveillance)
 import(grDevices, graphics)
 
 ## required generics (that's why we "Depend" on these packages)
-importFrom(stats, coef, vcov, logLik, residuals, confint, AIC, extractAIC,
-           profile, simulate, update)
+importFrom(stats, coef, vcov, logLik, nobs, residuals, confint, AIC, extractAIC,
+           profile, simulate, update, terms, add1, drop1)
 importFrom(utils, head, tail, toLatex)
 importFrom(xtable, xtable) # if we wouldn't "Depend" on xtable, our
                            # xtable-methods would not be useable except if the
                            # user attaches the xtable package himself
 ## required functions from stats and utils
-importFrom(stats, pnorm, cov2cor, ks.test, formula, rnorm, runif)
+importFrom(stats, pnorm, cov2cor, ks.test, formula, rnorm, runif, step,
+           update.formula, terms.formula)
 importFrom(utils, packageDescription, modifyList)
 
 import(methods)
@@ -90,7 +91,8 @@ export(surveillance.options, reset.surveillance.options)
 export(animate)          # new S3-generic
 export(R0)               # new S3-generic
 export(intensityplot)    # new S3-generic
-export(isScalar)  # very basic little helper function
+export(isScalar)         # very basic little helper function
+export(formatPval)       # yapf -- yet another p-value formatter
 export(anscombe.residuals)
 export(magic.dim, primeFactors, bestCombination)   # similar to n2mfrow
 export(isoWeekYear)
@@ -146,6 +148,7 @@ exportMethods("epoch<-","observed<-","alarms<-","upperbound<-","population<-","c
 export(linelist2sts)
 
 export(wrap.algo, farrington, bayes, rki, cusum, glrpois, glrnb, outbreakP) # rogerson, hmm
+export(earsC)
 export(categoricalCUSUM, pairedbinCUSUM, pairedbinCUSUM.runlength)
 export(nowcast, backprojNP)
 
@@ -173,8 +176,8 @@ S3method(print, algoQV)
 S3method(xtable, algoQV)
 
 export(test, testSim)   # FIXME: do we really want that?
-# if not, then we have to prefix all test() and testSim() calls in the corresponding
-# examples in the Rd files by "surveillance:::"
+# if not, then we have to prefix all test() and testSim() calls in the
+# corresponding examples in the Rd files by "surveillance:::"
 
 
 ### conversion between old disProg and new sts classes
@@ -227,9 +230,10 @@ export(intensityplot.simEpidata)        # for convenience
 export(as.epidataCS)
 export(twinstim)
 export(simEpidataCS)
-export(siaf.constant, siaf.gaussian, siaf.lomax, qlomax)
+export(siaf.constant, siaf.gaussian, siaf.lomax, qlomax, siaf.powerlaw)
 export(tiaf.constant, tiaf.exponential)
 
+S3method(nobs, epidataCS)
 S3method("[", epidataCS)
 S3method(update, epidataCS)
 export(update.epidataCS)                # for convenience
@@ -253,20 +257,40 @@ S3method(summary, twinstim)
 export(summary.twinstim)                # for convenience
 S3method(print, summary.twinstim)
 S3method(toLatex, summary.twinstim)
+S3method(xtable, summary.twinstim)
+export(xtable.summary.twinstim)         # for xtable.twinstim
+S3method(xtable, twinstim)
 S3method(plot, twinstim)
 export(iafplot)
 export(intensity.twinstim)
 S3method(intensityplot, twinstim)
 export(intensityplot.twinstim)          # for convenience
 S3method(profile, twinstim)
+S3method(coef, summary.twinstim)
 S3method(vcov, twinstim)
+S3method(vcov, summary.twinstim)
 S3method(logLik, twinstim)
+S3method(extractAIC, twinstim)
+S3method(nobs, twinstim)
 S3method(simulate, twinstim)
 export(simulate.twinstim)               # for convenience
 S3method(R0, twinstim)
 S3method(residuals, twinstim)
 S3method(update, twinstim)
 export(update.twinstim)                 # for convenience
+S3method(terms, twinstim)
+
+export(stepComponent)
+S3method(terms, twinstim_stependemic)
+S3method(terms, twinstim_stepepidemic)
+S3method(update, twinstim_stependemic)
+S3method(update, twinstim_stepepidemic)
+S3method(add1, twinstim)
+S3method(add1, twinstim_stependemic)
+S3method(add1, twinstim_stepepidemic)
+S3method(drop1, twinstim)
+S3method(drop1, twinstim_stependemic)
+S3method(drop1, twinstim_stepepidemic)
 
 S3method(R0, simEpidataCS)
 S3method(intensityplot, simEpidataCS)

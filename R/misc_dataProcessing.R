@@ -16,7 +16,7 @@ readData <- function(abb,week53to52=TRUE,sysPath=TRUE){
     #Prepend the systempath/data to the filename
     #hoehle 2012-07-24 - this does not work when package is not
     #installed. Use extdata as recommended in the file package structure.
-    file <- file.path(.path.package('surveillance'),'extdata',paste(abb,".txt",sep=""))
+    file <- file.path(path.package('surveillance'),'extdata',paste(abb,".txt",sep=""))
   } else {
     file <- file.path(paste(abb,".txt",sep=""))
   }

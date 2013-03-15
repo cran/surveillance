@@ -10,7 +10,7 @@ untie <- function (x, amount, ...) UseMethod("untie")
 ## internal function with methods for "twinSIR" and "simEpidata"
 getModel <- function (object, ...) UseMethod("getModel")
 
-## internal function with methods for SpatialPolygons, gpc.poly, and owin
+## internal function with methods for [Spatial]Polygon[s], gpc.poly, owin
 xylist <- function (object, ...) UseMethod("xylist")
 
 ## (rather internal) generic with a default and a "Spatial" method

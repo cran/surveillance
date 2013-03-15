@@ -36,8 +36,9 @@ iafplot(object, which = c("siaf", "tiaf"),
   }
   \item{scaled}{
     logical indicating if the interaction function should be multiplied
-    by the epidemic intercept \eqn{exp(\gamma_0)}. This is especially
-    useful if different interaction functions are to be compared.
+    by the epidemic intercept \eqn{exp(\gamma_0)}. This is required
+    for the comparison of estimated interaction functions from
+    different models.
   }
   \item{conf.type}{
     type of confidence interval to produce. If \code{"bootstrap"},

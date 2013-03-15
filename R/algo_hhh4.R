@@ -6,9 +6,9 @@
 ### hhh4 is an extended version of algo.hhh for the sts-class
 ### The function allows the incorporation of random effects and covariates.
 ###
-### Copyright (C) 2012 Michaela Paul and Sebastian Meyer
-### $Revision: 475 $
-### $Date: 2012-12-13 12:38:02 +0100 (Do, 13. Dez 2012) $
+### Copyright (C) 2010-2013 Michaela Paul and Sebastian Meyer
+### $Revision: 483 $
+### $Date: 2013-01-24 16:36:51 +0100 (Do, 24. Jan 2013) $
 ################################################################################
 
 # - some function arguments are currently not used (but will eventually)
@@ -2304,21 +2304,26 @@ newtonRaphson <- function(x,fn,..., control=list(), verbose=FALSE){
 ##############
 addSeason2formula <- function(f=~1,       # formula to start with
                               S=1,         # number of sine/cosine pairs
-                              period=52
+                              period=52,
+                              timevar="t"
                               ){
   # return formula as is if S = 0
   if(max(S) == 0) return(f)
   
-  f <- deparse(f)
+  f <- paste(deparse(f), collapse="")
   # create formula
-  if(max(S)>0 && length(S)==1){
+  if(length(S)==1 && S>0){
     for(i in 1:S){
-      f <- paste(f,"+sin(",2*i,"*pi*t/",period,")+cos(",2*i,"*pi*t/",period,")",sep="")
+      f <- paste0(f,
+                  " + sin(",2*i,"*pi*",timevar,"/",period,")",
+                  " + cos(",2*i,"*pi*",timevar,"/",period,")")
     }
   } else {
     for(i in 1:max(S)){
       which <- paste(i <= S,collapse=",")
-      f <- paste(f,"+ fe( sin(",2*i,"*pi*t/",period,"), which=c(",which,")) + fe( cos(",2*i,"*pi*t/",period,"), which=c(",which,"))",sep="")
+      f <- paste0(f,
+                  " + fe( sin(",2*i,"*pi*",timevar,"/",period,"), which=c(",which,"))",
+                  " + fe( cos(",2*i,"*pi*",timevar,"/",period,"), which=c(",which,"))")
     }
   }
   return(as.formula(f, env=.GlobalEnv))

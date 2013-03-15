@@ -6,9 +6,9 @@
 ### Methods for objects of class "twinstim", specifically:
 ### vcov, logLik, print, summary, plot (intensity, iaf), R0, residuals, update
 ###
-### Copyright (C) 2009-2012 Sebastian Meyer
-### $Revision: 473 $
-### $Date: 2012-12-11 00:47:45 +0100 (Di, 11. Dez 2012) $
+### Copyright (C) 2009-2013 Sebastian Meyer
+### $Revision: 519 $
+### $Date: 2013-02-26 17:26:36 +0100 (Di, 26. Feb 2013) $
 ################################################################################
 
 
@@ -18,12 +18,38 @@
 ##     object$coefficients
 ## }
 
-# asymptotic variance-covariance matrix (inverse of fisher information matrix)
+### but a method to extract the coefficients in a list might be useful
+## "npars" is a named vector or list, where each element states the number of
+## coefficients in a group of coefficients.
+coeflist <- function (coefs, npars)
+{
+    coeflist <- vector("list", length(npars))
+    names(coeflist) <- names(npars)
+    csum <- c(0L,cumsum(npars))
+    for (i in seq_along(coeflist)) {
+        coeflist[[i]] <- coefs[seq.int(from=csum[i]+1L, length.out=npars[[i]])]
+    }
+    coeflist
+}
+
+## extended and twinstim-specific version,
+## which renames elements and unions nbeta0 and p as "endemic"
+mycoeflist <- function (coefs, npars)
+{
+    coeflist <- coeflist(coefs, npars)
+    coeflist <- c(list(c(coeflist[[1]], coeflist[[2]])), coeflist[-(1:2)])
+    names(coeflist) <- c("endemic", "epidemic", "siaf", "tiaf")
+    coeflist
+}
+
+
+## asymptotic variance-covariance matrix (inverse of fisher information matrix)
 vcov.twinstim <- function (object, ...)
 {
     solve(object$fisherinfo)  # inverse of estimated expected fisher information
 }
 
+## Extract log-likelihood of the model (which also enables the use of AIC())
 logLik.twinstim <- function (object, ...)
 {
     r <- object$loglik
@@ -32,6 +58,19 @@ logLik.twinstim <- function (object, ...)
     r
 }
 
+## Also define an extractAIC-method to make step() work
+extractAIC.twinstim <- function (fit, scale, k = 2, ...)
+{
+    loglik <- logLik(fit)
+    edf <- attr(loglik, "df")
+    penalty <- k * edf
+    c(edf = edf, AIC = -2 * c(loglik) + penalty)            
+}
+
+## Number of events (excluding the pre-history)
+nobs.twinstim <- function (object, ...) length(object$fitted)
+
+## print-method
 print.twinstim <- function (x, digits = max(3, getOption("digits") - 3), ...)
 {
     cat("\nCall:\n")
@@ -85,6 +124,14 @@ summary.twinstim <- function (object, test.iaf = FALSE,
     ans
 }
 
+## additional methods to make confint.default work for summary.twinstim
+vcov.summary.twinstim <- function (object, ...) object$cov
+coef.summary.twinstim <- function (object, ...) with(object, {
+    coeftab <- rbind(coefficients.beta, coefficients.gamma, coefficients.iaf)
+    structure(coeftab[,1], names=rownames(coeftab))
+})
+
+## print-method for summary.twinstim
 print.summary.twinstim <- function (x,
     digits = max(3, getOption("digits") - 3), symbolic.cor = x$symbolic.cor,
     signif.stars = getOption("show.signif.stars"), ...)
@@ -108,27 +155,6 @@ print.summary.twinstim <- function (x,
 #             printCoefmat(x$coefficients.iaf, digits = digits, signif.stars = signif.stars, ...)
 #         }
     } else cat("\nNo epidemic component.\n")
-#     nEvents <- x$nEvents
-#     nh0 <- length(nEvents)
-#     if (nh0 < 2L) {
-#         cat("\nTotal number of infections: ", nEvents, "\n")
-#     } else {
-#         cat("\nBaseline intervals:\n")
-#         intervals <- character(nh0)
-#         for(i in seq_len(nh0)) {
-#             intervals[i] <-
-#             paste("(",
-#                   paste(format(x$intervals[c(i,i+1L)],trim=TRUE), collapse=";"),
-#                   "]", sep = "")
-#         }
-#         names(intervals) <- paste("logbaseline", seq_len(nh0), sep=".")
-#         print.default(rbind("Time interval" = intervals,
-#                             "Number of events" = nEvents),
-#                       quote = FALSE, print.gap = 2)
-#     }
-#     cat("\n", attr(x$aic, "type"), ": ", format(x$aic, digits=max(4, digits+1)),
-#         if (!attr(x$aic, "exact")) "\t(simulated penalty weights)" else "",
-#         sep = "")
     cat("\nAIC: ", format(x$aic, digits=max(4, digits+1)))
     cat("\nLog-likelihood:", format(x$loglik, digits = digits))
     cat("\nNumber of log-likelihood evaluations:", x$counts[1])
@@ -166,13 +192,14 @@ print.summary.twinstim <- function (x,
 
 ### 'cat's the summary in LaTeX code
 
-toLatex.summary.twinstim <- function (object, digits = max(3, getOption("digits") - 3),
-                                      align = "rrrrr", withAIC = TRUE, ...)
+toLatex.summary.twinstim <- function (object,
+                                      digits = max(3, getOption("digits") - 3),
+                                      eps.Pvalue = 1e-4,
+                                      align = "lrrrr", withAIC = FALSE, ...)
 {
 ret <- capture.output({
     cat("\\begin{tabular}{", align, "}\n\\hline\n", sep="")
-    cat(" & Estimate & Std. Error & $z$ value & $\\P(|Z|>|z|)$ \\\\\n\\hline\n\\hline\n")
-
+    cat(" & Estimate & Std. Error & $z$ value & $P(|Z|>|z|)$ \\\\\n\\hline\n\\hline\n")
     tabh <- object$coefficients.beta
     tabe <- rbind(object$coefficients.gamma, object$coefficients.iaf)
     for (tabname in c("tabh", "tabe")) {
@@ -180,15 +207,17 @@ ret <- capture.output({
         if (nrow(tab) > 0L) {
             rownames(tab) <- gsub(" ", "", rownames(tab))
             tab_char <- capture.output(
-                        printCoefmat(tab,digits=digits,signif.stars=FALSE,na.print="NA")
+                        printCoefmat(tab, digits=digits, signif.stars=FALSE,
+                                     eps.Pvalue = eps.Pvalue, na.print="NA")
                         )[-1]
+            #tab_char <- sub("< (0\\..+)$", "<\\1", tab_char)
             tab_char <- sub("([<]?)[ ]?([0-9]+)e([+-][0-9]+)$",
                             "\\1\\2\\\\cdot{}10^{\\3}",
                             tab_char)
             con <- textConnection(tab_char)
             tab2 <- read.table(con, colClasses="character")
             close(con)
-            rownames(tab2) <- paste0("\\texttt{",tab2[,1],"}")
+            rownames(tab2) <- paste0("\\texttt{",gsub("_","\\\\_",tab2[,1]),"}")
             tab2 <- tab2[,-1]
             tab2[] <- lapply(tab2, function(x) {
                 ifelse(is.na(x), "", paste0("$",x,"$")) # (test.iaf=FALSE)
@@ -209,6 +238,50 @@ ret <- capture.output({
 class(ret) <- "Latex"
 ret
 }
+
+
+## Alternative implementation including exp-transformation of parameters
+## CAVE: no iaf parameters here
+
+xtable.summary.twinstim <- function (x, caption = NULL, label = NULL,
+                             align = c("l", "r", "r", "r"), digits = 3,
+                             display = c("s", "f", "s", "s"),
+                             ci.level = 0.95, ci.fmt = "%4.2f", ci.to = "--",
+                             eps.pvalue = 1e-4, ...)
+{
+    cis <- confint(x, level=ci.level)
+    tabh <- x$coefficients.beta
+    tabe <- x$coefficients.gamma
+    tab <- rbind(tabh, tabe)
+    tab <- tab[grep("^([he]\\.\\(Intercept\\)|h.type)", rownames(tab),
+                    invert=TRUE),,drop=FALSE]
+    expcis <- exp(cis[rownames(tab),,drop=FALSE])
+    cifmt <- paste0(ci.fmt, ci.to, ci.fmt)
+    rrtab <- data.frame(RR = exp(tab[,1]),
+                        CI = sprintf(cifmt, expcis[,1], expcis[,2]),
+                        "p-value" = formatPval(tab[,4], eps=eps.pvalue),
+                        check.names = FALSE, stringsAsFactors=FALSE)
+    names(rrtab)[2] <- paste0(100*ci.level, "%-CI")
+
+    ## append caption etc.
+    class(rrtab) <- c("xtable", "data.frame")
+    caption(rrtab) <- caption
+    label(rrtab) <- label
+    align(rrtab) <- align
+    digits(rrtab) <- digits
+    display(rrtab) <- display
+
+    ## Done
+    rrtab
+}
+
+xtable.twinstim <- function () {
+    cl <- match.call()
+    cl[[1]] <- as.name("xtable.summary.twinstim")
+    cl$x <- substitute(summary(x))
+    eval.parent(cl)                # => xtable.summary.twinstim must be exported
+}
+formals(xtable.twinstim) <- formals(xtable.summary.twinstim)
 
 
 ### Plot temporal or spatial evolution of the intensity
@@ -540,7 +613,9 @@ iafplot <- function (object, which = c("siaf", "tiaf"),
     
     ## grid of x-values (t or ||s||) on which FUN will be evaluated
     if (is.null(xlim)) {
-        xmax <- if (which == "siaf") {
+        xmax <- if (add) {
+            par("usr")[2] / (if (par("xaxs")=="r") 1.04 else 1)
+        } else if (which == "siaf") {
             sqrt(sum((object$bbox[,"max"] - object$bbox[,"min"])^2))
         } else {
             diff(object$timeRange)
@@ -992,50 +1067,32 @@ profile.twinstim <- function (fitted, profile, alpha = 0.05,
 ## update.default method from the stats package developed by The R Core Team
 
 update.twinstim <- function (object, endemic, epidemic, optim.args, model,
-                             ..., evaluate = TRUE)
+                             ..., use.estimates = TRUE, evaluate = TRUE)
 {
     call <- object$call
     thiscall <- match.call(expand.dots=FALSE)
-
+    extras <- thiscall$...
+    
     if (!missing(model)) {
         call$model <- model
-        ## Special case: update model component only
+        ## Special case: update model component ONLY
         if (evaluate &&
             all(names(thiscall)[-1] %in% c("object", "model", "evaluate"))) {
-            if (model) {                # add model environment
-                call$optim.args$par <- coef(object)
-                call$optim.args$fixed <- seq_along(coef(object))
-                call$cumCIF <- FALSE
-                cat("Setting up the model environment ...\n")
-                capture.output(suppressMessages(
-                    objectWithModel <- eval(call, parent.frame())
-                ))
-                cat("Done.\n")
-                object$formula <- objectWithModel$formula
-                object$functions <- objectWithModel$functions
-                ## CAVE: order of components of the twinstim-object
-                object <- object[c(1:match("formula", names(object)),
-                                 match(c("functions", "call", "runtime"), names(object)))]
-                environment(object) <- environment(objectWithModel)
-                ## re-add class attribute (dropped on re-ordering)
-                class(object) <- "twinstim"
-            } else {                    # remove model environment
-                environment(object$formula$epidemic) <-
-                    environment(object$formula$endemic) <- .GlobalEnv
-                object$functions <- NULL
-                environment(object) <- NULL
-            }
-            object$call$model <- model
-            return(object)
+            return(.update.twinstim.model(object, model))
         }
     }
     if (!missing(endemic))
-        call$endemic <- update(formula(object)$endemic, endemic)
+        call$endemic <- if (is.null(call$endemic)) endemic else {
+            update.formula(call$endemic, endemic)
+            ##<- update.formula did simplify but order of terms is retained
+        }
     if (!missing(epidemic))
-        call$epidemic <- update(formula(object)$epidemic, epidemic)
+        call$epidemic <- if (is.null(call$epidemic)) epidemic else {
+            update.formula(call$epidemic, epidemic)
+        }
     if (!missing(optim.args)) {
         oldargs <- call$optim.args
-        call$optim.args <- if (is.list(optim.args)) {
+        call$optim.args <- if (!is.null(oldargs) && is.list(optim.args)) {
             if (is.listcall(oldargs)) {
                 modifyListcall(oldargs, thiscall$optim.args)
             } else {                    # i.e. is.list(oldargs)
@@ -1043,7 +1100,17 @@ update.twinstim <- function (object, endemic, epidemic, optim.args, model,
             }
         } else thiscall$optim.args
     }
-    extras <- thiscall$...
+    ## Set initial values (will be appropriately subsetted and/or extended with
+    ## zeroes inside twinstim())
+    call$start <- if (use.estimates) coef(object) else call$optim.args$par
+    if ("start" %in% names(extras)) {
+        call$start <- call("c", call$start, extras$start)
+        ##<- if names appear both in the first and second set, the last
+        ##   occurrence will be chosen in twinstim()
+        extras$start <- NULL
+    }
+    if (missing(optim.args) || !"par" %in% names(optim.args))
+        call$optim.args$par <- NULL
     ## CAVE: the remainder is copied from stats::update.default (as at R-2.15.0)
     if(length(extras)) {
 	existing <- !is.na(match(names(extras), names(call)))
@@ -1057,3 +1124,39 @@ update.twinstim <- function (object, endemic, epidemic, optim.args, model,
     if(evaluate) eval(call, parent.frame())
     else call
 }
+
+.update.twinstim.model <- function (object, model)
+{
+    call <- object$call
+    call$model <- model
+    if (model) { # add model environment
+        call$optim.args$par <- coef(object)
+        call$optim.args$fixed <- seq_along(coef(object))
+        call$cumCIF <- FALSE
+        cat("Setting up the model environment ...\n")
+        capture.output(suppressMessages(
+                       objectWithModel <- eval(call, parent.frame())
+                       ))
+        cat("Done.\n")
+        object$functions <- objectWithModel$functions
+        ## CAVE: order of components of the twinstim-object
+        object <- object[c(1:match("formula", names(object)),
+                           match(c("functions", "call", "runtime"), names(object)))]
+        environment(object) <- environment(objectWithModel)
+        ## re-add class attribute (dropped on re-ordering)
+        class(object) <- class(objectWithModel)
+    } else { # remove model environment
+        object$functions <- NULL
+        environment(object) <- NULL
+    }
+    object$call$model <- model
+    object
+}
+
+## a terms-method is required for stepComponent()
+terms.twinstim <- function (x, component=c("endemic", "epidemic"), ...)
+{
+    component <- match.arg(component)
+    terms.formula(x$formula[[component]], keep.order=TRUE)
+}
+

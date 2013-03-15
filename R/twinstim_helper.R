@@ -5,9 +5,9 @@
 ###
 ### Some internal helper functions for "twinstim".
 ###
-### Copyright (C) 2009-2012 Sebastian Meyer
-### $Revision: 446 $
-### $Date: 2012-10-23 15:54:41 +0200 (Di, 23. Okt 2012) $
+### Copyright (C) 2009-2013 Sebastian Meyer
+### $Revision: 527 $
+### $Date: 2013-03-08 13:25:48 +0100 (Fr, 08. Mrz 2013) $
 ################################################################################
 
 
@@ -126,6 +126,15 @@ gridcellOfEvent <- function (t, tilename, stgrid)
     }
 }
 
+
+## Crude estimate for a start value of the endemic intercept
+## assuming the model only had a single-cell endemic component
+## (rate of homogeneous Poisson process scaled for the offset)
+crudebeta0 <- function (nEvents, offset.mean, W.area, period, nTypes)
+{
+    ## nEvents = exp(offset + beta0) * W.area * period * nTypes
+    log(nEvents/W.area/period/nTypes) - offset.mean
+}
 
 
 ### Really internal helper function, which constructs the function that
@@ -266,4 +275,51 @@ control2nlminb <- function (control, defaults)
     }
     defaults[names(control)] <- control
     defaults
+}
+
+
+### Helper for iaf-checks:
+### Checks if FUN has three arguments (s/t, pars, type) and
+### eventually adds the last two
+
+.checknargs3 <- function (FUN, name)
+{
+    FUN <- match.fun(FUN)
+    NARGS <- length(formals(FUN))
+    if (NARGS == 0L) {
+        stop("the function '", name, "' must accept at least one argument")
+    } else if (NARGS == 1L) {
+        formals(FUN) <- c(formals(FUN), alist(pars=, types=))
+    } else if (NARGS == 2L) {
+        formals(FUN) <- c(formals(FUN), alist(types=))
+    }
+    FUN
+}
+
+
+### Internal wrapper used in twinstim() and simEpidataCS() to evaluate the siaf
+### and tiaf arguments. If succesful, returns checked interaction function.
+
+.parseiaf <- function (iaf, type = c("siaf", "tiaf"), verbose = TRUE)
+{
+    type <- match.arg(type)
+    if (missing(iaf) || is.null(iaf)) {
+        if (verbose) {
+            message("assuming constant ",
+                    switch(type, siaf="spatial", tiaf="temporal"),
+                    " interaction '", type, ".constant()'")
+        }
+        do.call(paste(type, "constant", sep="."), args=alist())
+    } else if (is.list(iaf)) {
+        ret <- do.call(type, args = iaf)
+        attr(ret, "constant") <- isTRUE(attr(iaf, "constant"))
+        ret
+    } else if (is.vector(iaf, mode = "numeric")) {
+        stop("'knots' are not implemented for '",type,"'")
+        do.call(type, args = list(knots = iaf))
+    } else {
+        stop("'", as.character(substitute(iaf)),
+             "' must be NULL (or missing), a list (-> continuous ",
+             "function), or numeric (-> knots of step function)")
+    }
 }
