@@ -44,8 +44,9 @@ polyCub.exact.Gauss(polyregion, mean = c(0,0), Sigma = diag(2),
     \pkg{spatstat} class \code{"\link[spatstat]{owin}"} (by
     \code{\link[spatstat]{as.owin}}).
     The \code{polyCub.SV} method allows for classes \code{"\link[spatstat]{owin}"},
-    \code{"\link[gpclib:gpc.poly-class]{gpc.poly}"}, and
-    \code{"\linkS4class{SpatialPolygons}"}.
+    \code{"\link[gpclib:gpc.poly-class]{gpc.poly}"},
+    \code{"\linkS4class{SpatialPolygons}"},
+    \code{"\linkS4class{Polygons}"}, and \code{"\linkS4class{Polygon}"}.
 
     Finally, the \code{polyCub.exact.Gauss} method assumes
     \code{polyregion} to be anything coercible to a

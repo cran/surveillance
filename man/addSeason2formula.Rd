@@ -10,7 +10,7 @@
   seasonal variation via a sum of sine and cosine terms. 
 }
 \usage{
-addSeason2formula(f = ~1, S = 1, period = 52)
+addSeason2formula(f = ~1, S = 1, period = 52, timevar = "t")
 }
 \arguments{
   \item{f}{
@@ -25,6 +25,9 @@ addSeason2formula(f = ~1, S = 1, period = 52)
   \item{period}{
   period of the season, defaults to 52 for weekly data.
 }
+  \item{timevar}{
+    the time variable in the model. Defaults to \code{"t"}.
+  }
 }
 \details{
   The function adds the seasonal terms
@@ -36,8 +39,8 @@ addSeason2formula(f = ~1, S = 1, period = 52)
               + delta_s * cos(2*pi*s/period * t),
         }
   where \eqn{\gamma_s}{gamma_s} and \eqn{\delta_s}{delta_s} are the unknown 
-  parameters and \eqn{t}, \eqn{t = 1, 2, \ldots} denotes a time variable, 
-  to an existing formula \code{f}.
+  parameters and \eqn{t}, \eqn{t = 1, 2, \ldots} denotes the time
+  variable \code{timevar}, to an existing formula \code{f}.
 
   Note that the seasonal terms can also be expressed as
   \deqn{\gamma_{s} \sin(\frac{2\pi s}{\code{period}} t) + \delta_{s} \cos(\frac{2\pi s}{\code{period}} t) = 
@@ -54,11 +57,12 @@ addSeason2formula(f = ~1, S = 1, period = 52)
 \value{
   Returns a \code{\link{formula}} object with the seasonal terms.
   Note that to use the resulting formula in \code{\link{hhh4}}, 
-  a time variable named \code{t} must be available.
+  a time variable named as specified by the argument \code{timevar} must
+  be available.
 }
 
 \author{
-M. Paul
+M. Paul, with contributions by S. Meyer
 }
 
 \seealso{

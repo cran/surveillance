@@ -15,10 +15,10 @@
 \usage{
 twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
          subset, t0 = data$stgrid$start[1], T = tail(data$stgrid$stop,1),
-         na.action = na.fail, partial = FALSE,
+         na.action = na.fail, start = NULL, partial = FALSE,
          control.siaf = list(F = list(), Deriv = list()),
-         optim.args, finetune = FALSE,
-         model = FALSE, cumCIF = TRUE, cumCIF.pb = TRUE)
+         optim.args = list(), finetune = FALSE,
+         model = FALSE, cumCIF = TRUE, cumCIF.pb = TRUE, verbose = TRUE)
 }
 
 \arguments{
@@ -41,8 +41,12 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     (corresponding to \code{siaf.constant()}, i.e. constant infectivity 
     independent of the spatial distance from the host), a list
     (specifying a continuous kernel, as e.g., returned by the functions
-    \code{\link{siaf.gaussian}} or \code{\link{siaf.lomax}}), or numeric
+    \code{\link{siaf.gaussian}} or \code{\link{siaf.powerlaw}}), or numeric
     (knots of a step function).
+    If you run into \dQuote{false convergence} with a non-constant
+    \code{siaf} specification, the numerical accuracy of the cubature
+    methods is most likely too low (see the \code{control.siaf}
+    argument).
   }
   \item{tiaf}{
     temporal interaction function. May be \code{NULL} (or missing,
@@ -81,6 +85,28 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     \code{\link{na.pass}}. Missing values in the spatio-temporal grid
     \code{data$stgrid} are not accepted.
   }
+  \item{start}{
+    a named vector of initial values for (a subset of) the parameters.
+    The names must conform to the conventions of \code{twinstim} to be
+    assigned to the correct model terms. For instance,
+    \code{"h.(Intercept)"} = endemic intercept,
+    \code{"h.I(start/365)"} = coefficient of a linear time
+    trend in the endemic component, \code{"h.factorB"} =
+    coefficient of the level B of the factor variable \code{factor} in
+    the endemic predictor, \code{"e.(Intercept)"} = epidemic intercept,
+    \code{"e.VAR"} = coefficient of the epidemic term \code{VAR},
+    \code{"e.siaf.2"} = second \code{siaf} parameter,
+    \code{"e.tiaf.1"} = first \code{tiaf} parameter.
+    Elements which don't match any of the model parameters are ignored.
+
+    Alternatively, \code{start} may also be a named list with elements
+    \code{"endemic"} or \code{"h"}, \code{"epidemic"} or \code{"e"},
+    \code{"siaf"} or \code{"e.siaf"}, and \code{"tiaf"} or \code{"e.tiaf"},
+    each of which containing a named numeric vector with the term labels
+    as names (i.e. without the prefix \code{"h."}, \code{"e."}, etc).
+    Thus, \code{start=list(endemic=c("(Intercept)"=-10))} is equivalent
+    to \code{start=c("h.(Intercept)"=-10)}.
+  }
   \item{partial}{
     logical indicating if a partial likelihood similar to the approach
     by Diggle et al. (2010) should be used (default is \code{FALSE}).
@@ -92,22 +118,43 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     \code{siaf$Deriv}, respectively.\cr
     These arguments mainly determine the accuracy of the numerical
     cubature rules involved in non-constant \code{siaf} specifications,
-    e.g., the bandwidth (\code{eps}) of the midpoint rule or the number
-    of (univariate) Gaussian quadrature points (\code{nGQ}), see
-    the help on \code{\link{siaf.gaussian}}.
+    e.g., the bandwidth of the midpoint rule or the number
+    of Gaussian quadrature points.
+    For instance, \code{\link{siaf.gaussian}} by default uses the
+    midpoint-cubature (see \code{\link{polyCub.midpoint}}) with an
+    adaptive bandwidth of \code{adapt*sd} to numerically integrate the
+    kernel \eqn{f(\bold{s})} over polygonal domains. The \code{adapt}
+    parameter defaults to 0.1, but may be modified via setting
+    \code{control.siaf$F$adapt}. In contrast, \code{polyCub.SV} with
+    \code{nGQ=20} is by default used to numerically integrate the
+    derivative of \eqn{f(\bold{s})} wrt the kernel parameters over
+    polygonal domains. The number of cubature points may be modified via
+    setting \code{control.siaf$Deriv$nGQ}.\cr
     This argument list is ignored in the case
     \code{siaf=siaf.constant()} (which is the default if \code{siaf} is
     unspecified).
   }
   \item{optim.args}{
-    \code{NULL} or an argument list passed to \code{\link{optim}} containing
-    at least the element \code{par}, the start values of the parameters in
-    the order \code{par = c(endemic, epidemic, siaf, tiaf)}.
-    Note that \code{optim} receives the negative log-likelihood for minimization
-    (thus, if used, \code{optim.args$control$fnscale} should be
+    an argument list passed to \code{\link{optim}}, or \code{NULL}, in
+    which case no optimization will be performed
+    but the necessary functions will be returned in a list (similar to
+    what is returned if \code{model = TRUE}).
+
+    Initial values for the parameters may be given as list element
+    \code{par} in the order \code{(endemic, epidemic, siaf, tiaf)}.
+    If no initial values are provided, a crude estimate for the endemic
+    intercept will be used (see the Examples),
+    but just zeroes for the remaining parameters.
+    However, any initial values given in the \code{start} argument
+    take precedence over those in \code{par}.
+    
+    Note that \code{optim} receives the negative log-likelihood for 
+    minimization (thus, if used, \code{optim.args$control$fnscale} should be
     positive). The \code{hessian} argument defaults to \code{TRUE} and
     in the \code{control} list, \code{trace}ing is enabled with
-    \code{REPORT=5} by default. 
+    \code{REPORT=5} by default. By setting
+    \code{optim.args$control$trace = 0}, all output from the
+    optimization routine is suppressed.
 
     For the \code{partial} likelihood, the analytic score function and
     the Fisher information are not implemented and the default is to use
@@ -115,12 +162,10 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     
     There may be an extra component \code{fixed} in the
     \code{optim.args} list, which determines which parameters should stick
-    to their initial (\code{par}) values. This can be specified by a
+    to their initial values. This can be specified by a
     logical vector of the same length as the \code{par} component, by an
     integer vector indexing \code{par} or by a character vector following
-    the \code{twinstim} naming conventions (e.g. \code{"h.(Intercept)"} for
-    the endemic intercept, \code{"e.siaf.1"} for the first \code{siaf}
-    parameter).
+    the \code{twinstim} naming conventions.
     
     Importantly, the \code{method} argument in the \code{optim.args}
     list may also be \code{"nlminb"}, in 
@@ -144,11 +189,7 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     approximation is used).
 
     Similary, \code{method="nlm"} should also work but is not
-    recommended here.
-    
-    If \code{optim.args} is \code{NULL}, then no optimization will be performed
-    but the necessary functions will be returned in a list (similar to what is
-    returned if \code{model = TRUE}).
+    recommended here.    
   }
   \item{finetune}{
     logical indicating if a second maximisation should be performed with
@@ -179,6 +220,10 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
   \item{cumCIF.pb}{
     logical indicating if a progress bar should be shown
     during the calculation of \code{cumCIF}. Defaults to \code{TRUE}.
+  }
+  \item{verbose}{
+    logical indicating if information should be printed during
+    execution. Defaults to \code{TRUE}.
   }
 }
 
@@ -261,6 +306,15 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
   the result.
 }
 
+\note{
+  \code{twinstim} makes use of the \pkg{memoise} package if it is
+  available -- and that is highly recommended for non-constant
+  \code{siaf} specifications to speed up calculations. Specifically, the
+  necessary numerical integrations of the spatial interaction function
+  will be cached such that they are only calculated once for every
+  state of the \code{siaf} parameters during optimization.
+}
+
 \references{
   Diggle, P. J., Kaimi, I. & Abellana, R. (2010):
   Partial-likelihood analysis of spatio-temporal point-process data.
@@ -304,9 +358,10 @@ data("imdepi")
 
 ### first, fit a simple endemic-only model
 
-## As a start value for the endemic intercept use the crude estimate
-## assuming the model only had a single-cell endemic component
-## (rate of homogeneous Poisson process scaled for population density)
+## Calculate initial value for the endemic intercept (the crude estimate
+## which is used by default if no initial value is supplied).
+## Assume the model only had a single-cell endemic component
+## (rate of homogeneous Poisson process scaled for population density):
 popdensity.overall <- with(subset(imdepi$stgrid, BLOCK == 1),
     weighted.mean(popdensity, area))
 popdensity.overall   # pop. density in Germany is ~230 inhabitants/km^2
@@ -316,7 +371,7 @@ W.area               # area of Germany is about 357100 km^2
 sum(sapply(imdepi$W@polygons, slot, "area"))
 # which here is not exactly the case because of polygon simplification
 
-## start value for the endemic intercept
+## initial value for the endemic intercept
 h.intercept <- with(summary(imdepi),
     log(nEvents/popdensity.overall/diff(timeRange)/W.area))
 
@@ -325,7 +380,7 @@ m_noepi <- twinstim(
     endemic = ~ 1 + offset(log(popdensity)) + I(start/365) +
                 sin(start * 2 * pi/365) + cos(start * 2 * pi/365),
     data = imdepi, subset = !is.na(agegrp),
-    optim.args = list(par=c(h.intercept,rep(0,3)),
+    optim.args = list(par=c(h.intercept,rep(0,3)), # this is the default
                       method="nlminb", control = list(trace=1)),
     model = FALSE, cumCIF = FALSE   # for reasons of speed
 )
@@ -337,9 +392,7 @@ summary(m_noepi)
 if (surveillance.options("allExamples"))
 {
   ## type-dependent endemic intercept?
-  m_noepi_type <- update(m_noepi,
-                         endemic = ~(1|type) + .,
-                         optim.args=list(par=coef(m_noepi)[c(1,1:4)]))
+  m_noepi_type <- update(m_noepi, endemic = ~(1|type) + .)
   summary(m_noepi_type)
   
   # LR-test for a type-dependent intercept in the endemic-only model
@@ -351,15 +404,13 @@ if (surveillance.options("allExamples"))
 ### assuming uniform dispersal in time and space up to a distance of
 ### eps.s = 200 km and eps.t = 30 days (see summary(imdepi))
 
-m0 <- update(m_noepi, epidemic = ~1,
-             optim.args = list(par=c(coef(m_noepi),-18)), model = TRUE)
+m0 <- update(m_noepi, epidemic=~1, start=c("e.(Intercept)"=-18), model=TRUE)
 
 \dontrun{
 ## NOTE: in contrast to using nlminb() optim's BFGS would miss the
 ##       likelihood maximum wrt the epidemic intercept if starting at -10
-m0_BFGS <- update(m_noepi, epidemic = ~1,
-                  optim.args = list(par=c(coef(m_noepi),-10),
-                                    method="BFGS"))
+m0_BFGS <- update(m_noepi, epidemic=~1, start=c("e.(Intercept)"=-10),
+                  optim.args = list(method="BFGS"))
 format(cbind(coef(m0), coef(m0_BFGS)), digits=3, scientific=FALSE)
 m0_BFGS$fisherinfo   # singular Fisher information matrix here
 m0$fisherinfo
@@ -413,8 +464,8 @@ if (surveillance.options("allExamples"))
 
   m1 <- update(m0,
       siaf = siaf.gaussian(1, F.adaptive = TRUE),
-      optim.args = list(par=c(coef(m0), 2.8),  # exp(2.8) = sigma = 16 km
-                        fixed="e.siaf.1"),
+      start = c("e.siaf.1" = 2.8),  # exp(2.8) = sigma = 16 km
+      optim.args = list(fixed="e.siaf.1"),
                         # for reasons of speed of the example, the siaf
                         # parameter log(sigma) is fixed to 2.8 here
       control.siaf = list(F=list(adapt=0.25)) # use adaptive eps=sigma/4
@@ -427,10 +478,7 @@ if (surveillance.options("allExamples"))
 
   ### add epidemic covariates
 
-  m2 <- update(m1,
-      epidemic = ~ 1 + type + agegrp,
-      optim.args = list(par=c(coef(m0), 0, 0, 0, coef(m1)["e.siaf.1"]))
-  )
+  m2 <- update(m1, epidemic = ~ 1 + type + agegrp)
   
   AIC(m1, m2)   # further improvement
   summary(m2)

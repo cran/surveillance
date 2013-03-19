@@ -46,7 +46,7 @@ init.sts <- function(.Object, epoch, start=c(2000,1), freq=52, observed, state=0
       }
     }
     
-    #check neighbourhood matrix
+    #check neighbourhood matrix. 
     if(!is.null(neighbourhood) & (any(dim(neighbourhood) != nAreas))) {
       cat('wrong dimensions of neighbourhood matrix \n')
       return(NULL)
@@ -69,6 +69,8 @@ init.sts <- function(.Object, epoch, start=c(2000,1), freq=52, observed, state=0
     dimnames(observed) <- list(NULL,namesObs)
     dimnames(state) <- list(NULL,namesState)
 
+    #Problem: If ncol(observed) is huge then the generated matrix
+    #might be beyond memory capacities -> FIXME: use sparse matrices
     if (is.null(neighbourhood))
       neighbourhood <- matrix(NA,nrow=ncol(observed),ncol=ncol(observed))
       #diag(neighbourhood) <- 0  #FIXME: shouldn't we always define the diag as 0?

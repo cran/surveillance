@@ -18,7 +18,7 @@ nowcast <- function(s,t,D,dEventCol="dHospital",dReportCol="dReport",
                     control=list(
                       dRange=NULL,
                       timeDelay=function(d1,d2) {as.numeric(d2-d1)},
-                      estimateF="dynamic",
+                      estimateF=NULL,
                       alpha=0.05,
                       y.prior.max=300,
                       B=1e5, score=FALSE,PMF=FALSE,sts.truth=FALSE)) {
@@ -67,14 +67,10 @@ nowcast <- function(s,t,D,dEventCol="dHospital",dReportCol="dReport",
   }
   
   #Create an sts object containing the observed number of counts until s
-#  observed <- table(factor(as.character(D.sub[,dEventCol]), levels=as.character(dateRange)))
-#  sts <- new("sts",epoch=as.numeric(dateRange),observed=matrix(observed,ncol=1),epochAsDate=TRUE,freq=365)
   sts <- linelist2sts(D.sub,dEventCol,aggregate.by=aggregate.by,dRange=dateRange)
   sts <- as(sts,"stsBP")
 
   #Create an object containing the "truth" based on D
-#  observed <- table(factor(as.character(D[,dEventCol]), levels=as.character(dateRange)))
-#  sts.truth <- new("sts",epoch=as.numeric(dateRange),observed=matrix(observed,ncol=1),epochAsDate=TRUE,freq=365)
   sts.truth <- linelist2sts(D,dEventCol,aggregate.by=aggregate.by,dRange=dateRange)
   if (is.null(control[["sts.truth",exact=TRUE]])) {
     control$sts.truth <- FALSE
@@ -82,7 +78,7 @@ nowcast <- function(s,t,D,dEventCol="dHospital",dReportCol="dReport",
 
   #Estimation function for the delay. Standard procedure is to reduce
   #database to only contain the cases which are available at time s
-  if (is.null(control[["estimateF",exact=TRUE]]) || (control[["estimateF",exact=TRUE]] == "dynamic")) {
+  if (is.null(control[["estimateF",exact=TRUE]])) {
     estimateF <- function(Ds,s,dReportCol) {
       if (nrow(Ds)>0) {
         F <- ecdf(Ds$delay)
@@ -96,6 +92,8 @@ nowcast <- function(s,t,D,dEventCol="dHospital",dReportCol="dReport",
   } else {
     if (!is.function(control[["estimateF",exact=TRUE]])) {
       stop("The argument control$estimateF needs to be a function.")
+    } else {
+      estimateF <- control$estimateF
     }
   }
   #Estimate delay CDF at s using the specified function
@@ -276,9 +274,6 @@ nowcast <- function(s,t,D,dEventCol="dHospital",dReportCol="dReport",
     #of \pi_{ts} into account. This can be approximated by a NegBin
     ######################################################################
 
-#    P.man.dynamic.pifix <- post.ytpi.unorm(yt=yt.support, pits=pits)
-#    P.man.dynamic.pifix <- P.man.dynamic.pifix/sum(P.man.dynamic.pifix)
-
     ######################################################################
     #Alternative. Incorporate uncertainty of the estimation of pits
     ######################################################################
@@ -300,11 +295,6 @@ nowcast <- function(s,t,D,dEventCol="dHospital",dReportCol="dReport",
       Ps[["bayes.bnb"]] <- dpost.bnb(yt.support)
     }
 
-    #Compute as suggested in Brookmeyer and Damiano (1989)
-    #if ("brookmeyer.damiano" %in% method) {
-    #  
-    #}
-    
     ######################################################################
     ######################################################################
     #Done with the computation of PMFs. Now use these for calculation.
@@ -349,66 +339,6 @@ nowcast <- function(s,t,D,dEventCol="dHospital",dReportCol="dReport",
   #Done
   return(sts)
 }
-
-## #Example section
-## example <- function() {
-##   library("surveillance")
-
-##   #Get some data from somewhere
-##   source("nowcast2.R")
-##   D <- loadData()
-
-##   #Test the function
-##   source("nowcast-surveillance.R")
-##   s <- as.Date("2011-06-02") ;
-##   k <- 10
-##   l <- 3
-##   t <- seq(s-k-l+1,s-l,by="1 day")
-##   dRange <- as.Date(c("2011-05-01","2011-07-10"))
-##   nc1 <- nowcast(s=s,t=t,D=D,method="bayes.nb",control=list(dRange=dRange,score=TRUE))
-
-##   #Sow result
-##   plot(nc1,xaxis.years=FALSE,dx.upperbound=0,legend=NULL,lty=c(1,1,1),lwd=c(1,1,2),ylab="Cases",xlab="Time (days)",main="")
-##   idx <- max(which(!is.na(upperbound(nc1))))
-##   lines( c(idx-0.5,idx+0.5), rep(upperbound(nc1)[idx,],2),lwd=2,col="blue")
-  
-##   ##Show CIs
-##   for (i in 1:nrow(nc1)) {
-##     points(i, upperbound(nc1)[i,], col="indianred")
-##     lines( i+c(-0.3,0.3), rep(nc1@ci[i,,1],2),lty=1,col="indianred2")
-##     lines( i+c(-0.3,0.3), rep(nc1@ci[i,,2],2),lty=1,col="indianred2")
-##     lines( rep(i,each=2), nc1@ci[i,,],lty=2,col="indianred2")
-##   }
-##   #Add "now" on the x-axis
-##   points( as.numeric(s-dRange[1])+1,0,pch=10,cex=1.5,col="red")
-
-
-##   #Same as animation
-## #  scoreRange <- seq(as.Date("2011-05-25"),max(dRange),by="1 day")
-##   scoreRange <- seq(as.Date("2011-05-15"),max(dRange),by="1 day")
-##   for (i in 1:length(scoreRange)) {
-##     s <- scoreRange[i]
-##     t <- seq(s-k-l+1, s-l, by="1 day")
-##     nc1 <- nowcast(s=s,t=t,D=D,method="bayes.nb",control=list(dRange=dRange))
-
-##     #Sow result
-##     plot(nc1,xaxis.years=FALSE,dx.upperbound=0,legend=NULL,lty=c(1,1,1),lwd=c(1,1,2),ylab="Cases",xlab="Time (days)",main="",ylim=c(0,80))
-##     idx <- max(which(!is.na(upperbound(nc1))))
-##     lines( c(idx-0.5,idx+0.5), rep(upperbound(nc1)[idx,],2),lwd=2,col="blue")
-  
-##      ##Show CIs
-##     for (i in 1:nrow(nc1)) {
-##       points(i, upperbound(nc1)[i,], col="indianred")
-##       lines( i+c(-0.3,0.3), rep(nc1@ci[i,,1],2),lty=1,col="indianred2")
-##       lines( i+c(-0.3,0.3), rep(nc1@ci[i,,2],2),lty=1,col="indianred2")
-##       lines( rep(i,each=2), nc1@ci[i,,],lty=2,col="indianred2")
-##     }
-##     #Add "now" on the x-axis
-##     points( as.numeric(s-dRange[1])+1,0,pch=10,cex=1.5,col="red")
-##     Sys.sleep(0.5)
-##   }
-## }
-
 
 ######################################################################
 # Helper functions

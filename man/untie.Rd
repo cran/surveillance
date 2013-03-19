@@ -19,7 +19,7 @@
 untie(x, amount, ...)
 
 \method{untie}{epidataCS}(x, amount = list(t = NULL, s = NULL),
-      keep.sources = FALSE, ...)
+      direction = "left", keep.sources = FALSE, ...)
 \method{untie}{matrix}(x, amount = NULL,
       constraint = NULL, ...)
 \method{untie}{default}(x, amount = NULL,
@@ -34,17 +34,19 @@ untie(x, amount, ...)
     upperbound for the random amount by which data are shifted.
     \code{NULL} means to use a data-driven default, which equals
     the minimum separation of the data points for the default method,
-    and its half for the \code{matrix} method.\cr
+    and its half for the \code{matrix} method.
+    
     For numeric vectors (default method), the jittered version is the
     same as for \code{jitter(x, amount=amount)} if
     \code{direction="symmetric"} (and \code{amount} is non-\code{NULL}),
-    and \code{x} \dQuote{+-} \code{runif(length(x), 0, amount)} (otherwise).
+    and \code{x} \dQuote{+-} \code{runif(length(x), 0, amount)}
+    (otherwise).\cr
     For matrices, a vector uniformly drawn from the disc with radius
-    \code{amount} is added to each point (row).
+    \code{amount} is added to each point (row).\cr
     For \code{"epidataCS"}, \code{amount} is a list stating the amounts
     for the temporal and/or spatial dimension, respectively. It then
     uses the specific methods with arguments \code{constraint=x$W},
-    \code{direction="left"}, and \code{sort=TRUE}.
+    \code{direction}, and \code{sort=TRUE}.
   }
   \item{keep.sources}{
     logical (\code{FALSE}). If \code{TRUE}, the original list of
