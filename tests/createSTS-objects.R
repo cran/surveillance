@@ -18,8 +18,9 @@ popM <- matrix(pop[,2],dimnames=list(NULL,pop[,1]),nrow=nrow(flu.counts),ncol=nr
 # read in adjacency matrix with elements 1 if two regions share a common border
 nhood <- as.matrix(read.table("neighourhood_ByBw.txt"))
 #map <- readShapePoly("../inst/shapes/districts_BYBW.shp", IDvar = "id")
-#Read the shapefile
-file <- file.path(.path.package("surveillance"),"shapes","districts_BYBW.shp")
+#Read the shapefile - use system file instead of file.path
+#file <- file.path(path.package("surveillance"),"shapes","districts_BYBW.shp")
+file <- system.file("shapes","districts_BYBW.shp", package="surveillance")
 map <- readShapePoly(file, IDvar = "id")
 
 

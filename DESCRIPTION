@@ -1,13 +1,28 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.5-2
-Date: 2013-03-15
+Version: 1.5-4
+Date: 2013-04-19
+Authors@R: c(person("Michael", "Höhle", email =
+        "Michael.Hoehle@stat.uni-muenchen.de", role = c("aut", "cre",
+        "ths")), person("Sebastian", "Meyer", email =
+        "Sebastian.Meyer@ifspm.uzh.ch", role = "aut"),
+        person("Michaela", "Paul", email =
+        "Michaela.Paul@ifspm.uzh.ch", role = "aut"), person("Leonhard",
+        "Held", email = "Leonhard.Held@ifspm.uzh.ch", role = c("ctb",
+        "ths")), person("T.", "Correa", role = "ctb"), person("M.",
+        "Hofmann", role = "ctb"), person("C.", "Lang", role = "ctb"),
+        person("A.", "Riebler", role = "ctb"), person("D.", "Sabanés
+        Bové", role = "ctb"), person("M.", "Salmon", role = "ctb"),
+        person("S.", "Steiner", role = "ctb"), person("M.", "Virtanen",
+        role = "ctb"), person("V.", "Wimmer", role = "ctb"), person("R
+        Core Team", role = "ctb", comment = "A few code segments are
+        modified versions of code from base R"))
 Author: M. Höhle, S. Meyer and M. Paul with contributions from T.
         Correa, L. Held, M. Hofmann, C. Lang, A. Riebler, D. Sabanés
-        Bové, M. Salmon, S. Steiner, M. Virtanen, and V. Wimmer.  A few
-        code segments are modified versions of code by The R Core Team
-        (available under GPL-2).
+        Bové, M. Salmon, S. Steiner, M. Virtanen, V. Wimmer, and The R
+        Core Team (A few code segments are modified versions of code
+        from base R)
 Depends: R (>= 2.14.0), grDevices, graphics, stats, utils, xtable,
         methods, Rcpp, sp
 Imports: MASS, Matrix, spatstat (>= 1.17-0)
@@ -49,7 +64,7 @@ License: GPL-2
 URL: http://surveillance.r-forge.r-project.org/
 ZipData: no
 Encoding: latin1
-Packaged: 2013-03-18 21:47:13 UTC; hoehle
+Packaged: 2013-04-21 14:39:12 UTC; hoehle
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2013-03-19 07:23:59
+Date/Publication: 2013-04-21 17:54:28

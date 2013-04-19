@@ -8,8 +8,8 @@
 ### for the siaf specification we only want d to be positive)
 ###
 ### Copyright (C) 2013 Sebastian Meyer
-### $Revision: 528 $
-### $Date: 2013-03-08 15:01:35 +0100 (Fr, 08. Mrz 2013) $
+### $Revision: 535 $
+### $Date: 2013-04-18 22:56:16 +0200 (Do, 18. Apr 2013) $
 ################################################################################
 
 
@@ -110,10 +110,11 @@ siaf.powerlaw <- function (nTypes = 1, logpars = TRUE,
 
     ## "effective" integration range (based on some high quantile)
     effRange <- if (isScalar(effRangeProb)) {
+        stop("'effRange' is currently not supported for power law's")
         effRange <- function (logpars) {}
         body(effRange) <- as.call(c(as.name("{"),
-            substitute(qlomax(effRangeProb, exp(logpars[[1]]), exp(logpars[[2]])),
-                       list(effRangeProb=effRangeProb))
+            substitute(qlomax(effRangeProb, exp(logpars[[1]]), exp(logpars[[2]])-1),
+                       list(effRangeProb=effRangeProb)) # only works for d > 1!
         ))
         effRange
     } else NULL
