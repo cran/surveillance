@@ -118,16 +118,19 @@ hhh4(stsObj,
 	optimization of regression and variance parameters: the relative
 	\code{tol}erance for parameter change using the criterion 
 	\code{max(abs(x[i+1]-x[i])) / max(abs(x[i]))},
-	and the maximum number \code{niter} of outer iterations.
+	and the maximum number \code{niter} of outer iterations.\cr
 	Control arguments for the single optimizers are specified in the
 	lists named \code{"regression"} and \code{"variance"}.
-	\code{nlminb} is the default \code{method} for both (taking
+	\code{method="nlminb"} is the default optimizer for both (taking
 	advantage of the analytical Fisher information matrices), however,
-	the methods specified in the \code{method} argument of
-	\code{\link{optim}} may also be used (as well as
-	\code{\link{nlm}} but that one is not recommended here).
-	Especially for the variance updates, Nelder-Mead optimization is
-	an attractive alternative.}
+	the optimizers from \code{\link{optim}} may also be specified
+	(as well as \code{\link{nlm}} but that one is not recommended here).
+	Especially for the variance updates,
+	Nelder-Mead optimization is an attractive alternative.\cr
+	All other elements of these two lists are passed as
+	\code{control} arguments to the chosen \code{method}, e.g., if
+	\code{method="nlminb"} adding \code{iter.max=50} increases the 
+	maximum number of inner iterations from 20 (default) to 50.}
       \item{\code{verbose}}{Logical if additional information is to be printed
 	during the computations}
       \item{\code{start}}{List with initials, overrides any initial

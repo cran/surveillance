@@ -230,7 +230,7 @@ export(intensityplot.simEpidata)        # for convenience
 export(as.epidataCS)
 export(twinstim)
 export(simEpidataCS)
-export(siaf.constant, siaf.gaussian, siaf.lomax, qlomax, siaf.powerlaw)
+export(siaf.constant, siaf.gaussian, siaf.lomax, qlomax, siaf.powerlaw, siaf.powerlawL)
 export(tiaf.constant, tiaf.exponential)
 
 S3method(nobs, epidataCS)
@@ -351,4 +351,3 @@ export(oneStepAhead)
 export(scores)
 export(permutationTest)
 export(pit)
-
