@@ -7,8 +7,8 @@
 ### Specific implementations are in seperate files (e.g.: Gaussian, power law).
 ###
 ### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 529 $
-### $Date: 2013-03-15 10:31:37 +0100 (Fr, 15. Mrz 2013) $
+### $Revision: 535 $
+### $Date: 2013-04-18 22:56:16 +0200 (Do, 18. Apr 2013) $
 ################################################################################
 
 
@@ -185,34 +185,38 @@ checksiaf <- function (siaf, pargrid, type=1)
     pargrid <- as.matrix(pargrid)
     stopifnot(siaf$npars == ncol(pargrid))
     
-    ## Check Fcircle
+    ## Check 'Fcircle'
     if (!is.null(siaf$Fcircle)) {
-        comp <- checksiaf.Fcircle(siaf$Fcircle, siaf$f, pargrid, type=type)
-        cat("'Fcircle' vs. numerical cubature ...", comp, "\n")
+        cat("'Fcircle' vs. numerical cubature ... ")
+        res <- checksiaf.Fcircle(siaf$Fcircle, siaf$f, pargrid, type=type)
+        cat(all.equal(res[,1],res[,2]), "\n")
     }
     
-    ## Check deriv
+    ## Check 'deriv'
     if (!is.null(siaf$deriv)) {
-        comp <- checksiaf.deriv(siaf$deriv, siaf$f, pargrid, type=type)
-        cat("'deriv' vs. numerical derivative ... maxRelDiff =", comp, "\n")
+        cat("'deriv' vs. numerical derivative ... ")
+        maxRelDiffs <- checksiaf.deriv(siaf$deriv, siaf$f, pargrid, type=type)
+        cat("maxRelDiff =", max(maxRelDiffs), "\n")
     }
 
-    ## Check simulate
+    ## Check 'simulate'
     if (!is.null(siaf$simulate)) {
         checksiaf.simulate(siaf$simulate, siaf$f, pargrid[1,], type=type)
     }
 }
 
-checksiaf.Fcircle <- function (Fcircle, f, pargrid, type=1, B=20, rmax=100)
+checksiaf.Fcircle <- function (Fcircle, f, pargrid, type=1,
+                               B=20, rmax=100, nGQ=30)
 {
-    pargrid <- pargrid[rep(1:nrow(pargrid), B, replace=TRUE),]
-    res <- t(apply(cbind(runif(B, 0, rmax), pargrid), 1, function (x) {
+    pargrid <- pargrid[rep(1:nrow(pargrid), B),]
+    rpargrid <- cbind(runif(B, 0, rmax), pargrid)
+    res <- t(apply(rpargrid, 1, function (x) {
         c(ana = Fcircle(x[1], x[-1], type),
           num = polyCub.SV(discpoly(c(0,0), x[1], class="owin"),
                            function (s) f(s, x[-1], type),
-                           alpha=0, nGQ=30))
+                           alpha=0, nGQ=nGQ))
     }))
-    all.equal(res[,1], res[,2])
+    res
 }
 
 checksiaf.deriv <- function (deriv, f, pargrid, type=1, rmax=100)
@@ -236,7 +240,7 @@ checksiaf.deriv <- function (deriv, f, pargrid, type=1, rmax=100)
             max((ana-num)/(0.5*(abs(ana)+abs(num))))
         })
     }
-    max(maxreldiffs)
+    maxreldiffs
 }
 
 checksiaf.simulate <- function (simulate, f, pars, type=1, B=3000, ub=10)

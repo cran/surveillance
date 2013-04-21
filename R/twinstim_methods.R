@@ -7,8 +7,8 @@
 ### vcov, logLik, print, summary, plot (intensity, iaf), R0, residuals, update
 ###
 ### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 519 $
-### $Date: 2013-02-26 17:26:36 +0100 (Di, 26. Feb 2013) $
+### $Revision: 536 $
+### $Date: 2013-04-19 00:54:51 +0200 (Fr, 19. Apr 2013) $
 ################################################################################
 
 
@@ -1102,15 +1102,21 @@ update.twinstim <- function (object, endemic, epidemic, optim.args, model,
     }
     ## Set initial values (will be appropriately subsetted and/or extended with
     ## zeroes inside twinstim())
-    call$start <- if (use.estimates) coef(object) else call$optim.args$par
+    if (use.estimates)
+        call$start <- coef(object)
+    if ((missing(optim.args) || !"par" %in% names(optim.args)) &&
+        !is.null(call$optim.args$par)) {
+        ## old par-vector usually doesn't match updated model, thus we move
+        ## it into start-vector (actually only useful if it was named)
+        call$start <- call("c", call$optim.args$par, call$start)
+        call$optim.args$par <- NULL
+    }
     if ("start" %in% names(extras)) {
         call$start <- call("c", call$start, extras$start)
         ##<- if names appear both in the first and second set, the last
         ##   occurrence will be chosen in twinstim()
         extras$start <- NULL
     }
-    if (missing(optim.args) || !"par" %in% names(optim.args))
-        call$optim.args$par <- NULL
     ## CAVE: the remainder is copied from stats::update.default (as at R-2.15.0)
     if(length(extras)) {
 	existing <- !is.na(match(names(extras), names(call)))

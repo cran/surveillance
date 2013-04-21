@@ -6,6 +6,24 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.5-4 (2013-04-21)}{
+
+\subsection{SYNOPSIS}{
+  \itemize{
+    \item Fixed obsolete \code{.path.package()} calls.
+    \item Small corrections in the documentation.
+    \item \code{update.twinstim()} performs better in preserving
+    the original initial values of the parameters.
+    \item New pre-defined spatial interaction function
+    \code{siaf.powerlawL()}, which implements a _L_agged power-law
+    kernel, i.e. accounts for uniform short-range dispersal.
+  }
+}
+
+}
+
+
+
 \section{Changes in surveillance version 1.5-2 (2013-03-15)}{
 
 \subsection{SYNOPSIS}{

@@ -4,6 +4,7 @@
 \alias{siaf.gaussian}
 \alias{siaf.lomax}
 \alias{siaf.powerlaw}
+\alias{siaf.powerlawL}
 \alias{tiaf.constant}
 \alias{tiaf.exponential}
 
@@ -33,6 +34,8 @@ siaf.lomax(nTypes = 1, logpars = TRUE, density = FALSE,
            effRangeProb = NULL, validpars = NULL)
 siaf.powerlaw(nTypes = 1, logpars = TRUE,
               effRangeProb = NULL, validpars = NULL)
+siaf.powerlawL(nTypes = 1, logpars = TRUE,
+               effRangeProb = NULL, validpars = NULL)
 
 # predefined temporal interaction functions
 tiaf.constant()
@@ -47,9 +50,9 @@ tiaf.exponential(nTypes = 1)
     \code{nTypes=1}. Otherwise \code{nTypes} should equal the number of
     event types of the epidemic, in which case every type has its own
     (log-)scale or (log-)shape, respectively. Currently, the constructor
-    function for the Lomax and the power law kernels \code{siaf.lomax}
-    and \code{siaf.powerlaw}, respectively, only allows a type-invariant
-    kernel (\code{nTypes=1}).
+    function for the Lomax and the power law kernels \code{siaf.lomax},
+    \code{siaf.powerlaw}, \code{siaf.powerlawL}, respectively,
+    only allows a type-invariant kernel (\code{nTypes=1}).
   }
   \item{logsd, logpars}{
     logical indicating if the kernel should be parametrized
@@ -57,8 +60,7 @@ tiaf.exponential(nTypes = 1)
     the parameter(s) in question to enforce positivity. This
     is the recommended default and avoids constrained optimisation
     (L-BFGS-B) or the use of \code{validpars}. The alternative
-    (\code{FALSE}) is not implemented for \code{siaf.lomax} and
-    \code{siaf.powerlaw}.
+    (\code{FALSE}) is only implemented for \code{siaf.gaussian}.
   }
   \item{density}{
     logical. If \code{TRUE}, a density is used as the
@@ -75,7 +77,7 @@ tiaf.exponential(nTypes = 1)
     the bivariate normal density, and \code{siaf.lomax} is normalized to
     unity at the origin, i.e. \eqn{f(\bold{s}) / f(\bold{0})} is used.
     However, the latter still has proportionality constants in the kernel,
-    which is why the use \code{siaf.lomax} is deprecated.
+    which is why the use of \code{siaf.lomax} is deprecated.
     The new \code{siaf.powerlaw} replaces \code{siaf.lomax} and uses the
     pure kernel of the Lomax density (see Details).
   }
@@ -149,6 +151,16 @@ tiaf.exponential(nTypes = 1)
       which is the pure kernel of the Lomax density, i.e. without any
       proportionality constants. The parameters are optimized on the
       log-scale to ensure positivity, i.e.
+      \eqn{\sigma = \exp(\tilde{\sigma})} and \eqn{d = \exp(\tilde{d})},
+      where \eqn{(\tilde{\sigma}, \tilde{d})} is the parameter vector.
+    }
+    \item{\code{siaf.powerlawL}:}{
+      \eqn{f(s) = (||s||/\sigma)^{-d}}, for \eqn{||s|| \ge \sigma}, and
+      \eqn{f(s) = 1} otherwise,\cr
+      which is a \emph{L}agged power-law kernel featuring uniform
+      short-range dispersal (up to distance \eqn{\sigma}) and a
+      power-law decay (Pareto-style) from distance \eqn{\sigma} onwards.
+      The parameters are optimized on the log-scale to ensure positivity, i.e.
       \eqn{\sigma = \exp(\tilde{\sigma})} and \eqn{d = \exp(\tilde{d})},
       where \eqn{(\tilde{\sigma}, \tilde{d})} is the parameter vector.
     }
@@ -230,9 +242,7 @@ tiaf.exponential(nTypes = 1)
     return a two-column \emph{matrix} of the sampled locations.
     Note that the simulation method actually samples only one location
     at a time, thus it is sufficient to have a working
-    \code{function(n=1, pars, type)}. For \code{siaf.constant()}, the
-    \code{simulate} component is \code{NULL}, but this will be handled
-    specially by \code{simEpidataCS}.
+    \code{function(n=1, pars, type)}.
   }
   \item{npars}{the number of parameters of the spatial interaction
     function \code{f} (i.e. the length of its second argument).}
@@ -305,6 +315,9 @@ siaf.gaussian(2, F.adaptive=TRUE)
 
 # Type-independent power-law kernel
 siaf.powerlaw()   # siaf.lomax() is deprecated
+
+# "lagged" power-law
+siaf.powerlawL()
 }
 
 \keyword{models}

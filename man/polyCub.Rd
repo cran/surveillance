@@ -155,9 +155,7 @@ polyCub.exact.Gauss(polyregion, mean = c(0,0), Sigma = diag(2),
 \note{
   The \R implementation of the product Gauss cubature in \code{polycub.SV} is
   based on the corresponding MATLAB code (\code{polygauss}) by Sommariva &
-  Vianello (2007); but it only covers the case of \dQuote{simple} polygons. The
-  efficiency rotation also proposed by Sommariva & Vianello (2007) is not
-  implemented here since it does in general only apply to convex polygons.
+  Vianello (2007); but it only covers the case of \dQuote{simple} polygons.
 }
 
 \examples{
