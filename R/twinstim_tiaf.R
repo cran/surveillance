@@ -6,8 +6,8 @@
 ### Temporal interaction functions for twinstim's epidemic component.
 ###
 ### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 527 $
-### $Date: 2013-03-08 13:25:48 +0100 (Fr, 08. Mrz 2013) $
+### $Revision: 542 $
+### $Date: 2013-04-28 17:03:50 +0200 (Son, 28 Apr 2013) $
 ################################################################################
 
 
@@ -94,33 +94,54 @@ tiaf.constant <- function ()
 
 tiaf.exponential <- function (nTypes = 1)
 {
-    # time points vector t, length(types) = 1 or length(t)
+    nTypes <- as.integer(nTypes)
+    stopifnot(length(nTypes) == 1L, nTypes > 0L)
+    
+    ## function definitions for nTypes = 1 (length(alpha) == 1)
     g <- function (t, alpha, types) {
-        types <- rep(types, length.out = length(t))
-        alphat <- alpha[types]
-        exp(-alphat*t)
+        exp(-alpha*t)
     }
     G <- function (t, alpha, types) {
-        types <- rep(types, length.out = length(t))
-        alphat <- alpha[types]
-        ifelse(alphat==0, t, -exp(-alphat*t)/alphat)
+        if (alpha==0) t else -exp(-alpha*t)/alpha
     }
     deriv <- function (t, alpha, types) {
-        L <- length(t)
-        types <- rep(types, length.out = L)
-        alphat <- alpha[types]
-        deriv <- matrix(0, L, length(alpha))
-        deriv[cbind(1:L,types)] <- -t*exp(-alphat*t)
-        deriv
+        as.matrix( -t*exp(-alpha*t) )
     }
     Deriv <- function (t, alpha, types) {
-        L <- length(t)
-        types <- rep(types, length.out = L)
-        alphat <- alpha[types]
-        Deriv <- matrix(0, L, length(alpha))
-        Deriv[cbind(1:L,types)] <- ifelse(alphat==0, -t^2/2, (t+1/alphat)*exp(-alphat*t)/alphat)
-        Deriv
+        as.matrix( if (alpha==0) -t^2/2 else (t+1/alpha)*exp(-alpha*t)/alpha )
     }
 
+    ## adaptions for nTypes > 1
+    if (nTypes > 1) {
+        ## time points vector t, length(types) = length(t)
+        body(g) <- as.call(append(as.list(body(g)),
+                                  quote(alpha <- alpha[types]), after=1))
+        body(G) <- quote({
+            alpha <- alpha[types]
+            ifelse (alpha==0, t, -exp(-alpha*t)/alpha)
+        })
+        body(deriv) <- quote({
+            L <- length(t)
+            deriv <- matrix(0, L, length(alpha))
+            alpha <- alpha[types]
+            deriv[cbind(1:L,types)] <- -t*exp(-alpha*t)
+            deriv
+        })
+        body(Deriv) <- quote({
+            L <- length(t)
+            Deriv <- matrix(0, L, length(alpha))
+            alpha <- alpha[types]
+            Deriv[cbind(1:L,types)] <-
+                ifelse(alpha==0, -t^2/2,
+                       (t+1/alpha)*exp(-alpha*t)/alpha)
+            Deriv
+        })
+    }
+
+    ## set function environments to the global environment
+    environment(g) <- environment(G) <-
+        environment(deriv) <- environment(Deriv) <- .GlobalEnv
+
+    ## return the kernel specification
     list(g=g, G=G, deriv=deriv, Deriv=Deriv, npars=nTypes, validpars=NULL)
 }

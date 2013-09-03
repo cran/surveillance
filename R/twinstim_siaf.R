@@ -7,8 +7,8 @@
 ### Specific implementations are in seperate files (e.g.: Gaussian, power law).
 ###
 ### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 535 $
-### $Date: 2013-04-18 22:56:16 +0200 (Do, 18. Apr 2013) $
+### $Revision: 627 $
+### $Date: 2013-08-22 22:39:06 +0200 (Don, 22 Aug 2013) $
 ################################################################################
 
 
@@ -138,8 +138,8 @@ siaf.constant <- function ()
            ## simulation will be handled specially in simEpidataCS, this is only
            ## included here for completeness
            simulate = as.function(alist(n=, pars=NULL, type=NULL, ub=,
-                                        surveillance:::runifdisc(n, ub)),
-                                  envir = .GlobalEnv),
+                                        runifdisc(n, ub)),
+                                  envir = getNamespace("surveillance")),
            npars = 0L
     )
     attr(res, "constant") <- TRUE
@@ -156,9 +156,9 @@ siaf.constant <- function ()
 siaf.fallback.F <- function(polydomain, f, pars, type, method = "SV", ...)
 {
     if (identical(method,"SV"))
-        polyCub.SV(polydomain, f, pars, type, alpha=0, ...) # since max at origin
+        polyCub::polyCub.SV(polydomain, f, pars, type, alpha=0, ...) # since max at origin
     else 
-        polyCub(polydomain, f, method, pars, type, ...)
+        polyCub::polyCub(polydomain, f, method, pars, type, ...)
 }
 
 ## numerical integration of deriv over a polygonal domain
@@ -167,7 +167,7 @@ siaf.fallback.Deriv <- function (polydomain, deriv, pars, type, method = "SV", .
     deriv1 <- function (s, paridx)
         deriv(s, pars, type)[,paridx,drop=TRUE]
     intderiv1 <- function (paridx)
-        polyCub(polydomain, deriv1, method, paridx=paridx, ...)
+        polyCub::polyCub(polydomain, deriv1, method, paridx=paridx, ...)
     derivInt <- sapply(seq_along(pars), intderiv1)
     derivInt
 }
@@ -206,13 +206,13 @@ checksiaf <- function (siaf, pargrid, type=1)
 }
 
 checksiaf.Fcircle <- function (Fcircle, f, pargrid, type=1,
-                               B=20, rmax=100, nGQ=30)
+                               rs=runif(20, 0, 100), nGQ=30)
 {
-    pargrid <- pargrid[rep(1:nrow(pargrid), B),]
-    rpargrid <- cbind(runif(B, 0, rmax), pargrid)
+    pargrid <- pargrid[rep(1:nrow(pargrid), each=length(rs)),,drop=FALSE]
+    rpargrid <- cbind(rs, pargrid, deparse.level=0)
     res <- t(apply(rpargrid, 1, function (x) {
         c(ana = Fcircle(x[1], x[-1], type),
-          num = polyCub.SV(discpoly(c(0,0), x[1], class="owin"),
+          num = polyCub.SV(discpoly(c(0,0), x[1], npoly=128, class="owin"),
                            function (s) f(s, x[-1], type),
                            alpha=0, nGQ=nGQ))
     }))
@@ -250,14 +250,12 @@ checksiaf.simulate <- function (simulate, f, pars, type=1, B=3000, ub=10)
 
     ## Graphical check
     par(mar=c(1,2,2,1))
-    plot(as.im.function(function(x,y,...) f(cbind(x,y), pars, type),
-                        W=discpoly(c(0,0), ub, class="owin")),
+    plot(spatstat::as.im.function(function(x,y,...) f(cbind(x,y), pars, type),
+                                  W=discpoly(c(0,0), ub, class="owin")),
          axes=TRUE, main="Simulation from the spatial kernel")
     points(simpoints, cex=0.2)
-    if (requireNamespace("MASS")) {
-        kdens <- MASS::kde2d(simpoints[,1], simpoints[,2], n=100)
-        contour(kdens, add=TRUE, col=2, lwd=2,
-                labcex=1.5, vfont=c("sans serif", "bold"))
-        ##x11(); image(kdens, add=TRUE)
-    }
+    kdens <- MASS::kde2d(simpoints[,1], simpoints[,2], n=100)
+    contour(kdens, add=TRUE, col=2, lwd=2,
+            labcex=1.5, vfont=c("sans serif", "bold"))
+    ##x11(); image(kdens, add=TRUE)
 }

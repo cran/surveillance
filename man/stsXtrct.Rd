@@ -32,7 +32,7 @@ data("ha.sts")
 haagg <- aggregate(ha.sts, nfreq=13)
 
 #A suite of of simple tests (inspired by the Matrix package)
-stopifnot(identical(ha.sts, ha.sts[]))
+#stopifnot(identical(ha.sts, ha.sts[]))
 
 
 plot(haagg[, 3])       # Single series

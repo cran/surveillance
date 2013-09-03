@@ -10,8 +10,8 @@
 ### better parametrization (using d := alpha+1 and omitting prop. constants)
 ###
 ### Copyright (C) 2012-2013 Sebastian Meyer
-### $Revision: 527 $
-### $Date: 2013-03-08 13:25:48 +0100 (Fr, 08. Mrz 2013) $
+### $Revision: 548 $
+### $Date: 2013-05-11 17:55:18 +0200 (Sam, 11 Mai 2013) $
 ################################################################################
 
 
@@ -115,7 +115,7 @@ siaf.lomax <- function (nTypes = 1, logpars = TRUE, density = FALSE,
             deriv1 <- function (s, paridx)
                 deriv(s, logpars, type)[,paridx,drop=TRUE],
             intderiv1 <- function (paridx)
-                polyCub.SV(polydomain, deriv1, paridx=paridx,
+                polyCub::polyCub.SV(polydomain, deriv1, paridx=paridx,
                            nGQ = nGQ, alpha = a[paridx]),
             res.logsigma <- intderiv1(1L),
             res.logalpha <- intderiv1(2L),

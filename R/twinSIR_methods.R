@@ -78,20 +78,21 @@ AIC.twinSIR <- function (object, ..., k = 2, one.sided = NULL, nsim = 1e3)
     AIC.default$one.sided <- NULL
     AIC.default$nsim <- NULL
     AIC.default[[1]] <- call(":::", as.name("stats"), as.name("AIC.default"))
+    ## I don't see any easy way of using AIC.default while avoiding ":::".
+    ## NextMethod() does not fit due to extra arguments one.sided & nsim.
+    ## Could maybe unclass "object" and all objects in "..." and then use AIC()
     
     if (is.null(one.sided)) {
         one.sided <- object$method == "L-BFGS-B"
     }
     
-    res <- if (!one.sided) {
-        eval(AIC.default, parent.frame())
-    } else {
+    if (one.sided) {
         penalty <- .OSAICpenalty(object, k = k, nsim = nsim)
         edf <- length(coef(object))
         AIC.default$k <- penalty/edf
-        eval(AIC.default, parent.frame())
     }
-    
+
+    res <- eval(AIC.default, parent.frame())
     attr(res, "type") <- if (one.sided) "One-sided AIC" else "Standard AIC"
     attr(res, "exact") <- if (one.sided) attr(penalty, "exact") else TRUE
     res

@@ -7,8 +7,8 @@
 ### vcov, logLik, print, summary, plot (intensity, iaf), R0, residuals, update
 ###
 ### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 536 $
-### $Date: 2013-04-19 00:54:51 +0200 (Fr, 19. Apr 2013) $
+### $Revision: 642 $
+### $Date: 2013-09-05 21:22:14 +0200 (Don, 05 Sep 2013) $
 ################################################################################
 
 
@@ -78,8 +78,9 @@ print.twinstim <- function (x, digits = max(3, getOption("digits") - 3), ...)
     cat("\nCoefficients:\n")
     print.default(format(coef(x), digits=digits), print.gap = 2, quote = FALSE)
     cat("\nLog-likelihood: ", format(logLik(x), digits=digits), "\n", sep = "")
-    if (!x$converged) {
-        cat("\nWARNING: OPTIMIZATION ROUTINE DID NOT CONVERGE!\n")
+    if (!isTRUE(x$converged)) {
+        cat("\nWARNING: OPTIMIZATION ROUTINE DID NOT CONVERGE!",
+            paste0("(",x$converged,")"), "\n")
     }
     cat("\n")
     invisible(x)
@@ -146,7 +147,7 @@ print.summary.twinstim <- function (x,
         printCoefmat(x$coefficients.beta, digits = digits,
             signif.stars = signif.stars, signif.legend = (q==0L) && signif.stars, ...)
     } else cat("\nNo coefficients in the endemic component.\n")
-    if (q > 0L) {
+    if (q + niafpars > 0L) {
         cat("\nCoefficients of the epidemic component:\n")
         printCoefmat(rbind(x$coefficients.gamma, x$coefficients.iaf), digits = digits,
             signif.stars = signif.stars, ...)
@@ -159,9 +160,13 @@ print.summary.twinstim <- function (x,
     cat("\nLog-likelihood:", format(x$loglik, digits = digits))
     cat("\nNumber of log-likelihood evaluations:", x$counts[1])
     cat("\nNumber of score function evaluations:", x$counts[2])
-    if (!is.null(x$runtime)) {
-        cat("\nRuntime:", format(x$runtime, digits=max(4, digits+1)), "seconds")
-    }
+    cores <- attr(x$runtime, "cores")
+    cat("\nRuntime",
+        if (!is.null(cores) && cores > 1) paste0(" (", cores, " cores)")
+        , ": ", format(
+        if (length(x$runtime)==0) NA_real_ else if (length(x$runtime)==1)
+        x$runtime else x$runtime[["elapsed"]],
+        digits=max(4, digits+1)), " seconds", sep="")
     cat("\n")
     correl <- x$correlation
     if (!is.null(correl)) {
@@ -175,14 +180,16 @@ print.summary.twinstim <- function (x,
             print(correl)
             cat("---\nCorr. codes:  ", correlcodes, "\n", sep="")
         } else {
-            correl <- format(round(correl, 2), nsmall = 2, digits = digits)
+            correl <- format(round(correl, 2), nsmall = 2)
             correl[!lower.tri(correl)] <- ""
+            colnames(correl) <- substr(colnames(correl), 1, 5)
             print(correl[-1, -p, drop = FALSE], quote = FALSE)
         }
         }
     }
-    if (!x$converged) {
-        cat("\nWARNING: OPTIMIZATION ROUTINE DID NOT CONVERGE!\n")
+    if (!isTRUE(x$converged)) {
+        cat("\nWARNING: OPTIMIZATION ROUTINE DID NOT CONVERGE!",
+            paste0("(",x$converged,")"), "\n")
     }
     cat("\n")
     invisible(x)
@@ -332,8 +339,8 @@ intensity.twinstim <- function (x, aggregate = c("time", "space"),
             eta <- drop(modelenv$mmhGrid %*% modelenv$beta)
             if (!is.null(modelenv$offsetGrid)) eta <- modelenv$offsetGrid + eta
             expeta <- exp(unname(eta))
-            .beta0 <- rep(if (modelenv$nbeta0==0L) 0 else modelenv$beta0,
-                          length = modelenv$nTypes)
+            .beta0 <- rep_len(if (modelenv$nbeta0==0L) 0 else modelenv$beta0,
+                              modelenv$nTypes)
             fact <- sum(exp(.beta0[types]))
             if (aggregate == "time") {      # int over W and types by BLOCK
                 fact * c(tapply(expeta * modelenv$ds, gridBlocks, sum,
@@ -404,11 +411,13 @@ intensity.twinstim <- function (x, aggregate = c("time", "space"),
             }
         } else {  # as a function of location (int over time and types)
             factT <- fact * modelenv$tiafInt
+            nEvents <- nrow(eventCoords)
             function (xy) {
                 stopifnot(is.vector(xy, mode="numeric"), length(xy) == 2L)
-                point <- matrix(xy, nrow=nrow(eventCoords), ncol=2L, byrow=TRUE)
+                point <- matrix(xy, nrow=nEvents, ncol=2L, byrow=TRUE)
                 sdiff <- point - eventCoords
-                proximity <- qSum_types > 0 & rowSums(sdiff^2) <= eps.s^2
+                proximity <- qSum_types > 0 &
+                    .rowSums(sdiff^2, nEvents, 2L) <= eps.s^2
                 if (any(proximity)) {
                     fsources <- siaf$f(sdiff[proximity,,drop=FALSE],
                                        siafpars,
@@ -574,7 +583,8 @@ iafplot <- function (object, which = c("siaf", "tiaf"),
     conf.level = 0.95, conf.B = 999,
     xgrid = 101, col.estimate = rainbow(length(types)), col.conf = col.estimate,
     alpha.B = 0.15, lwd = c(3,1), lty = c(1,2), xlim = NULL, ylim = NULL,
-    add = FALSE, xlab = NULL, ylab = NULL, ...)
+    add = FALSE, xlab = NULL, ylab = NULL, legend = !add && (length(types) > 1),
+    ...)
 {
     which <- match.arg(which)
     IAF <- object$formula[[which]][[if (which=="siaf") "f" else "g"]]
@@ -633,7 +643,8 @@ iafplot <- function (object, which = c("siaf", "tiaf"),
     
     ## initialize plotting frame
     if (!add) {
-        if (is.null(ylim)) ylim <- c(0, if (scaled) exp(gamma0) else 1)
+        if (is.null(ylim))
+            ylim <- c(0, FUN(if (which=="siaf") cbind(0,0) else 0, pars, 1L))
         if (is.null(xlab)) xlab <- if (which == "siaf") {
             expression("Distance " * group("||",bold(s)-bold(s)[j],"||") *
                 " from host")
@@ -663,13 +674,8 @@ iafplot <- function (object, which = c("siaf", "tiaf"),
             do.call("expand.grid", as.data.frame(t(cis)))
         }, bootstrap = {
             ## bootstrapping parameter values
-            if (length(pars) == 1) {
-                as.matrix(c(pars, rnorm(conf.B, mean=pars,
-                                sd=sqrt(vcov(object)[idxpars,idxpars]))))
-            } else {
-                rbind(pars, mvtnorm::rmvnorm(conf.B, mean=pars,
-                      sigma=vcov(object)[idxpars,idxpars,drop=FALSE]))
-            }
+            rbind(pars, mvrnorm(conf.B, mu=pars,
+                                Sigma=vcov(object)[idxpars,idxpars,drop=FALSE]))
         })
         
         ## add confidence limits
@@ -703,6 +709,18 @@ iafplot <- function (object, which = c("siaf", "tiaf"),
         lines(x=xgrid,
               y=FUN(if(which=="siaf") cbind(xgrid,0) else xgrid, pars, types[i]),
               lty=lty[1], col=col.estimate[i], lwd=lwd[1])
+    }
+    
+    ## add legend
+    if (isTRUE(legend) || is.list(legend)) {
+        default.legend <- list(x = "topright",
+                               legend = rownames(object$qmatrix)[types],
+                               col = col.estimate, lty = lty[1], lwd = lwd[1],
+                               bty = "n", cex = 0.9, title="type")
+        legend.args <- if (is.list(legend)) {
+            modifyList(default.legend, legend)
+        } else default.legend
+        do.call("legend", legend.args)
     }
     invisible()
 }
@@ -1066,7 +1084,8 @@ profile.twinstim <- function (fitted, profile, alpha = 0.05,
 ## However, this specific method is inspired by and copies small parts of the
 ## update.default method from the stats package developed by The R Core Team
 
-update.twinstim <- function (object, endemic, epidemic, optim.args, model,
+update.twinstim <- function (object, endemic, epidemic,
+                             control.siaf, optim.args, model,
                              ..., use.estimates = TRUE, evaluate = TRUE)
 {
     call <- object$call
@@ -1081,40 +1100,45 @@ update.twinstim <- function (object, endemic, epidemic, optim.args, model,
             return(.update.twinstim.model(object, model))
         }
     }
-    if (!missing(endemic))
-        call$endemic <- if (is.null(call$endemic)) endemic else {
-            update.formula(call$endemic, endemic)
-            ##<- update.formula did simplify but order of terms is retained
-        }
-    if (!missing(epidemic))
-        call$epidemic <- if (is.null(call$epidemic)) epidemic else {
-            update.formula(call$epidemic, epidemic)
-        }
-    if (!missing(optim.args)) {
-        oldargs <- call$optim.args
-        call$optim.args <- if (!is.null(oldargs) && is.list(optim.args)) {
-            if (is.listcall(oldargs)) {
-                modifyListcall(oldargs, thiscall$optim.args)
-            } else {                    # i.e. is.list(oldargs)
-                modifyList(oldargs, optim.args)
-            }
-        } else thiscall$optim.args
+
+    ## Why we no longer use call$endemic but update object$formula$endemic:
+    ## call$endemic would be an unevaluated expression eventually receiving the
+    ## parent.frame() as environment, cp.: 
+    ##(function(e) {ecall <- match.call()$e; eval(call("environment", ecall))})(~1+start)
+    ## This could cause large files if the fitted model is saved.
+    ## Furthermore, call$endemic could refer to some object containing
+    ## the formula, which is no longer visible.    
+    call$endemic <- if (missing(endemic)) object$formula$endemic else
+        update.formula(object$formula$endemic, endemic)
+    call$epidemic <- if (missing(epidemic)) object$formula$epidemic else
+        update.formula(object$formula$epidemic, epidemic)
+    ## Note: update.formula uses terms.formula(...,simplify=TRUE), but
+    ##       the principle order of terms is retained. Offsets will be moved to 
+    ##       the end and a missing intercept will be denoted by a final -1.
+    
+    if (!missing(control.siaf))
+        call$control.siaf <- if (is.null(object$control.siaf)) # if constantsiaf
+            control.siaf else modifyList(object$control.siaf, control.siaf)
+    
+    call["optim.args"] <- if (missing(optim.args)) object["optim.args"] else {
+        list( # use list() to enable optim.args=NULL
+             if (is.list(optim.args)) {
+                 modifyList(object$optim.args, optim.args)
+             } else optim.args           # = NULL
+             )
     }
     ## Set initial values (will be appropriately subsetted and/or extended with
     ## zeroes inside twinstim())
-    if (use.estimates)
-        call$start <- coef(object)
-    if ((missing(optim.args) || !"par" %in% names(optim.args)) &&
-        !is.null(call$optim.args$par)) {
-        ## old par-vector usually doesn't match updated model, thus we move
-        ## it into start-vector (actually only useful if it was named)
-        call$start <- call("c", call$optim.args$par, call$start)
+    call$start <- if (missing(optim.args) ||
+                      (!is.null(optim.args) && !"par" %in% names(optim.args))) {
+        ## old optim.args$par probably doesn't match updated model,
+        ## thus we set it as "start"-argument
         call$optim.args$par <- NULL
-    }
+        if (use.estimates) coef(object) else object$optim.args$par
+    } else NULL
     if ("start" %in% names(extras)) {
-        call$start <- call("c", call$start, extras$start)
-        ##<- if names appear both in the first and second set, the last
-        ##   occurrence will be chosen in twinstim()
+        newstart <- eval.parent(extras$start)
+        call$start[names(newstart)] <- newstart
         extras$start <- NULL
     }
     ## CAVE: the remainder is copied from stats::update.default (as at R-2.15.0)
@@ -1136,21 +1160,18 @@ update.twinstim <- function (object, endemic, epidemic, optim.args, model,
     call <- object$call
     call$model <- model
     if (model) { # add model environment
-        call$optim.args$par <- coef(object)
-        call$optim.args$fixed <- seq_along(coef(object))
+        call$start <- coef(object)
+        call$optim.args$fixed <- TRUE
         call$cumCIF <- FALSE
         cat("Setting up the model environment ...\n")
         capture.output(suppressMessages(
                        objectWithModel <- eval(call, parent.frame())
                        ))
         cat("Done.\n")
-        object$functions <- objectWithModel$functions
-        ## CAVE: order of components of the twinstim-object
-        object <- object[c(1:match("formula", names(object)),
-                           match(c("functions", "call", "runtime"), names(object)))]
+        object <- append(object, objectWithModel["functions"],
+                         after=match("optim.args", names(object)))
+        class(object) <- class(objectWithModel) # dropped by append()
         environment(object) <- environment(objectWithModel)
-        ## re-add class attribute (dropped on re-ordering)
-        class(object) <- class(objectWithModel)
     } else { # remove model environment
         object$functions <- NULL
         environment(object) <- NULL

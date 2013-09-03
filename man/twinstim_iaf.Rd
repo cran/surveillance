@@ -84,13 +84,14 @@ tiaf.exponential(nTypes = 1)
   \item{F.adaptive}{
     If \code{F.adaptive = TRUE}, then an adaptive bandwidth of
     \code{adapt*sd} will be used in the midpoint-cubature
-    (see \code{\link{polyCub.midpoint}}) of the Gaussian interaction
+    (\code{\link[polyCub]{polyCub.midpoint}} in package \pkg{polyCub})
+    of the Gaussian interaction
     kernel, where \code{adapt} is an extra parameter of the returned
     \code{siaf$F} function and defaults to 0.1, but it may also be
     specified in the \code{control.siaf$F} argument list of
     \code{twinstim}.\cr  
     Otherwise, if \code{F.adaptive = FALSE}, a general cubature
-    method (\code{\link{polyCub}}) is returned as \code{siaf$F}
+    method (\code{\link[polyCub]{polyCub}}) is returned as \code{siaf$F}
     component, where the \code{method} and accuracy (\code{eps},
     \code{dimyx}, or \code{nGQ}, depending on the method) should then be
     specified in \code{twinstim}'s \code{control.siaf$F} argument.
@@ -196,10 +197,10 @@ tiaf.exponential(nTypes = 1)
     The third and fourth argument are
     the parameter vector and the (\emph{single}) type, respectively.
     There may be additional arguments, which can then be specified in
-    the \code{control.siaf$F} argument list of \code{twinstim}. If this
-    function is missing, a general default (\code{polyCub}) will be
-    used, with extra arguments \code{method} (default: \code{"SV"}) and
-    corresponding accuracy parameters.}
+    the \code{control.siaf$F} argument list of \code{twinstim}. If the \code{F}
+    function is missing, a general default (\code{\link[polyCub]{polyCub}}) 
+    will be used, with extra arguments \code{method} (default: \code{"SV"}) 
+    and corresponding accuracy parameters.}
   \item{Fcircle}{optional function for fast calculation of the
     (two-dimensional) integral of \eqn{f(s)} over a circle with radius
     \code{r} (first argument). Further arguments are as for \code{f}. It
@@ -226,14 +227,15 @@ tiaf.exponential(nTypes = 1)
     calculation of the score function in \code{twinstim()}, which is
     advantageous for the numerical log-likelihood maximization.} 
   \item{Deriv}{function computing the integral of \code{deriv} (passed as
-    second argument) over a polygonal \code{"owin"} domain (first argument).
-    The third and fourth argument are
-    the parameter vector and the (\emph{single}) type, respectively.
+    second argument) over a polygonal \code{"owin"} domain (first
+    argument). The return value is thus a vector of length \code{npars}.
+    The third argument is the parameter vector and the fourth argument
+    is a (\emph{single}) type and must be named \code{type}.
     There may be additional arguments, which can then be specified in
-    the \code{control.siaf$Deriv} argument list of \code{twinstim}. If this
-    function is missing, a general default (\code{polyCub}) will be
-    used, with extra arguments \code{method} (default: \code{"SV"}) and
-    corresponding accuracy parameters.}
+    the \code{control.siaf$Deriv} argument list of \code{twinstim}. If the
+    \code{Deriv} function is missing, a general default
+    (\code{\link[polyCub]{polyCub}}) will be used, with extra arguments
+    \code{method} (default: \code{"SV"}) and corresponding accuracy parameters.}
   \item{simulate}{optional function returning a sample drawn from the
     spatial kernel (only required for the simulation of \code{twinstim}
     models).  Its first argument is the size of the sample to
@@ -285,6 +287,11 @@ tiaf.exponential(nTypes = 1)
 }
 
 \references{
+  Meyer, S. and Held, L. (2013):
+  Modelling power-law spread of infectious diseases.
+  \emph{arXiv:1308.5115}\cr
+  arXiv-Link: \url{http://arxiv.org/abs/1308.5115}
+
   Meyer, S., Elias, J. and H\enc{ö}{oe}hle, M. (2012):
   A space-time conditional intensity model for invasive meningococcal
   disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.\cr
@@ -308,6 +315,8 @@ tiaf.exponential(nTypes = 1)
 \examples{
 # constant temporal dispersal
 tiaf.constant()
+# or exponential decay specification
+tiaf.exponential()
 
 # Type-dependent Gaussian spatial interaction function using an adaptive
 # two-dimensional midpoint-rule to integrate it over polygonal domains

@@ -53,15 +53,15 @@ stepComponent(object, component = c("endemic", "epidemic"),
 }
 
 \examples{
-data(imdepi)
-data(imdepifit)
+data("imdepi")
+data("imdepifit")
 
 ## simple baseline model
 m0 <- update(imdepifit, epidemic = ~1, siaf=NULL, cumCIF=FALSE,
              start=c("e.(Intercept)"=-16))
 
 ## AIC-based step-wise backward selection of the endemic component
-m0_step <- stepComponent(m0, "endemic", scope=list(lower=~I(start/365)))
+m0_step <- stepComponent(m0, "endemic", scope=list(lower=~I(start/365-3.5)))
 ## nothing is dropped from the model
 
 \dontshow{

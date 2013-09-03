@@ -22,16 +22,12 @@ reset.surveillance.options()
     \describe{
       \item{gpclib:}{
         Logical flag indicating whether \pkg{gpclib}, the General
-	Polygon Clipping Library for \R, which has a restricted license, 
+	Polygon Clipping Library for \R, which has a restricted license
+	(commercial use prohibited), 
 	may be used. The default is \code{FALSE}, which means that 
-	\pkg{gpclib} is not used, and certain functions of the
-	\pkg{surveillance} package will not work, namely the generation
-	of \code{"epidataCS"} objects by \code{as.epidataCS} or
-	\code{simEpidataCS} (since they require the calculation of
-	polygon intersections). 
-	The licence for \code{gpclib} explicitly forbids commercial use,
-	thus \code{"epidataCS"} objects may not be generated for such
-	purposes. 
+	instead of \pkg{gpclib}, \pkg{rgeos} will be used to compute polygon
+	intersections in generating \code{"epidataCS"} objects
+	by \code{as.epidataCS} or \code{simEpidataCS}. 
       }
 
       \item{allExamples:}{

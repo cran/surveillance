@@ -16,18 +16,18 @@ anscombe.residuals <- function(m,phi) {
 }
 
 
-###################################################
-### code chunk number 2: algo_farrington.Rnw:60-68
-###################################################
-algo.farrington.assign.weights <- function(s) {
-  #s_i^(-2) for s_i<1 and 1 otherwise
-  gamma <- length(s)/(sum(  (s^(-2))^(s>1) ))
-  omega <- numeric(length(s)) 
-  omega[s>1] <- gamma*(s[s>1]^(-2))
-  omega[s<=1] <- gamma
-  return(omega)
-}
+################################################################################
+# WEIGHTS FUNCTION
+################################################################################
 
+algo.farrington.assign.weights <- function(s,weightsThreshold=1) {
+    #s_i^(-2) for s_i<weightsThreshold and 1 otherwise
+    gamma <- length(s)/(sum(    (s^(-2))^(s>weightsThreshold) ))
+    omega <- numeric(length(s))
+    omega[s>weightsThreshold] <- gamma*(s[s>weightsThreshold]^(-2))
+    omega[s<=weightsThreshold] <- gamma
+    return(omega)
+}
 
 ###################################################
 ### code chunk number 3: algo_farrington.Rnw:136-305
@@ -259,19 +259,29 @@ algo.farrington.threshold <- function(pred,phi,alpha=0.01,skewness.transform="no
 refvalIdxByDate <- function(t0, b, w, epochStr, epochs) {
   refDays <- NULL
   refPoints <- seq( t0, length=b+1, by="-1 year")[-1]
+
+  #Loop over all b-lagged points and append appropriate w-lagged points
   for (j in 1:length(refPoints)) {
-    refPointWindow <- c(rev(seq(refPoints[j], length=w+1, by=paste("-",epochStr,sep=""))),
-                        seq(refPoints[j], length=w+1, by=epochStr)[-1])
-    refDays <- append(refDays,refPointWindow)
+      refPointWindow <- c(rev(seq(refPoints[j], length=w+1, by=paste("-",epochStr,sep=""))),
+                          seq(refPoints[j], length=w+1, by=epochStr)[-1])
+      refDays <- append(refDays,refPointWindow)
   }
   if (epochStr == "1 week") {
-    #By convention: always go back to the closest monday 
-    #(but always back, never ahead!)
-    refDays <- refDays -  (as.numeric(format(refDays, "%w")) - 1)
+      #What weekday is t0 (0=Sunday, 1=Monday, ...)
+      epochWeekDay <- as.numeric(format(t0,"%w"))
+      #How many days to go forward to obtain the next "epochWeekDay", i.e. (d0 - d) mod 7
+      dx.forward <- (epochWeekDay - as.numeric(format(refDays,"%w"))) %% 7
+      #How many days to go backward to obtain the next "epochWeekDay", i.e. (d - d0) mod 7
+      dx.backward <- (as.numeric(format(refDays,"%w")) - epochWeekDay) %% 7
+      #What is shorter - go forward or go backward? 
+      #By convention: always go to the closest weekday as t0
+      refDays <- refDays + ifelse(dx.forward < dx.backward, dx.forward, -dx.backward)
   }
   if (epochStr == "1 month") {
-    #By convention: go back in time to  closest 1st of month
-    refDays <- refDays -  (as.numeric(format(refDays, "%d")) - 1)
+      #What day of the month is t0 (it is assumed that all epochs have the same value here)
+      epochDay <- as.numeric(format(t0,"%d"))
+      #By convention: go back in time to closest 1st of month
+      refDays <- refDays -  (as.numeric(format(refDays, "%d")) - epochDay)
   }
   #Find the index of these reference values
   wtime <- match(as.numeric(refDays), epochs)
@@ -328,7 +338,11 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
   if (!((control$limit54[1] >= 0) &  (control$limit54[2] > 0))) {
     stop("The limit54 arguments are out of bounds: cases >= 0 and period > 0.")
   }
-
+  #Check control$range is within bounds.
+  if (any((control$range < 1) | (control$range > length(disProgObj$observed)))) {
+      stop("Range values are out of bounds (has to be within 1..",length(disProgObj$observed)," for the present data).")
+  }
+  
   # initialize the necessary vectors
   alarm <- matrix(data = 0, nrow = length(control$range), ncol = 1)
   trend <- matrix(data = 0, nrow = length(control$range), ncol = 1)
@@ -347,7 +361,7 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
     #shortObserved <- observed[1:(maxRange - k + 1)]
 
     if (control$verbose) { cat("k=",k,"\n")}
-
+            
     #Find index of all epochs, which are to be used as reference values
     #i.e. with index k-w,..,k+w 
     #in the years (current year)-1,...,(current year)-b
@@ -356,14 +370,20 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
       for (i in control$b:1){
         wtimeAll <- append(wtimeAll,seq(k-freq*i-control$w,k-freq*i+control$w,by=1))
       }
-      #Select them as reference values
+      #Select them as reference values - but only those who exist
       wtime <- wtimeAll[wtimeAll>0]
       if (length(wtimeAll) != length(wtime)) {
-        warning("Some reference values did not exist (index<1).")
+          warning("@ range= ",k,": With current b and w then ",length(wtimeAll) - length(wtime),"/",length(wtimeAll), " reference values did not exist (index<1).")
       }
     } else { #Alternative approach using Dates
       t0 <- as.Date(disProgObj$week[k], origin="1970-01-01")
-      wtime <- refvalIdxByDate( t0=t0, b=control$b, w=control$w, epochStr=epochStr, epochs=disProgObj$week)
+      wtimeAll <- refvalIdxByDate( t0=t0, b=control$b, w=control$w, epochStr=epochStr, epochs=disProgObj$week)
+      #Select them as reference values (but only those not being NA!)
+      wtime <- wtimeAll[!is.na(wtimeAll)]
+      #Throw warning if necessary
+      if (length(wtimeAll) != length(wtime)) {
+          warning("@ range= ",k,": With current b and w then ",length(wtimeAll) - length(wtime),"/",length(wtimeAll), " reference values did not exist (index<1).")
+      }
     }
     
     #Extract values from indices

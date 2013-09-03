@@ -6,46 +6,36 @@
 ### Spatial helper functions
 ###
 ### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 483 $
-### $Date: 2013-01-24 16:36:51 +0100 (Do, 24. Jan 2013) $
+### $Revision: 631 $
+### $Date: 2013-08-28 17:52:52 +0200 (Mit, 28 Aug 2013) $
 ################################################################################
 
 
-### Returns a Polygon representing a disc (in planar coordinates)
-### as an object of one of three possible classes: gpc.poly, owin, or Polygon.
-### This function is inspired by the disc() function from package 'spatstat'
-### authored by Adrian Baddeley and Rolf Turner
+### Compute distance from points to boundary
+### copied in part from function bdist.points() of the "spatstat" package authored
+### by A. Baddeley and R. Turner (DEPENDS ON spatstat::distppl)
 
-# center: center of the disc
-# r: radius
-# npoly: Number of edges of the polygonal approximation
-# hole: hole flag of the polygon
-discpoly <- function (center, r, npoly = 64,
-    class = c("Polygon", "owin", "gpc.poly"), hole = FALSE)
+## xy is the coordinate matrix of the points
+## poly is a polygonal domain of class "gpc.poly"
+## the function does not check if points are actually inside the polygonal domain
+bdist <- function (xy, poly)
 {
-    class <- match.arg(class)
-    if (class == "owin") { # use spatstat::disc
-        res <- disc(radius = r, centre = center, mask = FALSE, npoly = npoly)
-        if (hole) {
-            res$bdry[[1]]$x <- rev(res$bdry[[1]]$x)
-            res$bdry[[1]]$y <- rev(res$bdry[[1]]$y)
-            res$bdry[[1]]$hole <- TRUE
+    result <- rep(Inf, nrow(xy))
+    bdry <- poly@pts
+    for (i in seq_along(bdry)) {
+        polly <- bdry[[i]]
+        px <- polly$x
+        py <- polly$y
+        nsegs <- length(px)
+        for (j in seq_len(nsegs)) {
+            j1 <- if (j < nsegs) j + 1L else 1L
+            seg <- c(px[j], py[j], px[j1], py[j1])
+            ## calculate distances of points to segment j of polygon i
+            dists <- distppl(xy, seg)
+            result <- pmin(result, dists)
         }
-        return(res)
     }
-
-    stopifnot(r > 0, isScalar(npoly), npoly > 2)
-    theta <- seq(2*pi, 0, length = npoly+1)[-(npoly+1)]   # for clockwise order
-    if (hole) theta <- rev(theta)   # for anticlockwise order
-    x <- center[1] + r * cos(theta)
-    y <- center[2] + r * sin(theta)
-    switch(class,
-        "Polygon" = Polygon(cbind(c(x,x[1]),c(y,y[1])), hole=hole),
-        "gpc.poly" = {
-            gpclibCheck()
-            new("gpc.poly", pts = list(list(x=x, y=y, hole=hole)))
-        }
-    )
+    return(result)
 }
 
 
@@ -59,7 +49,7 @@ runifdisc <- function (n, r = 1)
 }
 
 
-### Redefinition of the gpclib::scale.poly method for gpc.poly's to also do centering
+### Redefinition of gpclib's scale.poly method to also do centering
 
 scale.gpc.poly <-
     function (x, center = c(0,0), scale = c(1,1)) {
@@ -85,8 +75,25 @@ inside.gpc.poly <- function(x, y = NULL, polyregion, mode.checked = FALSE)
             ifelse(pip == 1, -Inf, 0)
         } else pip
     })
-    inside <- if (N == 1L) sum(locations) > 0 else rowSums(locations) > 0
-    return(inside)
+    if (N == 1) sum(locations) > 0 else
+    .rowSums(locations, N, length(polyregion@pts)) > 0
+}
+
+
+### Maximum extent of a gpc.poly (i.e. maximum distance of two vertices)
+
+maxExtent.gpc.poly <- function (object, ...)
+{
+    pts <- object@pts
+    x <- unlist(lapply(pts, "[[", "x"), use.names=FALSE)
+    y <- unlist(lapply(pts, "[[", "y"), use.names=FALSE)
+    
+    ## The diagonal of the bounding box provides a fast upper bound
+    ##ext <- sqrt(diff(range(x))^2 + diff(range(y))^2)
+
+    xy <- cbind(x,y)
+    dists <- dist(xy)
+    max(dists)
 }
 
 
@@ -101,29 +108,6 @@ multiplicity.default <- function (x, ...)
 multiplicity.Spatial <- function (x, ...)
 {
     multiplicity(coordinates(x))
-}
-
-
-### Checks if the first and last coordinates of a coordinate matrix are equal
-
-isClosed <- function (coords)
-{
-    xycoords <- xy.coords(coords)[c("x","y")]
-    n <- length(xycoords$x)
-    return(identical(xycoords$x[1], xycoords$x[n]) &&
-           identical(xycoords$y[1], xycoords$y[n]))
-}
-
-
-### Compute the intersection of a "gpc.poly" with a "discpoly" using gpclib
-
-intersectCircle <- function (Wgpc, center, r, npoly)
-{
-    ## gpclibCheck() # unexported function, check already in caller
-    circle <- discpoly(center = center, r = r, npoly = npoly,
-                       class = "gpc.poly", hole = FALSE)
-    intersection <- gpclib::intersect(circle, Wgpc)  # this order seems to be faster
-    scale(intersection, center = center) # use scale method as defined above
 }
 
 
@@ -163,7 +147,7 @@ nbOrder <- function (neighbourhood, maxlag = 1)
     nb.lags <- spdep::nblag(nb, maxlag=maxlag)
 
     ## Side note: fast method to determine neighbours _up to_ specific order:
-    ## crossprod(neighbourhoud) > 0  # up to second order neighbours (+set diag to 0)
+    ## crossprod(neighbourhood) > 0  # up to second order neighbours (+set diag to 0)
     ## (neighbourhood %*% neighbourhood %*% neighbourhood) > 0  # up to order 3
     ## and so on...
 
@@ -187,4 +171,44 @@ nbOrder <- function (neighbourhood, maxlag = 1)
 
     ## Done
     nbmat
+}
+
+    
+### determines which polygons of a SpatialPolygons object are at the border,
+### i.e. have coordinates in common with the spatial union of all polygons
+
+polyAtBorder <- function (SpP, snap=sqrt(.Machine$double.eps))
+{
+    W <- unionSpatialPolygons(SpP)      # length(W@polygons) == 1
+    Wcoords <- unique(do.call("rbind",
+                              lapply(W@polygons[[1]]@Polygons, coordinates)))
+    atBorder <- sapply(SpP@polygons, function (x) {
+        coords <- unique(do.call("rbind", lapply(x@Polygons, coordinates)))
+        res <- FALSE
+        for (i in seq_len(nrow(coords))) {
+            if (any(spDistsN1(Wcoords, coords[i,]) < snap)) {
+                res <- TRUE
+                break
+            }
+        }
+        res
+    })
+    names(atBorder) <- row.names(SpP)
+    atBorder
+}
+
+
+### derive adjacency structure from SpatialPolygons
+### (wrapping around functionality from the "spdep"-package)
+
+poly2adjmat <- function (SpP, ..., zero.policy = TRUE)
+{
+    if (!requireNamespace("spdep"))
+        stop("package ", dQuote("spdep"),
+             " is required to derive adjacencies from SpatialPolygons")
+    nb <- spdep::poly2nb(SpP, ...)
+    adjmat <- spdep::nb2mat(nb, style="B", zero.policy=zero.policy)
+    attr(adjmat, "call") <- NULL
+    colnames(adjmat) <- rownames(adjmat)
+    adjmat
 }

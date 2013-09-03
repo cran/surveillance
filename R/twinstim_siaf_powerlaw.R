@@ -8,8 +8,8 @@
 ### for the siaf specification we only want d to be positive)
 ###
 ### Copyright (C) 2013 Sebastian Meyer
-### $Revision: 535 $
-### $Date: 2013-04-18 22:56:16 +0200 (Do, 18. Apr 2013) $
+### $Revision: 631 $
+### $Date: 2013-08-28 17:52:52 +0200 (Mit, 28 Aug 2013) $
 ################################################################################
 
 
@@ -35,7 +35,7 @@ siaf.powerlaw <- function (nTypes = 1, logpars = TRUE,
     f <- function (s, logpars, types = NULL) {}
     body(f) <- as.call(c(as.name("{"),
         tmp,
-        expression(sLength <- sqrt(rowSums(s^2))),
+        expression(sLength <- sqrt(.rowSums(s^2, nrow(s), 2L))),
         expression((sLength+sigma)^-d)
     ))
 
@@ -69,7 +69,7 @@ siaf.powerlaw <- function (nTypes = 1, logpars = TRUE,
     body(deriv) <- as.call(c(as.name("{"),
         tmp,
         expression(
-            sLength <- sqrt(rowSums(s^2)),
+            sLength <- sqrt(.rowSums(s^2, nrow(s), 2L)),
             rsigmad <- (sLength+sigma)^d,
             derivlogsigma <- -d*sigma / rsigmad / (sLength+sigma),
             derivlogd <- -log(rsigmad) / rsigmad,
@@ -99,7 +99,7 @@ siaf.powerlaw <- function (nTypes = 1, logpars = TRUE,
             deriv1 <- function (s, paridx)
                 deriv(s, logpars, type)[,paridx,drop=TRUE],
             intderiv1 <- function (paridx)
-                polyCub.SV(polydomain, deriv1, paridx=paridx,
+                polyCub::polyCub.SV(polydomain, deriv1, paridx=paridx,
                            nGQ = nGQ, alpha = a[paridx]),
             res.logsigma <- intderiv1(1L),
             res.logd <- intderiv1(2L),

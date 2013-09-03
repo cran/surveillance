@@ -6,8 +6,8 @@
 ### Gaussian spatial interaction function for twinstim's epidemic component
 ###
 ### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 527 $
-### $Date: 2013-03-08 13:25:48 +0100 (Fr, 08. Mrz 2013) $
+### $Revision: 638 $
+### $Date: 2013-09-03 16:59:05 +0200 (Die, 03 Sep 2013) $
 ################################################################################
 
 
@@ -58,15 +58,12 @@ siaf.gaussian <- function (nTypes = 1, logsd = TRUE, density = FALSE,
     tmp1 <- if (logsd) expression(sds <- exp(pars)) else expression(sds <- pars)
     tmp1.1 <- if (nTypes==1L) expression(sd <- sds) else expression(sd <- sds[type])
     tmp2 <- c(
-            expression(
-                sLengthSquared <- rowSums(s^2),
-                L <- length(sLengthSquared)
-                ),
-            if (nTypes == 1L) expression(sdss <- sds) else expression(
-                types <- rep(types, length.out = L),
-                sdss <- sds[types]
-                )
+        expression(sLengthSquared <- .rowSums(s^2, L <- nrow(s), 2L)),
+        if (nTypes == 1L) expression(sdss <- sds) else expression(
+            types <- rep_len(types, L),
+            sdss <- sds[types]
             )
+        )
 
     # spatial interaction function
     body(f) <- as.call(c(as.name("{"),
@@ -81,7 +78,7 @@ siaf.gaussian <- function (nTypes = 1, logsd = TRUE, density = FALSE,
             tmp1, tmp1.1,
             expression(
                 eps <- adapt * sd,
-                intf <- polyCub.midpoint(polydomain, f, pars, type, eps=eps),
+                intf <- polyCub::polyCub.midpoint(polydomain, f, pars, type, eps=eps),
                 intf
                 )
         ))
@@ -148,7 +145,7 @@ siaf.gaussian <- function (nTypes = 1, logsd = TRUE, density = FALSE,
         } else { # d f(s|type_i) / d sigma_{type_j} is 0 for i != j
             expression(deriv.type <- function (s) deriv(s, pars, type)[,type,drop=TRUE])
         },
-        expression(int <- polyCub.SV(polydomain, deriv.type, nGQ=nGQ, alpha=a)),
+        expression(int <- polyCub::polyCub.SV(polydomain, deriv.type, nGQ=nGQ, alpha=a)),
         if (nTypes == 1L) expression(int) else expression(
             res <- numeric(length(pars)), # zeros
             res[type] <- int,

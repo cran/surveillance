@@ -18,7 +18,8 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
          na.action = na.fail, start = NULL, partial = FALSE,
          control.siaf = list(F = list(), Deriv = list()),
          optim.args = list(), finetune = FALSE,
-         model = FALSE, cumCIF = TRUE, cumCIF.pb = TRUE, verbose = TRUE)
+         model = FALSE, cumCIF = TRUE,
+         cumCIF.pb = interactive(), cores = 1, verbose = TRUE)
 }
 
 \arguments{
@@ -117,16 +118,18 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     of extra arguments passed to the functions \code{siaf$F} and
     \code{siaf$Deriv}, respectively.\cr
     These arguments mainly determine the accuracy of the numerical
-    cubature rules involved in non-constant \code{siaf} specifications,
+    cubature rules from package \pkg{polyCub}
+    involved in non-constant \code{siaf} specifications,
     e.g., the bandwidth of the midpoint rule or the number
     of Gaussian quadrature points.
     For instance, \code{\link{siaf.gaussian}} by default uses the
-    midpoint-cubature (see \code{\link{polyCub.midpoint}}) with an
-    adaptive bandwidth of \code{adapt*sd} to numerically integrate the
+    midpoint-cubature (\code{\link[polyCub]{polyCub.midpoint}}) with an
+    adaptive bandwidth of \code{eps=adapt*sd} to numerically integrate the
     kernel \eqn{f(\bold{s})} over polygonal domains. The \code{adapt}
     parameter defaults to 0.1, but may be modified via setting
-    \code{control.siaf$F$adapt}. In contrast, \code{polyCub.SV} with
-    \code{nGQ=20} is by default used to numerically integrate the
+    \code{control.siaf$F$adapt}. 
+    In contrast, the cubature rule \code{\link[polyCub]{polyCub.SV}}
+    with \code{nGQ=20} is by default used to numerically integrate the 
     derivative of \eqn{f(\bold{s})} wrt the kernel parameters over
     polygonal domains. The number of cubature points may be modified via
     setting \code{control.siaf$Deriv$nGQ}.\cr
@@ -165,7 +168,9 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     to their initial values. This can be specified by a
     logical vector of the same length as the \code{par} component, by an
     integer vector indexing \code{par} or by a character vector following
-    the \code{twinstim} naming conventions.
+    the \code{twinstim} naming conventions. Furthermore, if
+    \code{isTRUE(fixed)}, then all parameters are fixed at their initial
+    values and no optimization is performed.
     
     Importantly, the \code{method} argument in the \code{optim.args}
     list may also be \code{"nlminb"}, in 
@@ -219,7 +224,15 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
   }
   \item{cumCIF.pb}{
     logical indicating if a progress bar should be shown
-    during the calculation of \code{cumCIF}. Defaults to \code{TRUE}.
+    during the calculation of \code{cumCIF}. Defaults to do so in an
+    interactive \R session, and will be \code{FALSE} if \code{cores != 1}.
+  }
+  \item{cores}{
+    number of processes to use in parallel operation. By default
+    \code{twinstim} runs in single-CPU mode. Currently, only the
+    \pkg{multicore}-type of parallel computing via forking is
+    supported, which is not available on Windows, see
+    \code{\link[parallel]{mclapply}} in package \pkg{parallel}.
   }
   \item{verbose}{
     logical indicating if information should be printed during
@@ -256,7 +269,8 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     optimization.}
   \item{control.siaf}{see the \dQuote{Arguments} section above.}
   \item{optim.args}{input optimizer arguments used to determine the MLE.}
-  \item{converged}{logical indicating if the optimizer converged.}
+  \item{converged}{either \code{TRUE} (if the optimizer converged) or a
+    character string containing a failure message).}
   \item{fisherinfo}{\emph{expected} Fisher information evaluated at the
     MLE. Only part of the output for full likelihood inference
     (\code{partial = FALSE}) and if spatial and temporal interaction
@@ -298,8 +312,9 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     is thus retained in the workspace if \code{model=TRUE}.
   }
   \item{call}{the matched call.}
-  \item{runtime}{contains the \code{\link{proc.time}} queried time taken
-    to fit the model.}
+  \item{runtime}{contains the \code{\link{proc.time}}-queried time taken
+    to fit the model, i.e. a named numeric vector of length 5, with
+    the number of \code{cores} set as additional attribute.}
 
   If \code{model=TRUE}, the model evaluation environment is assigned to
   this list and can thus be queried by calling \code{environment()} on
@@ -377,8 +392,8 @@ h.intercept <- with(summary(imdepi),
 
 ## fit the endemic-only model
 m_noepi <- twinstim(
-    endemic = ~ 1 + offset(log(popdensity)) + I(start/365) +
-                sin(start * 2 * pi/365) + cos(start * 2 * pi/365),
+    endemic = addSeason2formula(~ offset(log(popdensity)) + I(start/365-3.5),
+                                S=1, period=365, timevar="start"),
     data = imdepi, subset = !is.na(agegrp),
     optim.args = list(par=c(h.intercept,rep(0,3)), # this is the default
                       method="nlminb", control = list(trace=1)),
@@ -425,6 +440,8 @@ s <- summary(m0, correlation = TRUE, symbolic.cor = TRUE)
 s
 # output the table of coefficients as LaTeX code
 toLatex(s, digits=2, withAIC=FALSE)
+# or
+xtable(s)
 
 ## the default confint-method can be used for Wald-CI's
 confint(m0, level=0.95)
@@ -454,10 +471,13 @@ if (surveillance.options("allExamples"))
   # polygonal resolution of "W"
 }
 
-
 if (surveillance.options("allExamples"))
 {
-  ### try with spatially decreasing interaction kernel
+  ## estimate an exponential temporal decay of infectivity
+  m1_tiaf <- update(m0, tiaf=tiaf.exponential())
+  plot(m1_tiaf, "tiaf", xlim=c(0,30), legend=FALSE)
+
+  ### try with a spatially decreasing interaction kernel
   ## Likelihood evaluation takes much longer than for constant spatial spread
   ## Here we use the kernel of an isotropic bivariate Gaussian with same
   ## standard deviation for both finetypes

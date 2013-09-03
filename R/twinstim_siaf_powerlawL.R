@@ -7,8 +7,8 @@
 ### Similar to the density of the Pareto distribution (but value 1 for < sigma)
 ###
 ### Copyright (C) 2013 Sebastian Meyer
-### $Revision: 535 $
-### $Date: 2013-04-18 22:56:16 +0200 (Do, 18. Apr 2013) $
+### $Revision: 631 $
+### $Date: 2013-08-28 17:52:52 +0200 (Mit, 28 Aug 2013) $
 ################################################################################
 
 
@@ -34,7 +34,7 @@ siaf.powerlawL <- function (nTypes = 1, logpars = TRUE,
     f <- function (s, logpars, types = NULL) {}
     body(f) <- as.call(c(as.name("{"),
         tmp,
-        expression(sLength <- sqrt(rowSums(s^2))),
+        expression(sLength <- sqrt(.rowSums(s^2, nrow(s), 2L))),
         expression(ifelse(sLength < sigma, 1, (sLength/sigma)^-d))
     ))
 
@@ -47,7 +47,7 @@ siaf.powerlawL <- function (nTypes = 1, logpars = TRUE,
     ##     intinner <- pi*sigma^2
     ##     poly <- setdiff(spatstat::owin2gpc(polydomain),
     ##                     discpoly(c(0,0), sigma, npoly=nCircle2Poly, class="gpc.poly"))
-    ##     intpoly <- polyCub.SV(poly, f, logpars, type=type, alpha=0, nGQ=nGQ)
+    ##     intpoly <- polyCub::polyCub.SV(poly, f, logpars, type=type, alpha=0, nGQ=nGQ)
     ##     intinner + intpoly
     ## }
     
@@ -74,7 +74,7 @@ siaf.powerlawL <- function (nTypes = 1, logpars = TRUE,
     body(deriv) <- as.call(c(as.name("{"),
         tmp,
         expression(
-            sLength <- sqrt(rowSums(s^2)),
+            sLength <- sqrt(.rowSums(s^2, nrow(s), 2L)),
             f <- (sLength/sigma)^-d,
             derivlogsigma <- d*f,
             derivlogd <- f*log(f),
@@ -100,7 +100,7 @@ siaf.powerlawL <- function (nTypes = 1, logpars = TRUE,
             deriv1 <- function (s, paridx)
                 deriv(s, logpars, type)[,paridx,drop=TRUE],
             intderiv1 <- function (paridx)
-                polyCub.SV(polydomain, deriv1, paridx=paridx,
+                polyCub::polyCub.SV(polydomain, deriv1, paridx=paridx,
                            nGQ = nGQ, alpha = a[paridx]),
             res.logsigma <- intderiv1(1L),
             res.logd <- intderiv1(2L),

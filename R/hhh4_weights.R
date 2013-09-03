@@ -5,9 +5,9 @@
 ###
 ### Helper functions for neighbourhood weight matrices in hhh4()
 ###
-### Copyright (C) 2012 Sebastian Meyer
-### $Revision: 444 $
-### $Date: 2012-10-19 15:51:41 +0200 (Fr, 19. Okt 2012) $
+### Copyright (C) 2012-2013 Sebastian Meyer
+### $Revision: 641 $
+### $Date: 2013-09-05 15:31:34 +0200 (Don, 05 Sep 2013) $
 ################################################################################
 
 
@@ -33,10 +33,12 @@ checkWeightsArray <- function (W, nUnits, nTime, name)
     if (any(dim(W)[1:2] != nUnits) || isTRUE(dim(W)[3] != nTime))
         stop("'", name, "' must conform to dimensions ",
              nUnits, " x ", nUnits, " (x ", nTime, ")")
-    if (any(!diag(W) %in% 0))
-        stop("'diag(", name, ")' must only contain zeroes")
     if (any(is.na(W)))
         stop("missing values in '", name, "' are not allowed")
+    diags <- if (is.matrix(W)) diag(W) else apply(W, 3, diag)
+    if (any(diags != 0))
+        stop("'", name, "' must only contain zeroes on the diagonal",
+             if (!is.matrix(W)) "s")
 }
 
 checkWeights <- function (weights, nUnits, nTime,
@@ -97,22 +99,15 @@ weightedSumNE <- function (observed, weights, lag)
   dimY <- dim(observed)
   nTime <- dimY[1L]
   nUnits <- dimY[2L]
-  tY <- t(observed)
+  tY <- t(observed)                     # -> nUnits x nTime
   
-  timeconstantweights <- length(dim(weights)) == 2L
-  selecti <- if (timeconstantweights) quote(weights[,i]) else quote(weights[,i,])
-    
-  res <- matrix(NA_real_, nrow = nTime, ncol = nUnits,
-                dimnames = list(NULL, colnames(observed)))
-  for(i in seq_len(nUnits)){
-    weights.i <- eval(selecti)
-    weightedObs <- tY * weights.i
-    res[,i] <- colSums(weightedObs, na.rm=TRUE)
-  }
-
-  reslagged <- rbind(matrix(NA_real_, lag, nUnits),
-                     res[seq_len(nTime-lag),,drop=FALSE])
-  reslagged
+  res <- apply(weights, 2L, function (wi)
+               ## if dim(weights)==2 (time-constant weights), length(wi)=nUnits,
+               ## if dim(weights)==3, wi is a matrix of size nUnits x nTime
+               .colSums(tY * wi, nUnits, nTime, na.rm=TRUE))
+  
+  rbind(matrix(NA_real_, lag, nUnits),
+        res[seq_len(nTime-lag),,drop=FALSE])
 }
 
 ## slower alternative, where the weights are always converted to a 3D array
@@ -134,9 +129,6 @@ weightedSumNE.old <- function(observed, weights, lag)
   
   rbind(matrix(NA_real_, lag, nUnits), head(res, nTime-lag))
 }
-
-
-
 
 
 
@@ -170,47 +162,41 @@ checkWeightsFUN <- function (object)
 ### to the orders of neighbourhood (in nbmat, as e.g. obtained from nbOrder()),
 ### optionally fulfilling rowSums(wji) = 1
 ## As a formula (for j != i, otherwise wji = 0):
-## - for shared=TRUE: wji = pzeta(oji; rho, maxlag) / sum_k I(ojk == oji)
-## - for shared=FALSE: wji = pzeta(oji; rho, maxlag) / sum_k pzeta(ojk; rho, maxlag)
+## - for shared=TRUE: wji = pzeta(oji; d, maxlag) / sum_k I(ojk == oji)
+## - for shared=FALSE: wji = pzeta(oji; d, maxlag) / sum_k pzeta(ojk; d, maxlag)
 ## Here, oji = oij is the order of nb of i and j,
-## and pzeta(o; rho, m) = o^-rho / sum_{r=1}^m r^-rho is the Zeta-distribution
+## and pzeta(o; d, m) = o^-d / sum_{r=1}^m r^-d is the Zeta-distribution
 ## on 1:m (also called Zipf's law).
-## For shared=TRUE and normalize=FALSE, maxlag should not be greater than
-## min_j(max_i(oji)), such that every region has neighbours up to order 'maxlag'
-## and higher orders can not be infected. Otherwise, regions with not as
-## high-order neighbours would not sum their weights to 1 (but lower).
-## For shared=FALSE, maxlag=Inf yields the weights
-## wji = oji^-\rho / sum_k ojk^-\rho
+## For shared=TRUE (not recommended) and normalize=FALSE, maxlag should be
+## <= min_j(max_i(oji)), such that every region has neighbours up to order 
+## 'maxlag' and higher orders can not be infected. Otherwise, regions with not
+## as high-order neighbours would not sum their weights to 1 (but lower).
+## For shared=FALSE, maxlag=max(nbmat) yields the weights
+## wji = oji^-d / sum_k ojk^-d
 ## In both cases, maxlag=1 yields the classical weights wji=1/nj.
 
-zetaweights <- function (nbmat, maxlag = Inf, rho = 1,
-                         normalize = TRUE, shared = FALSE)
+zetaweights <- function (nbmat, d = 1, maxlag = max(nbmat), normalize = FALSE)
 {
-    ## check maxlag
-    if (!is.finite(maxlag)) maxlag <- max(nbmat)
-
     ## raw (non-normalized) zeta-distribution on 1:maxlag
-    zetaweights <- c(0, seq_len(maxlag)^-rho)
-    ##<- first 0 is for lag 0 (for instance, diag(nbmat))
+    zeta <- c(0, seq_len(maxlag)^-d)  # first 0 is for lag 0 (i.e., diag(nbmat))
 
     ## replace order by zetaweight of that order
-    wji <- zetaweights[nbmat + 1L]
-    wji[is.na(wji)] <- 0
-    dim(wji) <- dim(nbmat)
+    wji <- zeta[nbmat + 1L]           # results in vector
+    wji[is.na(wji)] <- 0              # for lags > maxlag
+
+    ## set dim and names
+    dim(wji) <- dimW <- dim(nbmat)
     dimnames(wji) <- dimnames(nbmat)
 
-    if (shared) {
-        ## multiplicity of orders by row: dim(nbmat)==dim(multbyrow)
-        multbyrow <- t(apply(nbmat, 1, function(x) table(x)[as.character(x)]))
-        ## neighbours of same order share the zetaweight for that order
-        wji <- wji / sum(zetaweights) / multbyrow
-    }
+    ## if (shared) {
+    ##     ## multiplicity of orders by row: dim(nbmat)==dim(multbyrow)
+    ##     multbyrow <- t(apply(nbmat, 1, function(x) table(x)[as.character(x)]))
+    ##     ## neighbours of same order share the zetaweight for that order
+    ##     wji <- wji / sum(zeta) / multbyrow
+    ## }
     if (normalize) { # normalize such that each row sums to 1
-        wji <- wji / rowSums(wji)
-    }
-
-    ## Done
-    wji
+        wji / .rowSums(wji, dimW[1], dimW[2])
+    } else wji
 }
 
 
@@ -220,48 +206,75 @@ zetaweights <- function (nbmat, maxlag = Inf, rho = 1,
 ## the raw powerlaw weights are defined as w_ji = o_ji^-d,
 ## and with (row-)normalization we have    w_ji = o_ji^-d / sum_k o_jk^-d
 
-powerlaw <- function (maxlag, normalize = TRUE, initial = 1)
-                                        # atm, only shared=FALSE is supported
+powerlaw <- function (maxlag, normalize = TRUE, log = FALSE,
+                      initial = if (log) 0 else 1)
 {
     if (missing(maxlag)) {
-        stop("'maxlag' must be specified (e.g., maximum neighbourhood order)")
-    }
+        stop("'maxlag' must be specified (e.g. maximum neighbourhood order)")
+        ## specifying 'maxlag' in zetaweights is actually optional since it has
+        ## the default value max(nbmat). however, repeatedly asking for this
+        ## maximum would be really inefficient.
+    } else stopifnot(isScalar(maxlag))
 
     ## main function which returns the weight matrix
-    weights.call <- call("zetaweights", quote(nbmat), maxlag, quote(d),
-                         normalize, FALSE)
-    weights <- as.function(c(alist(d=, nbmat=, ...=), weights.call),
+    weights.call <- call("zetaweights",
+                         quote(nbmat), quote(d), maxlag, normalize)
+    weights <- as.function(c(alist(d=, nbmat=, ...=), call("{", weights.call)),
                            envir=.GlobalEnv)
-
-    ## construct derivatives with respect to "d"
-    dweights <- d2weights <- as.function(c(alist(d=, nbmat=, ...=),
-        substitute({
-            W <- weights.call
-            is.na(nbmat) <- nbmat == 0L # w_jj(d) = 0 => w_jj'(d) = 0, sum over j!=i
-            tmp1a <- log(nbmat)
-            norm <- rowSums(nbmat^-d, na.rm=TRUE) # unused for raw weights
-            tmp1b <- rowSums(nbmat^-d * -log(nbmat), na.rm=TRUE)/norm # set to 0 for raw
-            tmp1 <- tmp1a + tmp1b
-            tmp2 <- rowSums(nbmat^-d * log(nbmat)^2, na.rm=TRUE)/norm - tmp1b^2 # for 2nd deriv
-            deriv <- W * -tmp1          # for d2weights: W * (tmp1^2 - tmp2)
-            deriv[is.na(deriv)] <- 0
-            deriv
-        }, list(weights.call=weights.call))), envir=.GlobalEnv)
-
-    ## adaptions for dweights and d2weights
-    body(dweights)[[grep("^tmp2 <-", body(dweights))]] <- NULL
-    body(d2weights)[[grep("^deriv <-", body(d2weights))]] <-
-        quote(deriv <- W * (tmp1^2 - tmp2))
-    
-    ## simplifications for raw weights
-    if (!normalize) {
-        body(dweights)[[grep("^norm", body(dweights))]] <-
-            body(d2weights)[[grep("^norm", body(d2weights))]] <- NULL
-        body(dweights)[[grep("^tmp1b <-", body(dweights))]] <-
-            body(d2weights)[[grep("^tmp1b <-", body(d2weights))]] <- quote(tmp1b <- 0)
-        body(d2weights)[[grep("^tmp2 <-", body(d2weights))]] <- quote(tmp2 <- 0)
+    if (log) { # the parameter d is interpreted on log-scale
+        ## we prepend the necessary conversion d <- exp(d)
+        body(weights) <- as.call(append(as.list(body(weights)),
+                                        quote(d <- exp(d)), after=1))
     }
     
+    ## construct derivatives with respect to "d" (or log(d), respectively)
+    dweights <- d2weights <- as.function(c(alist(d=, nbmat=, ...=), quote({})),
+                                         envir=.GlobalEnv)
+    header <- c(
+        if (log) quote(d <- exp(d)),    # such that d is again on original scale
+        substitute(W <- weights.call, list(weights.call=weights.call)),
+        expression(
+            nUnits <- nrow(W),           # such that we can use .rowSums()
+            is.na(nbmat) <- nbmat == 0L, # w_jj(d)=0 => w_jj'(d)=0, sum over j!=i,
+            logo <- log(nbmat)           # have to set NA because we do log(o)
+            )
+        )
+    footer <- expression(deriv[is.na(deriv)] <- 0, deriv)
+
+    ## first derivative
+    tmp1 <- expression(
+        norm <- .rowSums(nbmat^-d, nUnits, nUnits, na.rm=TRUE),
+        tmpnorm <- .rowSums(nbmat^-d * -log(nbmat), nUnits, nUnits, na.rm=TRUE) / norm,
+        tmp1 <- logo + tmpnorm
+        )
+    deriv1 <- if (normalize) {
+        expression(deriv <- W * -tmp1)
+    } else expression(deriv <- W * -logo)
+    body(dweights) <- as.call(c(as.name("{"),
+            header,
+            if (normalize) tmp1,
+            deriv1,
+            if (log) expression(deriv <- deriv * d), # this is the non-log d
+            footer
+        ))
+
+    ## second derivative
+    body(d2weights) <- as.call(c(as.name("{"),
+            header,
+            if (normalize) {
+                c(tmp1, expression(
+                    tmp2 <- .rowSums(nbmat^-d * log(nbmat)^2, nUnits, nUnits,
+                                     na.rm=TRUE) / norm - tmpnorm^2,
+                    deriv <- W * (tmp1^2 - tmp2)
+                    ))
+            } else expression(deriv <- W * logo^2),
+            if (log) c(
+                do.call("substitute", list(deriv1[[1]], list(deriv=as.name("deriv1")))),
+                expression(deriv <- deriv * d^2 + deriv1 * d) # this is the non-log d
+                ),
+            footer
+        ))
+
     ## return list of functions
     list(w=weights, dw=dweights, d2w=d2weights, initial=initial)
 }

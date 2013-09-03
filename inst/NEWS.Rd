@@ -6,6 +6,197 @@
 \encoding{latin1}
 
 
+
+\section{Changes in surveillance version 1.6-0 (2013-09-03)}{
+
+\subsection{SYNOPSIS}{
+  \itemize{
+    \item The \code{polyCub}-methods for cubature over polygonal domains
+    have been moved to the new dedicated package \CRANpkg{polyCub},
+    since they are of a rather general use. The \code{discpoly()} function
+    has also been moved to that package.
+
+    \item As a replacement for the license-restricted \pkg{gpclib} package,
+    the \pkg{rgeos} package is now used by default
+    (\code{surveillance.options(gpclib=FALSE)}) in generating
+    \code{"epidataCS"} (polygon intersections, slightly slower).
+    Therefore, when installing \pkg{surveillance} version 1.6-0, the
+    system requirements for \CRANpkg{rgeos} have to be met, i.e., GEOS
+    must be available on the system. On Linux variants this means
+    installing \file{libgeos} (\file{libgeos-dev}).
+
+    \item The improved Farrington method described in Noufaily et al.
+    (2012) is now available as function \code{farringtonFlexible()}.
+
+    \item New handling of reference dates in \code{algo.farrington()} for
+    \code{"sts"} objects with \code{epochAsDate=TRUE}. Instead of always
+    going back in time to the next Date in the \code{"epoch"} slot, the
+    function now determines the \emph{closest} Date. Note that this
+    might lead to slightly different results for the upperbound
+    compared to previously. Furthermore, the functionality is only
+    tested for weekly data (monthly data are experimental). The same
+    functionality applies to \code{farringtonFlexible()}.
+    
+    \item To make the different retrospective modelling frameworks of
+    the \pkg{surveillance} package jointly applicable, it is now possible
+    to convert (aggregate) \code{"epidataCS"} 
+    (continuous-time continuous-space data) into an \code{"sts"} object
+    (multivariate time series of counts) by the new function
+    \code{epidataCS2sts}.
+
+    \item Simulation from \code{hhh4} models (class \code{"ah4"}) has
+    been re-implemented, which fixes a bug and makes it more flexible
+    and compatible with a wider class of models.
+
+    \item The \code{map}-slot of the \code{"sts"} class now requires
+    \code{"SpatialPolygons"} (only) instead of
+    \code{"SpatialPolygonsDataFrame"}.
+
+    \item Re-implementation of \code{oneStepAhead()} for
+    \code{hhh4}-models with a bug fix, some speed-up and more options.
+
+    \item Slight speed-up for \code{hhh4()} fits,
+    e.g., by more use of \code{.rowSums()} and \code{.colSums()}.
+
+    \item Crucial speed-up for \code{twinstim()} fits by more efficient
+    code: \code{mapply}, dropped clumsy \code{for}-loop in
+    \code{fisherinfo}, new argument \code{cores} for parallel
+    computing via forking (not available on Windows).
+
+    \item Some further new features, minor changes, and bug fixes are
+    described in the following subsections.
+  }
+}
+
+\subsection{NEW FEATURES}{
+  \itemize{
+    \item Using \code{tiaf.exponential()} in a \code{twinstim()} now works
+    with \code{nTypes=1} for multi-type data.
+    
+    \item A legend can be added automatically in \code{iafplot()}.
+    
+    \item The \code{untie} methods are now able to produce jittered points
+    with a required minimum separation (\code{minsep}).
+
+    \item \code{simulate.ah4} gained a \code{simplify} argument.
+
+    \item New \code{update}-method for fitted \code{hhh4}-models
+    (class \code{"ah4"}).
+
+    \item \code{oneStepAhead()} has more options: specify time range
+    (not only start), choose type of start values, \code{verbose}
+    argument.
+
+    \item \code{pit()} allows for a list of predictive distributions
+    (\code{pdistr}), one for each observation \code{x}.
+
+    \item New spatial auxiliary function \code{polyAtBorder()}
+    indicating polygons at the border (for a \code{"SpatialPolygons"}
+    object).
+
+    \item \code{animate.epidataCS()} allows for a \code{main} title and
+    can show a progress bar.
+  }
+}
+
+\subsection{MINOR CHANGES}{
+  \itemize{
+    \item Changed parametrization of \code{zetaweights()} and completed
+    its documentation (now no longer marked as experimental).
+
+    \item \code{twinstim(...)$converged} is \code{TRUE} if
+    the optimization routine converged (as before) but contains
+    the failure message otherwise.
+
+    \item Increased default \code{maxit} for the Nelder-Mead optimizer
+    in \code{hhh4} from 50 to 300, and removed default artificial lower
+    bound (-20) on intercepts of epidemic components.
+    
+    \item Renamed returned list from \code{oneStepAhead}
+    (mean->pred, x->observed, params->coefficients,
+    variances->Sigma.orig) for consistency, and
+    \code{oneStepAhead()$psi} is only non-\code{NULL} if we have a
+    NegBin model.
+
+    \item Argument order of \code{pit()} has changed, which is also
+    faster now and got additional arguments \code{relative} and
+    \code{plot}.
+
+    \item \code{twinstim(...)$runtime} now contains the complete
+    information from \code{proc.time()}.
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item Fixed a bug in function
+    \code{refvalIdxByDate()} which produced empty reference values
+    (i.e. \code{NA}s) in case the Date entries of \code{epoch} were not
+    mondays. Note: The function works by subtracting \code{1:b} years from the
+    date of the range value and then takes the span \code{-w:w} around this
+    value. For each value in this set it is determined whether the
+    closest date in the epoch slot is obtained by going forward or
+    backward. Note that this behaviour is now slightly changed compared
+    to previously, where we \emph{always} went back in time.
+
+    \item \code{algo.farrington()}: Reference values too far back in time
+    and hence not being in the \code{"epoch"} slot of the \code{"sts"}
+    object are now ignored (previously the resulting \code{NA}s caused the
+    function to halt). A warning is displayed in this case.
+    
+    \item \code{hhh4}: The entry \eqn{(5,6)} of the marginal Fisher
+    information matrix in models with random intercepts in all three
+    components was incorrect.
+    If \code{nlminb} was used as optimizer for the variance parameters
+    (using the negative marginal Fisher information as Hessian), this
+    could have caused false convergence (with warning) or minimally
+    biased convergence (without warning).
+    As a consequence, the \code{"Sigma.cov"} component of the
+    \code{hhh4()} result, which is the inverse of the marginal Fisher
+    information matrix at the MLE, was also wrong.
+
+    \item \code{untie.matrix()} could have produced jittering greater than
+    the specified \code{amount}.
+
+    \item \code{hhh4}: if there are no random intercepts, the
+    redundant \code{updateVariance} steps are no longer evaluated.
+
+    \item \code{update.twinstim()} did not work with
+    \code{optim.args=..1} (e.g., if updating a list of models with lapply).
+    Furthermore, if adding the \code{model} component only, the
+    \code{control.siaf} and \code{optim.args} components were lost.
+
+    \item \code{earsC} should now also work with multivariate
+    \code{sts} time-series objects.
+
+    \item The last week in \code{data(fluBYBW)} (row index 417) has been
+    removed. It corresponded to week 1 in year 2009 and was wrong
+    (an artifact, filled with zero counts only).
+    Furthermore, the regions in \code{@map} are now ordered the same as
+    in \code{@observed}.
+
+    \item Fixed start value of the overdispersion parameter in
+    \code{oneStepAhead} (must be on internal log-scale, not
+    reparametrized as returned by \code{coef()} by default).
+
+    \item When subsetting \code{"sts"} objects in time, \code{@start} was
+    updated but not \code{@epoch}.
+
+    \item \code{pit} gave \code{NA} results if any \code{x[-1]==0}.
+
+    \item The returned \code{optim.args$par} vector in \code{twinstim()}
+    was missing any fixed parameters.
+
+    \item \code{hhh4()} did not work with time-varying neighbourhood
+    weights due to an error in the internal \code{checkWeightsArray()}
+    function.
+  }
+}
+
+}
+
+
+
 \section{Changes in surveillance version 1.5-4 (2013-04-21)}{
 
 \subsection{SYNOPSIS}{
