@@ -24,7 +24,9 @@ data(imdepifit)
   \code{imdepi} is an object of class
   \code{"\link{epidataCS}"} (a list with components \code{events},
   \code{stgrid}, \code{W} and \code{qmatrix}).
-  \code{imdepifit} is an object of class \code{"\link{twinstim}"}.
+  \code{imdepifit} is an object of class \code{"\link{twinstim}"},
+  see \code{\link{summary.twinstim}} for some simple methods for fitted
+  \code{"twinstim"} models.
 }
 
 \details{
@@ -103,15 +105,12 @@ data(imdepifit)
   
   The entry \code{qmatrix} is a \eqn{2\times 2}{2 x 2} identity matrix
   indicating that no transmission between the two finetypes can occur.
-
-  The code used to produce the \code{imdepifit} can be found at the end
-  of the examples section below.
 }
 
 \source{
-  National Reference Centre for Meningococci (NRZM) -- hosted by the
+  German Reference Centre for Meningococci (NRZM) -- hosted by the
   Department of Hygiene and Microbiology,
-  Julius-Maximilians-Universit\enc{ä}{ae}t W\enc{ü}{ue}rzburg, Germany.
+  Julius-Maximilians-Universit\enc{ä}{ae}t W\enc{ü}{ue}rzburg, Germany.\cr
   Thanks to Dr. Johannes Elias and Prof. Dr. Ulrich Vogel from the NRZM
   for providing the IMD event data. See \url{http://www.meningococcus.de/}
   and \url{http://episcangis.hygiene.uni-wuerzburg.de/} for further

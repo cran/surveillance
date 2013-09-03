@@ -117,8 +117,8 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
     an object of class \code{"\linkS4class{SpatialPolygons}"} indicating the
     observation region. Must have the same \code{proj4string} as \code{events}
     and all events must be within \code{W}.
-    The function \code{\link{simplify.owin}} 
-    from the package \pkg{spatstat} may be useful if polygonal operations take
+    The function \code{\link[spatstat]{simplify.owin}} 
+    from package \pkg{spatstat} may be useful if polygonal operations take
     too long or memory is limited (see also the \dQuote{Note} section below).
   }
 
@@ -215,6 +215,9 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
         objects of the \pkg{spatstat} class \code{"owin"}. For each
         event, this is the intersection of \code{W} with a (polygonal)
         circle of radius \code{eps.s} centered at the event location.
+        The \code{"owin"} class was chosen since it is best compatible
+        with both the \code{polyCub.midpoint} and the \code{polyCub.SV}
+        cubature methods from package \pkg{polyCub}.
         The list has \code{nCircle2Poly} set as an attribute.}
       }
   }
@@ -260,11 +263,12 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
   \code{dp()} in the (slightly outdated) package \pkg{shapefiles}, or by
   passing by \pkg{spatstat}'s \code{\link[spatstat]{simplify.owin}} procedure.
 
-  Note also that generation of \code{"epidataCS"} depends on the
-  computation of polygon intersections via the \pkg{gpclib} package,
-  which has a restricted license. In order to use \code{as.epidataCS},
-  this license must be explicitly accepted by setting
+  Note also that generation of \code{"epidataCS"} requires
+  computation of polygon intersections. If you want these to be computed
+  by the \pkg{gpclib} package, its restricted license must first be
+  accepted explicitly by setting
   \code{\link{surveillance.options}(gpclib=TRUE)}.
+  Otherwise (default), the \pkg{rgeos} library is used.
 }
 
 \references{
@@ -368,11 +372,18 @@ qmatrix <- imdepi$qmatrix
 qmatrix
 
 ## now construct an object of class "epidataCS" from these components
-if (require("gpclib")) {
+if (requireNamespace("gpclib")) {
     oopt <- surveillance.options(gpclib=TRUE)
     myimdepi <- as.epidataCS(events, stgrid, W, qmatrix, nCircle2Poly=16)
     surveillance.options(oopt)
+} else if (requireNamespace("rgeos")) {
+    oopt <- surveillance.options(gpclib=FALSE)
+    myimdepi2 <- as.epidataCS(events, stgrid, W, qmatrix, nCircle2Poly=16)
+    surveillance.options(oopt)
 }
+## myimdepi2 differs from myimdepi only in the events$.influenceRegion
+## component due to different polygon intersection algorithms in gpclib
+## and rgeos (usually the vertex order/choice of first vertex is different)
 
 \dontshow{
 ## should be equal as long as the internal structures of "epidataCS" and

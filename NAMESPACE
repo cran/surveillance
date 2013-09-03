@@ -8,10 +8,14 @@ useDynLib(surveillance)
 ###############
 
 ### Fully import all packages listed as Depends in the given order
-### (except for Rcpp, which is only used on the C-level, and
-### stats, utils, and xtable, from which only selected methods are imported)
+### (except for stats, utils, and xtable,
+### from which only selected methods are imported)
 
 import(grDevices, graphics)
+import(Rcpp)
+## although Rcpp is only used on C-level we need to "ensure that Rcpp is loaded
+## so any dynamic linking to its code can be resolved.  (There may be none, but
+## there could be, now or in future.)" (B. Ripley, 2013-09-08)
 
 ## required generics (that's why we "Depend" on these packages)
 importFrom(stats, coef, vcov, logLik, nobs, residuals, confint, AIC, extractAIC,
@@ -22,11 +26,10 @@ importFrom(xtable, xtable) # if we wouldn't "Depend" on xtable, our
                            # user attaches the xtable package himself
 ## required functions from stats and utils
 importFrom(stats, pnorm, cov2cor, ks.test, formula, rnorm, runif, step,
-           update.formula, terms.formula)
-importFrom(utils, packageDescription, modifyList)
+           update.formula, terms.formula, rpois, rnbinom, setNames)
+importFrom(utils, packageVersion, modifyList, head.matrix)
 
 import(methods)
-##import(Rcpp)   # not used on the R-level
 
 #importMethodsFrom(stats4, plot)   # import S4-generic
 #<- would be nice, but then gives strange warnings for S3 methods from stats
@@ -36,6 +39,9 @@ import(methods)
 ## sp classes & utilities (bbox, coordinates, dimensions, overlay, plot, ...)
 ## (we "Depend" on package sp since it defines essential data classes & methods)
 import(sp)
+
+## sampling from mv.Gausian for OSAIC weights (twinSIR) and iafplot (twinstim)
+importFrom(MASS, mvrnorm)
 
 
 ### disProg-specific
@@ -57,7 +63,6 @@ importMethodsFrom(Matrix, coerce, diag, forceSymmetric, solve)
 ### twinSIR-specific
 
 # for use in computing OSAIC weights by simulation
-importFrom(MASS, mvrnorm)
 #importFrom(quadprog, solve.QP)   # moved to "Suggests"
 
 
@@ -66,23 +71,24 @@ importFrom(MASS, mvrnorm)
 ## importClassesFrom(gpclib, gpc.poly)
 ## importMethodsFrom(gpclib, "[", get.bbox, intersect, append.poly, tristrip)
 ## -> we no longer strictly depend on gpclib for clarity of the package license
-importFrom(spatstat, gpc2owin, coords, coords.ppp, area.owin, distppl,
-                     as.im.function, disc, shift, shift.owin, plot.owin, plot.im, marks,
+importFrom(spatstat, coords, coords.ppp, area.owin, distppl,
+                     as.im.function, shift, shift.owin, plot.owin, plot.im, marks,
                      marks.ppp, markformat.default, # required for runifpoint() in
                                         # simulate.twinstim because spatstat
                                         # does not register its S3 methods 
-                     bounding.box, runifpoint, inside.owin, spatstat.options)
+                     bounding.box, runifpoint, inside.owin)
 ##importFrom(intervals, Intervals, reduce)   # for as.epidata.epidataCS
 ## package intervals is now "suggested", not imported
+
+importMethodsFrom(polyCub, coerce) # gpc.poly -> owin,
+                                   # SpatialPolygons -> gpc.poly (from rgeos)
+importFrom(polyCub, discpoly, polyCub, polyCub.SV, polyCub.midpoint)
 
 
 
 ###############
 ### EXPORTS ###
 ###############
-
-# just export all variables that do not start with a period:
-#exportPattern("^[^\\.]")
 
 
 ### general exports
@@ -91,7 +97,6 @@ export(surveillance.options, reset.surveillance.options)
 export(animate)          # new S3-generic
 export(R0)               # new S3-generic
 export(intensityplot)    # new S3-generic
-export(isScalar)         # very basic little helper function
 export(formatPval)       # yapf -- yet another p-value formatter
 export(anscombe.residuals)
 export(magic.dim, primeFactors, bestCombination)   # similar to n2mfrow
@@ -100,20 +105,13 @@ export(refvalIdxByDate)
 export(ks.plot.unif)
 export(checkResidualProcess)            # for twinstim and twinSIR
 
-# export S4 coerce-methods defined by the package
-#exportClasses(owin)      # FIXME: Should we export the virtual S4 class owin?
-exportMethods(coerce)     # from spatial_coerce-methods.R
-
-# numerical integration of two-dimensional function over polygonal domains
-export(polyCub, polyCub.midpoint, polyCub.SV, polyCub.exact.Gauss)
-
 # spatial utilities
-export(discpoly)
-#export(runifdisc)          # don't export since package spatstat has a similar
-                            # but more general function also named runifdisc
+#export(runifdisc)           # CAVE: spatstat has a similar function of same name
 export(inside.gpc.poly)
 S3method(scale, gpc.poly)   # redefined method for gpc.poly in spatial_stuff.R
 export(nbOrder)
+export(poly2adjmat)
+export(polyAtBorder)
 
 # randomly break tied event times or coordinates
 export(untie)                           # new S3-generic
@@ -149,8 +147,13 @@ export(linelist2sts)
 
 export(wrap.algo, farrington, bayes, rki, cusum, glrpois, glrnb, outbreakP) # rogerson, hmm
 export(earsC)
+export(farringtonFlexible)
 export(categoricalCUSUM, pairedbinCUSUM, pairedbinCUSUM.runlength)
 export(nowcast, backprojNP)
+## auxiliary functions for farringtonFlexible:
+## export(algo.farrington.data.glm, algo.farrington.fitGLM.flexible,
+##        algo.farrington.glm, algo.farrington.referencetimepoints,
+##        algo.farrington.threshold.farrington, algo.farrington.threshold.noufaily)
 
 
 ### disProg-specific
@@ -163,10 +166,29 @@ S3method(aggregate, disProg)
 
 export(sim.pointSource, sim.seasonalNoise)
 export(LRCUSUM.runlength, arlCusum, find.kh, findH, hValues, findK)
-exportPattern("^algo\\.")               # export all algo.* functions
 export(compMatrix.writeTable, correct53to52, enlargeData)
 export(makePlot)
 export(estimateGLRNbHook)
+export(algo.compare, algo.quality, algo.summary)
+
+## outbreak detection algorithms (old disProg implementations)
+export(algo.bayes, algo.bayes1, algo.bayes2, algo.bayes3, algo.bayesLatestTimepoint,
+       algo.call,
+       algo.cdc, algo.cdcLatestTimepoint,
+       algo.cusum,
+       algo.farrington,
+       algo.glrnb, algo.glrpois,
+       algo.hhh, algo.hhh.grid,
+       algo.hmm,
+       algo.outbreakP,
+       algo.rki, algo.rki1, algo.rki2, algo.rki3, algo.rkiLatestTimepoint,
+       algo.rogerson,
+       algo.twins)
+
+## auxiliary functions for algo.farrington (FIXME: why do we export these internals?)
+export(algo.farrington.assign.weights,
+       algo.farrington.fitGLM, algo.farrington.fitGLM.fast,
+       algo.farrington.fitGLM.populationOffset, algo.farrington.threshold)
 
 
 S3method(plot, atwins)
@@ -232,6 +254,7 @@ export(twinstim)
 export(simEpidataCS)
 export(siaf.constant, siaf.gaussian, siaf.lomax, qlomax, siaf.powerlaw, siaf.powerlawL)
 export(tiaf.constant, tiaf.exponential)
+export(epidataCS2sts)
 
 S3method(nobs, epidataCS)
 S3method("[", epidataCS)
@@ -333,21 +356,18 @@ S3method(AIC, ah4)
 S3method(fixef, ah4)
 S3method(ranef, ah4)
 S3method(confint, ah4)
-# include further accessing methods...?
-# documentation for the following functions is still missing
 S3method(predict, ah4)
 S3method(plot, ah4)
+S3method(update, ah4)
 
-# TODO: add simulation function for "ah4"
-# (or use stats:::simulate instead?)
 export(simHHH, simHHH.default)
 S3method(simHHH, default)
 S3method(simHHH, ah)
 S3method(simulate, ah4)
 
-# functions not yet documented, but used in (dontrun) part of example(hhh4)
-# (maybe these would be better defined as a method for "oneStepAhead(ah4)-objects")
 export(oneStepAhead)
 export(scores)
+
+# functions not yet documented, but used in (dontrun) part of example(hhh4)
 export(permutationTest)
 export(pit)

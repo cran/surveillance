@@ -69,8 +69,8 @@ init.sts <- function(.Object, epoch, start=c(2000,1), freq=52, observed, state=0
     dimnames(observed) <- list(NULL,namesObs)
     dimnames(state) <- list(NULL,namesState)
 
-    #Problem: If ncol(observed) is huge then the generated matrix
-    #might be beyond memory capacities -> FIXME: use sparse matrices
+    #FIXME: If ncol(observed) is huge then the generated matrix
+    #might be beyond memory capacities -> use sparse matrices?
     if (is.null(neighbourhood))
       neighbourhood <- matrix(NA,nrow=ncol(observed),ncol=ncol(observed))
       #diag(neighbourhood) <- 0  #FIXME: shouldn't we always define the diag as 0?
@@ -273,8 +273,8 @@ setMethod("[", "sts", function(x, i, j, ..., drop) {
   #Neighbourhood matrix
   x@neighbourhood <- x@neighbourhood[j,j,drop=FALSE]
 
-  #Fix the corresponding start entry. i can either be a vector of
-  #logicals or specific index. Needs to work in both cases.
+  #Fix the corresponding start entry. it can either be a vector of
+  #logicals or a specific index. Needs to work in both cases.
   #Note: This code does not work if we have week 53s!
   if (is.logical(i)) {
     i.min <- which.max(i) #first TRUE entry
@@ -286,13 +286,22 @@ setMethod("[", "sts", function(x, i, j, ..., drop) {
   start.year <- start[1] + (new.sampleNo - 1) %/% x@freq 
   start.sampleNo <- (new.sampleNo - 1) %% x@freq + 1
   x@start <- c(start.year,start.sampleNo)
-
-  #Save time by not allocating a new object
-  #res <- new("sts",epoch=week, freq=x@freq, start=start,observed=observed,state=state,alarm=alarm,upperbound=upperbound,neighbourhood=neighbourhood,populationFrac=populationFrac,map=x@map,control=x@control)
-
-  ## FIXME: also subset map according to region index j? Here's the code:
-  ##x@map <- x@map[colnames(x@observed),]
+  ## If !epochAsDate and updating "start" (which seems not really to be
+  ## necessary), we have to update epoch, too!
+  if (!x@epochAsDate) x@epoch <- x@epoch - i.min + 1  # FIXME: correct?
+                                                     
+  #FIXME: In case there is a map: Also subset map according to region index j.
+  # -> This only makes sense if identical(row.names(map), colnames(observed))
+  #    is a property of the sts-class already verified in init.sts
+  ## if (length(x@map)>0) {
+  ##   ## x@map <- x@map[colnames(x@observed),]
+  ##   #take them in the order as in the map to ensure x and x[] are identical
+  ##   order <- pmatch(row.names(x@map), colnames(x)) #, row.names(x@map))
+  ##   order2 <- pmatch(row.names(x@map)[!is.na(order)], row.names(x@map))
+  ##   x@map <- x@map[order2,]
+  ## }
   
+  #Done
   return(x)
 })
 
@@ -708,8 +717,8 @@ plot.sts.time <- function(x, type, method=x@control$name, disease=x@control$data
 
 plot.sts.spacetime <- function(x,type,legend=NULL,opts.col=NULL,labels=TRUE,wait.ms=250,cex.lab=0.7,verbose=FALSE,dev.printer=NULL,...) {
   #Extract the mappoly
-  if (nrow(x@map@data) == 0)
-    stop("The sts object doesn't have a proper map entry.")
+  if (length(x@map) == 0)
+    stop("The sts object has an empty map.")
   map <- x@map
   maplim <- list(x=bbox(map)[1,],y=bbox(map)[2,])
 
@@ -763,7 +772,7 @@ plot.sts.spacetime <- function(x,type,legend=NULL,opts.col=NULL,labels=TRUE,wait
   dimnames(o.col) <- dimnames(o)
 
   #Sort the o according to the names in the map
-  region.id <- unlist(lapply(map@polygons,function(poly) poly@ID))
+  region.id <- row.names(map)
   o.col.id <- dimnames(o.col)[[2]]
 
   #Make the columns of o as in the map object
@@ -848,7 +857,7 @@ wait <- function(wait.ms) {
 #Helper function -- use colors from the vcd package
 hcl.colors <- function(x, ncolors=100, use.color=TRUE)
 {
-    GYR <- if (require("colorspace")) { # the Zeil-ice colors 
+    GYR <- if (requireNamespace("colorspace")) { # the Zeil-ice colors 
         colorspace::heat_hcl(ncolors, h=c(0,120),
                              c=if (use.color) c(90,30) else c(0,0),
                              l=c(50,90), power=c(0.75, 1.2))
@@ -921,8 +930,13 @@ setValidity("sts", function ( object ) {
   if (!all( colnames(object@observed) == colnames(object@neighbourhood)))
     retval <- c( retval , " colnames of observed and neighbourhood have to match")
 
-  ## FIXME: if map slot is not NULL, check that all colnames(object@observed)
-  ## are in row.names(object@map) (ideally, these are identical sets)
+  ## if map is not empty, check that all colnames(object@observed)
+  ## are in row.names(object@map)
+  if (length(object@map)>0) {
+    if (!all(colnames(object@observed) %in% row.names(object@map))) {
+      retval <- c( retval , " colnames of observed have to be contained in the row.names of the map.")
+    }
+  }
   
   if(is.null( retval)) return ( TRUE )
   else return ( retval )
@@ -973,8 +987,13 @@ setMethod( "show", "sts", function( object ){
   #cat("Head of alarm:\n")
   #print(head(object@alarm,n))
 
-  cat("\nmap:\n")
-  print(object@map@data$SNAME)
+  if (npoly <- length(object@map)) {
+      cat("\nmap:\n")
+      print(modifyList(summary(object@map), list(data=NULL))) # no data summary
+      cat("Features    :", npoly, "\n")
+      if (inherits(object@map, "SpatialPolygonsDataFrame"))
+          cat("Data slot   :", ncol(object@map), "variables\n")
+  }
 
   cat("\nhead of neighbourhood:\n")
   print( head(object@neighbourhood,n))

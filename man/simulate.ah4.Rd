@@ -11,31 +11,56 @@
 }
 
 \usage{
-\method{simulate}{ah4}(object, nsim = 1, seed = NULL, y.start = NULL, coefs = NULL, ...)
+\method{simulate}{ah4}(object, nsim = 1, seed = NULL, y.start = NULL,
+         subset = 1:nrow(object$stsObj), coefs = coef(object),
+         components=c("ar","ne","end"), simplify=nsim>1, ...)
 }
 
 \arguments{
   \item{object}{
-  an object of class \code{"ah4"}.
-}
+    an object of class \code{"ah4"}.
+  }
   \item{nsim}{
-  number of time series to simulate. Defaults to \code{1}.
-}
+    number of time series to simulate. Defaults to \code{1}.
+  }
   \item{seed}{
-   an integer that will be used in the call to \code{\link{set.seed}} before
-   simulating the time series.
-}
+    an object specifying how the random number generator should be
+    initialized for simulation (via \code{\link{set.seed}}). The
+    initial state will also be stored as an attribute \code{"seed"} of
+    the result. The original state of the \code{\link{.Random.seed}}
+    will be restored at the end of the simulation.
+    By default (\code{NULL}), neither initialization nor recovery will
+    be done.
+    This behaviour is copied from the \code{\link{simulate}.lm} method.
+  }
   \item{y.start}{
-   vector with starting counts for the epidemic components. 
-   If \code{NULL}, the observed means in the respective units of the
-   data in \code{object} are used.
-}
+    vector or matrix (with \code{ncol(object$stsObj)} columns) with
+    starting counts for the epidemic components. 
+    If \code{NULL}, the observed means in the respective units of the
+    data in \code{object} during \code{subset} are used.
+  }
+  \item{subset}{
+    time period in which to simulate data. Defaults to the whole period.
+  }
   \item{coefs}{
-   if not \code{NULL}, these values (in the same order as \code{coef(object)})
-   are used to simulate from the model specified in \code{object}.
-}
-  \item{\dots}{unused (argument of the generic).
-}
+    coefficients used for simulation from the model in \code{object}.
+    Default is to use the fitted parameters.
+    Note that the \code{coefs}-vector must be in the same order and
+    scaling as \code{coef(object)}.
+  }
+  \item{components}{
+    character vector indicating which components of the fitted model
+    \code{object} should be active during simulation. For instance,
+    a simulation with \code{components="end"} is solely based on the
+    fitted endemic mean.
+  }
+  \item{simplify}{
+    logical indicating if only the simulated counts (\code{TRUE}) or the
+    full sts object (\code{FALSE}) should be returned for every
+    replicate. Defaults to counts only if \code{nsim>1}, such that the
+    result will be an array of dimension \code{c(nTime, nUnits, nsim)}.
+  }
+  \item{\dots}{unused (argument of the generic).}
 }
 
 \details{
@@ -59,8 +84,8 @@
 }
 
 \value{
-An object of class \code{"sts"} in the case of \code{nsim = 1}, and
-a list of \code{"sts"} objects otherwise.
+An object of class \code{"sts"} in case \code{nsim = 1}, and
+a list of such objects otherwise.
 }
 
 \references{
@@ -69,7 +94,7 @@ a list of \code{"sts"} objects otherwise.
     disease counts. Statistics in Medicine, \bold{30}, 1118--1136
 }
 \author{
-M. Paul
+Michaela Paul and Sebastian Meyer
 }
 
 \seealso{
@@ -88,8 +113,7 @@ fit <- hhh4(meningo, control = list(ar = list(f = ~ 1),
 plot(fit)
 
 # simulate from model
-set.seed(1234)
-simData <- simulate(fit)
+simData <- simulate(fit, seed=1234)
 
 # plot simulated data
 plot(simData, main = "simulated data", legend.opts = NULL, xaxis.years = FALSE)
@@ -98,7 +122,7 @@ plot(simData, main = "simulated data", legend.opts = NULL, xaxis.years = FALSE)
 coefs <- coef(fit)
 coefs["overdisp"] <- 0
 
-simData2 <- simulate(fit, coefs = coefs)
+simData2 <- simulate(fit, seed=123, coefs = coefs)
 plot(simData2, main = "simulated data: Poisson model", 
      legend.opts = NULL, xaxis.years = FALSE)
 
@@ -106,10 +130,9 @@ plot(simData2, main = "simulated data: Poisson model",
 coefs <- coef(fit)
 coefs[1] <- log(0.5)
 
-simData3 <- simulate(fit, coefs = coefs)
+simData3 <- simulate(fit, seed=321, coefs = coefs)
 plot(simData3, main = "simulated data: lambda = 0.5", 
      legend.opts = NULL, xaxis.years = FALSE)
-
 }
 
 \keyword{datagen}

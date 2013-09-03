@@ -7,10 +7,9 @@
   of the two Southern German states Bavaria and Baden-Wuerttemberg,
   for years 2001 to 2008.
 }
-\usage{data(fluBYBW)
-}
+\usage{data(fluBYBW)}
 \format{
-  An \code{sts} object containing \eqn{417\times 140}{417 x 140}
+  An \code{sts} object containing \eqn{416\times 140}{416 x 140}
   observations starting from week 1 in 2001.
   
   The \code{population} slot contains the population fractions
@@ -19,10 +18,14 @@
   
   The \code{map} slot contains an object of class \code{SpatialPolygonsDataFrame}.
 }
-\source{Robert Koch-Institut: SurvStat:
-	\url{http://www3.rki.de/SurvStat};
-	Queried on 6 March 2009. 
-        }
+\source{
+  Robert Koch-Institut: SurvStat: \url{http://www3.rki.de/SurvStat};
+  Queried on 6 March 2009.
+}
+\note{
+  Prior to \pkg{surveillance} version 1.6-0, \code{data(fluBYBW)}
+  contained a redundant last row (417) filled with zeroes only.
+}
 \examples{
     data(fluBYBW)
     # Plot a map of the total number of cases in the year 2001

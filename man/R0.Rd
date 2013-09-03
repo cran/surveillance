@@ -106,8 +106,8 @@ supplied) or the original fitted events including events of the prehistory.
 
 \examples{
 # load the 'imdepi' data and a model fit
-data(imdepi)
-data(imdepifit)
+data("imdepi")
+data("imdepifit")
 
 R0s <- R0(imdepifit)
 tapply(R0s, imdepi$events@data[names(R0s), "type"], summary)

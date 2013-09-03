@@ -166,8 +166,8 @@ intensity.twinstim(x,
 }
 
 \examples{
-data(imdepi)
-data(imdepifit)
+data("imdepi")
+data("imdepifit")
 
 # for the intensityplot we need the model environment, which can be
 # easily added by the intelligent update method (no need to refit the model)
@@ -188,7 +188,7 @@ intensityplot(imdepifit, which="epidemic proportion",
 legend("topright", legend=levels(imdepi$events$type), lty=1, col=1:2,
        title = "event type")
 
-if (surveillance.options("allExamples") && require("maptools"))
+if (surveillance.options("allExamples") && requireNamespace("maptools"))
 {
   ## spatial shape of the intensity (aggregated over time)
   # load borders of Germany's districts (obtained from the

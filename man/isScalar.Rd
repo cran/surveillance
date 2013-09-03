@@ -23,10 +23,10 @@ isScalar(x)
 A length-one logical vector.
 }
 
-\examples{
-isScalar(TRUE)   # FALSE
-isScalar(1:10)   # FALSE
-isScalar(pi)     # TRUE
-}
+%% \examples{
+%% isScalar(TRUE)   # FALSE
+%% isScalar(1:10)   # FALSE
+%% isScalar(pi)     # TRUE
+%% }
 
 \keyword{internal}

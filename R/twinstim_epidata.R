@@ -7,8 +7,8 @@
 ### and a spatio-temporal grid of endemic covariates
 ###
 ### Copyright (C) 2009-2012 Sebastian Meyer
-### $Revision: 510 $
-### $Date: 2013-02-15 16:44:29 +0100 (Fr, 15. Feb 2013) $
+### $Revision: 616 $
+### $Date: 2013-08-08 15:39:52 +0200 (Don, 08 Aug 2013) $
 ################################################################################
 
 
@@ -59,7 +59,7 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
     # Check class and proj4string of W and consistency of area
     cat("Checking 'W'...\n")
     W <- as(W, "SpatialPolygons")
-    stopifnot(identical(proj4string(W), proj4string(events)))
+    stopifnot(identicalCRS(W, events))
     W.area <- sum(sapply(W@polygons, slot, "area"))
     tiles.totalarea <- sum(stgrid$area[stgrid$BLOCK == 1])
     if (abs(W.area - tiles.totalarea) / max(W.area, tiles.totalarea) > 0.005) {
@@ -88,7 +88,7 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
 
     # Check that all events are part of W
     cat("Checking if all events are part of 'W'...\n")
-    WIdxOfEvents <- overlay(events, W)
+    WIdxOfEvents <- over(events, W)
     if (eventNotInWidx <- match(NA, WIdxOfEvents, nomatch = 0L)) {
         stop("the event at (", eventidx2string(eventNotInWidx), ") is not ",
              "inside 'W'")
@@ -127,9 +127,10 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
     # Also precalculate possible origins of events (other infected individuals)
     cat("Mapping events to 'stgrid' cells and",
         "determining potential event sources...\n")
+    withPB <- interactive()
     gridcellsOfEvents <- integer(nEvents)
     eventSources <- vector(nEvents, mode = "list")
-    pb <- txtProgressBar(min=0, max=nEvents, initial=0, style=3)
+    if (withPB) pb <- txtProgressBar(min=0, max=nEvents, initial=0, style=3)
     for (i in seq_len(nEvents)) {
         idx <- gridcellOfEvent(events$time[i], events$tile[i], stgrid)
         if (is.na(idx)) {
@@ -140,9 +141,9 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
         eventSources[[i]] <- determineSources(
             i, events$time, removalTimes, eventDists[i,], events$eps.s, events$type, qmatrix
         )
-        setTxtProgressBar(pb, i)
+        if (withPB) setTxtProgressBar(pb, i)
     }
-    close(pb)
+    if (withPB) close(pb)
 
     # Attach endemic covariates from stgrid to events
     cat("Attaching endemic covariates from 'stgrid' to 'events'...\n")
@@ -167,12 +168,16 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
 
     # Calculate minimal distance of event locations from the polygonal boundary
     cat("Calculating (minimal) distances of the events to the boundary...\n")
-    Wgpc <- as(W, "gpc.poly")
+    Wgpc <- as(W, "gpc.poly")   # coerce-method from rgeos imported via polyCub
     events$.bdist <- bdist(eventCoords, Wgpc)   # this may take a while
+    # avoid conversion to gpc.poly by extracting xylist (first vertex repeated)?
+    #lapply(unlist(lapply(W@polygons, slot, "Polygons"), recursive=FALSE), coordinates)
+
 
     # Construct spatial influence regions around events
     cat("Constructing spatial influence regions around events...\n")
-    events$.influenceRegion <- .influenceRegions(events, Wgpc, npoly = nCircle2Poly)
+    events$.influenceRegion <- .influenceRegions(events, Wgpc, W,
+                                                 npoly=nCircle2Poly)
 
     # Attach some useful attributes
     res <- list(events = events, stgrid = stgrid, W = W, qmatrix = qmatrix)
@@ -380,23 +385,22 @@ checkstgrid <- function (stgrid, T)
 # An attribute "area" gives the area of the influenceRegion.
 # If it is actually a circular influence region, then there is an attribute
 # "radius" denoting the radius of the influence region.
-.influenceRegions <- function (events, Wgpc, npoly)
+.influenceRegions <- function (events, Wgpc, W, npoly, maxExtent = NULL)
 {
-    gpclibCheck()
-    ext <- sqrt(sum(sapply(gpclib::get.bbox(Wgpc), diff)^2))
-    ##<- length of the diagonal of the bounding box of W
+    if (is.null(maxExtent)) maxExtent <- maxExtent.gpc.poly(Wgpc)
     eventCoords <- coordinates(events)
     nEvents <- nrow(eventCoords)
     res <- vector(nEvents, mode = "list")
     for (i in seq_len(nEvents)) {
         eps <- events$eps.s[i]
         center <- eventCoords[i,]
-        res[[i]] <- if (eps > ext) {   # influence region is whole region of W
-                gpc2owin(scale(Wgpc, center = center))
-            } else {   # influence region is a subset of W
-                gpc2owin(intersectCircle(Wgpc, center, eps, npoly))
+        iRgpc <- if (eps > maxExtent) { # influence region is whole region of W
+                Wgpc
+            } else { # influence region is a subset of W
+                intersectCircle(Wgpc, W, center, eps, npoly)
             }
-        # if influence region actually is a circle of radius eps, attach eps as attribute
+        res[[i]] <- as(scale(iRgpc, center=center), "owin") # coerce via polyCub
+        ## if iR is actually a circle of radius eps, attach eps as attribute
         r <- if (eps <= events$.bdist[i]) eps else NULL
         attr(res[[i]], "radius") <- r
         attr(res[[i]], "area") <- if(is.null(r)) area.owin(res[[i]]) else pi*r^2
