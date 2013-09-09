@@ -1,8 +1,10 @@
-if (!exists("meta") || is.null(meta)) meta <- packageDescription("surveillance")
 
-citHeader("Some guidelines for citing package", sQuote(meta$Package), "in publications:")
+citHeader("Some guidelines for citing package",
+          sQuote("surveillance"), "in publications:")
 
 ### Default citation of R packages
+# if (!exists("meta") || is.null(meta))
+#     meta <- packageDescription("surveillance")
 # year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date)
 # vers <- paste("R package version", meta$Version)
 # title <- paste(meta$Package, ": ", meta$Title, sep = "")

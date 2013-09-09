@@ -9,7 +9,7 @@ setClass( "sts", representation(epoch = "numeric",  ##this slot used to be named
                                 upperbound  = "matrix",
                                 neighbourhood= "matrix",
                                 populationFrac= "matrix",
-                                map = "SpatialPolygonsDataFrame",
+                                map = "SpatialPolygons",
                                 control = "list",
 #New slots added to handle proportion time series 
                                 epochAsDate="logical",

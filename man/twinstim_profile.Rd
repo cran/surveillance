@@ -80,12 +80,12 @@ data("imdepifit")
 #Generate profiling object for a list of parameters for the new model
 names <- c("h.(Intercept)","e.typeC")
 coefList <- lapply(names, function(name) {
-  c(pmatch(name,names(coef(imdepi.fit))),NA,NA,11)
+  c(pmatch(name,names(coef(imdepifit))),NA,NA,11)
 })
 
 #Profile object (necessary to specify a more loose convergence
 #criterion). Speed things up by using do.ltildeprofile=FALSE (the default)
-prof <- profile(imdepi.fit, coefList,control=list(fnscale=-1,maxit=50,
+prof <- profile(imdepifit, coefList,control=list(fnscale=-1,maxit=50,
    reltol=0.1,REPORT=1,trace=5),do.ltildeprofile=TRUE)
 
 #Plot result for one variable
@@ -97,6 +97,7 @@ for (name in names) {
 }
 }
 }
+
 \keyword{htest}
 \keyword{methods}
 \keyword{optimize}

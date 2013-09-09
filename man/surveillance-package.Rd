@@ -42,8 +42,8 @@
 \details{
   \tabular{ll}{
     Package: \tab surveillance\cr
-    Version: \tab 1.5-3\cr
-    Date: \tab 2013-04-19\cr
+    Version: \tab 1.6-0\cr
+    Date: \tab 2013-09-03\cr
     License: \tab GPL version 2
     (\url{http://www.gnu.org/licenses/old-licenses/gpl-2.0.html}) \cr
     URL: \tab \url{http://surveillance.r-forge.r-project.org/}\cr
@@ -102,7 +102,7 @@
   Marc Geilhufe, Kurt Hornik, Marcos Prates, Brian D. Ripley,
   Barry Rowlingson, Christopher W. Ryan,
   Klaus Stark, Yann Le Strat, Andr\enc{é}{e} Michael Toschke,
-  Achim Zeileis.
+  Wei Wei, Achim Zeileis.
 }
 
 \author{

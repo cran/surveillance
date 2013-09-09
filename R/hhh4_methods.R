@@ -119,16 +119,19 @@ logLik.ah4 <- function(object,...){
    return(val)
 }
 
-AIC.ah4 <- function (object, ..., k = 2){
-  if(object$dim["random"]==0){
-	stats:::AIC.default(object, ..., k=k)
-  } else {
-	warning("AIC not well defined for models with random effects.\n")
-    return(NULL)
-  }
+AIC.ah4 <- function (object, ..., k = 2)
+{
+    if(object$dim["random"]==0){
+        NextMethod("AIC")
+    } else {
+	warning("AIC not well defined for models with random effects")
+        NA_real_
+    }
 }
 
-coef.ah4 <- function(object,se=FALSE, reparamPsi=TRUE, idx2Exp=NULL, amplitudeShift=FALSE,...){
+coef.ah4 <- function(object, se=FALSE, reparamPsi=TRUE, idx2Exp=NULL,
+                     amplitudeShift=FALSE, ...)
+{
   coefs <- object$coefficients
   stdErr <- object$se
 
@@ -152,6 +155,7 @@ coef.ah4 <- function(object,se=FALSE, reparamPsi=TRUE, idx2Exp=NULL, amplitudeSh
     D <- diag(coefs[index],length(index))
     stdErr[index] <- sqrt(diag(D %*% object$cov[index,index] %*% t(D)))
   }
+  
   if(!is.null(idx2Exp)){
     # extract coefficients on log-scale
     exp.names <- names(coefs)[idx2Exp]
@@ -162,7 +166,6 @@ coef.ah4 <- function(object,se=FALSE, reparamPsi=TRUE, idx2Exp=NULL, amplitudeSh
     coefs[idx2Exp] <- exp(coefs[idx2Exp])
     D <- diag(coefs[idx2Exp],length(idx2Exp))
     stdErr[idx2Exp] <- sqrt(diag(D %*% object$cov[idx2Exp,idx2Exp] %*% t(D)))
-  
   }
   
   
@@ -184,14 +187,6 @@ coef.ah4 <- function(object,se=FALSE, reparamPsi=TRUE, idx2Exp=NULL, amplitudeSh
     return(coefs)
 }
 
-#Generate a new generic function for extraction of parameter estimates from hhh4
-fixef <- function (object, ...) {
-    UseMethod("fixef")
-}
-ranef <- function (object, ...) {
-    UseMethod("ranef")
-}
-
 fixef.ah4 <- function(object,...){
   if(object$dim[1]>0){
     return(head(coef(object,...), object$dim[1]))
@@ -204,7 +199,8 @@ ranef.ah4 <- function(object, tomatrix = FALSE, ...){
   } else return(NULL)
   if (!tomatrix) return(ranefvec)
 
-  model <- surveillance:::interpretControl(object$control,object$stsObj)
+  ## transform to a nUnits x c matrix (c %in% 1:3)
+  model <- interpretControl(object$control,object$stsObj)
   idxRE <- model$indexRE
   idxs <- unique(idxRE)
   names(idxs) <- model$namesFE[idxs]
@@ -236,27 +232,24 @@ confint.ah4 <- function (object, parm, level = 0.95, reparamPsi = TRUE, idx2Exp 
     ci
 }
 
-predict.ah4 <- function(object,newSubset=NULL,type=c("response","endemic","epi.own","epi.neighbours"),...){
-  type <- match.arg(type,c("response","endemic","epi.own","epi.neighbours"))
-  control <- object$control
-  
-  data <- object$stsObj
-  if(!is.null(newSubset)){
-    control$subset <- newSubset
-  }
-  
-  # predictions for "old" time points
-  model <- interpretControl(control, data)
-  coefs <- coef(object, reparamPsi=FALSE)
-  predicted <- meanHHH(coefs,model)
-
-  if(type=="response") result <-predicted$mean
-  else if(type=="endemic") result <- predicted$endemic
-  else if(type=="epi.own") result <- predicted$epi.own
-  else if(type=="epi.neighbours") result <- predicted$epi.neighbours
-
-   return(result)
-  
+## mean predictions for a subset of 1:nrow(object$stsObj)
+predict.ah4 <- function(object, newSubset=control$subset, type="response", ...)
+{
+    control <- object$control
+    if (type == "response" &&
+        all((m <- match(newSubset, control$subset, nomatch=0L)) > 0)) {
+        ## we can extract fitted means from object
+        object$fitted.values[m,,drop=FALSE]
+    } else { ## means for time points not fitted (not part of control$subset)
+        data <- object$stsObj
+        coefs <- coef(object, reparamPsi=FALSE)
+        model <- interpretControl(control, data)
+        predicted <- meanHHH(coefs, model, subset=newSubset)
+        if (type=="response") predicted$mean else {
+            type <- match.arg(type, names(predicted))
+            predicted[[type]]
+        }
+    }
 }
 
 # plot estimated mean 
@@ -301,4 +294,26 @@ plot.ah4 <- function(x, i=1, m=NULL, ylim=NULL,
 }
 
 
+### refit hhh4-model
+## ...: arguments modifying the original control list
+## subset.upper: refit on a subset of the data up to that time point
+## use.estimates: use fitted parameters as new start values
+##                (only applicable if same model)
 
+update.ah4 <- function (object, ..., subset.upper=NULL, use.estimates=FALSE)
+{
+    control <- object$control
+    control <- modifyList(control, list(...))
+    if (isScalar(subset.upper))
+        control$subset <- control$subset[control$subset <= subset.upper]
+    if (use.estimates)
+        control$start <- ah4coef2start(object)
+    hhh4(object$stsObj, control)
+}
+
+
+## convert fitted parameters from "ah4" to list suitable for control$start
+ah4coef2start <- function (fit)
+    list(fixed = fixef(fit, reparamPsi=FALSE),
+         random = ranef(fit, reparamPsi=FALSE),
+         sd.corr = getSdCorr(fit))

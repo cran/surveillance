@@ -2,9 +2,7 @@
 \encoding{latin1}
 \name{hhh4}
 \alias{hhh4}
-% functions without documentation atm
-\alias{plot.ah4}
-\alias{predict.ah4}
+% FIXME: functions without documentation atm
 \alias{permutationTest}
 \alias{pit}
 
@@ -91,8 +89,11 @@ hhh4(stsObj,
 	  \item{lag = 1}{autoregression on \eqn{y_{j,t-lag}}{y_j,t-lag}  
 	    (currently only \code{lag = 1} is possible)}
 	  \item{weights = neighbourhood(stsObj)}{
-	    weights \eqn{w_{ji}}{w_ji}. By default, 
-	    the neighbourhood matrix of \code{stsObj} is used.}
+	    neighbourhood weights \eqn{w_{ji}}{w_ji}. By default, 
+	    the neighbourhood slot of \code{stsObj} is used.
+	    Time-varying weights are possible by specifying an
+	    array of \code{dim()} \code{c(nUnits, nUnits, nTime)}, where
+	    \code{nUnits=ncol(stsObj)} and \code{nTime=nrow(stsObj)}.}
 	  \item{initial = NULL}{vector with initial values for
 	    parameter if \code{f = ~1} (not really used ATM)}
 	}
@@ -114,23 +115,26 @@ hhh4(stsObj,
       \item{\code{subset}}{Typically \code{2:nrow(obs)} if model contains
 	autoregression}
       \item{\code{optimizer}}{a list of three lists of control arguments.
+	
 	The \code{"stop"} list specifies two criteria for the outer
 	optimization of regression and variance parameters: the relative
 	\code{tol}erance for parameter change using the criterion 
 	\code{max(abs(x[i+1]-x[i])) / max(abs(x[i]))},
-	and the maximum number \code{niter} of outer iterations.\cr
+	and the maximum number \code{niter} of outer iterations.
+	
 	Control arguments for the single optimizers are specified in the
 	lists named \code{"regression"} and \code{"variance"}.
 	\code{method="nlminb"} is the default optimizer for both (taking
 	advantage of the analytical Fisher information matrices), however,
-	the optimizers from \code{\link{optim}} may also be specified
-	(as well as \code{\link{nlm}} but that one is not recommended here).
-	Especially for the variance updates,
-	Nelder-Mead optimization is an attractive alternative.\cr
+	the \code{method}s from \code{\link{optim}} may also be specified
+	(as well as \code{"\link{nlm}"} but that one is not recommended here).
+	Especially for the variance updates, Nelder-Mead optimization
+	(\code{method="Nelder-Mead"}) is an attractive alternative.
 	All other elements of these two lists are passed as
 	\code{control} arguments to the chosen \code{method}, e.g., if
 	\code{method="nlminb"} adding \code{iter.max=50} increases the 
-	maximum number of inner iterations from 20 (default) to 50.}
+	maximum number of inner iterations from 20 (default) to 50.
+      }
       \item{\code{verbose}}{Logical if additional information is to be printed
 	during the computations}
       \item{\code{start}}{List with initials, overrides any initial
@@ -188,7 +192,7 @@ hhh4(stsObj,
 \seealso{\code{\link{algo.hhh}}, 
 \code{\link{fe}}, \code{\link{ri}}
 }
-\author{M. Paul and L. Held with contributions by S. Meyer}
+\author{M. Paul, S. Meyer, and L. Held}
 \examples{
 #####################################################################
 # Fit some models from ?algo.hhh
@@ -206,6 +210,7 @@ model1 <- list(ar = list(f = ~ 1), end = list(f =f.end),
 # run model
 res <- hhh4(salmonella, model1)
 summary(res, idx2Exp=1, amplitudeShift=TRUE)
+
 
 ## multivariate time series: 
 # measles cases in Lower Saxony, Germany
@@ -233,7 +238,23 @@ model3 <- list(ar = list(f = ~ 1),
                end = list(f = f.end3, offset= population(measles)),
                family = "NegBin1")
 # run model
-summary(hhh4(measles, control=model3), idx2Exp=1:2, amplitudeShift=TRUE)
+res3 <- hhh4(measles, control=model3)
+summary(res3, idx2Exp=1:2, amplitudeShift=TRUE)
+
+\dontshow{
+## check that neighbourhood weights array yields same result
+.neweights <- array(neighbourhood(measles),
+                   dim = c(rep(ncol(measles),2),nrow(measles)),
+                   dimnames = c(dimnames(neighbourhood(measles)), list(NULL)))
+res3_tv <- hhh4(measles, control = modifyList(model3,
+                list(ne=list(weights=.neweights))))
+.disregardComponents <- function(ah4) {
+    ah4["call"] <- list(NULL)
+    ah4$control$ne["weights"] <- list(NULL)
+    ah4
+}
+stopifnot(all.equal(.disregardComponents(res3), .disregardComponents(res3_tv)))
+}
 
 \dontrun{
 ######################################################################

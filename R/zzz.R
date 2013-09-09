@@ -2,30 +2,6 @@
 ### Hook functions for package start-up
 #######################################
 
-### not sure if we should query gpclib permission via spatstat or maptools:
-### within a single R session, spatstat might be used for commercial purposes
-### _without_ gpclib, whereas some functionality of the surveillance package might
-### be used non-commercially _with_ gpclib
-## gpclibPermitStatus <- function ()
-## {
-##     ## check global gpclib permission status
-##     ##globally <- isTRUE(getOption("gpclib"))
-##     ## -> CRAN team does not like packages which use own global options
-##
-##     ## check for permission via surveillance.options
-##     via.surveillance <- surveillance.options("gpclib")
-##
-##     ## check for permission via spatstat package
-##     via.spatstat <- spatstat.options("gpclib")
-##
-##     ## check for permission via maptools
-##     via.maptools <- if ("maptools" %in% loadedNamespaces())
-##         maptools::gpclibPermitStatus() else FALSE
-##
-##     ## return gpclib permission status
-##     via.surveillance | via.spatstat | via.maptools
-## }
-
 gpclibCheck <- function (fatal = TRUE)
 {
     gpclibOK <- surveillance.options("gpclib")
@@ -39,11 +15,6 @@ gpclibCheck <- function (fatal = TRUE)
 
 .onLoad <- function (libname, pkgname)
 {
-    ## Determine package version and store it as surveillance:::VERSION
-    v <- packageDescription(pkgname, lib.loc=libname, fields="Version", drop=TRUE)
-    ##<- a convenience function packageVersion() was only introduced in R 2.12.0
-    assign("VERSION", package_version(v), getNamespace(pkgname))
-
     ## initialize options
     reset.surveillance.options()
 }
@@ -51,18 +22,18 @@ gpclibCheck <- function (fatal = TRUE)
 .onAttach <- function (libname, pkgname)
 {
     ## Startup message
+    VERSION <- packageVersion(pkgname, lib.loc=libname)
     packageStartupMessage("This is ", pkgname, " ", VERSION, ". ",
                           "For overview type ",
                           sQuote(paste0("help(", pkgname, ")")), ".")
 
     ## License limitation for package gpclib
     packageStartupMessage(
-        "Note: Polygon geometry computations required for the generation of",
-        "\n      \"epidataCS\" objects currently depend on the gpclib package,",
-        "\n      which has a restricted license.  This functionality is disabled",
-        "\n      by default, but may be enabled by setting",
-        "\n      ", sQuote("surveillance.options(gpclib=TRUE)"),
-                 ", if this license is applicable."
+        "Note: Polygon intersections required for \"epidataCS\" generation",
+        "\n      are computed with the rgeos package by default. Alternatively,",
+        "\n      the gpclib package is used iff its restricted license is",
+        "\n      accepted via setting ",
+        sQuote("surveillance.options(gpclib=TRUE)"), "."
     )
 
     ## decide if we should run all examples (some take a few seconds)
@@ -75,7 +46,7 @@ gpclibCheck <- function (fatal = TRUE)
 }
 
 
-### Function 'base::paste0()' only exists as of R version 2.15.0
+### Function 'base::paste0' only exists as of R version 2.15.0
 ### Define it as a wrapper for base::paste() for older versions
 
 if (getRversion() < "2.15.0" || R.version$"svn rev" < 57795 ||
@@ -92,6 +63,14 @@ if (getRversion() < "2.15.0" || R.version$"svn rev" < 57795 ||
 }
 
 
+### Function 'base::rep_len' only exists as of R version 3.0.0
+### Define it as a wrapper for base::rep() for older versions
+
+if (getRversion() < "3.0.0" || !exists("rep_len", baseenv())) {
+    rep_len <- function (x, length.out) rep(x, length.out=length.out)
+}
+
+
 
 ###########################
 ### Little helper functions
@@ -102,14 +81,6 @@ if (getRversion() < "2.15.0" || R.version$"svn rev" < 57795 ||
 
 isScalar <- function (x) {
     length(x) == 1L && is.vector(x, mode = "numeric")
-}
-
-
-### returns the dot/scalar product of two vectors
-
-dotprod <- function (x,y)
-{
-    sum(x*y)
 }
 
 

@@ -40,7 +40,8 @@ slightly more flexible and integrated within the \code{"ppp"} class.
 }
 
 \examples{
-plot(surveillance:::runifdisc(1000, 3))
+x <- surveillance:::runifdisc(1000, 3)
+plot(x)
 }
 
 \keyword{datagen}

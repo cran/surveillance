@@ -18,12 +18,13 @@
 \usage{
 untie(x, amount, ...)
 
-\method{untie}{epidataCS}(x, amount = list(t = NULL, s = NULL),
-      direction = "left", keep.sources = FALSE, ...)
-\method{untie}{matrix}(x, amount = NULL,
-      constraint = NULL, ...)
-\method{untie}{default}(x, amount = NULL,
-      direction = c("symmetric", "left", "right"), sort = NULL, ...)
+\method{untie}{epidataCS}(x, amount = list(t=NULL, s=NULL),
+      minsep = list(t=0, s=0), direction = "left", keep.sources = FALSE, ...)
+\method{untie}{matrix}(x, amount = NULL, minsep = 0,
+      constraint = NULL, giveup = 1000, ...)
+\method{untie}{default}(x, amount = NULL, minsep = 0,
+      direction = c("symmetric", "left", "right"), sort = NULL,
+      giveup = 1000, ...)
 }
 
 \arguments{
@@ -33,8 +34,9 @@ untie(x, amount, ...)
   \item{amount}{
     upperbound for the random amount by which data are shifted.
     \code{NULL} means to use a data-driven default, which equals
-    the minimum separation of the data points for the default method,
-    and its half for the \code{matrix} method.
+    the minimum separation of the data points for the non-symmetric
+    default method and its half for the symmetric default method and the
+    \code{matrix} method. 
     
     For numeric vectors (default method), the jittered version is the
     same as for \code{jitter(x, amount=amount)} if
@@ -48,6 +50,10 @@ untie(x, amount, ...)
     uses the specific methods with arguments \code{constraint=x$W},
     \code{direction}, and \code{sort=TRUE}.
   }
+  \item{minsep}{minimum separation of jittered points. Can only be
+    obeyed if much smaller than \code{amount} (also depending on the
+    number of points). \code{minsep>0} is currently only implemented for
+    the spatial (matrix) method.}
   \item{keep.sources}{
     logical (\code{FALSE}). If \code{TRUE}, the original list of
     possible event sources in \code{x$events$.sources} will be
@@ -64,6 +70,8 @@ untie(x, amount, ...)
     representing the domain which the points of the matrix should belong
     to -- before and after jittering.
   }
+  \item{giveup}{number of attempts after which the
+    algorithm should stop trying to generate new points.}
   \item{direction}{
     one of \code{"symmetric"} (default), \code{"left"}, or
     \code{"right"}, indicating in which direction vector elements should
@@ -74,7 +82,9 @@ untie(x, amount, ...)
     to doing so if the original vector was already sorted.
   }
   \item{\dots}{
-    currently unused.
+    For the \code{"epidataCS"}-method: arguments passed to the
+    \code{matrix}- or \code{default}-method (\code{giveup}).
+    Unused in other methods.
   }
 }
 

@@ -39,7 +39,7 @@
 
 \description{
 
-  This is a leightweight S4 class to implement multivariate time
+  This is a lightweight S4 class to implement multivariate time
   series of counts used for public health surveillance data. The class
   captures the time series data as well as the spatial layout of the
   regions, where the data originate from.
@@ -62,7 +62,7 @@
       case of monthly data \code{freq} is 12.}
     \item{\code{start}:}{vector of length two denoting the year and the
       sample number (week, month, etc.) of the first observation}
-    \item{\code{observed}:}{A matrix of size \code{length(week)} times the
+    \item{\code{observed}:}{A matrix of size \code{length(epoch)} times the
       number of regions containing the weekly/monthly number of counts in
       each region. The colnames of the matrix should match the ID values of
       the shapes in the \code{map} slot.}
@@ -74,17 +74,18 @@
       declared a specific time point in the region as having an alarm. If
       the object containins just observations then this slot is null. }
     \item{\code{upperbound}:}{Matrix with upper bound values }
-    \item{\code{neighbourhood}:}{Symmetric matrix of booleans size
-      \eqn{(number of regions)^2} stating the neighbourhood matrix. } 
+    \item{\code{neighbourhood}:}{Symmetric matrix of size
+      \eqn{(number of regions)^2} describing the neighbourhood structure. It
+      may either be a binary adjacency matrix or contain neighbourhood orders.}
     \item{\code{populationFrac}:}{Object of class \code{matrix}.}
     \item{\code{map}:}{Object of class \code{SpatialPolygonsDataFrame}
       providing a shape of the areas which are monitored. }
     \item{\code{control}:}{Object of class \code{list}, thais is a
       rather free data type to be returned by the surveillance algorithms. }
     \item{\code{epochAsDate}:}{Object of class \code{"logical"} stating
-      whether to use a ISO 8601 representation of the epoch/week slot using
+      whether to use a ISO 8601 representation of the \code{epoch} slot using
       the \code{Date} class (\code{epochAsDate=TRUE}) or just to
-      interpret the epochs/weeks as numerics (\code{epochAsDate=FALSE}).}
+      interpret the epochs as numerics (\code{epochAsDate=FALSE}).}
     \item{\code{multinomialTS}:}{Object of class \code{"logical"}
       stating whether to interpret the object as \code{observed} out of
       \code{population}, i.e. a multinomial interpretation instead of a
@@ -130,7 +131,7 @@
       extracts the corresponding week number within the year of each
       observation of \code{x}}
     \item{as.data.frame}{\code{signature(x = "sts")}:
-      converts the \code{observed}, \code{week}, \code{state} and
+      converts the \code{observed}, \code{epoch}, \code{state} and
       \code{alarm} slots of \code{x} into a data frame with column names
       matching the colnames of the respective slots. Useful when one wants
       to fit a model based on the object}
@@ -146,7 +147,7 @@
 
 \author{M. \enc{Höhle}{Hoehle}}
 \examples{
-  if (require("maptools")) {
+  if (requireNamespace("maptools")) {
     # load disProg-object "ha" and convert to S4-class "sts"
     data("ha")
     shp <- system.file("shapes/berlin.shp",package="surveillance")

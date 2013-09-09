@@ -2,7 +2,6 @@
 \name{hhh4_methods}
 \alias{print.ah4}
 \alias{summary.ah4}
-\alias{print.summary.ah4}
 \alias{logLik.ah4}
 \alias{AIC.ah4}
 \alias{coef.ah4}
@@ -11,6 +10,10 @@
 \alias{fixef.ah4}
 \alias{ranef.ah4}
 \alias{confint.ah4}
+% FIXME: functions without documentation atm
+%% \alias{print.summary.ah4}
+%% \alias{plot.ah4}
+%% \alias{update.ah4}
 
 \title{
 Print, Summary and Extraction Methods for \code{"ah4"} Objects
@@ -70,8 +73,8 @@ from a call to \code{\link{hhh4}}.
     columns as there are random effects. Here, any CAR-effects are
     transformed to region-specific effects.}
   \item{k}{
-    numeric specifying the the \emph{penalty} per parameter to be used;
-    \code{k = 2} is the classical AIC.
+    numeric specifying the \emph{penalty} per parameter to be used;
+    \code{k = 2} (default) is the classical AIC.
   }
   \item{parm}{a vector of numbers or names, specifying which parameters 
     are to be given confidence intervals. If missing, all parameters
@@ -88,8 +91,8 @@ from a call to \code{\link{hhh4}}.
   parameters.
 
   The function \code{AIC} returns the value of the AIC criterion
-  only for models without random effects, and returns \code{NULL} in
-  the case of a random effects model where AIC is problematic.
+  only for models without random effects; otherwise it is not well
+  defined and \code{NA} is returned.
 
   The function \code{logLik} returns an object of class \code{"logLik"}
   in the case of a model without random effects, and the value of the 

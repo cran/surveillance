@@ -7,8 +7,8 @@
 ### The function allows the incorporation of random effects and covariates.
 ###
 ### Copyright (C) 2010-2013 Michaela Paul and Sebastian Meyer
-### $Revision: 483 $
-### $Date: 2013-01-24 16:36:51 +0100 (Do, 24. Jan 2013) $
+### $Revision: 632 $
+### $Date: 2013-08-28 21:06:29 +0200 (Mit, 28 Aug 2013) $
 ################################################################################
 
 # - some function arguments are currently not used (but will eventually)
@@ -16,7 +16,7 @@
 # - do some profiling...
 
 ## Error message issued in loglik, score and fisher functions upon NA parameters
-ADVICEONERROR <- "\n  Try different starting values or another optimizer.\n"
+ADVICEONERROR <- "\n  Try different starting values, more iterations, or another optimizer.\n"
 
 
 ### Default control argument for hhh4
@@ -79,7 +79,7 @@ hhh4 <- function (stsObj, control, check.analyticals = FALSE)
   
   ## check if initial values are valid
   ## CAVE: there might be NA's in mu if there are missing values in Y
-  mu <- meanHHH(theta.start,model)$mean
+  mu <- meanHHH(theta.start, model, total.only=TRUE)
   if(any(mu==0, na.rm=TRUE) || any(is.infinite(mu)))
     stop("some mean is degenerate (0 or Inf) at initial values")
 
@@ -90,30 +90,8 @@ hhh4 <- function (stsObj, control, check.analyticals = FALSE)
       match.arg(check.analyticals, c("numDeriv", "maxLik"), several.ok=TRUE)
   } else NULL
   if (length(check.analyticals) > 0L) {
-      cat("\nPenalized log-likelihood:\n")
-      resCheckPen <- sapply(check.analyticals, function(derivMethod) {
-          if (require(derivMethod, character.only=TRUE)) {
-              do.call(paste("checkDerivatives", derivMethod, sep="."),
-                      args=alist(penLogLik, penScore, penFisher, theta.start,
-                      sd.corr=Sigma.start, model=model))
-          }
-      }, simplify=FALSE, USE.NAMES=TRUE)
-      if (length(resCheckPen) == 1L) resCheckPen <- resCheckPen[[1L]]
-      resCheckMar <- if (length(Sigma.start) == 0L) list() else {
-          cat("\nMarginal log-likelihood:\n")
-          fisher.unpen <- attr(penFisher(theta.start, Sigma.start, model,
-                                         attributes=TRUE), "fisher")
-          resCheckMar <- sapply(check.analyticals, function(derivMethod) {
-              if (require(derivMethod, character.only=TRUE)) {
-                  do.call(paste("checkDerivatives", derivMethod, sep="."),
-                          args=alist(marLogLik, marScore, marFisher, Sigma.start,
-                          theta=theta.start, model=model,
-                          fisher.unpen=fisher.unpen))
-              }
-          }, simplify=FALSE, USE.NAMES=TRUE)
-          if (length(resCheckMar) == 1L) resCheckMar[[1L]] else resCheckMar
-      }
-      resCheck <- list(pen = resCheckPen, mar = resCheckMar)
+      resCheck <- checkAnalyticals(model, theta.start, Sigma.start,
+                                   methods=check.analyticals)
       return(resCheck)
   }
 
@@ -153,7 +131,7 @@ hhh4 <- function (stsObj, control, check.analyticals = FALSE)
   }
 
   ## optimization successful, return a full "ah4" object
-  fitted <- meanHHH(thetahat,model)$mean
+  fitted <- meanHHH(thetahat, model, total.only=TRUE)
 
   if(dimRandomEffects>0){
     Sigma.orig <- myoptim$sd.corr
@@ -185,6 +163,7 @@ hhh4 <- function (stsObj, control, check.analyticals = FALSE)
                  stsObj=stsObj,         # FIXME: stsObj also in 'control$data'
                  lag=1, nObs=sum(!model$isNA[control$subset,]),
                  nTime=length(model$subset), nUnit=ncol(stsObj))
+       ## FIXME: nTime has a different meaning here than everywhere else!!!
   class(result) <- "ah4"
   result
 }
@@ -436,15 +415,10 @@ ri <- function(type=c("iid","car")[1],
                   "none"=FALSE,
                   "all"=TRUE)
                   
-  
-  nTime <- nrow(sts)
-  nUnits <- ncol(sts)
-  
   if(type=="iid"){
     Z <- 1
-    dim.re <- nUnits 
+    dim.re <- ncol(sts)
     mult <- "*"
-    
   } else if(type=="car"){ # construct penalty matrix K
     K <- neighbourhood(sts)
     checkNeighbourhood(K)
@@ -565,17 +539,20 @@ checkFormula <- function(f, env, component){
 ## Create function (pars, type = "response") which
 ## returns the weighted sum of time-lagged counts of neighbours
 ## (or its derivates, if type = "gradient" or type = "hessian").
-## For type="reponse", the result is a matrix/array, otherwise a list of such
-## objects, which for the gradient has length length(pars) and
+## For type="reponse", this is a nTime x nUnits matrix (like Y),
+## otherwise a list of such matrices,
+## which for the gradient has length length(pars) and
 ## length(pars)*(length(pars)+1)/2 for the hessian.
+## If neweights=NULL (i.e. no ne component in model), the result is always 0.
 neOffsetFUN <- function (Y, neweights, nbmat, data, lag)
 {
     if (is.null(neweights)) { # no neighbourhood component
-        return(as.function(alist(...=, 0), envir=.GlobalEnv))
-    }
-
-    ## return function (living in THIS environment)
-    if (is.list(neweights)) { # parametric weights
+        as.function(alist(...=, 0), envir=.GlobalEnv)
+        ## dimY <- dim(Y)
+        ## as.function(c(alist(...=),
+        ##               substitute(matrix(0, r, c), list(r=dimY[1], c=dimY[2]))),
+        ##             envir=.GlobalEnv)
+    } else if (is.list(neweights)) { # parametric weights
         function (pars, type = "response") {
             name <- switch(type, response="w", gradient="dw", hessian="d2w")
             weights <- neweights[[name]](pars, nbmat, data)
@@ -585,11 +562,11 @@ neOffsetFUN <- function (Y, neweights, nbmat, data, lag)
             ##<- clapply always returns a list (possibly of length 1)
             if (type=="response") res[[1L]] else res
         }
-    } else { # fixed (known) array (0-length pars)
+    } else { # fixed (known) weight structure (0-length pars)
         initoffset <- weightedSumNE(Y, neweights, lag)
         function (pars, type = "response") initoffset
         ## this will not be called for other types
-    }
+    } ## returns function (living in THIS environment)
 }
 
 
@@ -627,8 +604,10 @@ interpretControl <- function(control, stsObj){
   Ym1.ne <- neOffsetFUN(Y, ne$weights, neighbourhood(stsObj), control$data,
                         ne$lag)
   offsets <- list(ar=Ym1, ne=Ym1.ne, end=end$offset)
-
-  ## Ym1.ne is a function (pars, type="response)!
+  ## -> offset$ne is a function of the parameter vector 'd', which returns a
+  ##    nTime x nUnits matrix -- or 0 (scalar) if there is no NE component
+  ## -> offset$end might just be 1 (scalar)
+  
   ## Initial parameter vector 'd' of the neighbourhood weight function
   initial.d <- if (is.list(ne$weights)) ne$weights$initial else numeric(0L)
   dim.d <- length(initial.d)
@@ -638,8 +617,8 @@ interpretControl <- function(control, stsObj){
       } else names(initial.d))
   }
 
-  ## determine all NA's (offset[[i]] is either 0 or a nTime x nUnits matrix)
-  isNA <- (is.na(Ym1) | is.na(Ym1.ne(initial.d)) | is.na(Y))
+  ## determine all NA's (FIXME: why do we need this? Why include is.na(Y)?)
+  isNA <- is.na(offsets[[1L]]) | is.na(offsets[[2L]](initial.d)) | is.na(Y)
 
 
   ## get terms for all components
@@ -794,37 +773,41 @@ splitParams <- function(theta, model){
 
 ### compute predictor
 
-meanHHH <- function(theta, model)
+meanHHH <- function(theta, model, subset=model$subset, total.only=FALSE)
 {
-  # unpack theta
+  ## unpack theta
   pars <- splitParams(theta, model)
   fixed <- pars$fixed
   random <- pars$random
-  d <- pars$d
 
-  # unpack model
+  ## unpack model
   term <- model$terms
-  offsets <- model$offset  # offsets[[i]] is either 0 or a nTime x nUnits matrix
-                           # however, offsets[[2]] is a function of 'd'
+  offsets <- model$offset
+  offsets[[2L]] <- offsets[[2L]](pars$d) # evaluate at current parameter value
   nGroups <- model$nGroups
   comp <- unlist(term["offsetComp",])
   idxFE <- model$indexFE
   idxRE <- model$indexRE
   
-  subset <- model$subset
-  isNA <- model$isNA                    # set missing values in observed Y to NA
+  #isNA <- model$isNA
 
-  toMatrix <- function(par, r=model$nTime, c=model$nUnits){
-    matrix(par,r,c, byrow=TRUE)
-  }
+  toMatrix <- function (x, r=model$nTime, c=model$nUnits)
+      matrix(x, r, c, byrow=TRUE)
   
-  # go through groups of parameters and compute the predictor of each component
+  ## go through groups of parameters and compute predictor of each component,
+  ## i.e. lambda_it, phi_it, nu_it, EXCLUDING the multiplicative offset terms,
+  ## as well as the resulting component mean (=exppred * offset)
   computePartMean <- function (component)
   {
     pred <- nullMatrix <- toMatrix(0)
-    is.na(pred) <- isNA
+    #is.na(pred) <- isNA # set missing values in observed Y to NA
+                         # -> FIXME: why? seems to be awkward... and
+                         # incompatible with simulation for t=1 (given y.start)
     
-    if(!any(comp==component)) return(pred)
+    if(!any(comp==component)) { # component not in model -> return 0-matrix
+        zeroes <- pred[subset,,drop=FALSE]
+        return(list(exppred = zeroes, mean = zeroes))
+    }
     
     for(i in (1:nGroups)[comp==component]){
       fe <- fixed[idxFE==i]
@@ -843,28 +826,26 @@ meanHHH <- function(theta, model)
       X <- term["terms",i][[1]]
       pred <- pred + X*fe + Z.re
     }
-    
-    exp(pred)                  # CAVE: this is without the multiplicative offset
+
+    exppred <- exp(pred[subset,,drop=FALSE])
+    offset <- offsets[[component]]
+    if (length(offset) > 1) offset <- offset[subset,,drop=FALSE]
+    ##<- no subsetting if offset is scalar (time- and unit-independent)
+    list(exppred = exppred, mean = exppred * offset)
   }
   
-  ## autoregressive component
-  ar.mean <- (computePartMean(1) * offsets[[1L]])[subset,,drop=FALSE]
+  ## compute component means
+  ar <- computePartMean(1)
+  ne <- computePartMean(2)
+  end <- computePartMean(3)
   
-  ## neighbourhood component
-  ne.exppred <- computePartMean(2)
-  ne.offset <- offsets[[2L]](d)         # this is just 0 if no "ne" in model
-  ne.mean <- (ne.exppred * ne.offset)[subset,,drop=FALSE]
-  
-  ## endemic component
-  end.mean <- (computePartMean(3) * offsets[[3L]])[subset,,drop=FALSE]
-   
-  ## total mean
-  mean <- ar.mean + ne.mean + end.mean
-
-  ## Done (FIXME: "epidemic" seems to be unused)
-  list(mean=mean, epidemic=ar.mean+ne.mean, endemic=end.mean,
-       epi.own=ar.mean, epi.neighbours=ne.mean,
-       ne.exppred=ne.exppred[subset,,drop=FALSE])
+  ## Done
+  epidemic <- ar$mean + ne$mean
+  endemic <- end$mean
+  if (total.only) epidemic + endemic else
+  list(mean=epidemic+endemic, epidemic=epidemic, endemic=endemic,
+       epi.own=ar$mean, epi.neighbours=ne$mean,
+       ar.exppred=ar$exppred, ne.exppred=ne$exppred, end.exppred=end$exppred)
 }
 
 
@@ -876,9 +857,11 @@ penLogLik <- function(theta, sd.corr, model, attributes=FALSE)
   if(any(is.na(theta))) stop("NAs in regression parameters.", ADVICEONERROR)
 
   ## unpack model
+  nTime <- model$nTime
+  nUnits <- model$nUnits
   subset <- model$subset
   Y <- model$response[subset,,drop=FALSE]
-  isNA <- model$isNA[subset,,drop=FALSE]
+  #isNA <- model$isNA[subset,,drop=FALSE]
   dimPsi <- model$nOverdisp
   dimRE <- model$nRE
 
@@ -886,8 +869,7 @@ penLogLik <- function(theta, sd.corr, model, attributes=FALSE)
   pars <- splitParams(theta, model)
   psi <- exp(pars$overdisp)             # = 1/psi, pars$overdisp = -log(psi)
   if(dimPsi > 1L) {
-      psi <- matrix(psi, ncol=model$nUnits, nrow=model$nTime,
-                    byrow=TRUE)[subset,,drop=FALSE]
+      psi <- matrix(psi, nTime, nUnits, byrow=TRUE)[subset,,drop=FALSE]
   }
   if (dimRE > 0) {
       randomEffects <- pars$random
@@ -909,11 +891,10 @@ penLogLik <- function(theta, sd.corr, model, attributes=FALSE)
   if (any(psi == 0)) return(-Inf)
 
   ## evaluate mean
-  mu <- meanHHH(theta, model)
-  meanTotal <- mu$mean
-  # if, numerically, meanTotal=Inf, log(dnbinom) or log(dpois) both equal -Inf, hence:
-  #if (any(is.infinite(meanTotal))) return(-Inf)
-  # however, since meanTotal=Inf does not produce warnings below and this is a rare
+  mu <- meanHHH(theta, model, total.only=TRUE)
+  # if, numerically, mu=Inf, log(dnbinom) or log(dpois) both equal -Inf, hence:
+  #if (any(is.infinite(mu))) return(-Inf)
+  # however, since mu=Inf does not produce warnings below and this is a rare
   # case, it is faster to not include this conditional expression
 
   ## penalization term for random effects
@@ -925,8 +906,8 @@ penLogLik <- function(theta, sd.corr, model, attributes=FALSE)
   lpen <- c(lpen)                       # drop 1x1 matrix dimensions
   
   ## log-likelihood
-  ddistr <- model$family
-  ll.units <- colSums(ddistr(Y,meanTotal,psi), na.rm=TRUE)
+  ll.units <- .colSums(model$family(Y,mu,psi),
+                       length(subset), nUnits, na.rm=TRUE)
 
   ## penalized log-likelihood
   ll <- sum(ll.units) + lpen
@@ -1001,7 +982,7 @@ penScore <- function(theta, sd.corr, model)
       }
       summ <- get(term["summ",i][[1]])
       dTheta <- derivHHH(mean.comp[[comp]]*Xit)
-      dTheta[isNA] <- 0
+      dTheta[isNA] <- 0   # dTheta must not contain NA's (set NA's to 0)
       
       if(term["unitSpecific",i][[1]]){
         which <- term["which",i][[1]]
@@ -1011,7 +992,7 @@ penScore <- function(theta, sd.corr, model)
       } else if(term["random",i][[1]]){
         Z <- term["Z.intercept",i][[1]]  
         "%m%" <- get(term["mult",i][[1]])
-        dRTheta <- colSums(dTheta %m% Z)  #dTheta must not contain NA's (set NA's to 0)      
+        dRTheta <- colSums(dTheta %m% Z)
         grad.re <- c(grad.re, dRTheta)
         grad.fe <- c(grad.fe, sum(dTheta))
       } else{
@@ -1027,7 +1008,7 @@ penScore <- function(theta, sd.corr, model)
   ## gradient for parameter vector of the neighbourhood weights
   grd <- if (dimd > 0L) {
       dneOffset <- model$offset[[2L]](pars$d, type="gradient")
-      ##<- this is always a list (of length dimd) of matrices/arrays
+      ##<- this is always a list (of length dimd) of matrices
       onescore.d <- function (dneoff) {
           dmudd <- mu$ne.exppred * dneoff[subset,,drop=FALSE]
           grd.terms <- derivHHH(dmudd)
@@ -1148,8 +1129,8 @@ penFisher <- function(theta, sd.corr, model, attributes=FALSE)
         phi.doff <- function (dneoff) {
             mu$ne.exppred * dneoff[subset,,drop=FALSE]
         }
-        ## for type %in% c("gradient", "hessian"), model$offset[[2L]] is always
-        ## a list of matrices/arrays. It has length(pars$d) elements for the
+        ## for type %in% c("gradient", "hessian"), model$offset[[2L]] always
+        ## returns a list of matrices. It has length(pars$d) elements for the
         ## gradient and length(pars$d)*(length(pars$d)+1)/2 for the hessian.
         dneOffset <- model$offset[[2L]](pars$d, type="gradient")
         dmudd <- lapply(dneOffset, phi.doff)
@@ -1205,7 +1186,7 @@ penFisher <- function(theta, sd.corr, model, attributes=FALSE)
         dIJ <- dIJ[ which.i ]           # added which.i subsetting in r432
                                         # FIXME @Michaela: please confirm this correction
       } else if(unitSpecific.j){
-        which.ij <- (which.i & which.j) # FIXME: this is actually unused...?
+        ## which.ij <- (which.i & which.j) # FIXME: this is actually unused...?
         dIJ <- diag(colSums(didj))[ which.i, which.j ] 
       } else {
         dIJ <- colSums(didj)[ which.i ]
@@ -1380,8 +1361,9 @@ penFisher <- function(theta, sd.corr, model, attributes=FALSE)
 
 sqrtOf1pr2 <- function(r){ sqrt(1+r^2) }
 
-getSigmai <- function(sd,    # vector of length dim with stdev's
-                      correlation, # vector of length dim with correlation parameters, =0 if un-correlated
+getSigmai <- function(sd,    # vector of length dim with log-stdev's
+                      correlation, # vector of length dim with correlation
+                                   # parameters, 0-length if uncorrelated
                       dim
                       ){
   if(dim==0) return(NULL)
@@ -1399,8 +1381,9 @@ getSigmai <- function(sd,    # vector of length dim with stdev's
   return(Sigma.i)
 }
 
-getSigmaiInv <- function(sd,    # vector of length dim with stdev's
-                         correlation, # vector of length dim with correlation parameters, =0 if un-correlated
+getSigmaiInv <- function(sd,    # vector of length dim with log-stdev's
+                         correlation, # vector of length dim with correlation
+                                      # parameters, 0-length if uncorrelated
                          dim
                          ){
     
@@ -1466,7 +1449,7 @@ marLogLik <- function(sd.corr, theta, model, fisher.unpen=NULL){
   if(any(is.na(sd.corr))){
     # in order to avoid nlminb from running into an infinite loop (cf. bug
     # report #15052), we have to emergency stop() in this case.
-    # As of R 2.16.0, nlminb() will throw an error if it receives NA from
+    # As of R 2.15.2, nlminb() will throw an error if it receives NA from
     # any of the supplied functions.
     stop("NAs in variance parameters.", ADVICEONERROR)
   }
@@ -1476,9 +1459,6 @@ marLogLik <- function(sd.corr, theta, model, fisher.unpen=NULL){
 
   pars <- splitParams(theta,model)  
   randomEffects <- pars$random
-
-  dimFE <- model$nFE
-  dimPsi <- model$nOverdisp
   dimRE <- model$nRE
   
   dimBlocks <- model$rankRE[model$rankRE>0]
@@ -1532,9 +1512,6 @@ marScore <- function(sd.corr, theta,  model, fisher.unpen=NULL){
 
   pars <- splitParams(theta,model)  
   randomEffects <- pars$random
-
-  dimFE <- model$nFE
-  dimPsi <- model$nOverdisp
   dimRE <- model$nRE
   
   dimBlocks <- model$rankRE[model$rankRE>0]
@@ -1613,9 +1590,6 @@ marFisher <- function(sd.corr, theta,  model, fisher.unpen=NULL){
 
   pars <- splitParams(theta,model)  
   randomEffects <- pars$random
-
-  dimFE <- model$nFE
-  dimPsi <- model$nOverdisp
   dimRE <- model$nRE
   
   dimBlocks <- model$rankRE[model$rankRE>0]
@@ -1700,6 +1674,7 @@ marFisher <- function(sd.corr, theta,  model, fisher.unpen=NULL){
       # ~85% faster implementation using crossprod() avoiding "slow" t():
       d2lpen.i <- -0.5 * crossprod(randomEffects, dSij) %*% randomEffects
 
+      # compute second derivative of log-determinant of penFisher
       mpart1 <- dS.j %*% F.inv.RE  # 3 times as fast as the other way round
       mpart2 <- dS.i %*% F.inv.RE
       mpart <- mpart1 %*% mpart2
@@ -1806,8 +1781,8 @@ dSigma3 <- function(sd,corr){
 
 }
 
-d2Sigma3 <- function(sd,corr, d1){
-  
+d2Sigma3 <- function(sd,corr, d1)
+{  
   derivs <- array(0,c(3,3,6))
   result <- list(dsd1=d1, dsd2=derivs, dsd3=derivs, dcorr1=derivs, dcorr2=derivs, dcorr3=derivs)
   
@@ -1822,7 +1797,8 @@ d2Sigma3 <- function(sd,corr, d1){
   result$dsd3[,,3]<- d1[,,3]
   result$dsd3[3,3,3] <- 2*d1[3,3,3]#
   
-  if(length(corr)>0){
+  if (length(corr)>0)
+  {
     result$dsd1[2:3,2:3,4] <-  0
     result$dsd1[2:3,2:3,5] <-  0
     result$dsd1[,,6] <-  0
@@ -1832,7 +1808,7 @@ d2Sigma3 <- function(sd,corr, d1){
     
     result$dsd3[3,2,4] <- result$dsd3[2,3,4] <- d1[3,2,4]
     result$dsd3[,,c(5,6)] <- d1[,,c(5,6)]
-  
+
     # derivative of corr_1
     result$dcorr1[2,1,4] <- result$dcorr1[1,2,4] <- -(exp(sum(sd[1:2]))*3*corr[1])/(sqrtOf1pr2(corr[1])^5) #
     result$dcorr1[3,2,4] <- result$dcorr1[2,3,4] <- -(exp(sum(sd[2:3]))*(corr[1]*(3*corr[2]*sqrtOf1pr2(corr[3])-2*prod(corr[c(1,3)])) + corr[3]) )/ (prod(sqrtOf1pr2(corr[2:3]))*(sqrtOf1pr2(corr[1])^5)) #
@@ -1844,172 +1820,141 @@ d2Sigma3 <- function(sd,corr, d1){
     # derivative of corr_2
     result$dcorr2[3,1,5] <- result$dcorr2[1,3,5] <- -(exp(sum(sd[c(3,1)]))*3*corr[2])/(sqrtOf1pr2(corr[2])^5)
     result$dcorr2[3,2,5] <- result$dcorr2[2,3,5] <- -(exp(sum(sd[2:3]))*(corr[2]*(3*corr[1]*sqrtOf1pr2(corr[3])-2*prod(corr[c(2,3)])) + corr[3]) )/ (prod(sqrtOf1pr2(corr[c(1,3)]))*(sqrtOf1pr2(corr[2])^5))
-      
-    result$dcorr2[3,2,6] <- result$dcorr2[2,3,6] <- -(exp(sum(sd[2:3]))*sqrtOf1pr2(corr[2]))/ (prod(sqrtOf1pr2(corr[c(2,3)])^3)*sqrtOf1pr2(corr[1]))
+    
+    result$dcorr2[3,2,6] <- result$dcorr2[2,3,6] <-
+        -exp(sum(sd[2:3]))*corr[2] / # SM @ 14/05/13: formula fixed, marFisher()
+                                     # and hhh4()$Sigma.cov[5,6] are now correct
+            (prod(sqrtOf1pr2(corr[c(2,3)])^3)*sqrtOf1pr2(corr[1]))
     
     # derivative of corr_3
     result$dcorr3[3,2,6] <- result$dcorr3[2,3,6] <- -(exp(sum(sd[2:3]))*3*corr[3])/ (prod(sqrtOf1pr2(corr[c(1,2)]))*sqrtOf1pr2(corr[3])^5)
-    
-    
   }
-  
 
   return(result)
 }
 
 
-updateRegression <- function(theta, sd.corr, model, control, method = "nlminb")
-{  
-  lower <- control[["lower"]]; control$lower <- NULL
-  upper <- control[["upper"]]; control$upper <- NULL
-  if(any(theta %in% lower[is.finite(lower)])){
-    cat("WARNING: at least one theta reached lower bound\n")
-  }
-  
-  # estimate regression coefficients (theta, fixed + random)
-  if(method == "nlminb"){
-    ll <- function(theta,...) {- penLogLik(theta,...)}
-    gr <- function(theta,...) {- penScore(theta,...)}
-    scale <- control[["scale"]]; control$scale <- NULL
-    res <- nlminb(start=theta, objective=ll, gradient=gr, hessian=penFisher, 
-                  sd.corr=sd.corr, model=model,
-                  scale=scale, control=control, lower=lower, upper=upper)
-    theta.new <- res$par
-    ll <- - res$objective
-  } else if(method=="nr"){
-    # objective function
-    regressionParams <- function(theta,...){
-      ll <- penLogLik(theta,...)
-      attr(ll,"score") <- penScore(theta,...)
-      attr(ll,"fisher") <- penFisher(theta,...)
-      return(ll)
-    }
-    res <- newtonRaphson(x=theta, fn=regressionParams,
-                         sd.corr=sd.corr, model=model,
-                         control=control, verbose=control$verbose)
-    theta.new <- res$coefficients
-    ll <- res$loglik
-  } else if(method == "nlm"){
-    # objective function
-    regressionParamsMin <- function(theta,...){
-      ll <- - penLogLik(theta,...)
-      attr(ll,"gradient") <- - penScore(theta,...)
-      attr(ll,"hessian") <- penFisher(theta,...)
-      return(ll)  
-    }
-    res <- do.call("nlm", args=c(alist(p=theta, f=regressionParamsMin,
-                          sd.corr=sd.corr, model=model), control))
-    theta.new <- res$estimate
-    ll <- - res$minimum
-    # nlm returns convergence status in $code, 1-2 indicate convergence,
-    # 3-5 indicate non-convergence
-    res$convergence <- as.numeric(res$code >2)
-  } else { # use optim
-    res <- optim(theta, penLogLik, penScore, sd.corr=sd.corr, model=model,
-                 method=method, lower=lower, upper=upper, control=control)
-    theta.new <- res$par
-    ll <- res$value
-  }
+### Various optimizers
 
-  rel.tol <- max(abs(theta.new - theta)) / max(abs(theta))
-  # The above is a weaker criterion than the maximum relative parameter change:
-  #rel.tol <- max(abs(theta.new/theta - 1))
-  
-  return(list(par=theta.new, ll=ll, rel.tol=rel.tol,
-              convergence=res$convergence, message=res$message))
+updateParams_nlminb <- function (start, ll, sc, fi, ..., control)
+{
+    lower <- control[["lower"]]; control$lower <- NULL
+    upper <- control[["upper"]]; control$upper <- NULL
+    scale <- control[["scale"]]; control$scale <- NULL
+    negll <- function (x, ...) -ll(x, ...)
+    negsc <- function (x, ...) -sc(x, ...)
+    ## run the optimization
+    res <- nlminb(start, negll, gradient=negsc, hessian=fi, ...,
+                  scale=scale, control=control, lower=lower, upper=upper)
+    if (any(is.finite(c(lower, upper)))) checkParBounds(res$par, lower, upper)
+    ## Done
+    list(par=res$par, ll=-res$objective,
+         rel.tol=getRelDiff(res$par, start),
+         convergence=res$convergence, message=res$message)
+}
+
+updateParams_nr <- function (start, ll, sc, fi, ..., control)
+{
+    ## objective function
+    llscfi <- function (x, ...) {
+        loglik <- ll(x, ...)
+        attr(loglik, "score") <- sc(x, ...)
+        attr(loglik, "fisher") <- fi(x, ...)
+        loglik
+    }
+    ## run the optimization
+    res <- newtonRaphson(start, llscfi, ...,
+                         control=control, verbose=control$verbose)
+    ## Done
+    list(par=res$coefficients, ll=res$loglikelihood,
+         rel.tol=getRelDiff(res$coefficients, start),
+         convergence=res$convergence, message=res$message)
+}
+
+updateParams_nlm <- function (start, ll, sc, fi, ..., control)
+{
+    ## objective function
+    negllscfi <- function (x, ...) {
+        negloglik <- -ll(x, ...)
+        attr(negloglik, "gradient") <- -sc(x, ...)
+        attr(negloglik, "hessian") <- fi(x, ...)
+        negloglik
+    }
+    ## run the optimization
+    res <- do.call("nlm", args=c(alist(p=start, f=negllscfi, ...), control))
+    ## Done
+    list(par=res$estimate, ll=-res$minimum,
+         rel.tol=getRelDiff(res$estimate, start),
+         convergence=as.numeric(res$code>2), message=res$message)
+    ## nlm returns convergence status in $code, 1-2 indicate convergence,
+    ## 3-5 indicate non-convergence
+}
+
+updateParams_optim <- function (start, ll, sc, fi, ..., control)
+{
+    ## Note: "fi" is not used in optim
+    method <- control[["method"]]; control$method <- NULL
+    lower <- control[["lower"]]; control$lower <- NULL
+    upper <- control[["upper"]]; control$upper <- NULL
+    res <- optim(start, ll, sc, ...,    # Note: control$fnscale is negative
+                 method=method, lower=lower, upper=upper, control=control)
+    if (any(is.finite(c(lower, upper)))) checkParBounds(res$par, lower, upper)
+    ## Done
+    list(par=res$par, ll=res$value,
+         rel.tol=getRelDiff(res$par, start),
+         convergence=res$convergence, message=res$message)
 }
 
 
-updateVariance <- function(sd.corr, theta, model, fisher.unpen,
-                           control, method = "nlminb")
+## Calculate relative parameter change criterion.
+## We use a weaker criterion than the maximum relative parameter change
+## max(abs(sd.corr.new/sd.corr - 1))
+getRelDiff <- function (final, start)
+    max(abs(final - start)) / max(abs(start))
+
+checkParBounds <- function (par, lower, upper)
 {
-  # only fixed effects => no variance 
-  if(length(sd.corr) == 0L){
-    return(list(par=sd.corr,ll=NA_real_,rel.tol=0,convergence=0))
-  }
-
-  lower <- control[["lower"]]; control$lower <- NULL
-  upper <- control[["upper"]]; control$upper <- NULL
-  
-  # estimate variance parameters (sd.corr)
-  if(method == "nlminb"){
-    ll <- function(sd.corr,...) { - marLogLik(sd.corr,...)}
-    gr <- function(sd.corr,...) { - marScore(sd.corr,...)}
-    scale <- control[["scale"]]; control$scale <- NULL
-    res <- nlminb(start=sd.corr, objective=ll, gradient=gr, hessian=marFisher,
-                  theta=theta, model=model, fisher.unpen=fisher.unpen,
-                  scale=scale, control=control, lower=lower, upper=upper)
-    sd.corr.new <- res$par
-    ll <- -res$objective
-    if(any(is.na(sd.corr.new))) {
-        ## Before R 2.16.0, in some cases nlminb continues being stucked at the
-        ## NA parameters until the iteration limit is reached (then returning).
-        ## In others, nlminb is in an infinite loop in the FORTRAN code even
-        ## ignoring the BREAK signal.
-        if (res$convergence == 0) res$convergence <- 99
-    }
-  } else if(method == "nr"){
-    varianceParams <-  function(sd.corr,...){
-      ll <- marLogLik(sd.corr,...)
-      attr(ll,"score") <- marScore(sd.corr,...)
-      attr(ll,"fisher") <- marFisher(sd.corr,...)
-      return(ll)
-    }
-    res <- newtonRaphson(x=sd.corr, fn=varianceParams,
-                         theta=theta, model=model, fisher.unpen=fisher.unpen,
-                         control=control, verbose=control$verbose)
-    sd.corr.new <- res$coefficients
-    ll <- res$loglik
-  } else if(method == "nlm"){
-    varianceParamsMin <-  function(sd.corr,...){
-      ll <- - marLogLik(sd.corr,...)
-      attr(ll,"gradient") <- - marScore(sd.corr,...)
-      attr(ll,"hessian") <- marFisher(sd.corr,...)
-      return(ll)
-    }
-    res <- do.call("nlm", args=c(alist(p=sd.corr, f=varianceParamsMin,
-                          theta=theta, model=model, fisher.unpen=fisher.unpen),
-                          control))
-    sd.corr.new <- res$estimate
-    ll <- -res$minimum
-    # nlm returns convergence status in $code, 1-2 indicate convergence,
-    # 3-5 indicate non-convergence
-    res$convergence <- as.numeric(res$code >2)
-  } else { # use optim
-    res <- optim(sd.corr, marLogLik, marScore,
-                 theta=theta, model=model, fisher.unpen=fisher.unpen,
-                 method=method, lower=lower, upper=upper, control=control)
-    sd.corr.new <- res$par  
-    ll <- res$value
-  }
-
-  rel.tol <- max(abs(sd.corr.new - sd.corr)) / max(abs(sd.corr)) 
-  # The above is a weaker criterion than the maximum relative parameter change:
-  #rel.tol <- max(abs(sd.corr.new/sd.corr - 1))
-  
-  return(list(par=sd.corr.new, ll=ll, rel.tol=rel.tol,
-              convergence=res$convergence, message=res$message))
+    if (is.null(names(par))) names(par) <- seq_along(par)
+    if (any(atl <- par <= lower))
+        cat("WARNING: parameters reached lower bounds:",
+            paste(names(par)[atl], par[atl], sep="=", collapse=", "), "\n")
+    if (any(atu <- par >= upper))
+        cat("WARNING: parameters reached upper bounds:",
+            paste(names(par)[atu], par[atu], sep="=", collapse=", "), "\n")
 }
 
 
 ## default control arguments for updates
 defaultOptimControl <- function (method = "nlminb", lower = -Inf, upper = Inf,
-                                 verbose = 0)
+                                 iter.max = NULL, verbose = 0)
 {
+    if (is.null(iter.max)) iter.max <- 20 + 280*(method=="Nelder-Mead")
     lowVerbose <- verbose %in% 0:2
     luOptimMethod <- method %in% c("Brent", "L-BFGS-B")
     defaults.nr <- list(scoreTol=1e-5, paramTol=1e-7, F.inc=0.01, stepFrac=0.5,
-                        niter=20, verbose=verbose)
-    defaults.nlminb <- list(iter.max=20, scale=1, lower=lower, upper=upper,
+                        niter=iter.max, verbose=verbose)
+    defaults.nlminb <- list(iter.max=iter.max, scale=1, lower=lower, upper=upper,
                             trace=if(lowVerbose) c(0,0,5)[verbose+1] else 1)
-    defaults.nlm <- list(iterlim=100, check.analyticals=FALSE,
+    defaults.nlm <- list(iterlim=iter.max, check.analyticals=FALSE,
                          print.level=if(lowVerbose) c(0,0,1)[verbose+1] else 2)
-    defaults.optim <- list(fnscale=-1, trace=max(0,verbose-1),
+    defaults.optim <- list(maxit=iter.max, fnscale=-1, trace=max(0,verbose-1),
                            lower=if (luOptimMethod) lower else -Inf,
                            upper=if (luOptimMethod) upper else Inf)
     defaults <- switch(method, "nr" = defaults.nr, "nlm" = defaults.nlm,
                        "nlminb" = defaults.nlminb, defaults.optim)
     return(defaults)
+}
+
+setOptimControl <- function (method, control, ...)
+{
+    defaults <- defaultOptimControl(method, ...)
+    cntrl <- modifyList(defaults, control)
+    ## ensure fnscale < 0 (optim performs minimization)
+    if (!is.null(cntrl$fnscale)) {      # i.e., using optim()
+        cntrl$method <- method          # append method to control list
+        if (cntrl$fnscale > 0) cntrl$fnscale <- -cntrl$fnscale
+    }
+    cntrl
 }
 
 
@@ -2023,107 +1968,117 @@ fitHHH <- function(theta, sd.corr, model,
   dimFE.d.O <- model$nFE + model$nd + model$nOverdisp
   dimRE <- model$nRE
 
-  ## artificial lower bound on regression parameters
-  reg.lower <- rep.int(-Inf, length(theta))
-  indexAR <- c(grep("ar.ri",model$namesFE), grep("ar.1",model$namesFE),
-               grep("ne.ri",model$namesFE), grep("ne.1",model$namesFE))
-  reg.lower[indexAR] <- -20
+  getUpdater <- function (cntrl, start, ...) {
+      method <- cntrl$method; cntrl$method <- NULL
+      if (length(start) == 1 && method == "Nelder-Mead") {
+          method <- "Brent"
+          cat("NOTE: switched optimizer from \"Nelder-Mead\" to \"Brent\"",
+              " (dim(", deparse(substitute(start)), ")=1)\n", sep="")
+      }
+      list(paste("updateParams",
+                 if (method %in% c("nlminb", "nlm", "nr"))
+                 method else "optim", sep="_"),
+           control = setOptimControl(method, cntrl, ...))
+  }
 
-  ## control arguments
-  reg.method <- cntrl.regression$method; cntrl.regression$method <- NULL
-  var.method <- cntrl.variance$method; cntrl.variance$method <- NULL
-  if (length(sd.corr) == 1L && var.method == "Nelder-Mead") {
-      var.method <- "Brent"
-      cat("NOTE: switched variance optimizer from", dQuote("Nelder-Mead"),
-           "to", dQuote("Brent"), "(dim(Sigma)=1)\n")
-  }
-  defaults.reg <- defaultOptimControl(method=reg.method, lower=reg.lower,
-                                      upper=Inf, verbose=verbose)
-  defaults.var <- defaultOptimControl(method=var.method, lower=-5, upper=5,
-                                      verbose=verbose)
-  cntrl.update.reg <- modifyList(defaults.reg, cntrl.regression)
-  cntrl.update.var <- modifyList(defaults.var, cntrl.variance)
-  if (!is.null(cntrl.update.reg$fnscale) && cntrl.update.reg$fnscale > 0) {
-      cntrl.update.reg$fnscale <- -cntrl.update.reg$fnscale
-  }
-  if (!is.null(cntrl.update.var$fnscale) && cntrl.update.var$fnscale > 0) {
-      cntrl.update.var$fnscale <- -cntrl.update.var$fnscale
-  }
+  ## set optimizer for regression parameters
+  updateRegressionControl <- getUpdater(cntrl.regression, theta,
+                                        iter.max=if(dimRE==0) 100,
+                                        verbose=verbose+(dimRE==0))
+  updateRegression <- function (theta, sd.corr)
+      do.call(updateRegressionControl[[1]],
+              alist(theta, penLogLik, penScore, penFisher,
+                    sd.corr=sd.corr, model=model,
+                    control=updateRegressionControl[[2]]))
+
+  ## set optimizer for variance parameters
+  updateVarianceControl <- getUpdater(cntrl.variance, sd.corr,
+                                      lower=-5, upper=5, verbose=verbose)
+  updateVariance <- function (sd.corr, theta, fisher.unpen)
+      do.call(updateVarianceControl[[1]],
+              alist(sd.corr, marLogLik, marScore, marFisher,
+                    theta=theta, model=model, fisher.unpen=fisher.unpen,
+                    control=updateVarianceControl[[2]]))
 
   ## Let's go
   if (verbose>0) {
       cat(as.character(Sys.time()), ":",
-          "Iterative optimization of regression & variance parameters\n")
+          if (dimRE == 0) "Optimization of regression parameters" else
+          "Iterative optimization of regression & variance parameters", "\n")
   }
-  convergence <- 99
-  i <- 0
-  while(convergence != 0 && (i < cntrl.stop$niter)){
-    i <- i+1
-    if (verbose>0) cat("\n")
-    
-    ## update regression coefficients
-    parReg <- updateRegression(theta=theta, sd.corr=sd.corr, model=model,
-                               control=cntrl.update.reg, method=reg.method)
-    theta <- parReg$par
-    fisher.unpen <- attr(penFisher(theta, sd.corr, model, attributes=TRUE),
-                         "fisher")
+  
+  if (dimRE == 0) { # optimization of regression coefficients only
+      parReg <- updateRegression(theta, sd.corr)
+      theta <- parReg$par
+      convergence <- parReg$convergence
+  } else { # swing between updateRegression & updateVariance
+      convergence <- 99
+      i <- 0
+      while(convergence != 0 && (i < cntrl.stop$niter)){
+          i <- i+1
+          if (verbose>0) cat("\n")
+          
+          ## update regression coefficients
+          parReg <- updateRegression(theta, sd.corr)
+          theta <- parReg$par
+          fisher.unpen <- attr(penFisher(theta, sd.corr, model, attributes=TRUE),
+                               "fisher")
 
-    if(verbose>0)
-      cat("Update of regression parameters:  max|x_0 - x_1| / max|x_0| =",
-          parReg$rel.tol, "\n")
-    
-    if(parReg$convergence!=0) {
-      if (!is.null(parReg$message)) print(parReg$message)
-      cat("Update of regression coefficients in iteration ", i, " unreliable\n")
-    }
+          if(verbose>0)
+              cat("Update of regression parameters:  max|x_0 - x_1| / max|x_0| =",
+                  parReg$rel.tol, "\n")
+          
+          if(parReg$convergence!=0) {
+              if (!is.null(parReg$message)) print(parReg$message)
+              cat("Update of regression coefficients in iteration ", i, " unreliable\n")
+          }
 
-    if(parReg$convergence >20 && shrinkage){
-      cat("\n\n***************************************\nshrinkage",
-          0.1*theta[abs(theta)>10],"\n")
-      theta[abs(theta)>10] <- 0.1*theta[abs(theta)>10]
-      diag(fisher.unpen) <- diag(fisher.unpen)+1e-2
-    }
-    
-    ## update variance parameters
-    parVar <- updateVariance(sd.corr=sd.corr, theta=theta, model=model,
-                             fisher.unpen=fisher.unpen,
-                             control=cntrl.update.var, method=var.method)
+          if(parReg$convergence >20 && shrinkage){
+              cat("\n\n***************************************\nshrinkage",
+                  0.1*theta[abs(theta)>10],"\n")
+              theta[abs(theta)>10] <- 0.1*theta[abs(theta)>10]
+              diag(fisher.unpen) <- diag(fisher.unpen)+1e-2
+          }
+          
+          ## update variance parameters
+          parVar <- updateVariance(sd.corr, theta, fisher.unpen)
 
-    if(verbose>0)
-      cat("Update of variance parameters:  max|x_0 - x_1| / max|x_0| =",
-          parVar$rel.tol, "\n")
-      
-    if(parVar$convergence!=0) {
-      if (!is.null(parVar$message)) print(parVar$message)
-      cat("Update of variance parameters in iteration ", i, " unreliable\n")
-    }
+          if(verbose>0)
+              cat("Update of variance parameters:  max|x_0 - x_1| / max|x_0| =",
+                  parVar$rel.tol, "\n")
+          
+          if(parVar$convergence!=0) {
+              if (!is.null(parVar$message)) print(parVar$message)
+              cat("Update of variance parameters in iteration ", i, " unreliable\n")
+          }
 
-    if(any(is.na(parVar$par))){         # this might occur when using nlminb
-      var.method <- if (length(sd.corr) == 1L) "Brent" else "Nelder-Mead"
-      cat("WARNING: at least one updated variance parameter is not a number\n",
-          "\t-> NO UPDATE of variance\n",
-          "\t-> SWITCHING to robust", dQuote(var.method),
-          "for variance updates\n")
-      cntrl.update.var <- defaultOptimControl(var.method, lower=-5, upper=5,
-                                              verbose=verbose)
-    } else {
-      sd.corr <- parVar$par
-    }
+          ## NA values in sd.corr cause a stop() already in marLogLik()
+          ## if(any(is.na(parVar$par))){
+          ##     updateVarianceControl[[1]] <- "updateParams_optim"
+          ##     updateVarianceControl[[2]]$method <-
+          ##         if (length(sd.corr) == 1L) "Brent" else "Nelder-Mead"
+          ##     cat("WARNING: at least one updated variance parameter is not a number\n",
+          ##         "\t-> NO UPDATE of variance\n",
+          ##         "\t-> SWITCHING to robust", dQuote(updateVarianceControl[[2]]$method),
+          ##         "for variance updates\n")
+          ## } else
+          sd.corr <- parVar$par
 
-    # overall convergence ?
-    if( (parReg$rel.tol < cntrl.stop$tol) && (parVar$rel.tol < cntrl.stop$tol)
-       && (parReg$convergence==0) && (parVar$convergence==0) ) 
-      convergence <- 0
+          ## overall convergence ?
+          if( (parReg$rel.tol < cntrl.stop$tol) && (parVar$rel.tol < cntrl.stop$tol)
+             && (parReg$convergence==0) && (parVar$convergence==0) ) 
+              convergence <- 0
 
-    # exit loop if no more change in parameters (maybe false convergence)
-    if (parReg$rel.tol == 0 && parVar$rel.tol == 0)
-        break
+          ## exit loop if no more change in parameters (maybe false convergence)
+          if (parReg$rel.tol == 0 && parVar$rel.tol == 0)
+              break
+      }
   }
-
+  
   if(verbose > 0) {
     cat("\n")
     cat(as.character(Sys.time()), ":", if (convergence==0)
-        "Algorithm converged" else "Algorithm DID NOT CONVERGE", "\n\n")
+        "Optimization converged" else "Optimization DID NOT CONVERGE", "\n\n")
   }
   
   ll <- penLogLik(theta=theta,sd.corr=sd.corr,model=model)
@@ -2137,169 +2092,6 @@ fitHHH <- function(theta, sd.corr, model,
 }
 
 
-#####################
-# x - initial parameter values
-# control arguments:
-# scoreTol - convergence if max(abs(score)) < scoreTol
-# paramTol - convergence if rel change in theta < paramTol
-# F.inc - eigenvalues of the hessian are computed when the Cholesky factorization
-#         fails, and a constant added to the diagonal to make the smallest
-#         eigenvalue= F.inc * largest
-
-# fn must return loglikelihood with score and fisher as attributes
-#   fn <- function(theta,...){
-#     ll <- loglik(theta,...)
-#     attr(ll,"score") <- score(theta,...)
-#     attr(ll,"fisher") <- fisher(theta,...)
-#     return(ll)
-#   }
-newtonRaphson <- function(x,fn,..., control=list(), verbose=FALSE){
-
-  # set default values
-  control.default <- list(scoreTol=1e-5, paramTol=1e-8, F.inc=0.01,
-                          stepFrac=0.5, niter=30)
-  control <- modifyList(control.default, control)
-  
-  # number of step reductions, not positive definite Fisher matrices during iterations
-  steph <- notpd <- 0
-  convergence <- 99
-  i <- 0
-  
-  rel.tol <- function(x,xnew){
-    sqrt(sum((xnew-x)^2)/sum(x^2))
-  }
-  
-  score <- function(fn){
-    return(attr(fn,"score"))
-  }
-  fisher <- function(fn){
-    return(attr(fn,"fisher"))
-  }
-  
-  ll0 <- c(fn(x,...))
-  if(verbose>1) cat("initial loglikelihood",ll0,"\n\n")
-  
-  # fn cannot be computed at initial par
-  if(!is.finite(ll0) | is.na(ll0)){
-    cat("fn can not be computed at initial parameter values.\n")
-    return(list(convergence=30, notpd = notpd, steph = steph))
-  }
-      
-  while(convergence != 0 & (i< control$niter)){
-    i <- i+1
-    ll <- fn(x,...)
-    if(max(abs(score(ll))) < control$scoreTol){
-      convergence <- 0
-      break
-    }
-    # get cholesky decompositon
-    F <- fisher(ll)
-    F.chol <- try(chol(F),silent=TRUE)
-    # could still give a nearly singular matrix
-    # => could also check condition number
-    
-    if(inherits(F.chol,"try-error")){
-      if(verbose>1) cat("fisher is not pd\n")
-      # fisher is not pd
-      notpd <- notpd +1
-      ev <- eigen(F,symmetric=TRUE, only.values=TRUE)$values
-      #  add a constant to diag(F)
-      diag(F) <- diag(F) + (control$F.inc*(max(abs(ev))) - min(ev))/(1-control$F.inc)
-      # compute cholesky decomposition of modified fisher
-      F.chol <- chol(F)
-    }
-    direction <- chol2inv(F.chol)%*% score(ll)
-    if(max(abs(direction)) < control$paramTol*(max(abs(x))+1e-8) ){
-      convergence <- 0
-      break
-    }
-    # do Newton-Raphson step
-    x.new <- c(x + direction)
-    ll.new <- fn(x.new,...)
-    if(verbose>1) cat("iteration",i,"\trel.tol =",rel.tol(x,x.new),"\tabs.tol(score) =",max(abs(score(ll.new))),"\n")
-    if(verbose>2) cat("theta =",round(x.new,2),"\n")
-    if(verbose>1) cat("loglikelihood =",ll.new,"\n")
-      
-
-    ## Backtracking: reduce stepsize until we really improve the loglikelihood
-    # ll(x1,lambda) = ll(x0) + lambda * fisher(x0)^-1 %*% score(x0)
-    i.backstep <- 0
-    ## Gray (2001) Ch 3: Unconstrained Optimization and Solving Nonlinear Equations
-    # It is technically possible to construct sequences where ll(x1) > ll(x0)
-    # at each step but where the sequence never converges.
-    # For this reason a slightly stronger condition is usually used.
-    # Dennis and Schnabel (1983): Numerical Methods for Unconstrained 
-    #     Optimization and Nonlinear Equations. SIAM. (ch 6,3.2, p.126)
-    # recommend requiring that lambda satisfy
-    #   ll(x1) > ll(x0) + 1e-4 *(x1-x0)' %*% score(x0)
-    while((is.na(ll.new) || (ll.new < c(ll)+ (1e-4)*sum(direction*score(ll)))) & (i.backstep <= 20)){
-      if(verbose>1 & i.backstep==0) cat("backtracking: ")
-      i.backstep <- i.backstep +1
-      steph <- steph +1
-      # reduce stepsize by a fixed fraction stepFrac
-      direction <- control$stepFrac*direction
-      x.new <- c(x + direction)
-      ll.new <- fn(x.new,...)
-      if(verbose>1) cat("*")
-    }
-    if(verbose & i.backstep>0) cat("\n")
-    if(i.backstep >20){
-      if(verbose>1)cat("backtracking did not improve fn\n")
-      #cat("ll: ",ll,"\tll.new: ",ll.new,"\n")
-      convergence <- 10
-      break
-    }
-
-    x <- c(x.new)
-      
-    if(verbose>1) cat("\n")
-  }
-  ll <- fn(x,...)
-  
-  # max number of iterations reached, but check for convergence
-  if(max(abs(score(ll))) < control$scoreTol){
-    convergence <- 0
-  }
-
-  # convergence if
-  # 1) relative difference between parameters is small
-  # 2) absolute value of gradient is small
-  # 3) stop after niter iterations
-  
-  if(i==control$niter & convergence !=0){
-      if(verbose>1) cat("Newton-Raphson stopped after",i,"iterations!\n")
-      # iteration limit reached without convergence
-      convergence <- 10
-  }
-  if(verbose>1) cat("iteration",i,"\trel.tol =",rel.tol(x,x.new),"\tabs.tol(score) =",max(abs(score(ll))),"\n")
-  if(verbose>2) cat("theta =",round(x.new,2),"\n")
-  if(verbose>1) cat("loglikelihood =",c(ll),"\n\n")
- 
-  # loglikelihood
-  loglik <- c(ll)
-  
-  # fisher info
-  F <- fisher(ll)
-  if(inherits(try(solve(F),silent=TRUE),"try-error")){ 
-    cat("\n\n***************************************\nfisher not regular!\n")
-    #print(summary(x))
-    return(list(coefficients=x, loglikelihood=loglik, fisher=FALSE, convergence=22, notpd = notpd, steph = steph))
-  }
-  
-  # check if solution is a maximum (i.e. if fisher is pd )
-  eps <- 1e-10
-  if(!all(eigen(F,symmetric=TRUE, only.values=TRUE)$values > eps)){
-    if(verbose>1) cat("fisher information at solution is not pd\n")
-    return(list(coefficients=x, loglikelihood=loglik, fisher=FALSE, convergence=21, notpd = notpd, steph = steph))
-  }
- 
-  if(verbose>0) 
-    cat("number of iterations = ",i," coverged = ", convergence ==0," log-likelihood = ",loglik, " notpd = ", notpd, " steph = ", steph, "\n")
-  result <- list(coefficients=x, loglikelihood=loglik, fisher=FALSE, 
-                 convergence=convergence, notpd=notpd, steph=steph,niter=i)
-  return(result)
-  
-}
 
 ##############
 addSeason2formula <- function(f=~1,       # formula to start with
@@ -2330,85 +2122,36 @@ addSeason2formula <- function(f=~1,       # formula to start with
 }
 
 
-oneStepAhead <- function(result, # result of call to hhh4
-                         tp,     # one-step-ahead predictions for time points (tp+1):nrow(stsObj)
-                         verbose=TRUE,  # FIXME: this is currently unused
-                         keep.estimates = FALSE){
-  
-  stsObj <- result$stsObj
-  control <- result$control
-  # get model terms
-  model <- result[["terms"]]
-  if(is.null(model)){
-      model <- interpretControl(control,stsObj)
-  }
-  
-  # which model: negbin or poisson?
-  dimOverdisp <- model$nOverdisp
-  negbin <- dimOverdisp>0
-
-  nTime <- nrow(stsObj)
-  pred <- matrix(NA_real_,nrow=length(tp:nTime)-1,ncol=ncol(stsObj))
-  psi <- matrix(NA_real_,nrow=length(tp:nTime)-1,ncol=ifelse(dimOverdisp>1,ncol(stsObj),1))
+## check analytical score functions and Fisher informations for
+## a given model (the result of interpretControl(control, stsObj))
+## and given parameters theta (regression par.) and sd.corr (variance par.).
+## This is a wrapper around functionality of the numDeriv and maxLik packages.
+checkAnalyticals <- function (model, theta, sd.corr,
+                              methods=c("numDeriv","maxLik"))
+{
+    cat("\nPenalized log-likelihood:\n")
+    resCheckPen <- sapply(methods, function(derivMethod) {
+        if (requireNamespace(derivMethod)) {
+            do.call(paste("checkDerivatives", derivMethod, sep="."),
+                    args=alist(penLogLik, penScore, penFisher, theta,
+                    sd.corr=sd.corr, model=model))
+        }
+    }, simplify=FALSE, USE.NAMES=TRUE)
+    if (length(resCheckPen) == 1L) resCheckPen <- resCheckPen[[1L]]
     
-  res <- resN <- result
-  
-  which <- 1
-  search2 <- function(i,which){
-    control$subset <- 2:i
-    
-    if(which==1){
-      #starting values of previous time point i-1
-      control$start <- list(fixed=fixef(res.old),random=ranef(res.old),sd.corr=getSdCorr(res.old))
-    } else {
-      #starting values of last time point
-      control$start <- list(fixed=fixef(resN),random=ranef(resN),sd.corr=getSdCorr(resN))
+    resCheckMar <- if (length(sd.corr) == 0L) list() else {
+        cat("\nMarginal log-likelihood:\n")
+        fisher.unpen <- attr(penFisher(theta, sd.corr, model, attributes=TRUE),
+                             "fisher")
+        resCheckMar <- sapply(methods, function(derivMethod) {
+            if (requireNamespace(derivMethod)) {
+                do.call(paste("checkDerivatives", derivMethod, sep="."),
+                        args=alist(marLogLik, marScore, marFisher, sd.corr,
+                        theta=theta, model=model, fisher.unpen=fisher.unpen))
+            }
+        }, simplify=FALSE, USE.NAMES=TRUE)
+        if (length(resCheckMar) == 1L) resCheckMar[[1L]] else resCheckMar
     }
-    res <- hhh4(stsObj,control)  
-
-    return(res)
-  }
-  
-  if(keep.estimates){
-	# save value of log-likelihood (pen+mar) and parameter estimates
-	params <- matrix(NA_real_,nrow=length(tp:nTime)-1,ncol=length(coef(res))+2)
-	# save values of estimated covariance
-	vars <- matrix(NA_real_,nrow=length(tp:nTime)-1,ncol=model$nSigma)
-  } else {
-	params <- vars <- NULL
-  }
-
-  # make one-step ahead prediction for time point tp+1
-  for(i in (tp):(nTime-1)) {
-      cat(nTime-i,"\n")
-      res.old <- res
-      
-      # fit model to data for time points 1,...,tp
-      # use initial values from previous fit or from fit to all
-      res <- search2(i, which=which)
-      
-      # check convergence        
-      # do a grid search in case of non-convergence ?
-      if(res$convergence){
-        # make one-step ahead prediction for time point tp+1
-        pred[i-tp+1,] <- tail(predict(res,newSubset=2:(i+1),type="response"),1)
-		# get overdispersion parameter
-        if(negbin)
-          psi[i-tp+1,] <- coef(res, reparamPsi=FALSE)[grep("overdisp",names(coef(res)))]
-		# save parameter estimates
-		if(keep.estimates){
-		  params[i-tp+1,] <- c(res$loglikelihood,res$margll,coef(res,reparamPsi=FALSE))
-		  vars[i-tp+1,] <- getSdCorr(res)
-		}
-      } else {
-        cat("NO convergence in iteration", i-tp,"\n")
-        res <- res.old
-      }
-  }
-   
-  return(list(mean=pred, psi=psi, x=observed(stsObj[(tp+1):nTime]),
-		      allConverged=all(!is.na(pred)),
-              params=params,variances=vars))
-
+    
+    list(pen = resCheckPen, mar = resCheckMar)
 }
-

@@ -71,13 +71,13 @@ earsC <- function(sts, control = list(range = NULL, method = "C1",
   # which is not the same depending on the method
   if (is.null(control[["range",exact=TRUE]])) {
     if (method == "C1"){
-      control$range <- c(8:length(sts@observed))
+      control$range <- c(8:dim(sts@observed)[1])
     }
     if (method == "C2"){
-      control$range <- c(10:length(sts@observed))
+      control$range <- c(10:dim(sts@observed)[1])
     }
     if (method == "C3"){
-      control$range <- c(12:length(sts@observed))
+      control$range <- c(12:dim(sts@observed)[1])
     }    
   }
   
