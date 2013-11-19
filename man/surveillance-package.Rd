@@ -42,11 +42,9 @@
 \details{
   \tabular{ll}{
     Package: \tab surveillance\cr
-    Version: \tab 1.6-0\cr
-    Date: \tab 2013-09-03\cr
-    License: \tab GPL version 2
-    (\url{http://www.gnu.org/licenses/old-licenses/gpl-2.0.html}) \cr
     URL: \tab \url{http://surveillance.r-forge.r-project.org/}\cr
+    License: \tab GPL version 2
+    (\url{http://www.gnu.org/licenses/old-licenses/gpl-2.0.html})\cr
   }
   
   \pkg{surveillance} is an \R package implementing statistical methods
@@ -123,6 +121,6 @@
 #available from http://surveillance.r-forge.r-project.org/
 \dontrun{demo(cost)}
 #Code from a more recent book chapter about using the package for the
-#monitoring of Danish mortality data (Hoehle, 2009).
+#monitoring of Danish mortality data (Hoehle and Mazick, 2010).
 \dontrun{demo(biosurvbook)}
 }

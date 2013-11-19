@@ -1,8 +1,8 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.6-0
-Date: 2013-09-03
+Version: 1.7-0
+Date: 2013-11-19
 Authors@R: c(person("Michael", "Höhle",
                     email = "Michael.Hoehle@stat.uni-muenchen.de",
                     role = c("aut", "cre", "ths")),
@@ -27,18 +27,20 @@ Authors@R: c(person("Michael", "Höhle",
              person("R Core Team", role = "ctb",
                     comment = "A few code segments are modified versions of
                                code from base R"))
-Author: M. Höhle, S. Meyer and M. Paul
-        with contributions from
-        T. Correa, L. Held, M. Hofmann, C. Lang, A. Riebler, D. Sabanés Bové,
-        M. Salmon, S. Steiner, M. Virtanen, V. Wimmer, and The R Core Team
+Author: Michael Höhle [aut, cre, ths], Sebastian Meyer [aut],
+        Michaela Paul [aut], Leonhard Held [ctb, ths],
+        T. Correa [ctb], M. Hofmann [ctb], C. Lang [ctb], A. Riebler [ctb],
+        D. Sabanés Bové [ctb], M. Salmon [ctb], S. Steiner [ctb],
+        M. Virtanen [ctb], V. Wimmer [ctb], R Core Team [ctb]
         (A few code segments are modified versions of code from base R)
-Depends: R (>= 2.14.0), grDevices, graphics, stats, utils, methods,
-        xtable, Rcpp, sp (>= 1.0-6)
-Imports: MASS, Matrix, spatstat (>= 1.17-0), polyCub
+Maintainer: Michael Höhle <Michael.Hoehle@stat.uni-muenchen.de>
+Depends: R (>= 2.15.2), methods, grDevices, graphics, stats, utils,
+        Rcpp, sp (>= 1.0-6), xtable, polyCub (>= 0.4-0)
+Imports: MASS, Matrix, spatstat (>= 1.34-0)
 LinkingTo: Rcpp
-Suggests: msm, spc, colorspace, animation, quadprog, memoise, rgeos,
-        gpclib, maptools, intervals, spdep, numDeriv, maxLik, RUnit,
-        digest, coda, splancs, gamlss
+Suggests: msm, spc, colorspace, animation, quadprog, parallel, memoise,
+        polyclip, rgeos, gpclib, maptools, intervals, spdep, numDeriv,
+        maxLik, RUnit, digest, coda, splancs, gamlss
 Description: A package implementing statistical methods for the modeling and
         change-point detection in time series of counts, proportions and
         categorical data, as well as for the modeling of continuous-time
@@ -66,12 +68,10 @@ Description: A package implementing statistical methods for the modeling and
         The package contains several real-world datasets, the ability to
         simulate outbreak data, visualize the results of the monitoring in
         temporal, spatial or spatio-temporal fashion.
-Maintainer: Michael Höhle <Michael.Hoehle@stat.uni-muenchen.de>
 License: GPL-2
 URL: http://surveillance.r-forge.r-project.org/
-ZipData: no
 Encoding: latin1
-Packaged: 2013-09-09 14:34:31 UTC; sebastian
+Packaged: 2013-11-19 11:29:57 UTC; sebastian
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2013-09-09 19:49:55
+Date/Publication: 2013-11-19 16:57:55

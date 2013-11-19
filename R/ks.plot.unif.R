@@ -133,8 +133,8 @@ checkResidualProcess <- function (object, plot = 1:2, mfrow = n2mfrow(length(plo
     U <- 1 - exp(-Y)
     
     ## Calculate KS test
-    ks <- stats::ks.test(U, "punif", alternative = "two.sided",
-                         exact = match.call()[["exact"]])
+    ks <- ks.test(U, "punif", alternative = "two.sided",
+                  exact = match.call()[["exact"]])
     
     ## return value
     ret <- list(tau=tau, U=U, ks=ks)

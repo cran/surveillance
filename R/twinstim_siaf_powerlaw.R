@@ -8,8 +8,8 @@
 ### for the siaf specification we only want d to be positive)
 ###
 ### Copyright (C) 2013 Sebastian Meyer
-### $Revision: 631 $
-### $Date: 2013-08-28 17:52:52 +0200 (Mit, 28 Aug 2013) $
+### $Revision: 666 $
+### $Date: 2013-11-08 15:45:36 +0100 (Fre, 08 Nov 2013) $
 ################################################################################
 
 
@@ -99,7 +99,7 @@ siaf.powerlaw <- function (nTypes = 1, logpars = TRUE,
             deriv1 <- function (s, paridx)
                 deriv(s, logpars, type)[,paridx,drop=TRUE],
             intderiv1 <- function (paridx)
-                polyCub::polyCub.SV(polydomain, deriv1, paridx=paridx,
+                polyCub.SV(polydomain, deriv1, paridx=paridx,
                            nGQ = nGQ, alpha = a[paridx]),
             res.logsigma <- intderiv1(1L),
             res.logd <- intderiv1(2L),

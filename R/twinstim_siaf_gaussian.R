@@ -6,8 +6,8 @@
 ### Gaussian spatial interaction function for twinstim's epidemic component
 ###
 ### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 638 $
-### $Date: 2013-09-03 16:59:05 +0200 (Die, 03 Sep 2013) $
+### $Revision: 666 $
+### $Date: 2013-11-08 15:45:36 +0100 (Fre, 08 Nov 2013) $
 ################################################################################
 
 
@@ -78,7 +78,7 @@ siaf.gaussian <- function (nTypes = 1, logsd = TRUE, density = FALSE,
             tmp1, tmp1.1,
             expression(
                 eps <- adapt * sd,
-                intf <- polyCub::polyCub.midpoint(polydomain, f, pars, type, eps=eps),
+                intf <- polyCub.midpoint(polydomain, f, pars, type, eps=eps),
                 intf
                 )
         ))
@@ -145,7 +145,7 @@ siaf.gaussian <- function (nTypes = 1, logsd = TRUE, density = FALSE,
         } else { # d f(s|type_i) / d sigma_{type_j} is 0 for i != j
             expression(deriv.type <- function (s) deriv(s, pars, type)[,type,drop=TRUE])
         },
-        expression(int <- polyCub::polyCub.SV(polydomain, deriv.type, nGQ=nGQ, alpha=a)),
+        expression(int <- polyCub.SV(polydomain, deriv.type, nGQ=nGQ, alpha=a)),
         if (nTypes == 1L) expression(int) else expression(
             res <- numeric(length(pars)), # zeros
             res[type] <- int,

@@ -68,7 +68,6 @@ if(!file.exists("figs/")) dir.create("figs/")
 ######################################################################
 CACHEFILE <- "surveillance-cache.RData"
 compute <- !file.exists(CACHEFILE)
-#compute <- TRUE
 #load computed results
 if(!compute) load(CACHEFILE)
 print(paste("Doing computations:", compute))
@@ -630,12 +629,10 @@ if(compute){
   measles.hhh <-algo.hhh(measles.weser,cntrl)
 
   # algo.hhh.grid
-  cntrl <- list(linear=TRUE, nseason=1, neighbours=TRUE, 
-                negbin="single", lambda=TRUE)
   grid <- create.grid(measles.weser, cntrl, params=list(endemic=c(lower=-0.5, upper=0.5, length=3), epidemic=c(0.1,0.9,5),  negbin=c(0.3,12,5)))
   cat("running a grid search for up to 900 seconds.\n")
   measles.hhh.grid <- algo.hhh.grid(measles.weser, control=cntrl, 
-                                    thetastartMatrix=grid, maxTime=900)#,verbose=T)
+                                    thetastartMatrix=grid, maxTime=900)
 }
 @
 
@@ -652,7 +649,7 @@ In case of a Poisson model, the number of parameters reduces by one
 as the overdispersion parameter $\psi$ is omitted.
 
 <<echo=T,eval=F>>=
-cntrl <- list(linear=TRUE, season=list(nseason=1), neighbours=TRUE, 
+cntrl <- list(linear=TRUE, nseason=1, neighbours=TRUE, 
               negbin="single", lambda=TRUE)
 measles.hhh <- algo.hhh(measles.weser,control=cntrl)
 @
@@ -674,13 +671,11 @@ is exceeded. The result with the highest likelihood is returned.
 
 %algo.hhh.grid
 <<echo=T,eval=F>>=
-cntrl <- list(linear=TRUE, season=list(nseason=1), neighbours=TRUE, 
-              negbin="single", lambda=TRUE)
 grid <- create.grid(measles.weser, cntrl, 
    params = list(endemic = c(lower = -0.5, upper = 0.5, length = 3), 
      epidemic = c(0.1, 0.9, 5),  negbin = c(0.3,12,5)))
 algo.hhh.grid(measles.weser, control=cntrl, thetastartMatrix=grid,
-              maxTime=900)#,verbose=T)
+              maxTime=900)
 @
 <<echo=F>>=
 print(measles.hhh.grid,3)

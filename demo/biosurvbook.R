@@ -1,7 +1,7 @@
 ######################################################################
 #  Demo of the code used in the book chapter
-#  Hoehle, M. and A. Mazick, A. (2009) Aberration detection in R
-#  illustrated by Danish mortality monitoring,  Book chapter to appear in
+#  Hoehle, M. and A. Mazick, A. (2010) Aberration detection in R
+#  illustrated by Danish mortality monitoring,  Book chapter in
 #  T. Kass-Hout and X. Zhang (Eds.) Biosurveillance: A Health Protection
 #  Priority, CRC Press.
 #
@@ -88,7 +88,7 @@ plot(s.far.all,type = alarm ~ time,xlab="time (weeks)",main="",alarm.symbol=list
 #######################################################################
 phase1 <- which(year(momo) == 2002 & epochInYear(momo) == 40):(phase2[1]-1)
 momo.df <- as.data.frame(momo)
-m <- glm.nb( `observed.[75,85)` ~ 1 + epoch + sin(2*pi*epochInPeriod) + cos(2*pi*epochInPeriod) + `population.[75,85)`, data=momo.df[phase1,])
+m <- MASS::glm.nb( `observed.[75,85)` ~ 1 + epoch + sin(2*pi*epochInPeriod) + cos(2*pi*epochInPeriod) + `population.[75,85)`, data=momo.df[phase1,])
 mu0 <- predict(m, newdata=momo.df[phase2,],type="response")
 
 
@@ -159,7 +159,7 @@ axis(2,at=prob,las=1,cex.axis=0.7)
 legend(x="topright",c("Monte Carlo","Markov chain"), lty=1:2,col=1)
 
 
-m.01 <- glm.nb( `observed.[0,1)` ~ 1 + epoch + `population.[0,1)`+ sin(2*pi*epochInPeriod) + cos(2*pi*epochInPeriod), data=momo.df[phase1,])
+m.01 <- MASS::glm.nb( `observed.[0,1)` ~ 1 + epoch + `population.[0,1)`+ sin(2*pi*epochInPeriod) + cos(2*pi*epochInPeriod), data=momo.df[phase1,])
 mu0 <- predict(m.01, newdata=momo.df[phase2,],type="response")
 
 #Correct for past outbreaks

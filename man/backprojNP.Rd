@@ -163,10 +163,17 @@ backprojNP(sts, incu.pmf,
   Lau HY (2011), Reconstruction of the Infection Curve for SARS Epidemic
   in Beijing, China Using a Back-Projection Method, Communications in
   Statistics - Simulation and Computation, 37(2):425-433.
+
+  Associations of Age and Sex on Clinical Outcome and Incubation Period
+  of Shiga toxin-producing Escherichia coli O104:H4 Infections, 2011
+  (2013), Werber D, King LA, Müller L, Follin P, Buchholz U, Bernard H,
+  Rosner BM, Ethelberg S, de Valk H, Höhle M, American Journal of
+  Epidemiology, 178(6):984-992.
 }
 
 \author{
-Michael \enc{Höhle}{Hoehle}
+  Michael \enc{Höhle}{Hoehle} with help by
+  Daniel \enc{Sabanés Bové}{Sabanes Bove} for the \pkg{Rcpp} interface
 }
 
 \note{

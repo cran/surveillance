@@ -10,8 +10,6 @@
 \alias{subset.epidataCS}
 \alias{marks}	       % the generic 'marks()' is imported from spatstat and
                        % then exported (unchanged) -> documentation required
-\alias{marks.ppp}               % dito
-\alias{markformat.default}      % dito
 \alias{marks.epidataCS}
 \alias{summary.epidataCS}
 \alias{print.summary.epidataCS}
@@ -21,10 +19,11 @@
 }
 
 \description{
-  Data structure for (c)ontinuous (s)patio-temporal event data, typically
-  cases of an infectious disease. The data structure simultaneously
-  contains a spatio-temporal grid of endemic covariates and a
-  representation of the observation region.
+  Data structure for \strong{c}ontinuous \strong{s}patio-temporal event
+  data, e.g. individual case reports of an infectious disease.
+  Apart from the actual \code{events}, the class simultaneously
+  holds a spatio-temporal grid of endemic covariates (similar to
+  disease mapping) and a representation of the observation region.
 
   The \code{"epidataCS"} class is the basis for fitting 
   spatio-temporal epidemic intensity models with the function
@@ -33,7 +32,8 @@
 
 \usage{
 as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
-             nCircle2Poly = 32L, T = NULL)
+             nCircle2Poly = 32L, T = NULL,
+             clipper = c("polyclip", "rgeos"))
 
 \method{print}{epidataCS}(x, n = 6L, digits = getOption("digits"), ...)
 
@@ -51,17 +51,18 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
 
 \arguments{
   \item{events}{
-    \code{"\linkS4class{SpatialPointsDataFrame}"} of cases with the
+    a \code{"\linkS4class{SpatialPointsDataFrame}"} of cases with the
     following obligatory columns (in the \code{events@data}
     \code{data.frame}): 
     \describe{
       \item{time}{time point of event. Will be converted to a numeric
         variable by \code{as.numeric}. There should be no concurrent
-        events and the event times must be covered by \code{stgrid},
+        events (but see \code{\link{untie}} for an ex post adjustment)
+        and the event times must be covered by \code{stgrid}, 
         i.e. belong to the time interval \eqn{(t_0,T]}, where \eqn{t_0}
         is \code{min(stgrid$start)} and \code{T} is described below.}
-      \item{tile}{reference to the spatial region (tile) in \code{stgrid},
-	where the event is located.}
+      \item{tile}{the spatial region (tile) where the event is located.
+      This links to the tiles of \code{stgrid}.}
       \item{type}{optional type of event in a marked \code{twinstim}
 	model. Will be converted to a factor variable dropping unused
         levels. If missing, all events will be attribute the single type
@@ -70,7 +71,9 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
 	infectious period, time to culling, etc.); must be positive and
         may be \code{Inf}.} 
       \item{eps.s}{maximum \emph{spatial} influence radius (e.g. 100 [km]);
-        must be positive and may be \code{Inf}.}
+        must be positive and may be \code{Inf}. A compact influence
+        region mainly has computational advantages, but might also be
+        plausible for specific applications.}
     }
     The \code{data.frame} may contain columns with further marks of
     the events, e.g. sex, age of infected individuals, which may
@@ -83,7 +86,7 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
   }
 
   \item{stgrid}{
-    \code{data.frame} describing endemic covariates on a full
+    a \code{\link{data.frame}} describing endemic covariates on a full
     spatio-temporal region x interval grid (e.g., district x week),
     which is a decomposition of the observation region \code{W} and
     period \eqn{t_0,T}. This means that for every combination of spatial
@@ -114,8 +117,9 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
   }
 
   \item{W}{
-    an object of class \code{"\linkS4class{SpatialPolygons}"} indicating the
-    observation region. Must have the same \code{proj4string} as \code{events}
+    an object of class \code{"\linkS4class{SpatialPolygons}"}
+    representing the observation region.
+    It must have the same \code{proj4string} as \code{events}
     and all events must be within \code{W}.
     The function \code{\link[spatstat]{simplify.owin}} 
     from package \pkg{spatstat} may be useful if polygonal operations take
@@ -123,7 +127,7 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
   }
 
   \item{qmatrix}{
-    square indicator matrix (0/1 or \code{FALSE}/\code{TRUE}) for possible
+    a square indicator matrix (0/1 or \code{FALSE}/\code{TRUE}) for possible
     transmission between the event types. The matrix will be internally
     converted to \code{logical}. Defaults to an independent spread of the event
     types, i.e. the identity matrix. 
@@ -139,6 +143,13 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
     times are supplied in \code{stgrid} (=> auto-generation of
     \code{stop} times).
   }
+
+  \item{clipper}{polygon clipping engine to use for calculating the
+    \code{.influenceRegion}s of events (see the Value section below).
+    Default is the \pkg{polyclip} package (called via
+    \code{\link{intersect.owin}} from package \pkg{spatstat}).
+    In \pkg{surveillance} <= 1.6-0, package \pkg{gpclib} was used, which
+    has a restrictive license. This is no longer supported.}
 
   \item{x}{an object of class \code{"epidataCS"} or
     \code{"summary.epidataCS"}, respectively.}
@@ -176,8 +187,8 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
 
 \details{
   The function \code{as.epidataCS} is used to generate objects of class
-  \code{"epidataCS"}, which is the data structure that
-  \code{\link{twinstim}} models work on.
+  \code{"epidataCS"}, which is the data structure required for
+  \code{\link{twinstim}} models.
 
   The extraction method for class \code{"epidataCS"}
   ensures that the subsetted object will be valid, for instance, it
@@ -196,7 +207,8 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
 \value{
   An object of class \code{"epidataCS"} is a list containing the
   following components: 
-  \item{events}{see the description of the argument.
+  \item{events}{a \code{"\linkS4class{SpatialPointsDataFrame}"} (see the
+    description of the argument). 
     The input \code{events} are checked for requirements, sorted
     chronologically and attributed an ID. The columns are in the following
     order: ID, obligatory event columns, event marks, the columns \code{BLOCK},
@@ -204,30 +216,28 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
     and finally, hidden auxiliary columns. 
     The added auxiliary columns are:
     \describe{
-      \item{.obsInfLength}{observed length of the infectious period
+      \item{\code{.obsInfLength}}{observed length of the infectious period
 	(being part [0,T]), i.e. \code{pmin(T-time, eps.t)}.}
-      \item{.sources}{a list of numeric vectors of potential sources of
+      \item{\code{.sources}}{a list of numeric vectors of potential sources of
         infection (wrt the interaction ranges eps.s and eps.t) for each
         event. Currently row numbers are used as index, not the ID's.}
-      \item{.bdist}{minimal distance of the event locations to the
+      \item{\code{.bdist}}{minimal distance of the event locations to the
         polygonal boundary \code{W}.}
-      \item{.influenceRegion}{a list of influence regions represented by
+      \item{\code{.influenceRegion}}{a list of influence regions represented by
         objects of the \pkg{spatstat} class \code{"owin"}. For each
         event, this is the intersection of \code{W} with a (polygonal)
-        circle of radius \code{eps.s} centered at the event location.
-        The \code{"owin"} class was chosen since it is best compatible
-        with both the \code{polyCub.midpoint} and the \code{polyCub.SV}
-        cubature methods from package \pkg{polyCub}.
+        circle of radius \code{eps.s} centered at the event's location,
+        shifted such that the event location becomes the origin.
         The list has \code{nCircle2Poly} set as an attribute.}
       }
   }
-  \item{stgrid}{see the description of the argument. The spatio-temporal
-    grid of endemic covariates is sorted by time interval (indexed by the
-    added variable \code{BLOCK}) and region (\code{tile}). It is a
-    full \code{BLOCK} x \code{tile} grid.}
-  \item{W}{observation region as \code{SpatialPolygons} (see the
-    argument description).}
-  \item{qmatrix}{see the description of the argument. The
+  \item{stgrid}{a \code{data.frame} (see description of the argument).
+    The spatio-temporal grid of endemic covariates is sorted by time
+    interval (indexed by the added variable \code{BLOCK}) and region
+    (\code{tile}). It is a full \code{BLOCK} x \code{tile} grid.}
+  \item{W}{a \code{"\linkS4class{SpatialPolygons}"} object representing
+    the observation region.}
+  \item{qmatrix}{see the above description of the argument. The
     \code{\link{storage.mode}} of the indicator matrix is set to logical
     and the \code{dimnames} are set to the levels of the event types.}
 
@@ -262,13 +272,6 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
   \url{http://MapShaper.org} (Harrower and Bloch, 2006) or as function
   \code{dp()} in the (slightly outdated) package \pkg{shapefiles}, or by
   passing by \pkg{spatstat}'s \code{\link[spatstat]{simplify.owin}} procedure.
-
-  Note also that generation of \code{"epidataCS"} requires
-  computation of polygon intersections. If you want these to be computed
-  by the \pkg{gpclib} package, its restricted license must first be
-  accepted explicitly by setting
-  \code{\link{surveillance.options}(gpclib=TRUE)}.
-  Otherwise (default), the \pkg{rgeos} library is used.
 }
 
 \references{
@@ -313,7 +316,7 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
 
 \examples{
 ## load "imdepi" example data (which is an object of class "epidataCS")
-data(imdepi)
+data("imdepi")
 
 ## take a look at the data object
 print(imdepi, n=5, digits=2)
@@ -371,25 +374,13 @@ stgrid <- imdepi$stgrid[,-1]
 qmatrix <- imdepi$qmatrix
 qmatrix
 
-## now construct an object of class "epidataCS" from these components
-if (requireNamespace("gpclib")) {
-    oopt <- surveillance.options(gpclib=TRUE)
-    myimdepi <- as.epidataCS(events, stgrid, W, qmatrix, nCircle2Poly=16)
-    surveillance.options(oopt)
-} else if (requireNamespace("rgeos")) {
-    oopt <- surveillance.options(gpclib=FALSE)
-    myimdepi2 <- as.epidataCS(events, stgrid, W, qmatrix, nCircle2Poly=16)
-    surveillance.options(oopt)
-}
-## myimdepi2 differs from myimdepi only in the events$.influenceRegion
-## component due to different polygon intersection algorithms in gpclib
-## and rgeos (usually the vertex order/choice of first vertex is different)
+## construct an object of class "epidataCS" from these components
+myimdepi <- as.epidataCS(events, stgrid, W, qmatrix, nCircle2Poly=16)
 
 \dontshow{
 ## should be equal as long as the internal structures of "epidataCS" and
-## of the embedded class "owin" do not change
-if (!identical(imdepi, myimdepi))
-    warning("@Sebastian: update data(imdepi)")
+## of the embedded classes ("owin", "SpatialPolygons", ...) do not change
+if (!identical(imdepi, myimdepi)) warning("@Sebastian: update data(imdepi)")
 }
 
 ## take a look into the internal structure of an epidataCS-object

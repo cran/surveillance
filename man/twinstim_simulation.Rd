@@ -137,10 +137,9 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     see \code{\link{as.epidataCS}}. Must have the same
     \code{proj4string} as \code{events} and \code{tiles}. If not
     specified (\code{NULL}), \code{W} is generated 
-    automatically by calculating the union of the \code{tiles} using
-    \code{\link[maptools]{unionSpatialPolygons}}
-    from package \pkg{maptools} (if available). This automatic generation might
-    take a while so it might be useful to create \code{W} in advance.
+    automatically via \code{\link{unionSpatialPolygons}(tiles)}.
+    However, since the result of such an operation should always be
+    verified, it is recommended to create \code{W} in advance.\cr
     It is important that \code{W} and \code{tiles} cover the same region,
     because on the one hand offspring is sampled in the
     spatial influence region of the parent event (which is the
@@ -256,13 +255,6 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
   \url{http://MapShaper.org} (Harrower and Bloch, 2006) or as function
   \code{dp()} in the (slightly outdated) package \pkg{shapefiles}, or by
   passing by \pkg{spatstat}'s \code{\link[spatstat]{simplify.owin}} procedure.
-  
-  Note also that generation of \code{"epidataCS"} requires
-  computation of polygon intersections. If you want these to be computed
-  by the \pkg{gpclib} package, its restricted license must first be
-  accepted explicitly by setting
-  \code{\link{surveillance.options}(gpclib=TRUE)}.
-  Otherwise (default), the \pkg{rgeos} library is used.
 }
 
 \references{
@@ -316,27 +308,20 @@ load(system.file("shapes", "districtsD.RData", package="surveillance"))
 plot(districtsD)
 plot(stateD, add=TRUE, border=2, lwd=2)
 # 'stateD' is the union of the polygons in 'districtsD'
-# (created by maptools::unionSpatialPolygons)
 
-if (requireNamespace("gpclib")) {
-    oopt <- surveillance.options(gpclib=TRUE)
+## simulate 2 realizations (during a VERY short period -- for speed)
+## considering events from data(imdepi) before t=31 as pre-history
+mysims <- simulate(imdepifit, nsim=2, seed=1, data=imdepi,
+                   tiles=districtsD, W=stateD, t0=31, T=61, trace=FALSE,
+                   nCircle2Poly=16, .allocate=100, simplify=TRUE)
 
-    ## simulate 2 realizations (during a VERY short period -- for speed)
-    ## considering events from data(imdepi) before t=31 as pre-history
-    mysims <- simulate(imdepifit, nsim=2, seed=1, data=imdepi,
-	               tiles=districtsD, W=stateD, t0=31, T=61, trace=FALSE,
-                       nCircle2Poly=16, .allocate=100, simplify=TRUE)
+## extract the first realization -> object of class simEpidataCS
+mysim1 <- mysims[[2]]
+summary(mysim1)
+plot(mysim1, aggregate="space")
 
-    ## extract the first realization -> object of class simEpidataCS
-    mysim1 <- mysims[[2]]
-    summary(mysim1)
-    plot(mysim1, aggregate="space")
-
-    ## plot both epidemics using the plot-method for simEpidataCSlist's
-    plot(mysims, aggregate="time", subset=type=="B")
-
-    surveillance.options(oopt)
-}
+## plot both epidemics using the plot-method for simEpidataCSlist's
+plot(mysims, aggregate="time", subset=type=="B")
 }
 
 \keyword{datagen}
