@@ -259,7 +259,10 @@ plot.ah4 <- function(x, i=1, m=NULL, ylim=NULL,
                      col=c("grey30","grey60","grey85"), border=col,
                      cex=.6, pch=19, hide0s=FALSE, legend=FALSE, ...)
 {
-  if(is.null(title)) title <- colnames(observed(x$stsObj))[i]
+  stopifnot(length(i) == 1)
+  if(is.character(i) && is.na(i <- match(.i <- i, colnames(x$stsObj))))
+      stop("region '", .i, "' does not exist")
+  if(is.null(title)) title <- colnames(x$stsObj)[i]
   obs <- observed(x$stsObj)[x$control$subset,i]
   if(is.null(ylim)) ylim <- c(0, max(obs,na.rm=TRUE))
 

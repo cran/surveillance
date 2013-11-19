@@ -7,8 +7,8 @@
 ### model described in Meyer et al (2012), DOI: 10.1111/j.1541-0420.2011.01684.x
 ###
 ### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 639 $
-### $Date: 2013-09-03 22:04:14 +0200 (Die, 03 Sep 2013) $
+### $Revision: 666 $
+### $Date: 2013-11-08 15:45:36 +0100 (Fre, 08 Nov 2013) $
 ################################################################################
 
 
@@ -1084,7 +1084,7 @@ twinstim <- function (
         }
         optimRes1 <- if (optimMethod == "nlminb") {
             nlminbControl <- control2nlminb(optimArgs$control,
-                                            defaults = list(trace=5L, rel.tol=1e-6))
+                                            defaults = list(trace=1L, rel.tol=1e-6))
             ## sqrt(.Machine$double.eps) is the default reltol used in optim,
             ## which usually equals about 1.49e-08.
             ## The default rel.tol of nlminb (1e-10) seems too small
@@ -1133,7 +1133,7 @@ twinstim <- function (
             nlmRes$convergence <- if (nlmRes$code %in% 1:2) 0L else nlmRes$code
             nlmRes
         } else { # use optim()
-            optimArgs$control <- modifyList(list(trace=1L, REPORT=5L),
+            optimArgs$control <- modifyList(list(trace=1L, REPORT=1L),
                                             optimArgs$control)
             if (finetune) optimArgs$hessian <- FALSE
             res <- do.call("optim", optimArgs)
@@ -1292,15 +1292,11 @@ twinstim <- function (
                 ), higher=FALSE)
         }
         if (cumCIF.pb) close(pb)
-        LambdagEvents <- setNames(.colSums(heIntEvents, 2L, Nin),
-                                  rownames(mmhEvents))
-        if (is.null(names(LambdagEvents))) # in R <2.15.2, rownames(mmhEvents) is
-                                           # NULL if only h.intercept, bug #14992
-            names(LambdagEvents) <- rownames(mme)
-        LambdagEvents
+        setNames(.colSums(heIntEvents, 2L, Nin), rownames(mmhEvents))
     }
     if (cumCIF) {
-        if (verbose) cat("\nCalculating the fitted cumulative intensities at events...\n")
+        if (verbose)
+            cat("\nCalculating fitted cumulative intensities at events...\n")
         fit$tau <- LambdagEvents(cores, cumCIF.pb)
     }
 
@@ -1325,6 +1321,7 @@ twinstim <- function (
     ### Append optimizer configuration
 
     optim.args$par <- initpars        # reset to also include fixed coefficients
+    if (any(fixed)) optim.args$fixed <- names(initpars)[fixed] # restore
     fit$optim.args <- optim.args
     if (model) {
         fit$functions <- functions

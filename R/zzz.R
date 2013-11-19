@@ -27,15 +27,6 @@ gpclibCheck <- function (fatal = TRUE)
                           "For overview type ",
                           sQuote(paste0("help(", pkgname, ")")), ".")
 
-    ## License limitation for package gpclib
-    packageStartupMessage(
-        "Note: Polygon intersections required for \"epidataCS\" generation",
-        "\n      are computed with the rgeos package by default. Alternatively,",
-        "\n      the gpclib package is used iff its restricted license is",
-        "\n      accepted via setting ",
-        sQuote("surveillance.options(gpclib=TRUE)"), "."
-    )
-
     ## decide if we should run all examples (some take a few seconds)
     allExamples <- if (interactive()) TRUE else {
         .withTimings <- Sys.getenv("_R_CHECK_TIMINGS_")
@@ -43,23 +34,6 @@ gpclibCheck <- function (fatal = TRUE)
         !withTimings
     }
     surveillance.options(allExamples = allExamples)
-}
-
-
-### Function 'base::paste0' only exists as of R version 2.15.0
-### Define it as a wrapper for base::paste() for older versions
-
-if (getRversion() < "2.15.0" || R.version$"svn rev" < 57795 ||
-    !exists("paste0", baseenv())) {
-    paste0 <- function (..., collapse = NULL) {
-        ## the naive way: paste(..., sep = "", collapse = collapse)
-        ## probably better: establish appropriate paste() call:
-        cl <- match.call()
-        names(cl) <- sub("sep", "", names(cl)) # no sep argument
-        cl$sep <- ""
-        cl[[1]] <- as.name("paste")
-        eval(cl, envir = parent.frame())
-    }
 }
 
 

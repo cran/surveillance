@@ -3,7 +3,7 @@
 \alias{twinstim}
 
 \title{
-  Fit a Two-Component Spatio-Temporal Conditional Intensity Model
+  Fit a Two-Component Spatio-Temporal Point Process Model
 }
 
 \description{
@@ -155,7 +155,7 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     minimization (thus, if used, \code{optim.args$control$fnscale} should be
     positive). The \code{hessian} argument defaults to \code{TRUE} and
     in the \code{control} list, \code{trace}ing is enabled with
-    \code{REPORT=5} by default. By setting
+    \code{REPORT=1} by default. By setting
     \code{optim.args$control$trace = 0}, all output from the
     optimization routine is suppressed.
 
@@ -186,7 +186,7 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     \code{optim.args$control} list may be named like for
     \code{optim} and are renamed appropriatly:
     \code{maxit} (-> \code{iter.max}), \code{REPORT} (-> \code{trace},
-    default: 5), \code{abstol} (-> \code{abs.tol}), and
+    default: 1), \code{abstol} (-> \code{abs.tol}), and
     \code{reltol} (-> \code{rel.tol}, default: \code{1e-6}).
     For \code{nlminb}, a logical \code{hessian} argument indicates if
     the negative \emph{expected} Fisher information matrix should be
@@ -395,8 +395,7 @@ m_noepi <- twinstim(
     endemic = addSeason2formula(~ offset(log(popdensity)) + I(start/365-3.5),
                                 S=1, period=365, timevar="start"),
     data = imdepi, subset = !is.na(agegrp),
-    optim.args = list(par=c(h.intercept,rep(0,3)), # this is the default
-                      method="nlminb", control = list(trace=1)),
+    optim.args = list(par=c(h.intercept,rep(0,3))), # the default anyway
     model = FALSE, cumCIF = FALSE   # for reasons of speed
 )
 

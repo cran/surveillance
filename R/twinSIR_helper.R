@@ -162,7 +162,7 @@ w.chibarsq.sim <- function(p, W, N=1e4) {
   R <- diag(p)
   #Draw Z's from multivariate normal distribution with covariance
   #matrix W
-  Z <-t(t(MASS::mvrnorm(N,rep(0,p),W)))
+  Z <-t(t(mvrnorm(N,rep(0,p),W)))
   #For each simulation calculate Ztilde
   sims <- apply(Z,MARGIN=1,function(Z) Ztilde.chibarsq(Z=matrix(Z,p,1), p=p,W=W,R=R))
   w <- table(factor(sims, levels=0:p))/length(sims)

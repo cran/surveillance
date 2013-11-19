@@ -7,9 +7,9 @@
 ### class "twinstim". The function basically uses Ogata's modified thinning
 ### algorithm (cf. Daley & Vere-Jones, 2003, Algorithm 7.5.V.).
 ###
-### Copyright (C) 2010-2012 Sebastian Meyer
-### $Revision: 638 $
-### $Date: 2013-09-03 16:59:05 +0200 (Die, 03 Sep 2013) $
+### Copyright (C) 2010-2013 Sebastian Meyer
+### $Revision: 666 $
+### $Date: 2013-11-08 15:45:36 +0100 (Fre, 08 Nov 2013) $
 ################################################################################
 
 ### CAVE:
@@ -136,9 +136,9 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
         stopifnot(inherits(W, "SpatialPolygons"), identicalCRS(tiles, W))
     }
 
-    # Transform W into a gpc.poly
-    Wgpc <- as(W, "gpc.poly")
-    maxExtentOfW <- maxExtent.gpc.poly(Wgpc)
+    # Transform W to class "owin"
+    Wowin <- as(W, "owin")
+    maxExtentOfW <- diameter.owin(Wowin)
 
     
     ### Check mark-generating function
@@ -453,7 +453,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
         eventTypes <- as.integer(eventData$type)
         eps.s <- eventData$eps.s
         # distance to the border (required for siafInt below, and for epidataCS)
-        bdist <- bdist(eventCoords, Wgpc)
+        bdist <- bdist(eventCoords, Wowin)
         # spatial influence regions of the events
         influenceRegion <- if (nrow(eventCoords) > 0L) .influenceRegions(
             events = SpatialPointsDataFrame(
@@ -461,7 +461,8 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
                 data = data.frame(eps.s = eps.s, .bdist = bdist),
                 match.ID = FALSE
             ),
-            Wgpc = Wgpc, W = W, npoly = nCircle2Poly, maxExtent = maxExtentOfW
+            W = Wowin, npoly = nCircle2Poly, maxExtent = maxExtentOfW,
+            clipper = "polyclip"
         ) else list()
         # epidemic terms
         if (!hase) {
@@ -750,9 +751,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
                 .eventType <- sample(typeNames[qmatrix[sourceType,]], 1L)
                 .eventTypeCode <- match(.eventType, typeNames)
                 eventLocationIR <- if (constantsiaf) {
-                    as.matrix(spatstat::coords(
-                        spatstat::runifpoint(1L, win=sourceIR, giveup=1000)
-                    ))
+                    as.matrix(coords.ppp(runifpoint(1L, win=sourceIR)))
                 } else {
                     eventInsideIR <- FALSE
                     ntries <- 0L
@@ -765,10 +764,9 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
                         eventLocationIR <- siaf$simulate(1L, siafpars,
                                                          .eventTypeCode,
                                                          .upperRange)
-                        eventInsideIR <- spatstat::inside.owin(
-                                                   eventLocationIR[,1],
-                                                   eventLocationIR[,2],
-                                                   sourceIR)
+                        eventInsideIR <- inside.owin(eventLocationIR[,1],
+                                                     eventLocationIR[,2],
+                                                     sourceIR)
                     }
                     eventLocationIR
                 }

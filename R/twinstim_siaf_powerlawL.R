@@ -7,8 +7,8 @@
 ### Similar to the density of the Pareto distribution (but value 1 for < sigma)
 ###
 ### Copyright (C) 2013 Sebastian Meyer
-### $Revision: 631 $
-### $Date: 2013-08-28 17:52:52 +0200 (Mit, 28 Aug 2013) $
+### $Revision: 666 $
+### $Date: 2013-11-08 15:45:36 +0100 (Fre, 08 Nov 2013) $
 ################################################################################
 
 
@@ -45,9 +45,9 @@ siaf.powerlawL <- function (nTypes = 1, logpars = TRUE,
     ## {
     ##     sigma <- exp(logpars[[1L]])
     ##     intinner <- pi*sigma^2
-    ##     poly <- setdiff(spatstat::owin2gpc(polydomain),
+    ##     poly <- setdiff(owin2gpc(polydomain),
     ##                     discpoly(c(0,0), sigma, npoly=nCircle2Poly, class="gpc.poly"))
-    ##     intpoly <- polyCub::polyCub.SV(poly, f, logpars, type=type, alpha=0, nGQ=nGQ)
+    ##     intpoly <- polyCub.SV(poly, f, logpars, type=type, alpha=0, nGQ=nGQ)
     ##     intinner + intpoly
     ## }
     
@@ -100,7 +100,7 @@ siaf.powerlawL <- function (nTypes = 1, logpars = TRUE,
             deriv1 <- function (s, paridx)
                 deriv(s, logpars, type)[,paridx,drop=TRUE],
             intderiv1 <- function (paridx)
-                polyCub::polyCub.SV(polydomain, deriv1, paridx=paridx,
+                polyCub.SV(polydomain, deriv1, paridx=paridx,
                            nGQ = nGQ, alpha = a[paridx]),
             res.logsigma <- intderiv1(1L),
             res.logd <- intderiv1(2L),

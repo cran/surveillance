@@ -225,7 +225,7 @@ estimateGLRNbHook <- function() {
     formula <- paste(formula,"+cos(2*",s,"*pi/p*t)+ sin(2*",s,"*pi/p*t)",sep="")
   }
   #Fit the GLM
-  m <- eval(substitute(MASS::glm.nb(form,data=data),list(form=as.formula(formula))))
+  m <- eval(substitute(glm.nb(form,data=data),list(form=as.formula(formula))))
 
   #Predict mu_{0,t}
   return(list(mod=m,pred=as.numeric(predict(m,newdata=data.frame(t=range),type="response"))))

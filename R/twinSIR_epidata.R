@@ -570,7 +570,7 @@ print.summary.epidata <- function(x, ...)
 ################################################################################
 
 plot.summary.epidata <- function (x,
-    lty = c(2,1,3), lwd = 1, col = 1, col.hor = col, col.vert = col,
+    lty = c(2,1,3), lwd = 2, col = 1, col.hor = col, col.vert = col,
     xlab = "Time", ylab = "Number of individuals", xlim = NULL, ylim = NULL,
     legend.opts = list(), do.axis4 = NULL, panel.first = grid(),
     rug.opts = list(), which.rug = c("infections", "removals",
@@ -650,6 +650,9 @@ plot.summary.epidata <- function (x,
         if (is.null(rug.opts$ticksize)) rug.opts$ticksize <- 0.02
         if (is.null(rug.opts$quiet)) rug.opts$quiet <- TRUE
         which.rug <- match.arg(which.rug)
+        if (is.null(rug.opts$col)) rug.opts$col <-
+            switch(which.rug, all = 1, infections = col.hor[2],
+                   removals = col.hor[3], susceptibility = col.hor[1])
         rugLocations <- switch(which.rug,
             all = times, infections = attr(x, "eventTimes"),
             removals = counters$time[counters$type == "R"],

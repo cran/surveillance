@@ -7,8 +7,8 @@
 ### CONTINUOUS SPATIO-temporal infectious disease case data
 ###
 ### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 643 $
-### $Date: 2013-09-07 11:02:07 +0200 (Sam, 07 Sep 2013) $
+### $Revision: 666 $
+### $Date: 2013-11-08 15:45:36 +0100 (Fre, 08 Nov 2013) $
 ################################################################################
 
 
@@ -52,10 +52,8 @@ update.epidataCS <- function (object, eps.t, eps.s, qmatrix, nCircle2Poly, ...)
 
     # Update influenceRegions of events
     if (any(ir2update)) {
-        Wgpc <- as(object$W, "gpc.poly")
         object$events$.influenceRegion[ir2update] <-
-            .influenceRegions(object$events[ir2update,], Wgpc, object$W,
-                              nCircle2Poly)
+            .influenceRegions(object$events[ir2update,], object$W, nCircle2Poly)
         attr(object$events$.influenceRegion, "nCircle2Poly") <- nCircle2Poly
     }
 
@@ -423,8 +421,8 @@ animate.epidataCS <- function (object, interval = c(0,Inf), time.spacing = NULL,
             iRids <- which(infectious)
             if (sequential) setdiff(iRids, it)
             for(j in iRids) {
-                iR <- shift(object$events@data$.influenceRegion[[j]],
-                            vec = s$eventCoords[j,])
+                iR <- shift.owin(object$events@data$.influenceRegion[[j]],
+                                 s$eventCoords[j,])
                 plot(iR, add = TRUE, col = col.influence, border = NA)
             }
         }

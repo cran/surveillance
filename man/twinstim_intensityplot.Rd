@@ -107,7 +107,8 @@ intensity.twinstim(x,
     coercible to that class) representing the locations where to
     evaluate \code{which}, or a scalar representing the total
     number of points of a grid constructed on the bounding box of
-    \code{tiles} (which requires the package \pkg{maptools}).
+    \code{tiles} (using \code{\link[maptools]{Sobj_SpatialGrid}}
+    from package \pkg{maptools}).
     \code{sgrid} is internally subsetted to contain only
     points inside \code{tiles}.
     This argument is unused for \code{aggregate = "time"}.
