@@ -24,10 +24,14 @@ reset.surveillance.options()
         Logical flag indicating whether \pkg{gpclib}, the General
 	Polygon Clipping Library for \R, which has a restricted license
 	(commercial use prohibited), 
-	may be used. The default is \code{FALSE}, which means that 
-	instead of \pkg{gpclib}, \pkg{rgeos} will be used to compute polygon
-	intersections in generating \code{"epidataCS"} objects
-	by \code{as.epidataCS} or \code{simEpidataCS}. 
+	may be used. This is no longer required since package
+	\pkg{surveillance} has switched to alternatives such as
+	\pkg{polyclip} and \pkg{rgeos} for generating \code{"epidataCS"}
+	objects by \code{as.epidataCS} or \code{simEpidataCS}.
+	However, for \code{\link{unionSpatialPolygons}} and
+	\code{\link{intersectPolyCircle.gpc.poly}}, using \pkg{gpclib}
+	is still an option (mainly for backwards compatibility).
+	The default setting is \code{FALSE}.
       }
 
       \item{allExamples:}{

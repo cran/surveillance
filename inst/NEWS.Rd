@@ -6,6 +6,73 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.7-0 (2013-11-19)}{
+
+\subsection{SYNOPSIS}{
+  \itemize{
+    \item Package \CRANpkg{gpclib} is no longer necessary for the
+    construction of \code{"epidataCS"}-objects. Instead, we make use of
+    the new dedicated package \CRANpkg{polyclip} (licensed under the
+    BSL) for polygon clipping operations (via
+    \code{spatstat::intersect.owin()}). This results in a slightly
+    different \code{$events$.influenceRegion} component of
+    \code{"epidataCS"} objects, one reason being that 
+    \pkg{polyclip} uses integer arithmetic.
+    Change of \code{twinstim()} estimates for a newly created
+    \code{"epidataCS"} compared with the same data prepared in earlier
+    versions should be very small (e.g., for \code{data("imdepifit")}
+    the mean relative difference of coefficients is 3.7e-08, while the
+    \code{logLik()} is \code{all.equal()}).
+    As an alternative, \pkg{rgeos} can still be chosen to do the polygon
+    operations. 
+    
+    \item The \pkg{surveillance}-internal code now depends on
+    \R >= 2.15.2 (for \code{nlminb()} \code{NA} fix of PR#15052,
+    consistent \code{rownames(model.matrix)} of PR#14992,
+    \code{paste0()}, \code{parallel::mcmapply()}). However, the
+    required recent version of \pkg{spatstat} (1.34-0, for
+    \pkg{polyclip}) actually needs \R >= 3.0.2, which therefore also
+    applies to \pkg{surveillance}.
+
+    \item Some minor new features and changes are documented below.
+  }
+}
+
+\subsection{NEW FEATURES}{
+  \itemize{
+    \item Functions \code{unionSpatialPolygons()} and
+    \code{intersectPolyCircle()} are now exported. Both are wrappers
+    around functionality from different packages supporting polygon
+    operations: for determining the union of all subpolygons of a
+    \code{"SpatialPolygons"} object, and the intersection of a polygonal
+    and a circular domain, respectively.
+    \item \code{discpoly()} moved back from \CRANpkg{polyCub}
+    to \pkg{surveillance}.
+  }
+}
+
+\subsection{MINOR CHANGES}{
+  \itemize{
+    \item \pkg{surveillance} now Depends on \CRANpkg{polyCub} (>= 0.4-0)
+    and not only Imports it (which avoids \code{::}-references in
+    .GlobalEnv-made functions).
+    \item Nicer default axis labels for \code{iafplot()}.
+    \item For \code{twinstim()}, the default is now to \code{trace}
+    every iteration instead of every fifth only.
+    \item Slightly changed default arguments for \code{plot.epidata()}:
+    \code{lwd} (1->2), \code{rug.opts} (\code{col} is set according to
+    \code{which.rug})
+    \item \code{twinstim()} saves the vector of \code{fixed}
+    coefficients as part of the returned \code{optim.args} component,
+    such that these will again be held fixed upon \code{update()}.
+    \item The \code{plot}-method for \code{hhh4()}-fits allows for
+    region selection by name.
+  }
+}
+
+}
+
+
 
 \section{Changes in surveillance version 1.6-0 (2013-09-03)}{
 

@@ -8,6 +8,8 @@ intensityplot <- function (x, ...) UseMethod("intensityplot")
 untie <- function (x, amount, ...) UseMethod("untie")
 fixef <- function (object, ...) UseMethod("fixef")
 ranef <- function (object, ...) UseMethod("ranef")
+intersectPolyCircle <- function (object, center, radius, ...)
+    UseMethod("intersectPolyCircle")
 
 ## internal function with methods for "twinSIR" and "simEpidata"
 getModel <- function (object, ...) UseMethod("getModel")

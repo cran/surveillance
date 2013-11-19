@@ -77,7 +77,8 @@
     \item{\code{neighbourhood}:}{Symmetric matrix of size
       \eqn{(number of regions)^2} describing the neighbourhood structure. It
       may either be a binary adjacency matrix or contain neighbourhood orders.}
-    \item{\code{populationFrac}:}{Object of class \code{matrix}.}
+    \item{\code{populationFrac}:}{A \code{matrix} of population 
+      fractions (with dimensions \code{dim(observed)}).}
     \item{\code{map}:}{Object of class \code{SpatialPolygonsDataFrame}
       providing a shape of the areas which are monitored. }
     \item{\code{control}:}{Object of class \code{list}, thais is a
@@ -147,19 +148,18 @@
 
 \author{M. \enc{Höhle}{Hoehle}}
 \examples{
-  if (requireNamespace("maptools")) {
-    # load disProg-object "ha" and convert to S4-class "sts"
-    data("ha")
-    shp <- system.file("shapes/berlin.shp",package="surveillance")
-    ha.sts <- disProg2sts(ha, map=maptools::readShapePoly(shp,IDvar="SNAME"))
-  } else {
-    # load pre-built sts-object
-    data("ha.sts")
-    # the only difference is that here German umlauts have been removed from
-    # 'ha.sts@map@data$BEZIRK' for compatibility reasons
-  }
-  
-  plot(ha.sts, type=observed ~ 1 | unit)
-  
+if (requireNamespace("maptools")) {
+   # load disProg-object "ha" and convert to S4-class "sts"
+   data("ha")
+   shpfile <- system.file("shapes/berlin.shp",package="surveillance")
+   ha.sts <- disProg2sts(ha, map=maptools::readShapePoly(shpfile,IDvar="SNAME"))
+} else {
+   data("ha.sts")
+   # is almost identical to the above except that German umlauts
+   # have been replaced in 'ha.sts@map@data$BEZIRK' for compatibility reasons
+}
+
+ha.sts
+plot(ha.sts, type=observed ~ 1 | unit)
 }
 \keyword{classes}

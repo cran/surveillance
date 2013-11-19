@@ -140,8 +140,16 @@ hhh4(stsObj,
       \item{\code{start}}{List with initials, overrides any initial
 	values in formulas (this is currently the only way to specify
 	initial values)}
-      \item{\code{data}}{ data.frame or named list with covariates that
-	are specified in the formulas for the 3 components}
+      \item{\code{data}}{a data frame or, more generally, a named list
+	with covariates that are to be included as fixed effects (see
+	\code{\link{fe}}) in any of the 3 component formulae.
+	By default, the time variable \code{t} is available and used for
+	seasonal effects created by \code{\link{addSeason2formula}}.
+	In general, covariates in this list can be either vectors of
+	length \code{nrow(stsObj)} interpreted as time-varying but
+	common across all units, or matrices of the same dimension as
+	the disease counts \code{observed(stsObj)}.
+      }
       \item{\code{keep.terms}}{ Logical if the terms object used in the fit
 	is to be returned }
     }

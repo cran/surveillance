@@ -16,8 +16,9 @@ Plotting the Evolution of an Epidemic
 }
 
 \usage{
-\method{plot}{summary.epidata}(x, lty = c(2, 1, 3), lwd = 1, col = 1, col.hor = col,
-     col.vert = col, xlab = "Time", ylab = "Number of individuals",
+\method{plot}{summary.epidata}(x,
+     lty = c(2, 1, 3), lwd = 2, col = 1, col.hor = col, col.vert = col,
+     xlab = "Time", ylab = "Number of individuals",
      xlim = NULL, ylim = NULL, legend.opts = list(), do.axis4 = NULL,
      panel.first = grid(), rug.opts = list(),
      which.rug = c("infections", "removals", "susceptibility", "all"), ...)
@@ -88,8 +89,10 @@ stateplot(x, id, ...)
   \item{rug.opts}{
     either a list of arguments passed to the function \code{\link{rug}} or
     \code{NULL} (or \code{NA}), in which case no \code{rug} will be plotted.
-    By default, the argument \code{ticksize} is set to 0.02 and \code{quiet}
-    is set to \code{TRUE}.  Note that the argument \code{x}, which contains the
+    By default, the argument \code{ticksize} is set to 0.02, \code{col}
+    is set to the color according to \code{which.rug} (black if this is
+    \code{"all"}), and \code{quiet} is set to \code{TRUE}.
+    Note that the argument \code{x}, which contains the
     locations for the \code{rug} is fixed internally and can not be modified.
     The argument \code{which.rug} (see below) determines the locations to mark.
   }

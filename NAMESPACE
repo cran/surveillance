@@ -7,40 +7,44 @@ useDynLib(surveillance)
 ### IMPORTS ###
 ###############
 
-### Fully import all packages listed as Depends in the given order
-### (except for stats, utils, and xtable,
-### from which only selected methods are imported)
+### Import all packages listed as Depends
+### (for utils and xtable: only selected methods are imported)
 
-import(grDevices, graphics)
+import(methods, grDevices, graphics, stats)
 import(Rcpp)
 ## although Rcpp is only used on C-level we need to "ensure that Rcpp is loaded
 ## so any dynamic linking to its code can be resolved.  (There may be none, but
 ## there could be, now or in future.)" (B. Ripley, 2013-09-08)
 
-## required generics (that's why we "Depend" on these packages)
-importFrom(stats, coef, vcov, logLik, nobs, residuals, confint, AIC, extractAIC,
-           profile, simulate, update, terms, add1, drop1)
-importFrom(utils, head, tail, toLatex)
-importFrom(xtable, xtable) # if we wouldn't "Depend" on xtable, our
-                           # xtable-methods would not be useable except if the
-                           # user attaches the xtable package himself
-## required functions from stats and utils
-importFrom(stats, pnorm, cov2cor, ks.test, formula, rnorm, runif, step,
-           update.formula, terms.formula, rpois, rnbinom, setNames)
-importFrom(utils, packageVersion, modifyList, head.matrix)
-
-import(methods)
-
-#importMethodsFrom(stats4, plot)   # import S4-generic
-#<- would be nice, but then gives strange warnings for S3 methods from stats
-#   "Warning: found methods to import for function 'AIC' but not the generic itself"
-#   However, we don't need to import it here, because we depend on package sp, which makes plot generic
-
 ## sp classes & utilities (bbox, coordinates, dimensions, overlay, plot, ...)
 ## (we "Depend" on package sp since it defines essential data classes & methods)
 import(sp)
 
-## sampling from mv.Gausian for OSAIC weights (twinSIR) and iafplot (twinstim)
+
+### required generics for own methods (that's why we "Depend" on these packages)
+
+## importFrom(stats, coef, vcov, logLik, nobs, residuals, confint, AIC, extractAIC,
+##                   profile, simulate, update, terms, add1, drop1, predict)
+importFrom(utils, head, tail, toLatex)
+importFrom(xtable, xtable) # if we wouldn't "Depend" on xtable, our
+                           # xtable-methods would not be useable except if the
+                           # user attaches the xtable package himself
+
+
+### required functions from utils and stats
+
+## importFrom(stats, pnorm, cov2cor, ks.test, formula, rnorm, runif, step, dist,
+##                   update.formula, terms.formula, rpois, rnbinom, setNames,
+##                   na.omit, as.formula, pnbinom, qnbinom, qnorm, sd, glm, optim,
+##                   poisson, ppois, qpois, predict.glm, summary.glm, quasipoisson,
+##                   glm.fit) ## and many more...
+importFrom(utils, packageVersion, modifyList, capture.output, read.table,
+                  setTxtProgressBar, txtProgressBar, sessionInfo, head.matrix,
+                  str, flush.console, write.table)
+
+
+### sampling from mv.Gausian for OSAIC weights (twinSIR) and iafplot (twinstim)
+
 importFrom(MASS, mvrnorm)
 
 
@@ -55,6 +59,7 @@ importFrom(MASS, glm.nb)   # for algo.glrnb
 ### hhh4-specific
 
 importFrom(MASS, ginv)
+importFrom(Matrix, Matrix)
 importClassesFrom(Matrix, ddiMatrix)
 importMethodsFrom(Matrix, coerce, diag, forceSymmetric, solve)
 ## sparse matrix methods provide a significant speed-up in marFisher
@@ -68,21 +73,14 @@ importMethodsFrom(Matrix, coerce, diag, forceSymmetric, solve)
 
 ### twinstim-specific
 
-## importClassesFrom(gpclib, gpc.poly)
-## importMethodsFrom(gpclib, "[", get.bbox, intersect, append.poly, tristrip)
-## -> we no longer strictly depend on gpclib for clarity of the package license
-importFrom(spatstat, coords, coords.ppp, area.owin, distppl,
-                     as.im.function, shift, shift.owin, plot.owin, plot.im, marks,
-                     marks.ppp, markformat.default, # required for runifpoint() in
-                                        # simulate.twinstim because spatstat
-                                        # does not register its S3 methods 
-                     bounding.box, runifpoint, inside.owin)
-##importFrom(intervals, Intervals, reduce)   # for as.epidata.epidataCS
-## package intervals is now "suggested", not imported
+importFrom(spatstat, area.owin, as.im.function, coords.ppp, diameter,
+                     diameter.owin, disc, distppl, inside.owin, intersect.owin,
+                     is.polygonal, marks, runifpoint, shift.owin)
 
-importMethodsFrom(polyCub, coerce) # gpc.poly -> owin,
-                                   # SpatialPolygons -> gpc.poly (from rgeos)
-importFrom(polyCub, discpoly, polyCub, polyCub.SV, polyCub.midpoint)
+importFrom(polyCub, polyCub, polyCub.SV, polyCub.midpoint, xylist)
+importMethodsFrom(polyCub, coerce)
+
+importFrom(MASS, kde2d)
 
 
 
@@ -106,9 +104,12 @@ export(ks.plot.unif)
 export(checkResidualProcess)            # for twinstim and twinSIR
 
 # spatial utilities
-#export(runifdisc)           # CAVE: spatstat has a similar function of same name
+export(discpoly)
+#export(runifdisc)           # CAVE: spatstat has similar function of same name
+export(unionSpatialPolygons)
 export(inside.gpc.poly)
 S3method(scale, gpc.poly)   # redefined method for gpc.poly in spatial_stuff.R
+S3method(diameter, gpc.poly)
 export(nbOrder)
 export(poly2adjmat)
 export(polyAtBorder)
@@ -119,6 +120,12 @@ export(untie)                           # new S3-generic
 S3method(untie, default)
 S3method(untie, matrix)
 S3method(untie, epidataCS)
+
+# intersection of a polygonal and a circular domain
+export(intersectPolyCircle)
+S3method(intersectPolyCircle, owin)
+S3method(intersectPolyCircle, SpatialPolygons)
+S3method(intersectPolyCircle, gpc.poly)
 
 # little helper: multiplicity of points
 export(multiplicity)                    # new S3-generic
@@ -268,7 +275,7 @@ S3method(summary, epidataCS)
 S3method(print, summary.epidataCS)
 S3method(animate, epidataCS)
 export(animate.epidataCS)               # for convenience
-export(marks, marks.ppp, markformat.default) # as imported from spatstat
+export(marks)                           # as imported from spatstat
 S3method(marks, epidataCS)
 export(marks.epidataCS)            # for convenience since its a foreign generic
 S3method(plot, epidataCS)

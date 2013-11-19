@@ -6,9 +6,9 @@
 ### Data structure for CONTINUOUS SPATIO-temporal infectious disease case data
 ### and a spatio-temporal grid of endemic covariates
 ###
-### Copyright (C) 2009-2012 Sebastian Meyer
-### $Revision: 616 $
-### $Date: 2013-08-08 15:39:52 +0200 (Don, 08 Aug 2013) $
+### Copyright (C) 2009-2013 Sebastian Meyer
+### $Revision: 666 $
+### $Date: 2013-11-08 15:45:36 +0100 (Fre, 08 Nov 2013) $
 ################################################################################
 
 
@@ -39,6 +39,7 @@
 # nCircle2Poly: accuracy (number of edges) of the polygonal approximation of a circle
 # T: end of observation period (=last stop time). Must be specified if only the
 #    start but not the stop times are supplied in stgrid (-> auto-generation of stop-times).
+# clipper: engine to use for computing polygon intersections.
 ######################################################################
 
 obligColsNames_events <- c("time", "tile", "type", "eps.t", "eps.s")
@@ -48,8 +49,10 @@ reservedColsNames_events <- c("ID", ".obsInfLength", ".sources", ".bdist",
 reservedColsNames_stgrid <- c("BLOCK")
 
 as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
-                          nCircle2Poly = 32, T = NULL)
+                          nCircle2Poly = 32, T = NULL,
+                          clipper = c("polyclip", "rgeos"))
 {
+    clipper <- match.arg(clipper)
     # Check and SORT events and stgrid
     cat("\nChecking 'events':\n")
     events <- checkEvents(events)
@@ -168,16 +171,14 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
 
     # Calculate minimal distance of event locations from the polygonal boundary
     cat("Calculating (minimal) distances of the events to the boundary...\n")
-    Wgpc <- as(W, "gpc.poly")   # coerce-method from rgeos imported via polyCub
-    events$.bdist <- bdist(eventCoords, Wgpc)   # this may take a while
-    # avoid conversion to gpc.poly by extracting xylist (first vertex repeated)?
-    #lapply(unlist(lapply(W@polygons, slot, "Polygons"), recursive=FALSE), coordinates)
-
+    Wowin <- as(W, "owin")              # imported from polyCub
+    events$.bdist <- bdist(eventCoords, Wowin)
 
     # Construct spatial influence regions around events
     cat("Constructing spatial influence regions around events...\n")
-    events$.influenceRegion <- .influenceRegions(events, Wgpc, W,
-                                                 npoly=nCircle2Poly)
+    events$.influenceRegion <- if (clipper == "polyclip") {
+        .influenceRegions(events, Wowin, nCircle2Poly, clipper=clipper)
+    } else .influenceRegions(events, W, nCircle2Poly, clipper=clipper)
 
     # Attach some useful attributes
     res <- list(events = events, stgrid = stgrid, W = W, qmatrix = qmatrix)
@@ -358,7 +359,7 @@ checkstgrid <- function (stgrid, T)
         stop("'stgrid' is not a full grid")
     }
 
-    # Make BLOCK column the first column, then obligatory columns, then remainders (endemic covariates)
+    # First column BLOCK, then obligCols, then remainders (endemic covariates)
     cat("\tSorting the grid by time and tile...\n")
     BLOCKcolIdx <- match("BLOCK", names(stgrid))
     obligColsIdx <- match(obligColsNames_stgrid, names(stgrid))
@@ -385,26 +386,42 @@ checkstgrid <- function (stgrid, T)
 # An attribute "area" gives the area of the influenceRegion.
 # If it is actually a circular influence region, then there is an attribute
 # "radius" denoting the radius of the influence region.
-.influenceRegions <- function (events, Wgpc, W, npoly, maxExtent = NULL)
+# Argument 'W' can be of class "owin" (preferred) or "SpatialPolygons"
+# (especially for clipper="rgeos")
+.influenceRegions <- function (events, W, npoly, maxExtent = NULL,
+                               clipper = "polyclip")
 {
-    if (is.null(maxExtent)) maxExtent <- maxExtent.gpc.poly(Wgpc)
+    Wowin <- as(W, "owin")
+    if (is.null(maxExtent)) maxExtent <- diameter.owin(Wowin)
+    doIntersection <- switch(
+        clipper,  # which package to use for polygon intersection
+        "polyclip" = function (center, eps)
+            intersectPolyCircle.owin(Wowin, center, eps, npoly),
+        "rgeos" = function (center, eps) as(
+            intersectPolyCircle.SpatialPolygons(
+                as(W, "SpatialPolygons"), center, eps, npoly),
+            "owin"),
+        stop("unsupported polygon clipping engine: '", clipper, "'")
+        )
+    
     eventCoords <- coordinates(events)
-    nEvents <- nrow(eventCoords)
-    res <- vector(nEvents, mode = "list")
-    for (i in seq_len(nEvents)) {
-        eps <- events$eps.s[i]
-        center <- eventCoords[i,]
-        iRgpc <- if (eps > maxExtent) { # influence region is whole region of W
-                Wgpc
-            } else { # influence region is a subset of W
-                intersectCircle(Wgpc, W, center, eps, npoly)
-            }
-        res[[i]] <- as(scale(iRgpc, center=center), "owin") # coerce via polyCub
-        ## if iR is actually a circle of radius eps, attach eps as attribute
-        r <- if (eps <= events$.bdist[i]) eps else NULL
-        attr(res[[i]], "radius") <- r
-        attr(res[[i]], "area") <- if(is.null(r)) area.owin(res[[i]]) else pi*r^2
-    }
+    res <- mapply(
+        function (x, y, eps, bdist) {
+            center <- c(x,y)
+            ## if eps is very large, the influence region is the whole region of W
+            iR <- shift.owin(
+                if (eps > maxExtent) Wowin else doIntersection(center, eps),
+                -center)
+            ## if iR is actually a circle of radius eps, attach eps as attribute
+            attr(iR, "area") <- if (eps <= bdist) {
+                attr(iR, "radius") <- eps
+                pi * eps^2
+            } else area.owin(iR)
+            iR
+        },
+        eventCoords[,1], eventCoords[,2], events$eps.s, events$.bdist,
+        SIMPLIFY = FALSE, USE.NAMES = FALSE)
+    
     attr(res, "nCircle2Poly") <- npoly
-    return(res)
+    res
 }

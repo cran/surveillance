@@ -1,7 +1,7 @@
 ### R code from vignette source 'surveillance.Rnw'
 
 ###################################################
-### code chunk number 1: surveillance.Rnw:54-75
+### code chunk number 1: surveillance.Rnw:54-74
 ###################################################
 library(surveillance)
 library(xtable)
@@ -19,7 +19,6 @@ if(!file.exists("figs/")) dir.create("figs/")
 ######################################################################
 CACHEFILE <- "surveillance-cache.RData"
 compute <- !file.exists(CACHEFILE)
-#compute <- TRUE
 #load computed results
 if(!compute) load(CACHEFILE)
 print(paste("Doing computations:", compute))
@@ -27,7 +26,7 @@ print(paste("Doing computations:", compute))
 
 
 ###################################################
-### code chunk number 2: surveillance.Rnw:170-172
+### code chunk number 2: surveillance.Rnw:169-171
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 data(k1)
@@ -35,7 +34,7 @@ plot(k1,main="Kryptosporidiosis in BW 2001-2005")
 
 
 ###################################################
-### code chunk number 3: surveillance.Rnw:265-269
+### code chunk number 3: surveillance.Rnw:264-268
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 sts <- sim.pointSource(p = 0.99, r = 0.5, length = 400,
@@ -45,7 +44,7 @@ plot(sts)
 
 
 ###################################################
-### code chunk number 4: surveillance.Rnw:362-365
+### code chunk number 4: surveillance.Rnw:361-364
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 k1.b660 <- algo.bayes(k1, control = list(range = 27:192,b=0,w=6,alpha=0.01))
@@ -62,7 +61,7 @@ plot(k1.b660, disease="k1", firstweek = 1, startyear = 2001)
 
 
 ###################################################
-### code chunk number 6: surveillance.Rnw:393-396
+### code chunk number 6: surveillance.Rnw:392-395
 ###################################################
 if (compute) {
 cntrl <- list(range=300:400,m=1,w=3,b=5,alpha=0.01)
@@ -72,7 +71,7 @@ sts.farrington <- algo.farrington(sts, control = cntrl)
 
 
 ###################################################
-### code chunk number 7: surveillance.Rnw:399-402
+### code chunk number 7: surveillance.Rnw:398-401
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 par(mfcol=c(1,2))
@@ -81,7 +80,7 @@ plot(sts.farrington, legend.opts=NULL)
 
 
 ###################################################
-### code chunk number 8: surveillance.Rnw:420-422
+### code chunk number 8: surveillance.Rnw:419-421
 ###################################################
 print(algo.quality(k1.b660))
 
@@ -104,13 +103,13 @@ control <- lapply(control,function(ctrl) {
 
 
 ###################################################
-### code chunk number 10: surveillance.Rnw:463-464 (eval = FALSE)
+### code chunk number 10: surveillance.Rnw:462-463 (eval = FALSE)
 ###################################################
 ## algo.compare(algo.call(sts,control=control))
 
 
 ###################################################
-### code chunk number 11: surveillance.Rnw:466-471
+### code chunk number 11: surveillance.Rnw:465-470
 ###################################################
 if (compute) {
   acall <- algo.call(sts,control=control)
@@ -120,7 +119,7 @@ algo.compare(acall)
 
 
 ###################################################
-### code chunk number 12: surveillance.Rnw:483-488
+### code chunk number 12: surveillance.Rnw:482-487
 ###################################################
 #Create 10 series
 ten <- lapply(1:10,function(x) {
@@ -139,7 +138,7 @@ ten <- lapply(1:10,function(x) {
 
 
 ###################################################
-### code chunk number 14: surveillance.Rnw:496-499
+### code chunk number 14: surveillance.Rnw:495-498
 ###################################################
 if (compute) {
 #Do surveillance on all 10, get results as list
@@ -150,14 +149,14 @@ ten.surv <- lapply(ten,function(ts) {
 
 
 ###################################################
-### code chunk number 15: surveillance.Rnw:501-503 (eval = FALSE)
+### code chunk number 15: surveillance.Rnw:500-502 (eval = FALSE)
 ###################################################
 ## #Average results
 ## algo.summary(ten.surv)
 
 
 ###################################################
-### code chunk number 16: surveillance.Rnw:505-508
+### code chunk number 16: surveillance.Rnw:504-507
 ###################################################
 res <- algo.summary(ten.surv)
 res[,5:8] <- round(res[,5:8]*100)/100
@@ -165,7 +164,7 @@ res
 
 
 ###################################################
-### code chunk number 17: surveillance.Rnw:521-541
+### code chunk number 17: surveillance.Rnw:520-540
 ###################################################
 #Update range in each - cyclic continuation
 range = (2*4*52) +  1:length(k1$observed)
@@ -190,13 +189,13 @@ one.survstat.surv <- function(outbrk) {
 
 
 ###################################################
-### code chunk number 18: surveillance.Rnw:543-544 (eval = FALSE)
+### code chunk number 18: surveillance.Rnw:542-543 (eval = FALSE)
 ###################################################
 ## algo.summary(lapply(outbrks,one.survstat.surv))
 
 
 ###################################################
-### code chunk number 19: surveillance.Rnw:546-551
+### code chunk number 19: surveillance.Rnw:545-550
 ###################################################
 if (compute) {
   res.survstat <- algo.summary(lapply(outbrks,one.survstat.surv))
@@ -206,7 +205,7 @@ print(res.survstat,digits=3)
 
 
 ###################################################
-### code chunk number 20: surveillance.Rnw:590-593
+### code chunk number 20: surveillance.Rnw:589-592
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 data(measles.weser)
@@ -215,14 +214,14 @@ plot(measles.weser, title="measles in Weser-Ems 2001-2002",
 
 
 ###################################################
-### code chunk number 21: surveillance.Rnw:601-602
+### code chunk number 21: surveillance.Rnw:600-601
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 plot(measles.weser,as.one=FALSE,xaxis.years=FALSE)
 
 
 ###################################################
-### code chunk number 22: surveillance.Rnw:620-639
+### code chunk number 22: surveillance.Rnw:619-636
 ###################################################
 #####################################################
 # measles
@@ -236,43 +235,39 @@ if(compute){
   measles.hhh <-algo.hhh(measles.weser,cntrl)
 
   # algo.hhh.grid
-  cntrl <- list(linear=TRUE, nseason=1, neighbours=TRUE, 
-                negbin="single", lambda=TRUE)
   grid <- create.grid(measles.weser, cntrl, params=list(endemic=c(lower=-0.5, upper=0.5, length=3), epidemic=c(0.1,0.9,5),  negbin=c(0.3,12,5)))
   cat("running a grid search for up to 900 seconds.\n")
   measles.hhh.grid <- algo.hhh.grid(measles.weser, control=cntrl, 
-                                    thetastartMatrix=grid, maxTime=900)#,verbose=T)
+                                    thetastartMatrix=grid, maxTime=900)
 }
 
 
 ###################################################
-### code chunk number 23: surveillance.Rnw:654-657 (eval = FALSE)
+### code chunk number 23: surveillance.Rnw:651-654 (eval = FALSE)
 ###################################################
-## cntrl <- list(linear=TRUE, season=list(nseason=1), neighbours=TRUE, 
+## cntrl <- list(linear=TRUE, nseason=1, neighbours=TRUE, 
 ##               negbin="single", lambda=TRUE)
 ## measles.hhh <- algo.hhh(measles.weser,control=cntrl)
 
 
 ###################################################
-### code chunk number 24: surveillance.Rnw:676-683 (eval = FALSE)
+### code chunk number 24: surveillance.Rnw:673-678 (eval = FALSE)
 ###################################################
-## cntrl <- list(linear=TRUE, season=list(nseason=1), neighbours=TRUE, 
-##               negbin="single", lambda=TRUE)
 ## grid <- create.grid(measles.weser, cntrl, 
 ##    params = list(endemic = c(lower = -0.5, upper = 0.5, length = 3), 
 ##      epidemic = c(0.1, 0.9, 5),  negbin = c(0.3,12,5)))
 ## algo.hhh.grid(measles.weser, control=cntrl, thetastartMatrix=grid,
-##               maxTime=900)#,verbose=T)
+##               maxTime=900)
 
 
 ###################################################
-### code chunk number 25: surveillance.Rnw:685-686
+### code chunk number 25: surveillance.Rnw:680-681
 ###################################################
 print(measles.hhh.grid,3)
 
 
 ###################################################
-### code chunk number 26: surveillance.Rnw:689-695
+### code chunk number 26: surveillance.Rnw:684-690
 ###################################################
 if (compute) { # save computed results
     save(list=c("sts.cdc","sts.farrington","acall","res","res.survstat",

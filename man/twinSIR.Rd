@@ -3,8 +3,7 @@
 \alias{twinSIR}
 
 \title{
-Spatio-Temporal Epidemic Modelling Using Additive-Multiplicative Intensity
-Models
+Fit an Additive-Multiplicative Intensity Model for SIR Data
 }
 
 \description{
@@ -57,9 +56,10 @@ twinSIR(formula, data, weights, subset,
   }
   \item{lambda.smooth}{
     numeric, the smoothing parameter \eqn{\lambda}.  By default it is 0 which
-    leads to unpenalized likelihood inference. In case the value is
-    specified as "-1" then the automatic smoothing parameter selection
-    based on a mixed model approach is used.
+    leads to unpenalized likelihood inference.
+    In case \code{lambda.smooth=-1}, the automatic smoothing parameter
+    selection based on a mixed model approach is used (cf.
+    \enc{Höhle}{Hoehle}, 2009).
   }
   \item{penalty}{
     either a single number denoting the order of the difference used to
@@ -120,9 +120,9 @@ twinSIR(formula, data, weights, subset,
     methods.
   }
   \item{keep.data}{
-    logical indicating if the \code{"epidata"} object 'data' should be part of
-    the return value.  This is only necessary for the use of the
-    \code{\link[=simulate.twinSIR]{simulate}} method for \code{"twinSIR"}
+    logical indicating if the \code{"epidata"} object (\code{data})
+    should be part of the return value. This is only necessary for use of the
+    \code{\link[=simulate.twinSIR]{simulate}}-method for \code{"twinSIR"}
     objects.  The reason is that the \code{twinSIR} function only uses and
     stores the rows with \code{atRiskY == 1} in the \code{model} component, but
     for the simulation of new epidemic data one needs the whole data set with

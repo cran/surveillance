@@ -7,8 +7,8 @@
 ### Specific implementations are in seperate files (e.g.: Gaussian, power law).
 ###
 ### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 627 $
-### $Date: 2013-08-22 22:39:06 +0200 (Don, 22 Aug 2013) $
+### $Revision: 666 $
+### $Date: 2013-11-08 15:45:36 +0100 (Fre, 08 Nov 2013) $
 ################################################################################
 
 
@@ -156,9 +156,9 @@ siaf.constant <- function ()
 siaf.fallback.F <- function(polydomain, f, pars, type, method = "SV", ...)
 {
     if (identical(method,"SV"))
-        polyCub::polyCub.SV(polydomain, f, pars, type, alpha=0, ...) # since max at origin
+        polyCub.SV(polydomain, f, pars, type, alpha=0, ...) # since max at origin
     else 
-        polyCub::polyCub(polydomain, f, method, pars, type, ...)
+        polyCub(polydomain, f, method, pars, type, ...)
 }
 
 ## numerical integration of deriv over a polygonal domain
@@ -167,7 +167,7 @@ siaf.fallback.Deriv <- function (polydomain, deriv, pars, type, method = "SV", .
     deriv1 <- function (s, paridx)
         deriv(s, pars, type)[,paridx,drop=TRUE]
     intderiv1 <- function (paridx)
-        polyCub::polyCub(polydomain, deriv1, method, paridx=paridx, ...)
+        polyCub(polydomain, deriv1, method, paridx=paridx, ...)
     derivInt <- sapply(seq_along(pars), intderiv1)
     derivInt
 }
@@ -233,9 +233,9 @@ checksiaf.deriv <- function (deriv, f, pargrid, type=1, rmax=100)
         apply(pargrid, 1, function (pars) {
             ana <- deriv(sgrid, pars, types=type)
             logsigma <- pars[1L]; logd <- pars[2L]
-            num <- attr(stats::numericDeriv(quote(f(sgrid, c(logsigma,logd),
-                                                    types=type)),
-                                            theta=c("logsigma", "logd")),
+            num <- attr(numericDeriv(quote(f(sgrid, c(logsigma,logd),
+                                             types=type)),
+                                     theta=c("logsigma", "logd")),
                         "gradient")
             max((ana-num)/(0.5*(abs(ana)+abs(num))))
         })
@@ -250,11 +250,11 @@ checksiaf.simulate <- function (simulate, f, pars, type=1, B=3000, ub=10)
 
     ## Graphical check
     par(mar=c(1,2,2,1))
-    plot(spatstat::as.im.function(function(x,y,...) f(cbind(x,y), pars, type),
-                                  W=discpoly(c(0,0), ub, class="owin")),
+    plot(as.im.function(function(x,y,...) f(cbind(x,y), pars, type),
+                        W=discpoly(c(0,0), ub, class="owin")),
          axes=TRUE, main="Simulation from the spatial kernel")
     points(simpoints, cex=0.2)
-    kdens <- MASS::kde2d(simpoints[,1], simpoints[,2], n=100)
+    kdens <- kde2d(simpoints[,1], simpoints[,2], n=100)
     contour(kdens, add=TRUE, col=2, lwd=2,
             labcex=1.5, vfont=c("sans serif", "bold"))
     ##x11(); image(kdens, add=TRUE)

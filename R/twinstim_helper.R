@@ -6,8 +6,8 @@
 ### Some internal helper functions for "twinstim".
 ###
 ### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 639 $
-### $Date: 2013-09-03 22:04:14 +0200 (Die, 03 Sep 2013) $
+### $Revision: 666 $
+### $Date: 2013-11-08 15:45:36 +0100 (Fre, 08 Nov 2013) $
 ################################################################################
 
 
@@ -303,7 +303,6 @@ mapplyCall <- function (args, cores = 1L)
 {
     parallel <- is.name(cores) || cores > 1L
     mapplyFUN <- if (parallel) quote(parallel::mcmapply) else quote(mapply)
-    ## Note: mcmapply() is only available since R 2.15.0
     parallelArgs <- list(mc.preschedule=TRUE, mc.cores=cores)
     as.call(c(mapplyFUN, args, if (parallel) parallelArgs))
 }

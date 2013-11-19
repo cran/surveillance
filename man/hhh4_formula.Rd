@@ -22,7 +22,10 @@ respectively, in formulae used in the function \code{\link{hhh4}}.
 
 \arguments{
   \item{x}{an expression like \code{sin(2*pi*t/52)} involving the time
-    variable \code{t} , or just \code{1} for an intercept.}
+    variable \code{t}, or just \code{1} for an intercept.
+    In general this covariate expression might use any variables
+    contained in the \code{control$data} argument of the parent
+    \code{\link{hhh4}} call.}
   \item{which}{vector of logicals indicating which unit
    should get an unit-specific parameter. If \code{NULL}, 
    the effect of the covariate is assumbed to be the same
@@ -50,9 +53,6 @@ usage of formulae in the vignette and in examples of \code{\link{hhh4}}.
 \note{
 This function should only be used in formula objects for \code{\link{hhh4}}, 
 and is not intended for direct calling.
-
-All covariates specified in \code{fe} must be available in the
-element \code{data} of the \code{control} argument of \code{\link{hhh4}}.
 
 If unit-specific or random intercepts are specified, an overall
 intercept must be excluded with \code{-1}.
