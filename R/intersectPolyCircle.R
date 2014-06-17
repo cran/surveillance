@@ -6,9 +6,9 @@
 ### Compute the intersection of a circular domain with a polygonal domain of
 ### various classes (currently: owin, gpc.poly, or SpatialPolygons)
 ###
-### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 666 $
-### $Date: 2013-11-08 15:45:36 +0100 (Fre, 08 Nov 2013) $
+### Copyright (C) 2009-2014 Sebastian Meyer
+### $Revision: 696 $
+### $Date: 2014-01-13 21:04:50 +0100 (Mon, 13 Jan 2014) $
 ################################################################################
 
 
@@ -30,7 +30,7 @@ intersectPolyCircle.gpc.poly <- function (object, center, radius,
 intersectPolyCircle.owin <- function (object, center, radius, npoly = 32, ...)
 {
     intersect.owin(disc(radius=radius, centre=center, npoly=npoly),
-                   object)
+                   object)  # order doesn't seem to influence computational cost
 }
 
 intersectPolyCircle.SpatialPolygons <- function (object, center, radius,

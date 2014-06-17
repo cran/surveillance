@@ -20,14 +20,22 @@ especially useful if one wants to add the \code{model} environment
   \item{object}{a previous \code{"twinstim"} fit.}
   \item{endemic, epidemic}{changes to the formulae -- see
     \code{\link{update.formula}} and \code{\link{twinstim}}.}
-  \item{control.siaf}{a list, see \code{\link{twinstim}}. It will modify
-    the original \code{control.siaf} using \code{\link{modifyList}}.}
+  \item{control.siaf}{a list (see \code{\link{twinstim}}) to replace
+    the given elements in the original \code{control.siaf} list.
+    If \code{NULL}, the original list of control arguments is removed
+    from the call, i.e., the defaults are used in \code{twinstim}.}
   \item{optim.args}{see \code{\link{twinstim}}. If a list, it will
     modify the original \code{optim.args} using \code{\link{modifyList}}.}
   \item{model}{see \code{\link{twinstim}}. If this is the only argument
-    to update, re-fitting is cleverly circumvented.}
+    to update, re-fitting is cleverly circumvented.
+    Enriching the fit by the model environment is, e.g., required for
+    \code{\link{intensityplot.twinstim}}.}
   \item{\dots}{Additional arguments to the call, or arguments with changed
-    values.}
+    values.\cr
+    If \code{start} values are specified, they need to be in the same
+    format as in the original call \code{object$call$start},
+    which is either a named list of named numeric vectors or a named
+    numeric vector; see the argument description in \code{\link{twinstim}}.}
   \item{use.estimates}{logical indicating if the estimates of
   \code{object} should be used as initial values for the new fit
   (in the \code{start} argument of \code{twinstim}). Defaults to \code{TRUE}.}
@@ -56,16 +64,10 @@ data("imdepifit")
 
 ## add another epidemic covariate (but fix siaf-parameter for speed)
 imdepifit2 <- update(imdepifit, epidemic = ~. + log(popdensity),
-                     optim.args = list(fixed="e.siaf.1"), cumCIF=FALSE)
+                     optim.args = list(fixed="e.siaf.1"))
   
 ## compare by AIC
 AIC(imdepifit, imdepifit2)
-
-if (surveillance.options("allExamples")) {
-  ## enrich the fit by the model environment
-  imdepifit <- update(imdepifit, model=TRUE)
-  ## this enables, e.g., intensityplot()s and untrimmed R0 estimates
-}
 }
 
 \keyword{models}

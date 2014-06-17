@@ -1,7 +1,7 @@
 \name{algo.compare}
 \alias{algo.compare}
 \title{Comparison of Specified Surveillance Systems using Quality Values}
-\description{Comparison of specified surveillance systems using quality values.
+\description{Comparison of specified surveillance algorithms using quality values.
 }
 \usage{
     algo.compare(survResList)
@@ -10,7 +10,7 @@
         \item{survResList}{a list of survRes objects to compare via quality values.}
 }
 \value{
-        \item{matrix}{Matrix with values from \code{\link{algo.quality}}, i.e. quality values for every surveillance system found in \code{survResults}.}
+        \item{matrix}{Matrix with values from \code{\link{algo.quality}}, i.e. quality values for every surveillance algorithm found in \code{survResults}.}
 }
 \seealso{\code{\link{algo.quality}}
 }

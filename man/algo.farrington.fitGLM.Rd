@@ -8,11 +8,10 @@
   time point}
 \description{
   The function fits a Poisson regression model (GLM) with mean predictor
-  \deqn{\log \mu_t = \alpha + \beta w_t}{
-        log mu_t = alpha + beta * w}
-  as specified by the Farrington procedure. That way we are able to
-  predict the value \eqn{c_0}{c0}. If 
-  requested Anscombe residuals are computed based on an initial fit
+  \deqn{\log \mu_t = \alpha + \beta t}{
+        log mu_t = alpha + beta * t}
+  as specified by the Farrington procedure. If 
+  requested, Anscombe residuals are computed based on an initial fit
   and a 2nd fit is made using weights, where base counts suspected to
   be caused by earlier outbreaks are downweighted.
 }
@@ -33,8 +32,8 @@
     \code{algo.farrington.fitGLM.populationOffset} the value 
     \code{log(population)} is used as offset in the linear
     predictor of the GLM:   
-    \deqn{\log \mu_t = \log(\texttt{population}) + \alpha + \beta w_t}{
-      log mu_t = log(population) alpha + beta * w}
+    \deqn{\log \mu_t = \log(\texttt{population}) + \alpha + \beta t}{
+      log mu_t = log(population) alpha + beta * t}
     This provides a way to adjust the Farrington procedure to the case
     of greatly varying populations. Note: This is an experimental implementation with methodology not covered by the original paper.
   }

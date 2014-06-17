@@ -52,8 +52,7 @@ Germany } \date{\today}
 
 
 <<echo=F,results=hide>>=
-library(surveillance)
-library(xtable)
+library("surveillance")
 options(SweaveHooks=list(fig=function() par(mar=c(5,4,4,0),cex.axis=1.5,cex.lab=1.5,cex.main=1.5)))
 options(width=70)
 set.seed(1234)
@@ -578,7 +577,14 @@ elements 1 if two areas share a common border and is 0 otherwise.
 
 \begin{figure}[htb]
   \centering
-  \includegraphics[width=0.5\textwidth]{map-weserems}
+\setkeys{Gin}{width=0.5\textwidth}
+<<mapWeserEms, fig=TRUE, echo=FALSE>>=
+data("measlesWeserEms")
+par(mar=c(0,0,0,0))
+plot(measlesWeserEms@map[-c(1,5),], col=grey.colors(15,start=0.4,end=1))
+text(coordinates(measlesWeserEms@map[-c(1,5),]),
+     labels=row.names(measlesWeserEms@map)[-c(1,5)], font=2)
+@ 
   \caption{Map of the administrative district ``Weser-Ems''}     
   \label{fig:map}
 \end{figure}

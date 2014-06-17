@@ -1,10 +1,6 @@
-% hhh4
 \encoding{latin1}
 \name{hhh4}
 \alias{hhh4}
-% FIXME: functions without documentation atm
-\alias{permutationTest}
-\alias{pit}
 
 \title{Random effects HHH model fit as described in Paul and Held (2011)} 
 
@@ -29,18 +25,22 @@
   are decomposed additively on the log scale,
   \eqn{w_{ji}}{w_ji} are known weights, 
   and \eqn{e_{it}}{e_it} is a (multiplicative) offset.
-  The linear predictors may contain random effects. 
+  The linear predictors may contain random effects.
+  It is also possible to include multiplicative offsets in the
+  autoregressive and neighbor-driven components.
 }
 
 \usage{
 hhh4(stsObj, 
      control = list(
                ar = list(f = ~ -1,
+                         offset = 1,
                          lag = 1,
                          weights = NULL,
                          initial = NULL
                          ),
                ne = list(f = ~ -1,
+                         offset = 1,
                          lag = 1,
                          weights = neighbourhood(stsObj),
                          initial = NULL
@@ -56,7 +56,7 @@ hhh4(stsObj,
                                 variance = list(method="nlminb")),
                verbose = FALSE,
                start = list(fixed=NULL, random=NULL, sd.corr=NULL),
-               data = data.frame(t = epoch(stsObj)-1),
+               data = list(t = epoch(stsObj)-1),
                keep.terms = FALSE
                ),
      check.analyticals = FALSE
@@ -73,8 +73,10 @@ hhh4(stsObj,
           list with the following components: 
           \describe{
 	  \item{f = ~ -1}{a formula specifying \eqn{\log(\lambda_{it})}{log(\lambda_it)}}
-	  \item{lag = 1}{autoregression on \eqn{y_{i,t-lag}}{y_i,t-lag}
-	    (currently only \code{lag = 1} is possible)}
+	  \item{offset = 1}{optional multiplicative offset, either 1 or
+	    a matrix of the same dimension as \code{observed(stsObj)}}
+	  \item{lag = 1}{a positive integer meaning autoregression on
+	    \eqn{y_{i,t-lag}}}
 	  \item{weights = NULL}{optional weights, only used if model is
 	    a contact matrix (currently not implemented)}
 	  \item{initial = NULL}{vector with initial values for
@@ -86,8 +88,10 @@ hhh4(stsObj,
        list with the following components:
 	\describe{
 	  \item{f = ~ -1}{a formula specifying \eqn{\log(\phi_{it})}{log(\phi_it)}}
-	  \item{lag = 1}{autoregression on \eqn{y_{j,t-lag}}{y_j,t-lag}  
-	    (currently only \code{lag = 1} is possible)}
+	  \item{offset = 1}{optional multiplicative offset, either 1 or
+	    a matrix of the same dimension as \code{observed(stsObj)}}
+	  \item{lag = 1}{a non-negative integer meaning dependency on
+	    \eqn{y_{j,t-lag}}}
 	  \item{weights = neighbourhood(stsObj)}{
 	    neighbourhood weights \eqn{w_{ji}}{w_ji}. By default, 
 	    the neighbourhood slot of \code{stsObj} is used.
@@ -102,7 +106,8 @@ hhh4(stsObj,
 	with the following components
 	\describe{
 	  \item{f = ~ 1}{a formula specifying \eqn{\log(\nu_{it})}{log(\nu_it)}}
-	  \item{offset = 1}{optional multiplicative offset \eqn{e_{it}}{e_it}}
+	  \item{offset = 1}{optional multiplicative offset \eqn{e_{it}}{e_it},
+	    either 1 or a matrix of the same dimension as \code{observed(stsObj)}}
 	  \item{initial = NULL}{vector with initial values for
 	    parameter if \code{f = ~1} (not really used ATM)}
 	}
@@ -135,14 +140,15 @@ hhh4(stsObj,
 	\code{method="nlminb"} adding \code{iter.max=50} increases the 
 	maximum number of inner iterations from 20 (default) to 50.
       }
-      \item{\code{verbose}}{Logical if additional information is to be printed
-	during the computations}
-      \item{\code{start}}{List with initials, overrides any initial
-	values in formulas (this is currently the only way to specify
-	initial values)}
-      \item{\code{data}}{a data frame or, more generally, a named list
-	with covariates that are to be included as fixed effects (see
-	\code{\link{fe}}) in any of the 3 component formulae.
+      \item{\code{verbose}}{non-negative integer (usually in the range
+	\code{0:3}) specifying the amount of tracing information to be
+	output during optimization.}
+      \item{\code{start}}{a list of initial parameter values; overrides
+	any initial values in formulas (this is currently the only way
+	to specify initial values).}
+      \item{\code{data}}{a named list of covariates that are to be
+	included as fixed effects (see \code{\link{fe}}) in any of the 3
+	component formulae.
 	By default, the time variable \code{t} is available and used for
 	seasonal effects created by \code{\link{addSeason2formula}}.
 	In general, covariates in this list can be either vectors of
@@ -164,13 +170,15 @@ hhh4(stsObj,
     This is mainly intended for internal use by the package developers.}
 }
 
-\value{Returns an object of class \code{ah4} with elements
+\value{Returns an object of class \code{"hhh4"} with elements
   \item{coefficients}{named vector with estimated (regression) parameters of the model}
   \item{se}{estimated standard errors (for regression parameters)}
   \item{cov}{covariance matrix (for regression parameters)}
-  \item{Sigma}{estimated variance components for random effects}
-  \item{Sigma.orig}{estimated variance components on internal scale used for optimization  }
-  \item{Sigma.cov}{ inverse of (minus Hessian matrix) for variance components }
+  \item{Sigma}{estimated variance-covariance matrix of random effects}
+  \item{Sigma.orig}{estimated variance parameters on internal scale used
+    for optimization}
+  \item{Sigma.cov}{inverse of marginal Fisher information (on internal
+    scale), i.e., the asymptotic covariance matrix of \code{Sigma.orig}}
   \item{call}{ the matched call }
   \item{dim}{ vector with number of fixed and random effects in the model }
   \item{loglikelihood}{(penalized) loglikelihood evaluated at the MLE}
@@ -181,26 +189,29 @@ hhh4(stsObj,
   \item{terms}{ the terms object used in the fit if \code{keep.terms = TRUE}
     and \code{NULL} otherwise}
   \item{stsObj}{ the supplied \code{stsObj} }
-  \item{lag}{ specified lag of the autoregression, ATM always \eqn{= 1} }
+  \item{lags}{named integer vector of length two containing the lags
+    used for the epidemic components \code{"ar"} and \code{"ne"},
+    respectively. The corresponding lag is \code{NA} if the component
+    was not included in the model.}
   \item{nObs}{number of observations used for fitting the model}
   \item{nTime}{ number of time points used for fitting the model }
-  \item{nUnit}{ number of units (e.g. areas) used for fitting the model }
+  \item{nUnit}{ number of units (e.g. areas) used for fitting the model}
+  \item{runtime}{the \code{\link{proc.time}}-queried time taken
+    to fit the model, i.e., a named numeric vector of length 5 of class
+    \code{"proc_time"}}
 }
 
 \details{
-  For further details see \code{vignette("hhh4")} and the
-  references.
+  For further details see \code{vignette("hhh4")} and the references.
 }
 
-\note{
-  For the time being this function performs only modelling of
-  the multivariate time series. No surveillance/monitoring functionality
-  is available.
+\seealso{
+  \code{\link{algo.hhh}}, 
+  \code{\link{fe}}, \code{\link{ri}}
 }
-\seealso{\code{\link{algo.hhh}}, 
-\code{\link{fe}}, \code{\link{ri}}
-}
+
 \author{M. Paul, S. Meyer, and L. Held}
+
 \examples{
 #####################################################################
 # Fit some models from ?algo.hhh
@@ -256,10 +267,9 @@ summary(res3, idx2Exp=1:2, amplitudeShift=TRUE)
                    dimnames = c(dimnames(neighbourhood(measles)), list(NULL)))
 res3_tv <- hhh4(measles, control = modifyList(model3,
                 list(ne=list(weights=.neweights))))
-.disregardComponents <- function(ah4) {
-    ah4["call"] <- list(NULL)
-    ah4$control$ne["weights"] <- list(NULL)
-    ah4
+.disregardComponents <- function(obj) {
+    obj$call <- obj$control$ne$weights <- obj$runtime <- NULL
+    obj
 }
 stopifnot(all.equal(.disregardComponents(res3), .disregardComponents(res3_tv)))
 }
@@ -288,23 +298,20 @@ opt <- list(stop = list(tol=1e-5, niter=200),
 # A0
 cntrl_A0 <- list(ar = list(f = ~ -1),
                  end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt,
-                 verbose = 1, data = data.frame(t = epoch(fluBYBW)-1))
+                 family = "NegBin1", optimizer = opt, verbose = 1)
 summary(res_A0 <- hhh4(fluBYBW,cntrl_A0))
 
 # B0
 cntrl_B0 <- list(ar = list(f = ~ 1),
                  end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt,
-                 verbose=1, data=data.frame(t=epoch(fluBYBW)-1))
+                 family = "NegBin1", optimizer = opt, verbose=1)
 res_B0 <- hhh4(fluBYBW,cntrl_B0)               
  
 
 # C0
 cntrl_C0 <- list(ar = list(f = ~ -1 + ri(type="iid", corr="all")),
                  end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt,
-                 verbose=1, data=data.frame(t=epoch(fluBYBW)-1))
+                 family = "NegBin1", optimizer = opt, verbose=1)
 res_C0 <- hhh4(fluBYBW,cntrl_C0)               
 
 
@@ -316,8 +323,7 @@ wji <- neighbourhood(fluBYBW)/rowSums(neighbourhood(fluBYBW))
 cntrl_A1 <- list(ar = list(f = ~ -1),
                  ne = list(f = ~ 1, weights = wji),
                  end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt,
-                 verbose=1, data=data.frame(t=epoch(fluBYBW)-1))
+                 family = "NegBin1", optimizer = opt, verbose=1)
 res_A1 <- hhh4(fluBYBW,cntrl_A1)               
 
 
@@ -325,8 +331,7 @@ res_A1 <- hhh4(fluBYBW,cntrl_A1)
 cntrl_B1 <- list(ar = list(f = ~ 1),
                  ne = list(f = ~ 1, weights = wji),
                  end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt,
-                 verbose=1, data=data.frame(t=epoch(fluBYBW)-1))
+                 family = "NegBin1", optimizer = opt, verbose=1)
 res_B1 <- hhh4(fluBYBW,cntrl_B1)               
 
 
@@ -334,8 +339,7 @@ res_B1 <- hhh4(fluBYBW,cntrl_B1)
 cntrl_C1 <- list(ar = list(f = ~ -1 + ri(type="iid", corr="all")),
                  ne = list(f = ~ 1, weights = wji),
                  end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt,
-                 verbose=1, data=data.frame(t=epoch(fluBYBW)-1))
+                 family = "NegBin1", optimizer = opt, verbose=1)
 res_C1 <- hhh4(fluBYBW,cntrl_C1)               
 
 
@@ -343,8 +347,7 @@ res_C1 <- hhh4(fluBYBW,cntrl_C1)
 cntrl_A2 <- list(ar = list(f = ~ -1),
                  ne = list(f = ~ -1 + ri(type="iid",corr="all"), weights=wji),
                  end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt,
-                 verbose=1, data=data.frame(t=epoch(fluBYBW)-1))
+                 family = "NegBin1", optimizer = opt, verbose=1)
 res_A2 <- hhh4(fluBYBW,cntrl_A2)               
 
 
@@ -352,16 +355,14 @@ res_A2 <- hhh4(fluBYBW,cntrl_A2)
 cntrl_B2 <- list(ar = list(f = ~ 1),
                  ne = list(f = ~ -1 + ri(type="iid",corr="all"), weights =wji),
                  end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt,
-                 verbose=1, data=data.frame(t=epoch(fluBYBW)-1))
+                 family = "NegBin1", optimizer = opt, verbose=1)
 res_B2 <- hhh4(fluBYBW,cntrl_B2)               
 
 # C2
 cntrl_C2 <- list(ar = list(f = ~ -1 + ri(type="iid", corr="all")),
                  ne = list(f = ~ -1 + ri(type="iid",corr="all"), weights =wji),
                  end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt,
-                 verbose=1, data=data.frame(t=epoch(fluBYBW)-1),
+                 family = "NegBin1", optimizer = opt, verbose=1,
                  start=list(fixed=fixef(res_B0),random=c(rep(0,140),
                          ranef(res_B0)), sd.corr=c(-.5,res_B0$Sigma.orig,0)))
 res_C2 <- hhh4(fluBYBW,cntrl_C2)               
@@ -373,28 +374,37 @@ cntrl_D <- list(ar = list(f = ~ 1),
                 end = list(f =addSeason2formula(f = ~ -1 + ri(type="car") + 
                                              I((t-208)/100), S=3, period=52), 
                           offset = population(fluBYBW)),
-                family = "NegBin1", optimizer = opt,
-                verbose=1, data=data.frame(t=epoch(fluBYBW)-1))
+                family = "NegBin1", optimizer = opt, verbose=1)
 res_D <- hhh4(fluBYBW,cntrl_D)               
 
 }
 }
-\keyword{ts}
-\keyword{regression}
-\references{
-  Held, L., \enc{Höhle}{Hoehle}, M., Hofmann, M. (2005) A statistical framework 
-    for the analysis of multivariate infectious disease surveillance counts, 
-    Statistical Modelling, \bold{5}, 187--199.
-    
-  Paul, M., Held, L. and Toschke, A. M. (2008) Multivariate modelling of 
-    infectious disease surveillance data, Statistics in Medicine, \bold{27}, 
-    6250--6267.    
 
-  Paul, M. and Held, L. (2011) Predictive assessment of a non-linear
-    random  effects model for multivariate time series of infectious
-    disease counts. Statistics in Medicine, \bold{30}, 1118--1136
+\references{
+  Held, L., \enc{Höhle}{Hoehle}, M., Hofmann, M. (2005):
+    A statistical framework for the analysis of multivariate infectious
+    disease surveillance counts.
+    \emph{Statistical Modelling}, \bold{5}, 187--199.
+    
+  Paul, M., Held, L. and Toschke, A. M. (2008):
+    Multivariate modelling of infectious disease surveillance data.
+    \emph{Statistics in Medicine}, \bold{27}, 6250--6267.    
+
+  Paul, M. and Held, L. (2011):
+    Predictive assessment of a non-linear random effects model for
+    multivariate time series of infectious disease counts.
+    \emph{Statistics in Medicine}, \bold{30}, 1118--1136
+
+  Held, L. and Paul, M. (2012):
+    Modeling seasonality in space-time infectious disease surveillance data.
+    \emph{Biometrical Journal}, \bold{54}, 824--843
+    
+  Meyer, S. and Held, L. (2014):
+    Power-law models for infectious disease spread.
+    \emph{Annals of Applied Statistics}. In press.
+    \emph{arXiv:1308.5115}\cr
+    arXiv-Link: \url{http://arxiv.org/abs/1308.5115}
 }
 
-
-
-
+\keyword{ts}
+\keyword{regression}

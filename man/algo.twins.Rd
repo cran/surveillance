@@ -1,7 +1,7 @@
+\encoding{latin1}
 \name{algo.twins}
 \alias{algo.twins}
 
-\encoding{latin1}
 \title{Model fit based on a two-component epidemic model} 
 \description{
   Fits a negative binomial model (as described in Held et al. (2006)
@@ -56,13 +56,16 @@ algo.twins(disProgObj, control=list(burnin=1000, filter=10,
   \item{logFile}{containes the returned samples of the parameters \eqn{\psi}{\psi}, \eqn{\gamma_{0}}{\gamma_0}, \eqn{\gamma_{1}}{\gamma_1}, \eqn{\gamma_{2}}{\gamma_2}, K, \eqn{\xi_{\lambda}}{\xi_\lambda} \eqn{\lambda_{1},...,\lambda{n}}{\lambda_1,...,\lambda_{n}}, the predictive distribution and the deviance.}
   \item{logFile2}{containes the sample means of the variables \eqn{X_{t}, Y_{t}, \omega_{t}}{X_t, Y_t, \omega_t} and the relative frequency of a changepoint at time t for t=1,...,n and the relative frequency of a predicted changepoint at time n+1.} 
 }
-\references{Held, L., Hofmann, M., \enc{Höhle}{Hoehle}, M. and Schmid V. (2006) A two-component
-  model for counts of infectious diseases, Biostatistics, \bold{7}, pp.
-  422--437.
+\references{
+  Held, L., Hofmann, M., \enc{Höhle}{Hoehle}, M. and Schmid V. (2006):
+  A two-component model for counts of infectious diseases.
+  \emph{Biostatistics}, \bold{7}, pp. 422--437.
 }
 
-\author{M. Hofmann and M. \enc{Höhle}{Hoehle} and D. \enc{Sabanés
-  Bové}{Sabanes Bove}}
+\author{
+  M. Hofmann and M. \enc{Höhle}{Hoehle} and
+  D. \enc{Sabanés Bové}{Sabanes Bove}
+}
 
 \examples{
 # Load the data used in the Held et al. (2006) paper

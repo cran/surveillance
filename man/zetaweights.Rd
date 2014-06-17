@@ -10,7 +10,7 @@
   (e.g., as obtained via \code{\link{nbOrder}}).
   Without normalization and truncation,
   this is just \eqn{o^{-d}} (where \eqn{o} is a neighbourhood order).
-  This function is mainly used internally for \code{\link{powerlaw}}
+  This function is mainly used internally for \code{\link{W_powerlaw}}
   weights in \code{\link{hhh4}} models.
 }
 
@@ -37,7 +37,7 @@ zetaweights(nbmat, d = 1, maxlag = max(nbmat), normalize = FALSE)
   Sebastian Meyer
 }
 
-\seealso{\code{\link{powerlaw}}}
+\seealso{\code{\link{W_powerlaw}}}
 
 \examples{
 nbmat <- matrix(c(0,1,2,2,

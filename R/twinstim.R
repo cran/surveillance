@@ -6,9 +6,9 @@
 ### Maximum Likelihood inference for the two-component spatio-temporal intensity
 ### model described in Meyer et al (2012), DOI: 10.1111/j.1541-0420.2011.01684.x
 ###
-### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 666 $
-### $Date: 2013-11-08 15:45:36 +0100 (Fre, 08 Nov 2013) $
+### Copyright (C) 2009-2014 Sebastian Meyer
+### $Revision: 895 $
+### $Date: 2014-04-08 14:02:10 +0200 (Tue, 08 Apr 2014) $
 ################################################################################
 
 
@@ -18,8 +18,8 @@ twinstim <- function (
     na.action = na.fail, start = NULL, partial = FALSE,
     control.siaf = list(F=list(), Deriv=list()),
     optim.args = list(), finetune = FALSE,
-    model = FALSE, cumCIF = TRUE,
-    cumCIF.pb = interactive(), cores = 1, verbose = TRUE
+    model = FALSE, cumCIF = FALSE, cumCIF.pb = interactive(),
+    cores = 1, verbose = TRUE
     )
 {
 
@@ -44,7 +44,7 @@ twinstim <- function (
     ##            })
     ## }
     
-    # Clean the model environment when exiting the function
+    ## Clean the model environment when exiting the function
     on.exit(suppressWarnings(rm(cl, cumCIF, cumCIF.pb, data, doHessian,
         eventDists, eventsData, finetune, neghess, fisherinfo, fit, fixed,
         functions, globalEndemicIntercept, h.Intercept, inmfe, initpars,
@@ -57,6 +57,10 @@ twinstim <- function (
         partialloglik, ptm, qmatrix, res, negsc, score, start, subset, tmpexpr,
         typeSpecificEndemicIntercept, useScore, verbose, whichfixed, 
         inherits = FALSE)))
+    
+    ## also set fixed[st]iafpars to FALSE (for free posteriori evaluations, and
+    ## to be defined for score function evaluation with optim.args=NULL)
+    on.exit(fixedsiafpars <- fixedtiafpars <- FALSE, add = TRUE)
 
 
     ### Verify that 'data' inherits from "epidataCS"
@@ -120,7 +124,7 @@ twinstim <- function (
     ### Parse epidemic formula
 
     if (missing(epidemic)) {
-        origenv.epidemic <- .GlobalEnv
+        origenv.epidemic <- parent.frame()
         epidemic <- ~ 0
     } else {
         origenv.epidemic <- environment(epidemic)
@@ -140,17 +144,17 @@ twinstim <- function (
     # ok because actually, 'eventBlocks' are only used in the partial likelihood
     # and there only eventBlocks[includes] is used (i.e. no prehistory events)
     my.na.action <- function (object, ...) {
-        prehistevents <- object[object[["(time)"]] <= t0, "(ID)"]
+        prehistevents <- row.names(object)[object[["(time)"]] <= t0]
         if (length(prehistevents) == 0L) return(na.action(object, ...))
-        origprehistblocks <- object[match(prehistevents,object[["(ID)"]]), "(BLOCK)"]
-        object[object[["(ID)"]] %in% prehistevents, "(BLOCK)"] <- 0L
+        origprehistblocks <- object[prehistevents, "(BLOCK)"] # all NA
+        object[prehistevents, "(BLOCK)"] <- 0L # temporary set non-NA
         xx <- na.action(object, ...)
-        xx[match(prehistevents,xx[["(ID)"]],nomatch=0L), "(BLOCK)"] <-
-            origprehistblocks[prehistevents %in% xx[["(ID)"]]]
+        xx[match(prehistevents,row.names(xx),nomatch=0L), "(BLOCK)"] <-
+            origprehistblocks[prehistevents %in% row.names(xx)]
         xx
     }
 
-    ID <- tile <- type <- BLOCK <- .obsInfLength <- .bdist <-
+    tile <- type <- BLOCK <- .obsInfLength <- .bdist <-
         "just cheating on codetools::checkUsage"
     mfe <- model.frame(epidemic, data = eventsData,
                        subset = time + eps.t > t0 & time <= T,
@@ -159,20 +163,18 @@ twinstim <- function (
                        na.action = my.na.action,
 # since R 2.10.0 patched also works with epidemic = ~1 and na.action=na.fail (see PR#14066)
                        drop.unused.levels = FALSE,
-                       ID = ID, time = time, tile = tile, type = type,
+                       time = time, tile = tile, type = type,
                        eps.t = eps.t, eps.s = eps.s, BLOCK = BLOCK,
                        obsInfLength = .obsInfLength, bdist = .bdist)
-    rm(ID, tile, type, BLOCK, .obsInfLength, .bdist)
+    rm(tile, type, BLOCK, .obsInfLength, .bdist)
 
     
     ### Extract essential information from model frame
 
-    # inmfe=rowindex(data$events@data) is necessary for subsetting
-    # influenceRegion (list object not compatible with model.frame) and
-    # coordinates
-    # CAVE: ID is not necessarily identical to the rowindex of data$events,
-    #       e.g., if working with subsetted epidataCS
-    inmfe <- which(data$events@data$ID %in% mfe[["(ID)"]])
+    # 'inmfe' indexes rows of data$events@data and is necessary for subsetting
+    # influenceRegion (list incompatible with model.frame) and coordinates.
+    # Note: model.frame() takes row.names from data
+    inmfe <- which(row.names(data$events@data) %in% row.names(mfe))
     N <- length(inmfe)   # mfe also contains events of the prehistory
     eventTimes <- mfe[["(time)"]] # I don't use model.extract since it returns named vectors
     # Indicate events after t0, which are actually part of the process
@@ -230,6 +232,10 @@ twinstim <- function (
     
     epidemic <- formula(epidemic)
     environment(epidemic) <- origenv.epidemic
+    ## We keep the original formula environment since it will be used to
+    ## evaluate the modified twinstim-call in drop1/add1 (with default
+    ## enclos=baseenv()), and cl$data should be visible from there.
+    ## Alternatively, we could set it to parent.frame().
 
 
 
@@ -242,7 +248,7 @@ twinstim <- function (
     ### Parse endemic formula
 
     if (missing(endemic)) {
-        origenv.endemic <- .GlobalEnv
+        origenv.endemic <- parent.frame()
         endemic <- ~ 0
     } else {
         origenv.endemic <- environment(endemic)
@@ -269,14 +275,12 @@ twinstim <- function (
 
     ### Generate endemic model frame and model matrix on event data
 
-    ID <- "just cheating on codetools::checkUsage"
-    mfhEvents <- model.frame(endemic, data = eventsData,
-                             subset = time>t0 & time<=T & ID %in% mfe[["(ID)"]],
+    mfhEvents <- model.frame(endemic, data = eventsData[row.names(mfe),],
+                             subset = time>t0 & time<=T,
                              na.action = na.fail,
                              # since R 2.10.0 patched also works with
                              # endemic = ~1 (see PR#14066)
                              drop.unused.levels = FALSE)
-    rm(ID)
     mmhEvents <- model.matrix(endemic, mfhEvents)
     # exclude intercept from endemic model matrix below, will be treated separately
     if (nbeta0 > 0) mmhEvents <- mmhEvents[,-1,drop=FALSE]
@@ -302,7 +306,7 @@ twinstim <- function (
         rm(BLOCK, tile, area)
         gridBlocks <- mfhGrid[["(BLOCK)"]]
         histIntervals <- unique(data$stgrid[c("BLOCK", "start", "stop")]) # sorted
-        rownames(histIntervals) <- NULL
+        row.names(histIntervals) <- NULL
         histIntervals <- histIntervals[histIntervals$start >= t0 &
                                        histIntervals$stop <= T,]
         gridTiles <- mfhGrid[["(tile)"]] # only needed for intensityplot
@@ -349,6 +353,10 @@ twinstim <- function (
         update.formula(formula(endemic), ~ (1|type) + .)
     } else formula(endemic)
     environment(endemic) <- origenv.endemic
+    ## We keep the original formula environment since it will be used to
+    ## evaluate the modified twinstim-call in drop1/add1 (with default
+    ## enclos=baseenv()), and cl$data should be visible from there.
+    ## Alternatively, we could set it to parent.frame().
 
 
     ### Check that there is at least one parameter
@@ -369,11 +377,11 @@ twinstim <- function (
     if (hase) {
 
         ## Check interaction functions
-        siaf <- do.call(".parseiaf", args = alist(siaf, "siaf", verbose))
+        siaf <- do.call(".parseiaf", args = alist(siaf, "siaf", eps.s, verbose))
         constantsiaf <- attr(siaf, "constant")
         nsiafpars <- siaf$npars
 
-        tiaf <- do.call(".parseiaf", args = alist(tiaf, "tiaf", verbose))
+        tiaf <- do.call(".parseiaf", args = alist(tiaf, "tiaf", eps.t, verbose))
         constanttiaf <- attr(tiaf, "constant")
         ntiafpars <- tiaf$npars
 
@@ -554,22 +562,31 @@ twinstim <- function (
             )
         } else { expression(hInt <- 0) },
         if (hase) { # epidemic component
-            expression(
-                siafInt <- do.call("..siafInt", .siafInt.args), # N-vector
-                if (!is.null(uppert)) { # && isScalar(uppert) && t0 <= uppert && uppert < T
-                    gIntUpper <- pmin(uppert-eventTimes, eps.t)
-                    subtimeidx <- eventTimes < uppert
-                    tiafIntSub <- .tiafInt(tiafpars,
-                                           from = gIntLower[subtimeidx],
-                                           to   = gIntUpper[subtimeidx],
-                                           type = eventTypes[subtimeidx])
-                    eInt <- sum(qSum[subtimeidx] * gammapred[subtimeidx] *
-                                siafInt[subtimeidx] * tiafIntSub)
-                } else {
-                    tiafInt <- .tiafInt(tiafpars)
-                    eInt <- sum(qSum * gammapred * siafInt * tiafInt)
-                }
-            )
+            c(expression(siafInt <- do.call("..siafInt", .siafInt.args)),#N-vector
+              if (useParallel) expression( # print "try-catch"ed errors
+                  if (any(.nonfinitesiafint <- !is.finite(siafInt)))
+                  stop("invalid result of 'siaf$F' for 'siafpars=c(",
+                       paste(signif(siafpars, getOption("digits")),
+                             collapse=", "), ")':\n",
+                       paste(unique(siafInt[.nonfinitesiafint]), sep="\n"),
+                       call.=FALSE)
+                  ),
+              expression(
+                  if (!is.null(uppert)) { # && isScalar(uppert) && t0 <= uppert && uppert < T
+                      gIntUpper <- pmin(uppert-eventTimes, eps.t)
+                      subtimeidx <- eventTimes < uppert
+                      tiafIntSub <- .tiafInt(tiafpars,
+                                             from = gIntLower[subtimeidx],
+                                             to   = gIntUpper[subtimeidx],
+                                             type = eventTypes[subtimeidx])
+                      eInt <- sum(qSum[subtimeidx] * gammapred[subtimeidx] *
+                                  siafInt[subtimeidx] * tiafIntSub)
+                  } else {
+                      tiafInt <- .tiafInt(tiafpars)
+                      eInt <- sum(qSum * gammapred * siafInt * tiafInt)
+                  }
+                  )
+              )
         } else expression(eInt <- 0),
         expression(c(hInt, eInt))
     ))
@@ -678,7 +695,16 @@ twinstim <- function (
                                 ncolsRes=nsiafpars, f=siaf$deriv)
                 sEventsSum <- .colSums(nom / lambdaEvents, Nin, nsiafpars)
                 derivInt <- do.call(".siafDeriv", .siafDeriv.args) # N x nsiafpars matrix
-                sInt <- .colSums(derivInt * (qSum * gammapred * tiafInt), N, nsiafpars)
+                ## if useParallel, derivInt may contain "try-catch"ed errors
+                ## in which case we receive a one-column character or list matrix
+                if (!is.numeric(derivInt)) # we can throw a helpful error message
+                    stop("invalid result of 'siaf$Deriv' for 'siafpars=c(",
+                         paste(signif(siafpars, getOption("digits")),
+                               collapse=", "), ")':\n",
+                         paste(unique(derivInt[sapply(derivInt, is.character)]), sep="\n"),
+                         call.=FALSE)
+                sInt <- .colSums(derivInt * (qSum * gammapred * tiafInt),
+                                 N, nsiafpars)
                 sEventsSum - sInt
             }) else numeric(nsiafpars) # if 'fixedsiafpars', this part is unused
 
@@ -887,8 +913,9 @@ twinstim <- function (
         setting$qmatrix <- qmatrix   # -> information about nTypes and typeNames
         setting$formula <- list(endemic = endemic, epidemic = epidemic,
                                 siaf = siaf, tiaf = tiaf)
-        setting$call <- cl
         # Return settings
+        setting$call <- cl
+        environment(setting) <- environment()
         if (verbose)
             message("optimization skipped",
                     " (returning functions in data environment)")
@@ -900,9 +927,10 @@ twinstim <- function (
 
     if (is.null(optim.args[["par"]])) { # set naive defaults
         h.Intercept <- if (nbeta0 > 0) rep.int(crudebeta0(
-                nEvents = Nin, offset.mean = weighted.mean(offsetGrid, ds),
-                W.area = sum(ds[gridBlocks==histIntervals[1,"BLOCK"]]),
-                period = T-t0, nTypes = nTypes
+            nEvents = Nin,
+            offset.mean = if (is.null(offsetGrid)) 0 else weighted.mean(offsetGrid, ds),
+            W.area = sum(ds[gridBlocks==histIntervals[1,"BLOCK"]]),
+            period = T-t0, nTypes = nTypes
             ), nbeta0) else numeric(0L)
         optim.args$par <- c(h.Intercept, rep.int(0, npars - nbeta0))
     } else { # check validity of par-specification
@@ -928,16 +956,8 @@ twinstim <- function (
     )
 
     ## values in "start" overwrite initial values given by optim.args$par
-    if (is.list(start)) { # convert allowed list specification to vector
-        stopifnot(names(start) %in% c("endemic", "epidemic", "h", "e",
-                                      "siaf", "tiaf", "e.siaf", "e.tiaf"))
-        names(start)[names(start) == "endemic"] <- "h"
-        names(start)[names(start) == "epidemic"] <- "e"
-        names(start)[names(start) == "siaf"] <- "e.siaf"
-        names(start)[names(start) == "tiaf"] <- "e.tiaf"
-        start <- unlist(start, use.names=TRUE)
-    }
-    if (is.vector(start, mode="numeric")) {
+    if (!is.null(start)) {
+        start <- check_twinstim_start(start)
         start <- start[names(start) %in% names(optim.args$par)]
         optim.args$par[names(start)] <- start
     }
@@ -974,9 +994,6 @@ twinstim <- function (
     fixed[whichfixed] <- TRUE
     fixedsiafpars <- hassiafpars && all(fixed[paste("e.siaf", 1:nsiafpars, sep=".")])
     fixedtiafpars <- hastiafpars && all(fixed[paste("e.tiaf", 1:ntiafpars, sep=".")])
-
-    ## in the end, we set fixed[st]iafpars to FALSE (for free posteriori evaluations)
-    on.exit(fixedsiafpars <- fixedtiafpars <- FALSE, add = TRUE)
 
 
     ### Define negative log-likelihood (score, hessian) for minimization
@@ -1020,9 +1037,16 @@ twinstim <- function (
 
         ## if siafpars or tiafpars are fixed, pre-evaluate integrals    
         if (fixedsiafpars) {
-            if (verbose) cat("pre-evaluating 'siaf' integrals with fixed parameters ...\n")
+            if (verbose)
+                cat("pre-evaluating 'siaf' integrals with fixed parameters ...\n")
+            if (!"memoise" %in% loadedNamespaces())
+                cat("WARNING: Memoization of siaf integration not available!\n",
+                    "         Repeated integrations with same parameters ",
+                    "are redundant and slow!\n",
+                    "         Really consider installing package \"memoise\"!\n",
+                    sep="")
             .siafInt.args[[1]] <- initpars[paste("e.siaf", 1:nsiafpars, sep=".")]
-            siafInt <- do.call("..siafInt", .siafInt.args) # ..siafInt is memoise()d
+            siafInt <- do.call("..siafInt", .siafInt.args) # memoise()d
         }
         if (fixedtiafpars) {
             if (verbose) cat("pre-evaluating 'tiaf' integrals with fixed parameters ...\n")
@@ -1065,7 +1089,8 @@ twinstim <- function (
         optimArgs[namesOptimUser[optimValid]] <- optim.args[optimValid]
         if (any(!optimValid)) {
             warning("unknown names in optim.args: ",
-                    paste(namesOptimUser[!optimValid], collapse = ", "))
+                    paste(namesOptimUser[!optimValid], collapse = ", "),
+                    immediate. = TRUE)
         }
         doHessian <- eval(optimArgs$hessian)
         optimMethod <- eval(optimArgs$method)
@@ -1231,17 +1256,18 @@ twinstim <- function (
     ### Add Fisher information matrices
 
     # estimation of the expected Fisher information matrix
-    if (useScore)
-        fit$fisherinfo <- structure(
+    fit["fisherinfo"] <- list(
+        if (useScore) structure(
             fisherinfo(fit$coefficients),
             dimnames = list(names(initpars), names(initpars))
             )
-
+        )
+    
     # If requested, add observed fisher info (= negative hessian at maximum)
-    if (any(!fixed) && !is.null(optimRes$hessian)) {
-        fit$fisherinfo.observed <- optimRes$hessian
+    fit["fisherinfo.observed"] <- list(
+        if (any(!fixed) && !is.null(optimRes$hessian)) optimRes$hessian
         ## no "-" here because we optimized the negative log-likelihood
-    }
+        )
 
 
     ### Add fitted intensity values and integrated intensities at events
@@ -1294,16 +1320,17 @@ twinstim <- function (
         if (cumCIF.pb) close(pb)
         setNames(.colSums(heIntEvents, 2L, Nin), rownames(mmhEvents))
     }
-    if (cumCIF) {
-        if (verbose)
-            cat("\nCalculating fitted cumulative intensities at events...\n")
-        fit$tau <- LambdagEvents(cores, cumCIF.pb)
-    }
+    fit["tau"] <- list(
+        if (cumCIF) {
+            if (verbose)
+                cat("\nCalculating fitted cumulative intensities at events...\n")
+            LambdagEvents(cores, cumCIF.pb)
+        })
 
     # calculate observed R0's: mu_j = spatio-temporal integral of e_j(t,s) over
     # the observation domain (t0;T] x W (not whole R+ x R^2)
     fit$R0 <- if (hase) qSum * gammapred * siafInt * tiafInt else rep.int(0, N)
-    names(fit$R0) <- rownames(mfe)
+    names(fit$R0) <- row.names(mfe)
 
     
     ### Append model information
@@ -1323,10 +1350,11 @@ twinstim <- function (
     optim.args$par <- initpars        # reset to also include fixed coefficients
     if (any(fixed)) optim.args$fixed <- names(initpars)[fixed] # restore
     fit$optim.args <- optim.args
-    if (model) {
-        fit$functions <- functions
-        environment(fit) <- environment()
-    }
+    fit["functions"] <- list(
+        if (model) {
+            environment(fit) <- environment()
+            functions
+        })
 
 
     ### Return object of class "twinstim"

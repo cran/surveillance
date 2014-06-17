@@ -15,12 +15,6 @@
 \renewcommand{\sfdefault}{ptm} % Brug times som font - vigtigt i
                                % pdflatex?
 
-%PSTricks
-\usepackage{pdftricks}
-\begin{psinputs}
-  \usepackage{pst-all}
-\end{psinputs}
-
 \usepackage{bm}
 \usepackage{amsmath}
 \usepackage{amssymb}

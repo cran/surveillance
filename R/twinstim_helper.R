@@ -5,9 +5,9 @@
 ###
 ### Some internal helper functions for "twinstim".
 ###
-### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 666 $
-### $Date: 2013-11-08 15:45:36 +0100 (Fre, 08 Nov 2013) $
+### Copyright (C) 2009-2014 Sebastian Meyer
+### $Revision: 895 $
+### $Date: 2014-04-08 14:02:10 +0200 (Tue, 08 Apr 2014) $
 ################################################################################
 
 
@@ -33,7 +33,7 @@ determineSources <- function (i, eventTimes, removalTimes, distvec, eps.s,
         as.vector(typeInfective, mode = "logical")[eventTypes]
         #<- as.vector to remove names
     }
-    # return IDs of potential epidemic sources
+    # return indexes of potential epidemic sources
     which(infectivity & proximity & matchType)
 }
 
@@ -89,7 +89,7 @@ gridcellOfEvent <- function (t, tilename, stgrid)
     ## ~5x faster alternative assuming a full BLOCK x tile grid, which is
     ## sorted by BLOCK and tile (tile varying first), specifically there must be
     ## all levels(stgrid$tile) in every BLOCK in that order;
-    ## this structure is guaranteed by checkstgrid()
+    ## this structure is guaranteed by check_stgrid()
     blockstart <- match(TRUE, stgrid$stop >= t)
     idx <- blockstart + match(tilename, levels(stgrid$tile)) - 1L
     
@@ -269,10 +269,10 @@ control2nlminb <- function (control, defaults)
 ### Internal wrapper used in twinstim() and simEpidataCS() to evaluate the siaf
 ### and tiaf arguments. If succesful, returns checked interaction function.
 
-.parseiaf <- function (iaf, type = c("siaf", "tiaf"), verbose = TRUE)
+.parseiaf <- function (iaf, type, eps = NULL, verbose = TRUE)
 {
-    type <- match.arg(type)
-    if (missing(iaf) || is.null(iaf)) {
+    type <- match.arg(type, choices=c("siaf", "tiaf"), several.ok=FALSE)
+    res <- if (missing(iaf) || is.null(iaf)) {
         if (verbose) {
             message("assuming constant ",
                     switch(type, siaf="spatial", tiaf="temporal"),
@@ -281,16 +281,24 @@ control2nlminb <- function (control, defaults)
         do.call(paste(type, "constant", sep="."), args=alist())
     } else if (is.list(iaf)) {
         ret <- do.call(type, args = iaf)
+        ## keep special attributes
+        attr(ret, "knots") <- attr(iaf, "knots")
+        attr(ret, "maxRange") <- attr(iaf, "maxRange")
+        attr(ret, "Boundary.knots") <- attr(iaf, "Boundary.knots")
+        ## indicate if this is a constant iaf
         attr(ret, "constant") <- isTRUE(attr(iaf, "constant"))
         ret
     } else if (is.vector(iaf, mode = "numeric")) {
-        stop("'knots' are not implemented for '",type,"'")
-        do.call(type, args = list(knots = iaf))
+        do.call(paste(type,"step",sep="."), args = list(knots = iaf))
     } else {
         stop("'", as.character(substitute(iaf)),
              "' must be NULL (or missing), a list (-> continuous ",
              "function), or numeric (-> knots of step function)")
     }
+    if (!is.null(eps)) {         # in simEpidataCS() eps is not known beforehand
+        attr(res, "eps") <- sort(unique(eps))
+    }
+    return(res)
 }
 
 
@@ -320,4 +328,25 @@ mapplyFUN <- function (args, before = list(), after = list(), parallel = TRUE)
             after))
     }
     FUN
+}
+
+
+### parse the list or vector of start values
+
+check_twinstim_start <- function (start)
+{
+    if (is.null(start)) {
+        return(start)
+    } else if (is.list(start)) { # convert allowed list specification to vector
+        stopifnot(names(start) %in% c("endemic", "epidemic", "h", "e",
+                                      "siaf", "tiaf", "e.siaf", "e.tiaf"))
+        names(start)[names(start) == "endemic"] <- "h"
+        names(start)[names(start) == "epidemic"] <- "e"
+        names(start)[names(start) == "siaf"] <- "e.siaf"
+        names(start)[names(start) == "tiaf"] <- "e.tiaf"
+        start <- unlist(start, use.names=TRUE)
+    }
+    if (!is.vector(start, mode="numeric") || is.null(names(start)))
+        stop("parameter 'start' values must be named and numeric")
+    return(start)
 }

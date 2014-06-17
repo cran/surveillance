@@ -180,17 +180,17 @@ farringtonFlexible <- function(sts, control = list(range = NULL, b = 3, w = 3,
     
     if (is.null(control[["thresholdMethod",exact=TRUE]]))
     { control$thresholdMethod="delta"}
-    thresholdMethod<- match.arg(control$thresholdMethod, c("delta","nbPlugin","pban"),several.ok=FALSE)
+    thresholdMethod<- match.arg(control$thresholdMethod, c("delta","nbPlugin","muan"),several.ok=FALSE)
 	
     # Adapt the argument for the glm function
-	control$typePred <- switch(thresholdMethod, "delta"="response","nbPlugin"="link","pban"="link")
+	control$typePred <- switch(thresholdMethod, "delta"="response","nbPlugin"="link","muan"="link")
 
 
      # Which threshold function?
 	 control$thresholdFunction <- switch(thresholdMethod, 
 	                                     "delta"="algo.farrington.threshold.farrington",
 										 "nbPlugin"="algo.farrington.threshold.noufaily",
-										 "pban"="algo.farrington.threshold.noufaily")
+										 "muan"="algo.farrington.threshold.noufaily")
 
     ######################################################################
     # Check options
@@ -198,7 +198,6 @@ farringtonFlexible <- function(sts, control = list(range = NULL, b = 3, w = 3,
     if (!((control$limit54[1] >= 0) && (control$limit54[2] > 0))) {
         stop("The limit54 arguments are out of bounds: cases >= 0 and period > 0.")
     }
-    
     
     ######################################################################
     # Initialize the necessary vectors
@@ -268,7 +267,6 @@ farringtonFlexible <- function(sts, control = list(range = NULL, b = 3, w = 3,
             ######################################################################
             # Fit the model 
             ######################################################################
-
 			finalModel <- algo.farrington.glm(dataGLM,timeTrend=control$trend,populationOffset=control$populationOffset,
 			                    factorsBool=control$factorsBool,reweight=control$reweight,
                                 weightsThreshold=control$weightsThreshold,
@@ -276,91 +274,111 @@ farringtonFlexible <- function(sts, control = list(range = NULL, b = 3, w = 3,
 								noPeriods=control$noPeriods,typePred=control$typePred,
 								fitFun=control$fitFun,glmWarnings=control$glmWarnings,
 								epochAsDate=epochAsDate,dayToConsider=dayToConsider,
-								diffDates=diffDates,populationNow=population[k],k,
+								diffDates=diffDates,populationNow=population[k,j],k,
 								verbose=control$verbose)
-            
-			pred <- finalModel$pred
-			doTrend <- finalModel$doTrend
-			coeffTime <- finalModel$coeffTime
+            if (is.null(finalModel)){
+				#Do we have an alarm -- i.e. is observation beyond CI??
+				#upperbound only relevant if we can have an alarm (enoughCases)
+				sts@alarm[k,j] <- NA
+				sts@upperbound[k,j] <- NA
 			
-
+				mu0Vector[(k-min(control$range)+1),j] <- NA
+				# Get overdispersion
+				phiVector[(k-min(control$range)+1),j] <- NA
+            
+				# Get score
+				score[(k-min(control$range)+1),j] <- NA
 			
-        
-            ######################################################################            
-            # Calculate lower and upper threshold
-            ######################################################################			
-			argumentsThreshold <- list(predFit=pred$fit,predSeFit=pred$se.fit,
-	                                                phi=finalModel$phi,
-                                                        skewness.transform=control$powertrans,
-                                                        alpha=control$alpha, y=observed[k],
-							method=control$thresholdMethod
-                                                        )
-
-			lu <- do.call(control$thresholdFunction, args=argumentsThreshold)
-
-            ######################################################################
-            # Postprocessing steps & output
-            ######################################################################
+				#Compute bounds of the predictive
+				pvalue[(k-min(control$range)+1),j] <- NA
             
-            #Compute exceedance score unless less than 5 reports during last 4 weeks.
-            #Changed in version 0.9-7 - current week is included now
-            enoughCases <- (sum(observed[(k-control$limit54[2]+1):k,j])
-                                            >=control$limit54[1])
-            
-            #18 May 2006: Bug/unexpected feature found by Y. Le Strat.
-            #the okHistory variable meant to protect against zero count problems,
-            #but instead it resulted in exceedance score == 0 for low counts.
-            #Now removed to be concordant with the Farrington 1996 paper.
-            X <- ifelse(enoughCases,lu$score,NA)
-            
-            #Do we have an alarm -- i.e. is observation beyond CI??
-            #upperbound only relevant if we can have an alarm (enoughCases)
- 
-            sts@alarm[k,j] <- !is.na(X) && (X>=1)
-            sts@upperbound[k,j] <- ifelse(enoughCases,lu$upper,NA)
-            
-            # Possible bug alarm although upperbound <- 0? 
-            
-            # Calculate expected value from glm
-
-			if (is.na(lu$upper)==FALSE){
-				if ( control$typePred=="response"){
-					expected[(k-min(control$range)+1),j] <- ifelse(enoughCases,pred$fit,NA)
-				} else{
-					expected[(k-min(control$range)+1),j] <- ifelse(enoughCases,exp(pred$fit),NA)
-				}
-            }else{
-				expected[(k-min(control$range)+1),j] <- NA
-			}
-			
-            # Calculate mean of the negbin distribution of the observation        
-            # Use linear predictor mean and sd
-            eta0 <- pred$fit
-            seEta0 <- pred$se.fit
-            
-            # deduce the quantile for mu0 from eta0 which is normally distributed
-            if (control$thresholdMethod=='nbPlugin'){
-                mu0Vector[(k-min(control$range)+1),j] <- exp(eta0) 
-            } else {
-                mu0Vector[(k-min(control$range)+1),j] <- exp(qnorm(1-control$alpha, mean=eta0, sd=seEta0))
-            }            
-            
-            # Get overdispersion
-            phiVector[(k-min(control$range)+1),j] <- finalModel$phi
-            
-			# Get score
-			score[(k-min(control$range)+1),j] <- lu$score
-			
-            #Compute bounds of the predictive
-            pvalue[(k-min(control$range)+1),j] <- lu$prob
-            
-			# Time trend
-            if(doTrend){
-				trendVector[(k-min(control$range)+1),j] <- coeffTime
-				trend[(k-min(control$range)+1),j] <- 1
-			
-			} else {
+				# Time trend
 				trendVector[(k-min(control$range)+1),j] <- NA
+				trend[(k-min(control$range)+1),j] <- NA
+				warning(paste("The model could not converge with nor without time trend at timepoint ", k," so no result can be given for timepoint ", k,".\n"))
+			} else {
+				pred <- finalModel$pred
+				doTrend <- finalModel$doTrend
+				coeffTime <- finalModel$coeffTime
+				
+
+				
+			
+				######################################################################            
+				# Calculate lower and upper threshold
+				######################################################################			
+				argumentsThreshold <- list(predFit=pred$fit,predSeFit=pred$se.fit,
+														phi=finalModel$phi,
+															skewness.transform=control$powertrans,
+															alpha=control$alpha, y=observed[k,j],
+								method=control$thresholdMethod
+															)
+
+				lu <- do.call(control$thresholdFunction, args=argumentsThreshold)
+
+				######################################################################
+				# Postprocessing steps & output
+				######################################################################
+				
+				#Compute exceedance score unless less than 5 reports during last 4 weeks.
+				#Changed in version 0.9-7 - current week is included now
+				enoughCases <- (sum(observed[(k-control$limit54[2]+1):k,j])
+												>=control$limit54[1])
+				
+				#18 May 2006: Bug/unexpected feature found by Y. Le Strat.
+				#the okHistory variable meant to protect against zero count problems,
+				#but instead it resulted in exceedance score == 0 for low counts.
+				#Now removed to be concordant with the Farrington 1996 paper.
+				X <- ifelse(enoughCases,lu$score,NA)
+				
+				#Do we have an alarm -- i.e. is observation beyond CI??
+				#upperbound only relevant if we can have an alarm (enoughCases)
+				sts@alarm[k,j] <- !is.na(X) && (X>=1) && observed[k,j]!=0
+				sts@upperbound[k,j] <- ifelse(enoughCases,lu$upper,NA)
+				
+				# Possible bug alarm although upperbound <- 0? 
+				
+				# Calculate expected value from glm
+
+				if (is.na(lu$upper)==FALSE){
+					if ( control$typePred=="response"){
+						expected[(k-min(control$range)+1),j] <- ifelse(enoughCases,pred$fit,NA)
+					} else{
+						expected[(k-min(control$range)+1),j] <- ifelse(enoughCases,exp(pred$fit),NA)
+					}
+				}else{
+					expected[(k-min(control$range)+1),j] <- NA
+				}
+				
+				# Calculate mean of the negbin distribution of the observation        
+				# Use linear predictor mean and sd
+				eta0 <- pred$fit
+				seEta0 <- pred$se.fit
+				
+				# deduce the quantile for mu0 from eta0 which is normally distributed
+				if (control$thresholdMethod=='nbPlugin'){
+					mu0Vector[(k-min(control$range)+1),j] <- exp(eta0) 
+				} else {
+					mu0Vector[(k-min(control$range)+1),j] <- exp(qnorm(1-control$alpha, mean=eta0, sd=seEta0))
+				}            
+				
+				# Get overdispersion
+				phiVector[(k-min(control$range)+1),j] <- finalModel$phi
+				
+				# Get score
+				score[(k-min(control$range)+1),j] <- lu$score
+				
+				#Compute bounds of the predictive
+				pvalue[(k-min(control$range)+1),j] <- lu$prob
+				
+				# Time trend
+				if(doTrend){
+					trendVector[(k-min(control$range)+1),j] <- coeffTime
+					trend[(k-min(control$range)+1),j] <- 1
+				
+				} else {
+					trendVector[(k-min(control$range)+1),j] <- NA
+				}
 			}
         }#done looping over all time points
     } #end of loop over cols in sts. 
@@ -385,6 +403,7 @@ farringtonFlexible <- function(sts, control = list(range = NULL, b = 3, w = 3,
     sts@control$trendVector[,j] <- trendVector[,j]    
     
     #Done
+	
     return(sts[control$range,]) 
 }
 
@@ -556,7 +575,7 @@ timeTrend,populationOffset,factorsBool,reweight,weightsThreshold,glmWarnings,ver
 												family = quasipoisson(link="log"))
 			} else {
 				model <- suppressWarnings(glm(as.formula(theModel), data=dataGLM,
-																					family = quasipoisson(link="log")))
+											family = quasipoisson(link="log")))
 			}
 			if (verbose) {cat("Warning: No convergence with timeTrend -- trying without.\n")}
         }
@@ -681,7 +700,7 @@ algo.farrington.threshold.noufaily <- function(predFit,predSeFit,phi,
 	if (mu0Quantile==Inf){
 		lu <- c(NA,NA)
 		q <- NA
-	# else is when the method is "pban"
+	# else is when the method is "muan"
 	} else{
 		# Two cases depending on phi value
 		if (phi>1){

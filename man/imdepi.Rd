@@ -10,8 +10,9 @@
 
 \description{
   \code{imdepi} contains data on the spatio-temporal location of 636
-  cases of invasive meningococcal disease caused by two specific
-  meningococcal finetypes in Germany.
+  cases of invasive meningococcal disease (IMD) caused by the two most
+  common meningococcal finetypes in Germany, \samp{B:P1.7-2,4:F1-5} (of
+  serogroup B) and \samp{C:P1.5,2:F3-3} (of serogroup C).
   \code{imdepifit} contains a model fit to the \code{imdepi} data. 
 }
 
@@ -24,23 +25,27 @@ data(imdepifit)
   \code{imdepi} is an object of class
   \code{"\link{epidataCS}"} (a list with components \code{events},
   \code{stgrid}, \code{W} and \code{qmatrix}).
+  
   \code{imdepifit} is an object of class \code{"\link{twinstim}"},
   see \code{\link{summary.twinstim}} for some simple methods for fitted
   \code{"twinstim"} models.
 }
 
 \details{
-  The dataset contains a slightly modified version of the data analyzed in
-  Meyer et al. (2012) represented as an \code{"epidataCS"} object, which
-  is a list with components \code{events}, \code{stgrid}, \code{W}, and
+  The dataset contains a simplified version of the data analyzed in
+  Meyer et al. (2012), represented as an \code{"epidataCS"} object, i.e.,
+  a list with components \code{events}, \code{stgrid}, \code{W}, and
   \code{qmatrix}.
 
   The \code{events} entry is a \code{"\linkS4class{SpatialPointsDataFrame}"}
-  object (ETSR89 projection, i.e. EPSG code 3035, with unit \sQuote{km})
+  object (ETRS89 projection, i.e. EPSG code 3035, with unit \sQuote{km})
   containing 636 events, each with the following entries:
   \describe{
-    \item{ID:}{Unique identifier of the case.}
-    \item{time:}{Time of the case occurrence measured in number of days since origin.}
+    \item{time:}{Time of the case occurrence measured in number of days
+      since origin. Note that a U(0,1)-distributed random number has
+      been subtracted from each of the original event times (days) to
+      break ties (using
+      \code{\link{untie}(imdepi_tied, amount=list(t=1))}).}
     \item{tile:}{Tile ID in the spatio-temporal grid (\code{stgrid}) of
       endemic covariates, where the event is contained in.
       This corresponds to one of the 413 districts of Germany.
@@ -50,17 +55,18 @@ data(imdepifit)
       Here set to 30 days.}
     \item{eps.s:}{Maximum spatial interaction range for the event.
       Here set to 200 km.}
-    \item{sex:}{Sex of the case, i.e. a factor with levels \code{"male"}
-      and \code{"female"}.} 
+    \item{sex:}{Sex of the case, i.e. a factor with levels \code{"female"}
+      and \code{"male"}. Note: for some cases this
+      information is not available (\code{NA}).} 
     \item{agegrp:}{Factor giving the age group of the case,
-      i.e. 0-2, 3-18 or >=19. Note: for a small number of cases this
+      i.e. 0-2, 3-18 or >=19. Note: for one case this
       information is not available (\code{NA}).}
     \item{BLOCK, start:}{Block ID and start time (in days since origin) of
       the cell in the spatio-temporal endemic covariate grid, which the
       event belongs to.} 
-    \item{popdensity:}{Population density at the location of the event
-      (corresponds to population density of the district where the event is
-      located).}
+    \item{popdensity:}{Population density (per square km) at the
+      location of the event (corresponds to population density of the
+      district where the event is located).}
   }
   There are further auxiliary columns attached to the events' data
   the names of which begin with a . (dot): These are created during
@@ -70,7 +76,7 @@ data(imdepifit)
   With \code{coordinates(imdepi$events)} one obtains the (x,y) locations
   of the events.
 
-  The identifier in \code{tile} is indexed according to
+  The district identifier in \code{tile} is indexed according to
   the German official municipality key (
   \dQuote{Amtlicher Gemeindeschl\enc{ü}{ue}ssel}). See
   \url{http://de.wikipedia.org/wiki/Amtlicher_Gemeindeschl\%C3\%BCssel}
@@ -88,33 +94,38 @@ data(imdepifit)
   }
   We have actually not included any time-dependent covariates here, we
   just established this grid with a (reduced -> fast) temporal
-  resolution of monthly intervals so that we can model endemic time
-  trends and seasonality (in this discretized time).
+  resolution of \emph{monthly} intervals so that we can model endemic
+  time trends and seasonality (in this discretized time).
   
   The entry \code{W} contains the observation window as a
-  \code{\link{SpatialPolygons}} object. In this case the boundaries of
-  Germany (simplified polygon to enhance speed).
-  %% The original shape file was downloaded from
-  %% \url{http://www.geodatenzentrum.de/geodaten/gdz_rahmen.gdz_div?gdz_spr=eng&gdz_akt_zeile=5&gdz_anz_zeile=5&gdz_user_id=0}
-  %% as of 2009-01-01, which has copyright by Bundesamt für Kartographie
-  %% und Geodäsie, Frankfurt am Main:
-  %% "Copy, distribution and making available to the public - also in
-  %% parts - is allowed with reference."
-  %% This shapefile was then simplified using \code{simplify.owin()} from
-  %% package \pkg{spatstat} with parameter \code{dmin = 10}.
+  \code{\link{SpatialPolygons}} object, in this case the boundaries of
+  Germany. It was obtained as
+  \code{stateD <- rgeos::gUnaryUnion(districtsD)},
+  where \code{districtsD} represents Germany's districts as at
+  2009-01-01 (originally obtained from \url{www.geodatenzentrum.de}),
+  simplified by the \dQuote{modified Visvalingam} algorithm (level
+  6.6\%) available at \url{MapShaper.org} (v. 0.1.17).
+  The objects \code{districtsD} and \code{stateD} are contained in
+  \code{system.file("shapes", "districtsD.RData", package="surveillance")}.
   
   The entry \code{qmatrix} is a \eqn{2\times 2}{2 x 2} identity matrix
   indicating that no transmission between the two finetypes can occur.
 }
 
 \source{
-  German Reference Centre for Meningococci (NRZM) -- hosted by the
-  Department of Hygiene and Microbiology,
-  Julius-Maximilians-Universit\enc{ä}{ae}t W\enc{ü}{ue}rzburg, Germany.\cr
-  Thanks to Dr. Johannes Elias and Prof. Dr. Ulrich Vogel from the NRZM
-  for providing the IMD event data. See \url{http://www.meningococcus.de/}
-  and \url{http://episcangis.hygiene.uni-wuerzburg.de/} for further
-  details about the IMD event data.
+  IMD case reports: German Reference Centre for Meningococci (NRZM) --
+  hosted by the Department of Hygiene and Microbiology,
+  Julius-Maximilians-Universit\enc{ä}{ae}t W\enc{ü}{ue}rzburg, Germany.
+  Thanks to Dr. Johannes Elias and Prof. Dr. Ulrich Vogel for providing
+  the data. See \url{http://www.meningococcus.de/} and
+  \url{http://episcangis.hygiene.uni-wuerzburg.de/} for further
+  details.
+
+  Shapefile of Germany's districts as at 2009-01-01:
+  Bundesamt f\enc{ü}{ue}r Kartographie und Geod\enc{ä}{ae}sie, Frankfurt
+  am Main, Germany, \url{www.geodatenzentrum.de}.
+  %% "Copy, distribution and making available to the public - also in
+  %% parts - is allowed with reference."
 }
 
 \references{
@@ -122,12 +133,6 @@ data(imdepifit)
   A space-time conditional intensity model for invasive meningococcal
   disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.\cr
   DOI-Link: \url{http://dx.doi.org/10.1111/j.1541-0420.2011.01684.x}
-
-  Meyer, S. (2010):
-  Spatio-Temporal Infectious Disease Epidemiology based on Point Processes.
-  Master's Thesis, Ludwig-Maximilians-Universit\enc{ä}{ae}t
-  M\enc{ü}{ue}nchen.\cr
-  Available as \url{http://epub.ub.uni-muenchen.de/11703/}
 }
 
 \seealso{
@@ -185,22 +190,21 @@ par(opar)
 # a histogram of the number of events along time (using the
 # plot-method for the epidataCS-class, see ?plot.epidataCS)
 opar <- par(mfrow = c(2,1))
-plot(imdepi, aggregate = "time", subset = type == "B", main = "Finetype B")
-plot(imdepi, aggregate = "time", subset = type == "C", main = "Finetype C")
+plot(imdepi, "time", subset = type == "B", main = "Finetype B")
+plot(imdepi, "time", subset = type == "C", main = "Finetype C")
 par(opar)
 
 # Plot the spatial distribution of the events in W
-plot(imdepi$W)
-colTypes <- c("darkblue","indianred2")
-pch <- c(3,4)
-with(imdepi, {
-  plot(events,pch=pch[events$type],col=colTypes[events$type],add=TRUE)
-  legend(x="topleft",levels(events$type),col=colTypes, pch=pch,title="Finetype")
-})
-
-# somehow easier: use the plot-method for the epidataCS class
-plot(imdepi, aggregate="space", axes=TRUE, colTypes=colTypes)
+plot(imdepi, "space", points.args = list(col=c("indianred", "darkblue")),
+     axes = TRUE, lwd = 2)
 title(xlab = "x [km]", ylab = "y [km]")
+
+\dontrun{
+# or manually (no legends, no account for tied locations)
+plot(imdepi$W, lwd=2)
+plot(imdepi$events, pch=c(3,4)[imdepi$events$type], cex=0.8,
+     col=c("indianred", "darkblue")[imdepi$events$type], add=TRUE)
+}
 
 \dontrun{
   # Show a dynamic illustration of the spatio-temporal dynamics of the 

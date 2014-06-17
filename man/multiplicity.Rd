@@ -1,6 +1,6 @@
 \name{multiplicity}
-\alias{multiplicity}
-\alias{multiplicity.default}
+\alias{multiplicity}   % the generic is imported from spatstat and
+                       % then exported (unchanged) -> documentation required
 \alias{multiplicity.Spatial}
 
 \title{
@@ -8,52 +8,51 @@ Count Number of Instances of Points
 }
 
 \description{
-  The \code{multiplicity} S3-generic function defined in
-  \pkg{surveillance} is intended as a simple auxiliary function, which
-  counts the number of instances of each row in a numeric \code{matrix} (or
-  \code{data.frame}), or of each point in a \code{Spatial} object.
-  Indeed, this just computes the distance matrix of the rows (points),
-  and then counts the number of zeroes in each row.
+  The generic function \code{multiplicity} defined in \pkg{spatstat} is
+  intended to count the number of duplicates of each element of an object.
+  \pkg{spatstat} already offers methods for point patterns, matrices and
+  data frames, and here we add a method for \code{Spatial} objects from
+  the \pkg{sp} package. It is a wrapper for the default method, which
+  effectively computes the distance matrix of the points,
+  and then just counts the number of zeroes in each row.
 }
 
 \usage{
-multiplicity(x, ...)
-
-\method{multiplicity}{default}(x, ...)
-\method{multiplicity}{Spatial}(x, ...)
+\method{multiplicity}{Spatial}(x)
 }
 
 \arguments{
   \item{x}{
-    an object, for which a \code{multiplicity} method is defined, e.g.
-    a numeric matrix (or anything coercible to it by \code{as.matrix})
-    or an object of class \code{"\linkS4class{SpatialPoints}"}. 
+    %% an object, for which a \code{multiplicity} method is defined, e.g.
+    %% a numeric matrix (or anything coercible to it by \code{as.matrix})
+    a \code{"\linkS4class{Spatial}"} object (we only need a
+    \code{\link{coordinates}}-method), e.g. of class
+    \code{"\linkS4class{SpatialPoints}"}. 
   }
-  \item{\dots}{currently unused.}
 }
 
 \value{
-  an integer vector containing the number of instances at each point of the object.
+  an integer vector containing the number of instances of each
+  point of the object.
 }
 
 \seealso{
-  Examples of the \code{\link{hagelloch}} data for a specific use of this function.
+  \code{\link[spatstat]{multiplicity}} in package \pkg{spatstat}.
+  See the Examples of the \code{\link{hagelloch}} data for a specific
+  use of \code{multiplicity}.
 }
 
 \examples{
-foo <- matrix(c(1,2,3,
-                2,3,4,
-                1,2,3,
-                4,5,6), byrow=TRUE, ncol=3)
+foo <- SpatialPoints(matrix(c(1,2,
+                              2,3,
+                              1,2,
+                              4,5), 4, 2, byrow=TRUE))
 multiplicity(foo)
 
-# the following function determines the multiplicity of rows of a
-# numeric matrix and returns unique rows with appended multiplicity
-countunique <- function (matrix) {
-    count <- multiplicity(matrix)
-    unique(cbind(matrix, count))
-}
-countunique(foo)
+# the following function determines the multiplicities in a matrix
+# or data frame and returns unique rows with appended multiplicity
+countunique <- function(x) unique(cbind(x, count=multiplicity(x)))
+countunique(coordinates(foo))
 }
 
 \keyword{utilities}

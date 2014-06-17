@@ -13,6 +13,7 @@
 #  h   - decision threshold of the Categorical CUSUM
 #########################################################################
 
+
 catcusum.LLRcompute <- function(y, pi0, pi1, h, dfun, n, calc.at=TRUE,...) {
   #Initialize variables
   t <- 0
@@ -188,22 +189,27 @@ categoricalCUSUM <- function(stsObj,
   # Add name and data name to control object
   control$name <- "multinomCUSUM"
   control$data <- NULL #not supported anymore
-
+  
 
   #New direct calculations on the sts object
   stsObj@observed <- stsObj@observed[control$range,,drop=FALSE]
+  stsObj@epoch <- stsObj@epoch[control$range,drop=FALSE]
   stsObj@state <- stsObj@state[control$range,,drop=FALSE]
   stsObj@populationFrac <- stsObj@populationFrac[control$range,,drop=FALSE]
   stsObj@alarm <- alarm
   stsObj@upperbound <- upperbound
+  stsObj@control <- control
 
   #Fix the corresponding start entry
-  start <- stsObj@start
-  new.sampleNo <- start[2] + min(control$range) - 1
-  start.year <- start[1] + (new.sampleNo - 1) %/% stsObj@freq 
-  start.sampleNo <- (new.sampleNo - 1) %% stsObj@freq + 1
-  stsObj@start <- c(start.year,start.sampleNo)
-
+  if (stsObj@epochAsDate==FALSE){
+    start <- stsObj@start
+    new.sampleNo <- start[2] + min(control$range) - 1
+    start.year <- start[1] + (new.sampleNo - 1) %/% stsObj@freq 
+    start.sampleNo <- (new.sampleNo - 1) %% stsObj@freq + 1
+    stsObj@start <- c(start.year,start.sampleNo)
+  } else {
+    stsObj@start <- c(isoWeekYear(epoch(stsObj)[1])$ISOYear,isoWeekYear(epoch(stsObj)[1])$ISOWeek)
+  }
   #Ensure dimnames in the new object ## THIS NEEDS TO BE FIXED!
   #stsObj <- fix.dimnames(stsObj)
 

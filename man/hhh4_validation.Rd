@@ -4,7 +4,7 @@
 \alias{scores}
 
 \title{
- Predictive Model Assessment for HHH4 models
+ Predictive Model Assessment for \code{hhh4} models
 }
 \description{
  The function \code{oneStepAhead} computes successive one-step-ahead predictions for
@@ -17,42 +17,60 @@
 }
 
 \usage{
-oneStepAhead(result, tp, which.start = c("current", "final", "none"),
-             keep.estimates = FALSE, verbose = TRUE)
+oneStepAhead(result, tp, type = c("rolling", "first", "final"),
+             which.start = c("current", "final"),
+             keep.estimates = FALSE, verbose = TRUE, cores = 1)
 
 scores(object, unit = NULL, sign = FALSE, individual = FALSE)
 }
 
 \arguments{
-  \item{result}{Fitted \code{\link{hhh4}} model object of class \code{"ah4"}.}
+  \item{result}{fitted \code{\link{hhh4}} model (class \code{"hhh4"}).}
   \item{tp}{numeric vector of length 1 or 2.
     One-step-ahead predictions are computed from time points 
     \code{tp[1]}, \ldots, \code{tp[2]} (yielding predictions for time
     points \code{tp[1]+1}, ...), where
-    \code{tp[2]} defaults to \code{nrow(result$stsObj)}.
+    \code{tp[2]} defaults to the penultimate time point of
+    \code{result$control$subset}.
   }
+  \item{type}{The default \code{"rolling"} procedure sequentially 
+    refits the model up to each time point in \code{tp} and computes
+    the one-step-ahead predictions for the respective next time point.
+    The alternative \code{type}s are no true one-step-ahead predictions
+    but much faster:
+    \code{"first"} will refit the model for the first time point
+    \code{tp[1]} only and use this specific fit to calculate all
+    subsequent predictions, whereas
+    \code{"final"} will just use \code{result} to calculate these.
+    The latter case thus gives nothing else than a subset of
+    \code{result$fitted.values}, if the \code{tp}'s are part of the
+    fitted subset \code{result$control$subset}.}
   \item{which.start}{
     Which initial values should be used when successively
     refitting the model for subsets of the data (up to time point
-    \code{tp[1]}, up to \code{tp[1]+1}, ...)?
+    \code{tp[1]}, up to \code{tp[1]+1}, ...) if \code{type="rolling"}?
     Default (\code{"current"}) is to use the fitted parameters from the
     previous time point. Alternatively, \code{"final"} means to always
     use the fitted values from \code{result} as initial values for the
-    model update, and \code{"none"} means to use \code{result} all along
-    time (no updating at all). The latter case runs much faster but reduces
-    to comparing the fitted means from \code{result} with the observed
-    data (no one-step-ahead predictions).
+    model update. \code{which.start} is ignored for other \code{type}s.
   }
   \item{keep.estimates}{
     logical indicating if parameter estimates and log-likelihoods from
     the successive fits should be returned.
   }
   \item{verbose}{
-    logical indicating if additional information is to be printed during
-    the computations. For the sequential \code{hhh4} model updates, a
-    verbosity of \code{verbose-1} is used if there is more than one time
-    point to predict, otherwise \code{verbose}.
+    non-negative integer (usually in the range \code{0:3}) specifying
+    the amount of tracing information to output.
+    During \code{hhh4} model updates, the following verbosity is used:
+    \code{0} if \code{cores > 1}, otherwise \code{verbose-1} if there
+    is more than one time point to predict, otherwise \code{verbose}.
   }
+  \item{cores}{the number of cores to use when computing
+    the predictions for the set of time points \code{tp} in parallel
+    (with \code{\link[parallel]{mclapply}}).
+    Note that parallelization is not possible in the default setting
+    \code{type="rolling"} and \code{which.start="current"} (use
+    \code{which.start="final"} for this to work).}
   \item{object}{result of \code{oneStepAhead}.}
   \item{unit}{integer specifying a specific unit for which the scores
     are computed. If \code{NULL} all units are considered.}
@@ -65,12 +83,12 @@ scores(object, unit = NULL, sign = FALSE, individual = FALSE)
 
 \value{
 \code{oneStepAhead} returns a list with
-\item{pred}{matrix with one-step-ahead predictions}
-\item{psi}{overdispersion parameter on log-scale in case of a negative
-  binomial model and \code{NULL} otherwise}
+\item{pred}{matrix of one-step-ahead predictions}
 \item{observed}{matrix with observed counts at the predicted time-points}
+\item{psi}{overdispersion parameter on -log-scale in case of a
+  negative-binomial model and \code{NULL} otherwise}
 \item{allConverged}{logical indicating if all successive fits converged}
-If \code{keep.estimates = TRUE}, the following elements will be non-\code{NULL}:
+If \code{keep.estimates=TRUE}, there are the following additional elements:
 \item{coefficients}{matrix with estimated regression parameters from the successive fits}
 \item{Sigma.orig}{matrix with estimated variance parameters from the successive fits}
 \item{logliks}{matrix with columns \code{"loglikelihood"} and
@@ -113,10 +131,26 @@ model1 <- list(ar = list(f = ~ 1), end = list(f =f.end),
 result <- hhh4(salmonella, model1)
 
 # do one-step-ahead predictions for the last 5 weeks
-pred <- oneStepAhead(result, nrow(salmonella)-5)
+pred <- oneStepAhead(result, nrow(salmonella)-5,
+                     which.start="final", verbose=FALSE)
+
+\dontshow{
+## test equivalence of parallelized version
+if (.Platform$OS.type == "unix" && isTRUE(parallel::detectCores() > 1))
+    stopifnot(identical(pred,
+        oneStepAhead(result, nrow(salmonella)-5,
+                     which.start="final", verbose=FALSE, cores=2)))
+}
 
 # compute mean scores
 colMeans(scores(pred))
+
+# type="final" just means fitted values
+stopifnot(identical(
+    unname(oneStepAhead(result, nrow(salmonella)-5,
+                        type="final", verbose=FALSE)$pred),
+    unname(tail(fitted(result), 5))))
+
 
 \dontrun{
 ######################################################################

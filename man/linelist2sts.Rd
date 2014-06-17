@@ -78,7 +78,10 @@ if (!inherits(D, "try-error")) {
     sts <- linelist2sts(D, dateCol="dOnset", aggregate.by="1 day")
 
     #Plot the result
-    plot(sts,xaxis.years=FALSE,legend.opts=NULL,xlab="time (days)")
+    plot(sts,xaxis.tickFreq=list("\%d"=atChange,"\%m"=atChange),
+             xaxis.labelFreq=list("\%d"=at2ndChange),
+             xaxis.labelFormat="\%d \%b",legend.opts=NULL,
+             xlab="",las=2,cex.axis=0.8)
 }
 }
 

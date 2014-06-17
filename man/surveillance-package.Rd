@@ -1,3 +1,6 @@
+% Note @ R 3.0.2: Unfortunately, setting \RdOpts{stage=build} globally
+% does not work as expected, so we have to specify it in each \Sexpr
+
 \encoding{latin1}
 \name{surveillance-package}
 \alias{surveillance-package}
@@ -5,12 +8,13 @@
 \docType{package}
 
 \title{
-  Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic Phenomena
-%  Outbreak Detection and Retrospective Modeling for Surveillance Data
+  \Sexpr[stage=build]{(meta <- packageDescription("surveillance", encoding="latin1"))$Title}
+  % If !is.na(encoding), do iconv() from "latin1" (DESCRIPTION: Encoding) to 'encoding'
+  % Do we really need re-encoding, i.e., encoding="latin1", to make the \Sexpr's work on Windows?
 }
 
 \description{
-  A package implementing statistical methods for the modeling and
+  A package implementing statistical methods for the modelling and
   change-point detection in time series of counts, proportions and
   categorical data, as well as for the modeling of continuous-time
   epidemic phenomena, e.g. discrete-space setups such as the spatially
@@ -41,10 +45,11 @@
 
 \details{
   \tabular{ll}{
-    Package: \tab surveillance\cr
-    URL: \tab \url{http://surveillance.r-forge.r-project.org/}\cr
-    License: \tab GPL version 2
-    (\url{http://www.gnu.org/licenses/old-licenses/gpl-2.0.html})\cr
+    Package: \tab \Sexpr[stage=build]{meta$Package}\cr
+    Version: \tab \Sexpr[stage=build]{meta$Version}\cr
+    License: \tab \Sexpr[stage=build]{meta$License}\cr
+    URL:     \tab \url{http://surveillance.r-forge.r-project.org/}\cr
+    % cannot use \Sexpr within \url; and results=rd with "\\url"-paste is buggy
   }
   
   \pkg{surveillance} is an \R package implementing statistical methods
@@ -75,39 +80,42 @@
   to simulate outbreak data, visualize the results of the monitoring in
   temporal, spatial or spatio-temporal fashion.
 
-  Furthermore, inference methods for the retrospective infectious disease
-  model in Held et al. (2005), Paul et al. (2008) ("algo.hhh") and Paul
-  and Held (2011) ("hhh4") handling multivariate time series of
-  counts. Furthermore, the fully Bayesian approach for univariate time
-  series of counts from Held et al. (2006) ("twins") is also implemented
-  Self-exciting spatio-temporal point processes are modeled through
-  additive-multiplicative conditional intensities as described in
-  H\enc{ö}{oe}hle (2009) ("twinSIR") and Meyer et al (2012) ("twinstim").
+  Furthermore, the package contains inference methods for the
+  retrospective infectious disease model in Held et al. (2005), Paul et
+  al. (2008) ("algo.hhh") and Paul and Held (2011) ("hhh4") handling
+  multivariate time series of counts. Furthermore, the fully Bayesian
+  approach for univariate time series of counts from Held et al. (2006)
+  ("twins") is also implemented. Self-exciting spatio-temporal point
+  processes are modeled through additive-multiplicative conditional
+  intensities as described in H\enc{ö}{oe}hle (2009) ("twinSIR") and
+  Meyer et al (2012) ("twinstim").
 
-  Altogether, the package contains several real-world datasets, the
-  ability to simulate outbreak data, visualize the results of the
-  monitoring in temporal, spatial or spatio-temporal fashion.
+  Altogether, the package allows the modelling and monitoring of
+  epidemic phenomena in temporal and spatio-temporal contexts.
 }
 
-\section{Acknowledgements}{
-  T. Correa, L. Held, M. Hofmann, C. Lang, A. Riebler,
-  D. Saban\enc{é}{e}s Bov\enc{é}{e}, M. Salmon, S. Steiner, M. Virtanen,
-  and V. Wimmer made substantial contributions of code.
-
-  The authors would like to thank the following people for ideas,
-  discussions, testing and feedback:
-  Doris Altmann, Johannes Dreesman, Johannes Elias, Mayeul Kauffmann,
-  Marc Geilhufe, Kurt Hornik, Marcos Prates, Brian D. Ripley,
-  Barry Rowlingson, Christopher W. Ryan,
-  Klaus Stark, Yann Le Strat, Andr\enc{é}{e} Michael Toschke,
-  Wei Wei, Achim Zeileis.
-}
-
+%% Author information is dynamically extracted from the DESCRIPTION file
 \author{
-  Michael H\enc{ö}{oe}hle, Sebastian Meyer, and Michaela Paul
-  
-  Maintainer: Michael H\enc{ö}{oe}hle
-  \email{Michael.Hoehle@stat.uni-muenchen.de}
+  \Sexpr[stage=build]{authors <- unname(eval(parse(text=meta$"Authors@R")))}
+  \Sexpr[stage=build]{formatPerson <- function(person, sort=FALSE) paste0(format(if (sort && length(person) > 1) person[order(unlist(person$family))] else person, include=c("given", "family")), collapse=", ")}
+  \Sexpr[stage=build]{formatPerson(authors[grep("aut", authors$role)])}
+
+  \Sexpr[stage=build]{maintainer <- authors[grep("cre", authors$role)]}
+  Maintainer: \Sexpr[stage=build]{formatPerson(maintainer)} \email{\Sexpr[stage=build]{maintainer$email}}
+}
+
+%% Dynamically extract contributors from the DESCRIPTION file
+%% and persons from inst/THANKS for acknowledgement:
+\section{Acknowledgements}{
+  Substantial contributions of code by:
+  \Sexpr[stage=build]{contributors <- authors[grepl("ctb", authors$role) & !sapply(authors$family, is.null)]}
+  \Sexpr[stage=build]{formatPerson(contributors, sort=TRUE)}.
+
+  Furthermore, the authors would like to thank the following people
+  for ideas, discussions, testing and feedback:
+  \Sexpr[stage=build]{THANKSfile <- file(system.file("THANKS", package="surveillance", mustWork=TRUE), encoding="latin1")} % this re-encodes from "latin1" to the current native encoding
+  \Sexpr[stage=build]{formatPerson(as.person(grep("^(#|[[:blank:]]*$)", readLines(THANKSfile), invert=TRUE, value=TRUE)), sort=TRUE)}.
+  \Sexpr[stage=build]{close(THANKSfile)}
 }
 
 \references{
@@ -120,6 +128,7 @@
 #Code from an early survey article about the package: Hoehle (2007)
 #available from http://surveillance.r-forge.r-project.org/
 \dontrun{demo(cost)}
+
 #Code from a more recent book chapter about using the package for the
 #monitoring of Danish mortality data (Hoehle and Mazick, 2010).
 \dontrun{demo(biosurvbook)}

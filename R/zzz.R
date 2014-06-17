@@ -78,9 +78,53 @@ formatPval <- function (pv, eps = 1e-4)
 }
 
 
-### quantile function of the Lomax distribution
-### we could also use VGAM::qlomax (but this would be slightly slower)
+### determines multiplicities in a matrix (or data frame)
+### and returns unique rows with appended column of counts
 
-qlomax <- function (p, scale, shape) {
-    scale * ((1-p)^(-1/shape) - 1)
+countunique <- function (x) unique(cbind(x, COUNT = multiplicity(x)))
+
+
+### generate a color vector (via the colorspace package)
+
+hcl.colors <- function (ncolors=100, use.color=TRUE)
+{
+    GYR <- if (requireNamespace("colorspace", quietly=TRUE)) {
+        ## the Zeil-ice colors 
+        colorspace::heat_hcl(ncolors, h=c(0,120),
+                             c=if (use.color) c(90,30) else c(0,0),
+                             l=c(50,90), power=c(0.75, 1.2))
+    } else {
+        if (use.color) heat.colors(ncolors) else grey.colors(ncolors)
+    }
+    
+    return(rev(GYR))
 }
+
+
+
+
+###############################################################
+### backwards-compatibility for old class name "ah4" (<= 1.7-0)
+###############################################################
+
+local({
+    methods17 <- c("print", "summary", "print.summary", "terms", "logLik",
+                   "coef", "fixef", "ranef", "confint", "predict",
+                   "update", "plot", "simulate")
+    for (generic in methods17) {
+        methodname <- paste(generic, "hhh4", sep=".")
+        method <- get(methodname)
+        ## mark ah4-method as deprecated (as of next major release)
+        ## body(method) <- as.call(append(
+        ##     as.list(body(method)),
+        ##     substitute(
+        ##         .Deprecated(new,
+        ##                     msg=c(
+        ##                     "Since surveillance 1.8-0, hhh4()-results are of",
+        ##                     " class \"hhh4\" instead of \"ah4\".",
+        ##                     "\nOld \"ah4\"-methods will be removed.")),
+        ##         list(new=methodname)),
+        ##     after=1L))
+        assign(paste(generic, "ah4", sep="."), method, pos=parent.frame(2L))
+    }
+})

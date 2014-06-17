@@ -49,7 +49,6 @@ districtAtBorder <- polyAtBorder(districtsD)
 plot(districtsD, col=districtAtBorder)
 
 ## polyclip cannot be used with the default snapping tolerance
-plot(districtsD, col=polyAtBorder(districtsD, method="polyclip"))
 ## but increasing the tolerance gives the correct result
 stopifnot(identical(districtAtBorder,
                     polyAtBorder(districtsD, snap=1e-6, method="polyclip")))

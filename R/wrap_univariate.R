@@ -79,7 +79,7 @@ farrington <- function(sts, control=list(range=NULL, b=3, w=3, reweight=TRUE, ve
 #Bayes wrapper (this can be implemented more efficiently)
 bayes <- function(sts, control = list(range = range, b = 0, w = 6, actY = TRUE,alpha=0.05),...) {
   if (sts@epochAsDate) {
-    warning("algo.cdc currently can't handle Date entries. Computing reference values based on freq")
+    warning("algo.bayes currently can't handle Date entries. Computing reference values based on freq")
   }
   wrap.algo(sts,algo="algo.bayes",control=control)
 }
@@ -87,7 +87,7 @@ bayes <- function(sts, control = list(range = range, b = 0, w = 6, actY = TRUE,a
 #RKI wrapper
 rki <- function(sts, control = list(range = range, b = 2, w = 4, actY = FALSE),...) {
   if (sts@epochAsDate) {
-    warning("algo.cdc currently can't handle Date entries. Computing reference values based on freq")
+    warning("algo.rki currently can't handle Date entries. Computing reference values based on freq")
   }
   wrap.algo(sts,algo="algo.rki",control=control,...)
 }
@@ -102,7 +102,7 @@ outbreakP <- function(sts, control=list(range = range, k=100,
 #HMM wrapper
 hmm <- function(sts, control=list(range=NULL, noStates=2, trend=TRUE, noHarmonics=1,covEffectEqual=FALSE),...) {
   if (sts@epochAsDate) {
-    warning("algo.cdc currently can't handle Date entries. Computing reference values based on freq")
+    warning("algo.hmm currently can't handle Date entries. Computing reference values based on freq")
   }
   wrap.algo(sts,algo="algo.hmm",control=control,...)
 }
@@ -141,7 +141,7 @@ rogerson <- function(sts, control = list(range=range, theta0t=NULL,
                             distribution=c("poisson","binomial"),
                             nt=NULL, FIR=FALSE,limit=NULL, digits=1),...) {
   if (sts@epochAsDate) {
-    warning("algo.cdc currently can't handle Date entries. Computing reference values based on freq")
+    warning("algo.rogerson currently can't handle Date entries. Computing reference values based on freq")
   }
   #Hook function to find right theta0t vector
   control.hook = function(k) {

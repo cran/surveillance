@@ -1,17 +1,17 @@
-\name{predict.ah4}
-\alias{predict.ah4}
+\name{hhh4_predict}
+\alias{predict.hhh4}
 \title{Predictions from a \code{hhh4} Model}
 \description{
-  Get fitted (component) means from a \code{\link{hhh4}} model
-  (of class \code{"ah4"}).
+  Get fitted (component) means from a \code{\link{hhh4}} model.
 }
 
 \usage{
-\method{predict}{ah4}(object, newSubset=control$subset, type="response", \dots)
+\method{predict}{hhh4}(object, newSubset=object$control$subset,
+        type="response", \dots)
 }
 
 \arguments{
-\item{object}{fitted \code{\link{hhh4}} model object of class \code{"ah4"}.}
+\item{object}{fitted \code{\link{hhh4}} model (class \code{"hhh4"}).}
 \item{newSubset}{subset of time points for which to return the
   predictions. Defaults to the subset used for fitting the model, and
   must be a subset of \code{1:nrow(object$stsObj)}.}

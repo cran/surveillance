@@ -18,8 +18,8 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
          na.action = na.fail, start = NULL, partial = FALSE,
          control.siaf = list(F = list(), Deriv = list()),
          optim.args = list(), finetune = FALSE,
-         model = FALSE, cumCIF = TRUE,
-         cumCIF.pb = interactive(), cores = 1, verbose = TRUE)
+         model = FALSE, cumCIF = FALSE, cumCIF.pb = interactive(),
+         cores = 1, verbose = TRUE)
 }
 
 \arguments{
@@ -38,23 +38,34 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     component in the model.
   }
   \item{siaf}{
-    spatial interaction function. May be \code{NULL} or missing
-    (corresponding to \code{siaf.constant()}, i.e. constant infectivity 
-    independent of the spatial distance from the host), a list
-    (specifying a continuous kernel, as e.g., returned by the functions
-    \code{\link{siaf.gaussian}} or \code{\link{siaf.powerlaw}}), or numeric
-    (knots of a step function).
+    spatial interaction function. Possible specifications are:
+    \itemize{
+      \item \code{NULL} or missing, corresponding to
+      \code{siaf.constant()}, i.e. spatially homogeneous 
+      infectivity independent of the distance from the host
+      \item a list as returned by \code{\link{siaf}} or by a
+      predefined interaction function such as
+      \code{\link{siaf.gaussian}} as in Meyer et al. (2012) or
+      \code{\link{siaf.powerlaw}} as in Meyer and Held (2014)
+      \item a numeric vector corresponding to the knots of a step
+      function, i.e. the same as \code{\link{siaf.step}(knots)}
+    }
     If you run into \dQuote{false convergence} with a non-constant
     \code{siaf} specification, the numerical accuracy of the cubature
     methods is most likely too low (see the \code{control.siaf}
     argument).
   }
   \item{tiaf}{
-    temporal interaction function. May be \code{NULL} (or missing,
-    corresponding to constant infectivity independent of the temporal
-    distance from the host), a list (specifying a continuous function,
-    as e.g., returned by \code{\link{tiaf.exponential}}), or numeric
-    (knots of a step function). 
+    temporal interaction function. Possible specifications are:
+    \itemize{
+      \item \code{NULL} or missing, corresponding to
+      \code{tiaf.constant()}, i.e. time-constant infectivity
+      \item a list as returned by \code{\link{tiaf}} or by a
+      predefined interaction function such as
+      \code{\link{tiaf.exponential}}
+      \item a numeric vector corresponding to the knots of a step
+      function, i.e. the same as \code{\link{tiaf.step}(knots)}
+    }
   }
   \item{qmatrix}{
     square indicator matrix (0/1 or \code{FALSE}/\code{TRUE}) for
@@ -120,19 +131,20 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     These arguments mainly determine the accuracy of the numerical
     cubature rules from package \pkg{polyCub}
     involved in non-constant \code{siaf} specifications,
-    e.g., the bandwidth of the midpoint rule or the number
-    of Gaussian quadrature points.
-    For instance, \code{\link{siaf.gaussian}} by default uses the
-    midpoint-cubature (\code{\link[polyCub]{polyCub.midpoint}}) with an
+    e.g., the bandwidth of the midpoint rule
+    \code{\link{polyCub.midpoint}}, the number of Gaussian
+    quadrature points for \code{\link{polyCub.SV}}, or the relative
+    tolerance of \code{\link{integrate}} in \code{\link{polyCub.iso}}.\cr
+    For instance, \code{\link{siaf.gaussian}()} uses the
+    midpoint-cubature \code{\link{polyCub.midpoint}} with an
     adaptive bandwidth of \code{eps=adapt*sd} to numerically integrate the
-    kernel \eqn{f(\bold{s})} over polygonal domains. The \code{adapt}
-    parameter defaults to 0.1, but may be modified via setting
-    \code{control.siaf$F$adapt}. 
-    In contrast, the cubature rule \code{\link[polyCub]{polyCub.SV}}
-    with \code{nGQ=20} is by default used to numerically integrate the 
-    derivative of \eqn{f(\bold{s})} wrt the kernel parameters over
-    polygonal domains. The number of cubature points may be modified via
-    setting \code{control.siaf$Deriv$nGQ}.\cr
+    kernel \eqn{f(\bold{s})}, and the default \code{adapt} value (0.1)
+    can be overwritten by setting \code{control.siaf$F$adapt}.
+    The default integration method for the derivative of \eqn{f(\bold{s})}
+    wrt the kernel parameters is product Gauss cubature
+    \code{\link{polyCub.SV}} with \code{nGQ=20} univariate Gauss
+    quadrature points. This number can be overwritten by setting
+    \code{control.siaf$Deriv$nGQ}.\cr
     This argument list is ignored in the case
     \code{siaf=siaf.constant()} (which is the default if \code{siaf} is
     unspecified).
@@ -153,7 +165,7 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     
     Note that \code{optim} receives the negative log-likelihood for 
     minimization (thus, if used, \code{optim.args$control$fnscale} should be
-    positive). The \code{hessian} argument defaults to \code{TRUE} and
+    positive). The \code{hessian} argument defaults to \code{TRUE}, and
     in the \code{control} list, \code{trace}ing is enabled with
     \code{REPORT=1} by default. By setting
     \code{optim.args$control$trace = 0}, all output from the
@@ -188,10 +200,10 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     \code{maxit} (-> \code{iter.max}), \code{REPORT} (-> \code{trace},
     default: 1), \code{abstol} (-> \code{abs.tol}), and
     \code{reltol} (-> \code{rel.tol}, default: \code{1e-6}).
-    For \code{nlminb}, a logical \code{hessian} argument indicates if
-    the negative \emph{expected} Fisher information matrix should be
-    used as the Hessian during optimization (otherwise a numerical
-    approximation is used).
+    For \code{nlminb}, a logical \code{hessian} argument (default:
+    \code{TRUE}) indicates if the negative \emph{expected} Fisher
+    information matrix should be used as the Hessian during optimization
+    (otherwise a numerical approximation is used).
 
     Similary, \code{method="nlm"} should also work but is not
     recommended here.    
@@ -218,7 +230,7 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     \code{twinstim} result.
   }
   \item{cumCIF}{
-    logical (default: \code{TRUE}) indicating whether to
+    logical (default: \code{FALSE}) indicating whether to
     calculate the fitted cumulative ground intensity at event times.
     This is the residual process, see \code{\link{residuals.twinstim}}.
   }
@@ -267,17 +279,15 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     likelihood was used.}
   \item{counts}{number of log-likelihood and score evaluations during
     optimization.}
-  \item{control.siaf}{see the \dQuote{Arguments} section above.}
-  \item{optim.args}{input optimizer arguments used to determine the MLE.}
   \item{converged}{either \code{TRUE} (if the optimizer converged) or a
     character string containing a failure message).}
   \item{fisherinfo}{\emph{expected} Fisher information evaluated at the
-    MLE. Only part of the output for full likelihood inference
+    MLE. Only non-\code{NULL} for full likelihood inference
     (\code{partial = FALSE}) and if spatial and temporal interaction
     functions are provided with their derivatives.}
   \item{fisherinfo.observed}{observed Fisher information matrix
     evaluated at the value of the MLE. Obtained as the negative Hessian.
-    This is only part of the result if \code{optim.args$method} is not
+    Only non-\code{NULL} if \code{optim.args$method} is not
     \code{"nlminb"} and if it was requested by setting
     \code{hessian=TRUE} in \code{optim.args}.}
   \item{fitted}{fitted values of the conditional intensity function at the events.}
@@ -286,7 +296,7 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     components, respectively.\cr
     (Note that \code{rowSums(fittedComponents) == fitted}.)}
   \item{tau}{fitted cumulative ground intensities at the event times.
-    Only calculated and returned if \code{cumCIF = TRUE}.
+    Only non-\code{NULL} if \code{cumCIF = TRUE}.
     This is the \dQuote{residual process} of the model, see
     \code{\link{residuals.twinstim}}.}
   \item{R0}{estimated basic reproduction number for each event. This
@@ -304,17 +314,20 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
   \item{formula}{a list containing the four main parts of the model
     specification: \code{endemic}, \code{epidemic}, \code{siaf}, and
     \code{tiaf}.}
+  \item{control.siaf}{see the \dQuote{Arguments} section above.}
+  \item{optim.args}{input optimizer arguments used to determine the MLE.}
   \item{functions}{if \code{model=TRUE} this is a \code{list} with
     components \code{ll}, \code{sc} and \code{fi}, which are functions
     evaluating the log-likelihood, the score function and the expected
     Fisher information for a parameter vector \eqn{\theta}. The
     \code{environment} of these function is the model environment, which
-    is thus retained in the workspace if \code{model=TRUE}.
-  }
+    is thus retained in the workspace if \code{model=TRUE}. Otherwise,
+    the \code{functions} component is \code{NULL}.}
   \item{call}{the matched call.}
-  \item{runtime}{contains the \code{\link{proc.time}}-queried time taken
-    to fit the model, i.e. a named numeric vector of length 5, with
-    the number of \code{cores} set as additional attribute.}
+  \item{runtime}{the \code{\link{proc.time}}-queried time taken
+    to fit the model, i.e., a named numeric vector of length 5 of class
+    \code{"proc_time"}, with the number of \code{cores} set as
+    additional attribute.}
 
   If \code{model=TRUE}, the model evaluation environment is assigned to
   this list and can thus be queried by calling \code{environment()} on
@@ -338,17 +351,23 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
   Martinussen, T. and Scheike, T. H. (2006):
   Dynamic Regression Models for Survival Data.
   Springer.
-  
-  Meyer, S., Elias, J. and H\enc{ö}{oe}hle, M. (2012):
-  A space-time conditional intensity model for invasive meningococcal
-  disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.\cr
-  DOI-Link: \url{http://dx.doi.org/10.1111/j.1541-0420.2011.01684.x}
-  
+
   Meyer, S. (2010):
   Spatio-Temporal Infectious Disease Epidemiology based on Point Processes.
   Master's Thesis, Ludwig-Maximilians-Universit\enc{ä}{ae}t
   M\enc{ü}{ue}nchen.\cr
   Available as \url{http://epub.ub.uni-muenchen.de/11703/}
+  
+  Meyer, S., Elias, J. and H\enc{ö}{oe}hle, M. (2012):
+  A space-time conditional intensity model for invasive meningococcal
+  disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.\cr
+  DOI-Link: \url{http://dx.doi.org/10.1111/j.1541-0420.2011.01684.x}
+
+  Meyer, S. and Held, L. (2014):
+  Power-law models for infectious disease spread.
+  \emph{Annals of Applied Statistics}. In press.
+  \emph{arXiv:1308.5115}\cr
+  arXiv-Link: \url{http://arxiv.org/abs/1308.5115}
 
   Rathbun, S. L. (1996):
   Asymptotic properties of the maximum likelihood estimator for
@@ -357,8 +376,10 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
 }
 
 \author{
-  Sebastian Meyer with documentation contributions by Michael
-  H\enc{ö}{oe}hle and Mayeul Kauffmann.
+  Sebastian Meyer
+
+  Contributions to this documentation by
+  Michael H\enc{ö}{oe}hle and Mayeul Kauffmann.
 }
 
 \seealso{
@@ -395,8 +416,7 @@ m_noepi <- twinstim(
     endemic = addSeason2formula(~ offset(log(popdensity)) + I(start/365-3.5),
                                 S=1, period=365, timevar="start"),
     data = imdepi, subset = !is.na(agegrp),
-    optim.args = list(par=c(h.intercept,rep(0,3))), # the default anyway
-    model = FALSE, cumCIF = FALSE   # for reasons of speed
+    optim.args = list(par=c(h.intercept,rep(0,3))) # the default anyway
 )
 
 ## look at the model summary
@@ -474,7 +494,7 @@ if (surveillance.options("allExamples"))
 {
   ## estimate an exponential temporal decay of infectivity
   m1_tiaf <- update(m0, tiaf=tiaf.exponential())
-  plot(m1_tiaf, "tiaf", xlim=c(0,30), legend=FALSE)
+  plot(m1_tiaf, "tiaf", scaled=FALSE)
 
   ### try with a spatially decreasing interaction kernel
   ## Likelihood evaluation takes much longer than for constant spatial spread
@@ -492,7 +512,7 @@ if (surveillance.options("allExamples"))
 
   AIC(m_noepi, m0, m1)   # further improvement
   summary(m1, test.iaf=FALSE)   # nonsense to test H0: log(sigma) = 0
-  plot(m1, "siaf", xlim=c(0,200), types=1)   # the same for types=2
+  plot(m1, "siaf", scaled=FALSE)
 
 
   ### add epidemic covariates

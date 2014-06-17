@@ -1,10 +1,9 @@
 ### R code from vignette source 'surveillance.Rnw'
 
 ###################################################
-### code chunk number 1: surveillance.Rnw:54-74
+### code chunk number 1: surveillance.Rnw:54-73
 ###################################################
-library(surveillance)
-library(xtable)
+library("surveillance")
 options(SweaveHooks=list(fig=function() par(mar=c(5,4,4,0),cex.axis=1.5,cex.lab=1.5,cex.main=1.5)))
 options(width=70)
 set.seed(1234)
@@ -26,7 +25,7 @@ print(paste("Doing computations:", compute))
 
 
 ###################################################
-### code chunk number 2: surveillance.Rnw:169-171
+### code chunk number 2: surveillance.Rnw:168-170
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 data(k1)
@@ -34,7 +33,7 @@ plot(k1,main="Kryptosporidiosis in BW 2001-2005")
 
 
 ###################################################
-### code chunk number 3: surveillance.Rnw:264-268
+### code chunk number 3: surveillance.Rnw:263-267
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 sts <- sim.pointSource(p = 0.99, r = 0.5, length = 400,
@@ -44,7 +43,7 @@ plot(sts)
 
 
 ###################################################
-### code chunk number 4: surveillance.Rnw:361-364
+### code chunk number 4: surveillance.Rnw:360-363
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 k1.b660 <- algo.bayes(k1, control = list(range = 27:192,b=0,w=6,alpha=0.01))
@@ -61,7 +60,7 @@ plot(k1.b660, disease="k1", firstweek = 1, startyear = 2001)
 
 
 ###################################################
-### code chunk number 6: surveillance.Rnw:392-395
+### code chunk number 6: surveillance.Rnw:391-394
 ###################################################
 if (compute) {
 cntrl <- list(range=300:400,m=1,w=3,b=5,alpha=0.01)
@@ -71,7 +70,7 @@ sts.farrington <- algo.farrington(sts, control = cntrl)
 
 
 ###################################################
-### code chunk number 7: surveillance.Rnw:398-401
+### code chunk number 7: surveillance.Rnw:397-400
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 par(mfcol=c(1,2))
@@ -80,7 +79,7 @@ plot(sts.farrington, legend.opts=NULL)
 
 
 ###################################################
-### code chunk number 8: surveillance.Rnw:419-421
+### code chunk number 8: surveillance.Rnw:418-420
 ###################################################
 print(algo.quality(k1.b660))
 
@@ -103,13 +102,13 @@ control <- lapply(control,function(ctrl) {
 
 
 ###################################################
-### code chunk number 10: surveillance.Rnw:462-463 (eval = FALSE)
+### code chunk number 10: surveillance.Rnw:461-462 (eval = FALSE)
 ###################################################
 ## algo.compare(algo.call(sts,control=control))
 
 
 ###################################################
-### code chunk number 11: surveillance.Rnw:465-470
+### code chunk number 11: surveillance.Rnw:464-469
 ###################################################
 if (compute) {
   acall <- algo.call(sts,control=control)
@@ -119,7 +118,7 @@ algo.compare(acall)
 
 
 ###################################################
-### code chunk number 12: surveillance.Rnw:482-487
+### code chunk number 12: surveillance.Rnw:481-486
 ###################################################
 #Create 10 series
 ten <- lapply(1:10,function(x) {
@@ -138,7 +137,7 @@ ten <- lapply(1:10,function(x) {
 
 
 ###################################################
-### code chunk number 14: surveillance.Rnw:495-498
+### code chunk number 14: surveillance.Rnw:494-497
 ###################################################
 if (compute) {
 #Do surveillance on all 10, get results as list
@@ -149,14 +148,14 @@ ten.surv <- lapply(ten,function(ts) {
 
 
 ###################################################
-### code chunk number 15: surveillance.Rnw:500-502 (eval = FALSE)
+### code chunk number 15: surveillance.Rnw:499-501 (eval = FALSE)
 ###################################################
 ## #Average results
 ## algo.summary(ten.surv)
 
 
 ###################################################
-### code chunk number 16: surveillance.Rnw:504-507
+### code chunk number 16: surveillance.Rnw:503-506
 ###################################################
 res <- algo.summary(ten.surv)
 res[,5:8] <- round(res[,5:8]*100)/100
@@ -164,7 +163,7 @@ res
 
 
 ###################################################
-### code chunk number 17: surveillance.Rnw:520-540
+### code chunk number 17: surveillance.Rnw:519-539
 ###################################################
 #Update range in each - cyclic continuation
 range = (2*4*52) +  1:length(k1$observed)
@@ -189,13 +188,13 @@ one.survstat.surv <- function(outbrk) {
 
 
 ###################################################
-### code chunk number 18: surveillance.Rnw:542-543 (eval = FALSE)
+### code chunk number 18: surveillance.Rnw:541-542 (eval = FALSE)
 ###################################################
 ## algo.summary(lapply(outbrks,one.survstat.surv))
 
 
 ###################################################
-### code chunk number 19: surveillance.Rnw:545-550
+### code chunk number 19: surveillance.Rnw:544-549
 ###################################################
 if (compute) {
   res.survstat <- algo.summary(lapply(outbrks,one.survstat.surv))
@@ -205,7 +204,18 @@ print(res.survstat,digits=3)
 
 
 ###################################################
-### code chunk number 20: surveillance.Rnw:589-592
+### code chunk number 20: mapWeserEms
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+data("measlesWeserEms")
+par(mar=c(0,0,0,0))
+plot(measlesWeserEms@map[-c(1,5),], col=grey.colors(15,start=0.4,end=1))
+text(coordinates(measlesWeserEms@map[-c(1,5),]),
+     labels=row.names(measlesWeserEms@map)[-c(1,5)], font=2)
+
+
+###################################################
+### code chunk number 21: surveillance.Rnw:595-598
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 data(measles.weser)
@@ -214,14 +224,14 @@ plot(measles.weser, title="measles in Weser-Ems 2001-2002",
 
 
 ###################################################
-### code chunk number 21: surveillance.Rnw:600-601
+### code chunk number 22: surveillance.Rnw:606-607
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 plot(measles.weser,as.one=FALSE,xaxis.years=FALSE)
 
 
 ###################################################
-### code chunk number 22: surveillance.Rnw:619-636
+### code chunk number 23: surveillance.Rnw:625-642
 ###################################################
 #####################################################
 # measles
@@ -243,7 +253,7 @@ if(compute){
 
 
 ###################################################
-### code chunk number 23: surveillance.Rnw:651-654 (eval = FALSE)
+### code chunk number 24: surveillance.Rnw:657-660 (eval = FALSE)
 ###################################################
 ## cntrl <- list(linear=TRUE, nseason=1, neighbours=TRUE, 
 ##               negbin="single", lambda=TRUE)
@@ -251,7 +261,7 @@ if(compute){
 
 
 ###################################################
-### code chunk number 24: surveillance.Rnw:673-678 (eval = FALSE)
+### code chunk number 25: surveillance.Rnw:679-684 (eval = FALSE)
 ###################################################
 ## grid <- create.grid(measles.weser, cntrl, 
 ##    params = list(endemic = c(lower = -0.5, upper = 0.5, length = 3), 
@@ -261,13 +271,13 @@ if(compute){
 
 
 ###################################################
-### code chunk number 25: surveillance.Rnw:680-681
+### code chunk number 26: surveillance.Rnw:686-687
 ###################################################
 print(measles.hhh.grid,3)
 
 
 ###################################################
-### code chunk number 26: surveillance.Rnw:684-690
+### code chunk number 27: surveillance.Rnw:690-696
 ###################################################
 if (compute) { # save computed results
     save(list=c("sts.cdc","sts.farrington","acall","res","res.survstat",

@@ -7,21 +7,19 @@
 ### This is the pure kernel of the Lomax density (the density requires d>1, but
 ### for the siaf specification we only want d to be positive)
 ###
-### Copyright (C) 2013 Sebastian Meyer
-### $Revision: 666 $
-### $Date: 2013-11-08 15:45:36 +0100 (Fre, 08 Nov 2013) $
+### Copyright (C) 2013-2014 Sebastian Meyer
+### $Revision: 769 $
+### $Date: 2014-02-14 11:45:59 +0100 (Fri, 14 Feb 2014) $
 ################################################################################
 
 
-siaf.powerlaw <- function (nTypes = 1, logpars = TRUE,
-                           effRangeProb = NULL, validpars = NULL)
+siaf.powerlaw <- function (nTypes = 1, validpars = NULL)
 {
     nTypes <- as.integer(nTypes)
     stopifnot(length(nTypes) == 1L, nTypes > 0L)
 
     ## for the moment we don't make this type-specific
     if (nTypes != 1) stop("type-specific shapes are not yet implemented")
-    if (!logpars) stop("only the 'logpars' parametrization is implemented")
 
     ## helper expression, note: logpars=c(logscale=logsigma, logd=logd)
     tmp <- expression(
@@ -40,7 +38,9 @@ siaf.powerlaw <- function (nTypes = 1, logpars = TRUE,
     ))
 
     ## numerically integrate f over a polygonal domain
-    F <- siaf.fallback.F
+    F <- function (polydomain, f, logpars, type = NULL, ...)
+        .polyCub.iso(polydomain$bdry, intrfr.powerlaw, logpars, #type,
+                     center=c(0,0), control=list(...))
     
     ## fast integration of f over a circular domain
     Fcircle <- function (r, logpars, type = NULL) {}
@@ -49,7 +49,9 @@ siaf.powerlaw <- function (nTypes = 1, logpars = TRUE,
         expression(
             fofr <- (r+sigma)^-d,
             fof0 <- sigma^-d,
-            basevolume <- pi * r^2 * fofr, # cylinder volume up to height f(r)
+            ## calculate cylinder volume up to height f(r)
+            basevolume <- if (is.infinite(r)) 0 else pi * r^2 * fofr,
+            ## r=Inf is used in R0(,trimmed=F), Fcircle(Inf) is finite if d>2
             Ifinvsq <- function (z) {
                 if (d == 1) {
                     -1/z - 2*sigma*log(z) + sigma^2*z
@@ -78,110 +80,82 @@ siaf.powerlaw <- function (nTypes = 1, logpars = TRUE,
     ))
 
     ## Numerical integration of 'deriv' over a polygonal domain
-    Deriv <- function (polydomain, deriv, logpars, type = NULL, nGQ = 20L) {}
-    body(Deriv) <- as.call(c(as.name("{"),
-        ## Determine a = argmax(abs(deriv(c(x,0))))
-        c(tmp, expression(
-            xrange <- polydomain$xrange,           # polydomain is a "owin"
-            maxxdist <- max(abs(xrange)),
-            a.logsigma <- 0,
-            xmin.derivlogd <- exp(1/d) - sigma,
-            a.logd <- if (xmin.derivlogd <= 0) 0 else {
-                derivlogd.0 <- -d*log(sigma) / sigma^d
-                derivlogd.xmin <- -exp(-1)
-                if (abs(derivlogd.0) >= abs(derivlogd.xmin))
-                    0 else min(maxxdist, xmin.derivlogd)
-            },
-            a <- c(a.logsigma, a.logd),
-            if (sum(xrange) < 0) a <- -a # is more of the domain left of 0?
-            )),
-        expression(
-            deriv1 <- function (s, paridx)
-                deriv(s, logpars, type)[,paridx,drop=TRUE],
-            intderiv1 <- function (paridx)
-                polyCub.SV(polydomain, deriv1, paridx=paridx,
-                           nGQ = nGQ, alpha = a[paridx]),
-            res.logsigma <- intderiv1(1L),
-            res.logd <- intderiv1(2L),
-            res <- c(res.logsigma, res.logd),
-            res
-            )
-    ))
-
-    ## "effective" integration range (based on some high quantile)
-    effRange <- if (isScalar(effRangeProb)) {
-        stop("'effRange' is currently not supported for power law's")
-        effRange <- function (logpars) {}
-        body(effRange) <- as.call(c(as.name("{"),
-            substitute(qlomax(effRangeProb, exp(logpars[[1]]), exp(logpars[[2]])-1),
-                       list(effRangeProb=effRangeProb)) # only works for d > 1!
-        ))
-        effRange
-    } else NULL
-
-    ## simulate from the power-law kernel (within a maximum distance 'ub')
-    simulate <- function (n, logpars, type, ub)
+    Deriv <- function (polydomain, deriv, logpars, type = NULL, ...)
     {
-        sigma <- exp(logpars[[1L]])
-        d <- exp(logpars[[2L]])
-
-        ## Sampling from f_{2D}(s) \propto f(||s||), truncated to ||s|| <= ub,
-        ## works via polar coordinates and the inverse transformation method:
-        ## p_{2D}(r,theta) = r * f_{2D}(x,y) \propto r*f(r) = r*(r+\sigma)^{-d}
-        ## => sample angle theta from U(0,2*pi) and r according to:
-        ## p <- function (r) r * (r+sigma)^-d
-        
-        ## Primitive of p: P(r) = int_0^r p(z) dz
-        P <- function (r) {
-            if (d == 1) {
-                r - sigma * log(r/sigma + 1)
-            } else if (d == 2) {
-                log(r/sigma + 1) - r/(r+sigma)
-            } else {
-                (r*(r+sigma)^(1-d) - (r+sigma)^(2-d) / (2-d) +
-                 sigma^(2-d)/(2-d)) / (1-d)
-            }
-        }
-        ## for validation of analytic P: numerical integration
-        ## Pnum <- function (r, sigma, d) sapply(r, function (.r) {
-        ##     integrate(p, 0, .r, sigma=sigma, d=d)$value
-        ## })        
-
-        ## Normalizing constant of the density on [0;ub]
-        normconst <- if (is.finite(ub)) P(ub) else {
-            ## for sampling on [0;Inf] the density is only proper if d > 2
-            if (d <= 2) stop("improper density for d<=2, 'ub' must be finite")
-            (sigma^(d-2) * (d-2) * (d-1))^-1 # = P(Inf)
-        }
-
-        ## => cumulative distribution function
-        CDF <- function (q) P(q) / normconst
-
-        ## For inversion sampling, we need the quantile function CDF^-1
-        ## However, this is not available in closed form, so we use uniroot,
-        ## which requires a finite upper bound!
-        ## Note: in simEpidataCS, simulation is always bounded to eps.s and to
-        ## the largest extend of W, thus, 'ub' is finite
-        stopifnot(is.finite(ub))
-        QF <- function (p) uniroot(function(q) CDF(q)-p, lower=0, upper=ub)$root
-
-        ## Now sample r as QF(U), where U ~ U(0,1)
-        r <- sapply(runif(n), QF)
-        ## Check simulation via kernel estimate:
-        ## plot(density(r, from=0, to=ub)); curve(p(x) / normconst, add=TRUE, col=2)
-        
-        ## now rotate each point by a random angle to cover all directions
-        theta <- stats::runif(n, 0, 2*pi)
-        r * cbind(cos(theta), sin(theta))
+        res.logsigma <- .polyCub.iso(polydomain$bdry,
+                                     intrfr.powerlaw.dlogsigma, logpars, #type,
+                                     center=c(0,0), control=list(...))
+        res.logd <- .polyCub.iso(polydomain$bdry,
+                                 intrfr.powerlaw.dlogd, logpars, #type,
+                                 center=c(0,0), control=list(...))
+        c(res.logsigma, res.logd)
     }
 
+    simulate <- siaf.simulatePC(intrfr.powerlaw)
+    ## if (!is.finite(ub)) normconst <- {
+    ##     ## for sampling on [0;Inf] the density is only proper if d > 2
+    ##     if (d <= 2) stop("improper density for d<=2, 'ub' must be finite")
+    ##     1/(sigma^(d-2) * (d-2)*(d-1)) # = intrfr.powerlaw(Inf)
+    ## }
+
     ## set function environments to the global environment
-    environment(f) <- environment(F) <- environment(Fcircle) <-
-        environment(deriv) <- environment(Deriv) <-
-            environment(simulate) <- .GlobalEnv
-    if (is.function(effRange)) environment(effRange) <- .GlobalEnv
+    environment(f) <- environment(Fcircle) <- environment(deriv) <- .GlobalEnv
+    ## in F, Deriv, and simulate we need access to the intrfr-functions
+    environment(F) <- environment(Deriv) <- environment(simulate) <-
+        getNamespace("surveillance")
 
     ## return the kernel specification
-    list(f=f, F=F, Fcircle=Fcircle, effRange=effRange, deriv=deriv, Deriv=Deriv,
+    list(f=f, F=F, Fcircle=Fcircle, deriv=deriv, Deriv=Deriv,
          simulate=simulate, npars=2L, validpars=validpars)
+}
+
+
+## integrate x*f(x) from 0 to R (vectorized)
+intrfr.powerlaw <- function (R, logpars, types = NULL)
+{
+    sigma <- exp(logpars[[1L]])
+    d <- exp(logpars[[2L]])
+    if (d == 1) {
+        R - sigma * log(R/sigma + 1)
+    } else if (d == 2) {
+        log(R/sigma + 1) - R/(R+sigma)
+    } else {
+        (R*(R+sigma)^(1-d) - ((R+sigma)^(2-d) - sigma^(2-d))/(2-d)) / (1-d)
+    }
+}
+## local({ # validation via numerical integration -> tests/testthat/test-siafs.R
+##     p <- function (r, sigma, d) r * (r+sigma)^-d
+##     Pnum <- function (r, sigma, d) sapply(r, function (.r) {
+##         integrate(p, 0, .r, sigma=sigma, d=d)$value
+##     })
+##     r <- c(1,2,5,10,20,50,100)
+##     dev.null <- sapply(c(1,2,1.6), function(d) stopifnot(isTRUE(
+##         all.equal(intrfr.powerlaw(r, log(c(3, d))), Pnum(r, 3, d)))))
+## })
+
+## integrate x * (df(x)/dlogsigma) from 0 to R (vectorized)
+intrfr.powerlaw.dlogsigma <- function (R, logpars, types = NULL)
+{
+    pars <- exp(logpars)
+    -prod(pars) * intrfr.powerlaw(R, log(pars+c(0,1)), types)
+}
+
+## integrate x * (df(x)/dlogd) from 0 to R (vectorized)
+## (thanks to Maple 17) -> validated in tests/testthat/test-siafs.R
+intrfr.powerlaw.dlogd <- function (R, logpars, types = NULL)
+{
+    sigma <- exp(logpars[[1L]])
+    d <- exp(logpars[[2L]])
+    if (d == 1) {
+        sigma * log(sigma) * (1-log(sigma)/2) - log(R+sigma) * (R+sigma) +
+            sigma/2 * log(R+sigma)^2 + R
+    } else if (d == 2) {
+        (-log(R+sigma) * ((R+sigma)*log(R+sigma) + 2*sigma) +
+         (R+sigma)*log(sigma)*(log(sigma)+2) + 2*R) / (R+sigma)
+    } else {
+        (sigma^(2-d) * (logpars[[1L]]*(-d^2 + 3*d - 2) - 2*d + 3) +
+         (R+sigma)^(1-d) * (log(R+sigma)*(d-1)*(d-2) * (R*(d-1) + sigma) +
+                            R*(d^2+1) + 2*d*(sigma-R) - 3*sigma)
+         ) * d / (d-1)^2 / (d-2)^2
+    }
 }

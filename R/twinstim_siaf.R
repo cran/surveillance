@@ -6,9 +6,9 @@
 ### Spatial interaction functions for twinstim's epidemic component.
 ### Specific implementations are in seperate files (e.g.: Gaussian, power law).
 ###
-### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 666 $
-### $Date: 2013-11-08 15:45:36 +0100 (Fre, 08 Nov 2013) $
+### Copyright (C) 2009-2014 Sebastian Meyer
+### $Revision: 779 $
+### $Date: 2014-02-18 14:48:18 +0100 (Tue, 18 Feb 2014) $
 ################################################################################
 
 
@@ -17,52 +17,9 @@
 ### "Constructor" ###
 #####################
 
-## f: spatial interaction function (siaf). must accept two arguments, a
-##    coordinate matrix and a parameter vector. for marked twinstim, it must
-##    accept a third argument which is the type of the event (either a single
-##    type for all locations or separate types for each location).
-## F: function that integrates 'f' (2nd argument) over a polygonal domain (of
-##    class "owin", 1st argument). The third and fourth arguments are the
-##    parameters and the type, respectively. There may be additional arguments
-##    which are passed by the control.siaf list in twinstim(). 
-## Fcircle: optional function for fast calculation of the integral of f over a
-##    circle with radius r (first argument). Further arguments like f. It
-##    must not be vectorized for model fitting (will be passed single
-##    radius and single type). 
-## effRange: optional function returning the effective range (domain) of f for
-##    the given set of parameters such that the circle with radius effRange
-##    contains the numerical essential proportion the integral mass, e.g.
-##    function (sigma) 6*sigma. The return value must be a vector of length
-##    nTypes (effRange for each type). Must be supplied together with Fcircle. 
-## deriv: optional derivative of f with respect to the parameters. Takes the
-##    same arguments as f but returns a matrix with as many rows as there were
-##    coordinates in the input and npars columns. The derivative is necessary
-##    for the score function. 
-## Deriv: function which integrates 'deriv' (2nd argument) over a polygonal
-##    domain (of class "owin", 1st argument). The third and fourth argument are
-##    the parameters and the type, respectively. There may be additional
-##    arguments which are passed by the control.siaf list in twinstim(). 
-## simulate: optional function returning a sample drawn from the spatial kernel
-##    (i.e. a two-column matrix of 'n' points). The arguments are 'n' (size of
-##    the sample), 'pars' (parameter vector of the spatial kernel), for marked
-##    twinstim also 'type' (a single type of event being generated), and
-##    optionally 'ub' (upper bound, truncation of the kernel).
-## npars: number of parameters
-## validpars: optional function indicating if a specific parameter vector is
-##    valid. If missing or NULL, it will be set to function
-##    (pars) TRUE. This function is rarely needed in practice, because usual box
-##    constrained parameters can be taken into account by using L-BFGS-B as the
-##    optimization method (with arguments 'lower' and 'upper'). 
-## knots: not implemented. Knots (> 0) of a spatial interaction STEP function of the distance
-
-siaf <- function (f, F, Fcircle, effRange, deriv, Deriv, simulate, npars, validpars, knots)
+siaf <- function (f, F, Fcircle, effRange, deriv, Deriv, simulate, npars,
+                  validpars = NULL)
 {
-    # if siaf is a step function specified by knots
-    if (!missing(knots)) {
-        return(sort(unique(as.vector(knots,mode="numeric")), decreasing=FALSE))
-    }
-
-    # if siaf is a continuous function
     npars <- as.integer(npars)
     if (length(npars) != 1 || npars < 0L) {
         stop("'siaf$npars' must be a single nonnegative number")
@@ -109,7 +66,7 @@ siaf <- function (f, F, Fcircle, effRange, deriv, Deriv, simulate, npars, validp
             formals(simulate) <- c(formals(simulate), alist(ub=))
     }
     ## Check if the validpars are of correct form
-    validpars <- if (!haspars || missing(validpars) || is.null(validpars))
+    validpars <- if (!haspars || is.null(validpars))
         NULL else match.fun(validpars)
     ## Done, return result.
     list(f = f, F = F, Fcircle = Fcircle, effRange = effRange,
@@ -131,16 +88,19 @@ siaf.constant <- function ()
     ## one could also use utils::globalVariables() in R >= 2.15.1 as follows:
     ## if (getRversion() >= "2.15.1") utils::globalVariables("r")
     res <- list(
-           f = as.function(alist(s=, pars=NULL, types=NULL, rep.int(1,nrow(s))),
-                           envir = .GlobalEnv),
-           Fcircle = as.function(alist(r=, pars=NULL, type=NULL, pi*r^2),
-                                 envir = .GlobalEnv),
-           ## simulation will be handled specially in simEpidataCS, this is only
-           ## included here for completeness
-           simulate = as.function(alist(n=, pars=NULL, type=NULL, ub=,
-                                        runifdisc(n, ub)),
-                                  envir = getNamespace("surveillance")),
-           npars = 0L
+        f = as.function(alist(s=, pars=NULL, types=NULL,
+                              rep.int(1, length(s)/2)),
+        ##<- nrow() would take extra time in standardGeneric()
+                        envir = .GlobalEnv),
+        ## integration over polydomains is handled specially in twinstim
+        Fcircle = as.function(alist(r=, pars=NULL, type=NULL, pi*r^2),
+                              envir = .GlobalEnv),
+        ## simulation will be handled specially in simEpidataCS, this is only
+        ## included here for completeness
+        simulate = as.function(alist(n=, pars=NULL, type=NULL, ub=,
+                                     runifdisc(n, ub)),
+                               envir = getNamespace("surveillance")),
+        npars = 0L
     )
     attr(res, "constant") <- TRUE
     res
@@ -149,7 +109,7 @@ siaf.constant <- function ()
 
 
 ##########################################
-### naive defaults for the siaf primitives
+### Naive defaults for the siaf primitives
 ##########################################
 
 ## numerical integration of f over a polygonal domain (single "owin" and type)
@@ -162,59 +122,156 @@ siaf.fallback.F <- function(polydomain, f, pars, type, method = "SV", ...)
 }
 
 ## numerical integration of deriv over a polygonal domain
-siaf.fallback.Deriv <- function (polydomain, deriv, pars, type, method = "SV", ...)
+siaf.fallback.Deriv <- function (polydomain, deriv, pars, type,
+                                 method = "SV", ...)
 {
     deriv1 <- function (s, paridx)
         deriv(s, pars, type)[,paridx,drop=TRUE]
     intderiv1 <- function (paridx)
         polyCub(polydomain, deriv1, method, paridx=paridx, ...)
-    derivInt <- sapply(seq_along(pars), intderiv1)
-    derivInt
+    sapply(seq_along(pars), intderiv1)
 }
 
 
 
-######################################
-### Check Fcircle, deriv, and simulate
-######################################
+####################################
+### Simulation via polar coordinates (used, e.g., for siaf.powerlaw)
+####################################
 
-checksiaf <- function (siaf, pargrid, type=1)
+## Simulate from an isotropic spatial interaction function
+## f_{2D}(s) \propto f(||s||), ||s|| <= ub.
+## within a maximum distance 'ub' via polar coordinates and the inverse
+## transformation method:
+## p_{2D}(r,theta) = r * f_{2D}(x,y) \propto r*f(r)
+## => angle theta ~ U(0,2*pi) and sample r according to r*f(r)
+siaf.simulatePC <- function (intrfr)    # e.g., intrfr.powerlaw
+{
+    as.function(c(alist(n=, siafpars=, type=, ub=), substitute({
+        ## Note: in simEpidataCS, simulation is always bounded to eps.s and to
+        ## the largest extend of W, thus, 'ub' is finite
+        stopifnot(is.finite(ub))
+
+        ## Normalizing constant of r*f(r) on [0;ub]
+        normconst <- intrfr(ub, siafpars, type)
+
+        ## => cumulative distribution function
+        CDF <- function (q) intrfr(q, siafpars, type) / normconst
+
+        ## For inversion sampling, we need the quantile function CDF^-1
+        ## However, this is not available in closed form, so we use uniroot
+        ## (which requires a finite upper bound)
+        QF <- function (p) uniroot(function(q) CDF(q)-p, lower=0, upper=ub)$root
+
+        ## Now sample r as QF(U), where U ~ U(0,1)
+        r <- sapply(runif(n), QF)
+        ## Check simulation of r via kernel estimate:
+        ## plot(density(r, from=0, to=ub)); curve(p(x)/normconst,add=TRUE,col=2)
+        
+        ## now rotate each point by a random angle to cover all directions
+        theta <- stats::runif(n, 0, 2*pi)
+        r * cbind(cos(theta), sin(theta))
+    })), envir=parent.frame())
+}
+
+
+
+################################################
+### Check F, Fcircle, deriv, Deriv, and simulate
+################################################
+
+checksiaf <- function (siaf, pargrid, type = 1, tolerance = 1e-5,
+                       method = "SV", ...)
 {
     stopifnot(is.list(siaf), is.numeric(pargrid), !is.na(pargrid),
               length(pargrid) > 0)
     pargrid <- as.matrix(pargrid)
     stopifnot(siaf$npars == ncol(pargrid))
+
+    ## Check 'F'
+    if (!is.null(siaf$F)) {
+        cat("'F' vs. cubature using method = \"", method ,"\" ... ", sep="")
+        comp.F <- checksiaf.F(siaf$F, siaf$f, pargrid, type=type,
+                              method=method, ...)
+        cat(attr(comp.F, "all.equal") <-
+            all.equal(comp.F[,1], comp.F[,2],
+                      check.attributes=FALSE, tolerance=tolerance),
+            "\n")
+    }
     
     ## Check 'Fcircle'
     if (!is.null(siaf$Fcircle)) {
-        cat("'Fcircle' vs. numerical cubature ... ")
-        res <- checksiaf.Fcircle(siaf$Fcircle, siaf$f, pargrid, type=type)
-        cat(all.equal(res[,1],res[,2]), "\n")
+        cat("'Fcircle' vs. cubature using method = \"",method,"\" ... ", sep="")
+        comp.Fcircle <- checksiaf.Fcircle(siaf$Fcircle, siaf$f, pargrid,
+                                          type=type, method=method, ...)
+        cat(attr(comp.Fcircle, "all.equal") <-
+            all.equal(comp.Fcircle[,1], comp.Fcircle[,2],
+                      check.attributes=FALSE, tolerance=tolerance),
+            "\n")
     }
     
     ## Check 'deriv'
     if (!is.null(siaf$deriv)) {
         cat("'deriv' vs. numerical derivative ... ")
-        maxRelDiffs <- checksiaf.deriv(siaf$deriv, siaf$f, pargrid, type=type)
-        cat("maxRelDiff =", max(maxRelDiffs), "\n")
+        maxRelDiffs.deriv <- checksiaf.deriv(siaf$deriv, siaf$f, pargrid,
+                                             type=type)
+        cat(attr(maxRelDiffs.deriv, "all.equal") <-
+            if (any(maxRelDiffs.deriv > tolerance))
+            paste("maxRelDiff =", max(maxRelDiffs.deriv)) else TRUE,
+            "\n")
+    }
+
+    ## Check 'Deriv'
+    if (!is.null(siaf$Deriv)) {
+        cat("'Deriv' vs. cubature using method = \"", method ,"\" ... ", sep="")
+        comp.Deriv <- checksiaf.Deriv(siaf$Deriv, siaf$deriv, pargrid,
+                                      type=type, method=method, ...)
+        if (siaf$npars > 1) cat("\n")
+        attr(comp.Deriv, "all.equal") <-
+            sapply(seq_len(siaf$npars), function (j) {
+                if (siaf$npars > 1) cat("\tsiaf parameter ", j, ": ", sep="")
+                ae <- all.equal(comp.Deriv[,j], comp.Deriv[,siaf$npars+j],
+                                check.attributes=FALSE, tolerance=tolerance)
+                cat(ae, "\n")
+                ae
+            })
     }
 
     ## Check 'simulate'
-    if (!is.null(siaf$simulate)) {
+    if (interactive() && !is.null(siaf$simulate)) {
+        cat("Simulating ... ")
         checksiaf.simulate(siaf$simulate, siaf$f, pargrid[1,], type=type)
+        cat("(-> check the plot)\n")
     }
+
+    ## invisibly return check results
+    invisible(mget(c("comp.F", "comp.Fcircle",
+                     "maxRelDiffs.deriv", "comp.Deriv"),
+                   ifnotfound=list(NULL), inherits=FALSE))
+}
+
+checksiaf.F <- function (F, f, pargrid, type=1, method="SV", ...)
+{
+    letterR <- "cheating on codetools::checkUsage"
+    data("letterR", package="spatstat", envir=environment())
+    poly <- shift.owin(letterR, -c(3,2))
+    res <- t(apply(pargrid, 1, function (pars) {
+        given <- F(poly, f, pars, type)
+        num <- siaf.fallback.F(poly, f, pars, type, method=method, ...)
+        c(given, num)
+    }))
+    colnames(res) <- c("F", method)
+    res
 }
 
 checksiaf.Fcircle <- function (Fcircle, f, pargrid, type=1,
-                               rs=runif(20, 0, 100), nGQ=30)
+                               rs=c(1,5,10,50,100), method="SV", ...)
 {
     pargrid <- pargrid[rep(1:nrow(pargrid), each=length(rs)),,drop=FALSE]
     rpargrid <- cbind(rs, pargrid, deparse.level=0)
     res <- t(apply(rpargrid, 1, function (x) {
         c(ana = Fcircle(x[1], x[-1], type),
-          num = polyCub.SV(discpoly(c(0,0), x[1], npoly=128, class="owin"),
-                           function (s) f(s, x[-1], type),
-                           alpha=0, nGQ=nGQ))
+          num = siaf.fallback.F(discpoly(c(0,0), x[1], npoly=128, class="owin"),
+                                f, x[-1], type, method=method, ...))
     }))
     res
 }
@@ -224,23 +281,26 @@ checksiaf.deriv <- function (deriv, f, pargrid, type=1, rmax=100)
     rgrid <- seq(-rmax,rmax,len=21) / sqrt(2)
     rgrid <- rgrid[rgrid != 0] # some siafs are always 1 at (0,0) (deriv=0)
     sgrid <- cbind(rgrid, rgrid)
-    maxreldiffs <- if (requireNamespace("maxLik")) {
-        apply(pargrid, 1, function (pars) {
-            maxLik::compareDerivatives(f, deriv, t0=pars, s=sgrid,
-                                       print=FALSE)$maxRelDiffGrad
-        })
-    } else { # use stats::numericDeriv
-        apply(pargrid, 1, function (pars) {
-            ana <- deriv(sgrid, pars, types=type)
-            logsigma <- pars[1L]; logd <- pars[2L]
-            num <- attr(numericDeriv(quote(f(sgrid, c(logsigma,logd),
-                                             types=type)),
-                                     theta=c("logsigma", "logd")),
-                        "gradient")
-            max((ana-num)/(0.5*(abs(ana)+abs(num))))
-        })
-    }
-    maxreldiffs
+    apply(pargrid, 1, function (pars) {
+        maxLik::compareDerivatives(f, deriv, t0=pars, s=sgrid,
+                                   print=FALSE)$maxRelDiffGrad
+    })
+}
+
+checksiaf.Deriv <- function (Deriv, deriv, pargrid, type=1, method="SV", ...)
+{
+    letterR <- "cheating on codetools::checkUsage"
+    data("letterR", package="spatstat", envir=environment())
+    poly <- shift.owin(letterR, -c(3,2))
+    res <- t(apply(pargrid, 1, function (pars) {
+        given <- Deriv(poly, deriv, pars, type)
+        num <- siaf.fallback.Deriv(poly, deriv, pars, type, method=method, ...)
+        c(given, num)
+    }))
+    paridxs <- seq_len(ncol(pargrid))
+    colnames(res) <- c(paste("Deriv",paridxs,sep="."),
+                       paste(method,paridxs,sep="."))
+    res
 }
 
 checksiaf.simulate <- function (simulate, f, pars, type=1, B=3000, ub=10)
@@ -248,8 +308,8 @@ checksiaf.simulate <- function (simulate, f, pars, type=1, B=3000, ub=10)
     ## Simulate B points on the disc with radius 'ub'
     simpoints <- simulate(B, pars, type=type, ub=ub)
 
-    ## Graphical check
-    par(mar=c(1,2,2,1))
+    ## Graphical check in 2D
+    opar <- par(mfrow=c(2,1), mar=c(4,3,2,1)); on.exit(par(opar))
     plot(as.im.function(function(x,y,...) f(cbind(x,y), pars, type),
                         W=discpoly(c(0,0), ub, class="owin")),
          axes=TRUE, main="Simulation from the spatial kernel")
@@ -258,4 +318,14 @@ checksiaf.simulate <- function (simulate, f, pars, type=1, B=3000, ub=10)
     contour(kdens, add=TRUE, col=2, lwd=2,
             labcex=1.5, vfont=c("sans serif", "bold"))
     ##x11(); image(kdens, add=TRUE)
+
+    ## Graphical check of distance distribution
+    MASS::truehist(sqrt(rowSums(simpoints^2)), xlab="Distance")
+    rfr <- function (r) r*f(cbind(r,0), pars, type)
+    rfrnorm <- integrate(rfr, 0, ub)$value
+    do.call("curve", list(quote(rfr(x)/rfrnorm), add=TRUE, col=2, lwd=2))
+    ##<- use do.call-construct to prevent codetools::checkUsage from noting "x"
+
+    ## invisibly return simulated points
+    invisible(simpoints)
 }

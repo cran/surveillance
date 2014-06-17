@@ -17,7 +17,7 @@ Impute Blocks for Extra Stops in \code{"epidata"} Objects
 }
 
 \usage{
-intersperse(epidata, stoptimes)
+intersperse(epidata, stoptimes, verbose = FALSE)
 }
 
 \arguments{
@@ -27,6 +27,10 @@ intersperse(epidata, stoptimes)
   \item{stoptimes}{
     a numeric vector of time points inside the observation period of the
     \code{epidata}.
+  }
+  \item{verbose}{
+    logical indicating if a \code{\link{txtProgressBar}} should be shown
+    while inserting blocks for extra \code{stoptimes}.
   }
 }
 
@@ -39,8 +43,9 @@ intersperse(epidata, stoptimes)
 Sebastian Meyer
 }
 
-%\seealso{
-%}
+\seealso{
+  \code{\link{as.epidata.epidataCS}} where this function is used.
+}
 
 \examples{
 data("fooepidata")

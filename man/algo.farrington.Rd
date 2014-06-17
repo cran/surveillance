@@ -26,31 +26,32 @@
     \describe{
     \item{\code{range}}{Specifies the index of all timepoints which
         should be tested. If range is \code{NULL} the maximum number
-        of possible weeks is used.}
+        of possible weeks is used (i.e. as many weeks as possible while
+	still having enough reference values).}
     \item{\code{b}}{how many years back in time to include when
         forming the base counts.}
     \item{\code{w}}{windows size, i.e. number of weeks to include
         before and after the current week}
     \item{\code{reweight}}{Boolean specifying whether to perform reweight step}
     \item{\code{trend}}{If \code{true} a trend is included and kept in
-        case the conditions in the Farrington et. al. paper are met
+        case the conditions documented in Farrington et al. (1996) are met
         (see the results). If \code{false} then NO trend is fit.}
-    \item{\code{verbose}}{show extra debugging information}
-    \item{\code{plot}}{shows the final GLM model fit graphically (use
-        History|Recording to see all pictures)}
+    \item{\code{verbose}}{Boolean indicating whether to show extra debugging information.}
+    \item{\code{plot}}{Boolean specifying whether to show the final GLM model fit graphically (use
+        History|Recording to see all pictures).}
     \item{\code{powertrans}}{Power transformation to apply to the
         data. Use either "2/3" for skewness correction (Default),
         "1/2" for variance stabilizing transformation or "none" for no
-        transformation}
-    \item{\code{alpha}}{An approximate (two-sided) \eqn{(1-\alpha)\%}\
-        prediction interval is calculated}
+        transformation.}
+    \item{\code{alpha}}{An approximate (two-sided) \eqn{(1-\alpha)}
+        prediction interval is calculated.}
     \item{\code{limit54}}{To avoid alarms in cases where the time series only
         has about 0-2 cases the algorithm uses the following heuristic
         criterion (see Section 3.8 of the Farrington paper) to protect
         against low counts: no alarm is sounded if fewer than
         \eqn{cases=5} reports were received in the past \eqn{period=4}
         weeks. \code{limit54=c(cases,period)} is a vector allowing the
-        user to change these numbers. Note: As of version 0.9-7 The
+        user to change these numbers. Note: As of version 0.9-7 the
         term "last" period of weeks includes the current week -
         otherwise no alarm is sounded for horrible large numbers if
         the four weeks before that are too low.}

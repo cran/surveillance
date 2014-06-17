@@ -27,7 +27,7 @@ The data could also be handled by a multinomial CUSUM model.
 \seealso{\code{\link{pairedbinCUSUM}}}
 \examples{
 data("deleval")
-plot(deleval, xaxis.years=FALSE,ylab="Response",xlab="Patient number")
+plot(deleval, xaxis.labelFormat=NULL,ylab="Response",xlab="Patient number")
 }
 \references{
   Steiner, S. H., Cook, R. J., and Farewell, V. T. (1999), Monitoring

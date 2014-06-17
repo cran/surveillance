@@ -1,7 +1,8 @@
 \name{isoWeekYear}
 \alias{isoWeekYear}
+\alias{formatDate}
 
-\title{Find ISO week and ISO year of a vector of Date objects}
+\title{Find ISO week and ISO year of a vector of Date objects on Windows}
 \description{
   This function extracts the ISO week and ISO year of a \code{Date}
   according to the ISO 8601 specification. Note that this function
@@ -16,7 +17,8 @@
   
 }
 \details{
-  The code is by Gustaf Rydevik <gustaf.rydevik_at_gmail.com>  posted
+  The code to find the ISO week and year on Windows is by Gustaf Rydevik
+  <gustaf.rydevik_at_gmail.com>  posted
   at http://tolstoy.newcastle.edu.au/R/e10/help/10/05/5588.html
 }
 \usage{

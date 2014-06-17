@@ -7,8 +7,8 @@
 \description{
   Method to aggregate the matrix slots of an sts object.
   Either the time series is aggregated so a new sampling frequency of
-  \code{nfreq} units per time slot is obtained -- i.e as in
-  \code{\link{aggregate.ts}}. The other option is to aggregate over all
+  \code{nfreq} units per time slot is obtained (i.e as in
+  \code{\link{aggregate.ts}}) or the aggregation is over all
   \code{ncol} units.
 
   Note: The function is not 100\% consistent with what the generic
@@ -31,9 +31,9 @@
 }
 
 \details{
-    Warning: In case the aggregation is by unit the upperbound slot is set
-    to NA. Furthermore the MAP object is left as  is, but the object
-    cannot be plotted anymore. 
+    Warning: Aggregation by unit sets the upperbound slot to
+    \code{NA} and the MAP object is left as-is, but the object 
+    cannot be plotted by unit any longer. 
 }
 \seealso{
   \code{\link{aggregate}}

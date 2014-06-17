@@ -7,9 +7,6 @@ options("prompt"="R> ")
 set.seed(1234)
 
 opendevice <- function(horizontal=TRUE,width=7,height=4,...) {
-  #This function is not really necessary for the demo session.
-##   #pdf(...,width=width,height=height)
-
   #Do it for postscript instead  -- who uses postscript these days??
   args <- list(...)
   args$file <- sub(".pdf",".eps",args$file)

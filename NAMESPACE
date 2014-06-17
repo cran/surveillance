@@ -2,7 +2,6 @@
 
 useDynLib(surveillance)
 
-
 ###############
 ### IMPORTS ###
 ###############
@@ -24,7 +23,7 @@ import(sp)
 ### required generics for own methods (that's why we "Depend" on these packages)
 
 ## importFrom(stats, coef, vcov, logLik, nobs, residuals, confint, AIC, extractAIC,
-##                   profile, simulate, update, terms, add1, drop1, predict)
+##                   profile, simulate, update, terms, add1, drop1, predict, as.stepfun)
 importFrom(utils, head, tail, toLatex)
 importFrom(xtable, xtable) # if we wouldn't "Depend" on xtable, our
                            # xtable-methods would not be useable except if the
@@ -58,7 +57,7 @@ importFrom(MASS, glm.nb)   # for algo.glrnb
 
 ### hhh4-specific
 
-importFrom(MASS, ginv)
+importFrom(MASS, ginv, negative.binomial)
 importFrom(Matrix, Matrix)
 importClassesFrom(Matrix, ddiMatrix)
 importMethodsFrom(Matrix, coerce, diag, forceSymmetric, solve)
@@ -75,7 +74,8 @@ importMethodsFrom(Matrix, coerce, diag, forceSymmetric, solve)
 
 importFrom(spatstat, area.owin, as.im.function, coords.ppp, diameter,
                      diameter.owin, disc, distppl, inside.owin, intersect.owin,
-                     is.polygonal, marks, runifpoint, shift.owin)
+                     is.polygonal, marks, multiplicity, runifpoint, shift.owin,
+                     spatstat.options, vertices)
 
 importFrom(polyCub, polyCub, polyCub.SV, polyCub.midpoint, xylist)
 importMethodsFrom(polyCub, coerce)
@@ -95,13 +95,17 @@ export(surveillance.options, reset.surveillance.options)
 export(animate)          # new S3-generic
 export(R0)               # new S3-generic
 export(intensityplot)    # new S3-generic
+export(fixef)            # new S3-generic (same meaning as in package nlme)
+export(ranef)            # new S3-generic (same meaning as in package nlme)
 export(formatPval)       # yapf -- yet another p-value formatter
 export(anscombe.residuals)
 export(magic.dim, primeFactors, bestCombination)   # similar to n2mfrow
-export(isoWeekYear)
+export(isoWeekYear) #extract ISO 8601 date
+export(formatDate)  #ISO 8601 compatible %G and %V format( ) function. 
 export(refvalIdxByDate)
 export(ks.plot.unif)
-export(checkResidualProcess)            # for twinstim and twinSIR
+export(checkResidualProcess)       # for twinstim and twinSIR
+export(qlomax)                     # quantile function of the Lomax distribution
 
 # spatial utilities
 export(discpoly)
@@ -128,8 +132,7 @@ S3method(intersectPolyCircle, SpatialPolygons)
 S3method(intersectPolyCircle, gpc.poly)
 
 # little helper: multiplicity of points
-export(multiplicity)                    # new S3-generic
-S3method(multiplicity, default)
+export(multiplicity)                    # as imported from spatstat
 S3method(multiplicity, Spatial)
 
 # Spatio-temporal cluster detection
@@ -139,20 +142,30 @@ export(stcd)
 ### sts(BP)-specific
 
 exportClasses(sts, stsBP)
+export(linelist2sts)
 
 # generics for sts class defined in sts.R
 exportMethods("[", plot)
+exportMethods(toLatex)
 exportMethods(nrow, ncol, dim, colnames, epochInYear, year)
 exportMethods(aggregate)
 exportMethods(as.data.frame)
 
-# methods for accessing/replacing slots of an sts object (as defined in AllGeneric.R)
+# methods for accessing/replacing slots of an sts object (cf. AllGeneric.R)
 exportMethods(epoch,observed,alarms,upperbound,population,control,multinomialTS,neighbourhood)
 exportMethods("epoch<-","observed<-","alarms<-","upperbound<-","population<-","control<-","multinomialTS<-","neighbourhood<-")
+# methods for accessing/replacing slots of an stsNC object
+exportMethods(reportingTriangle,delayCDF,score)
 
-export(linelist2sts)
+# plot variants
+export(stsplot_space)
+export(stsplot_time, stsplot_time1, stsplot_alarm)
+export(atChange, at2ndChange, atMedian) #for time axis formatting
+export(stsplot_spacetime) # old implementation of (animated) map
+S3method(animate, sts)    # S3-method for an S4 class, see ?Methods
 
-export(wrap.algo, farrington, bayes, rki, cusum, glrpois, glrnb, outbreakP) # rogerson, hmm
+# outbreak detection algorithms (sts-interfaces)
+export(wrap.algo, farrington, bayes, rki, cusum, glrpois, glrnb, outbreakP, boda) # FIXME: rogerson, hmm ??
 export(earsC)
 export(farringtonFlexible)
 export(categoricalCUSUM, pairedbinCUSUM, pairedbinCUSUM.runlength)
@@ -179,7 +192,8 @@ export(estimateGLRNbHook)
 export(algo.compare, algo.quality, algo.summary)
 
 ## outbreak detection algorithms (old disProg implementations)
-export(algo.bayes, algo.bayes1, algo.bayes2, algo.bayes3, algo.bayesLatestTimepoint,
+export(algo.bayes, algo.bayes1, algo.bayes2, algo.bayes3,
+       algo.bayesLatestTimepoint,
        algo.call,
        algo.cdc, algo.cdcLatestTimepoint,
        algo.cusum,
@@ -192,7 +206,7 @@ export(algo.bayes, algo.bayes1, algo.bayes2, algo.bayes3, algo.bayesLatestTimepo
        algo.rogerson,
        algo.twins)
 
-## auxiliary functions for algo.farrington (FIXME: why do we export these internals?)
+## auxiliary functions for algo.farrington (FIXME: why export these internals?)
 export(algo.farrington.assign.weights,
        algo.farrington.fitGLM, algo.farrington.fitGLM.fast,
        algo.farrington.fitGLM.populationOffset, algo.farrington.threshold)
@@ -204,9 +218,7 @@ S3method(plot, survRes.one)
 S3method(print, algoQV)
 S3method(xtable, algoQV)
 
-export(test, testSim)   # FIXME: do we really want that?
-# if not, then we have to prefix all test() and testSim() calls in the
-# corresponding examples in the Rd files by "surveillance:::"
+export(test, testSim)   # FIXME: remove these test functions? -> Demo?
 
 
 ### conversion between old disProg and new sts classes
@@ -257,10 +269,16 @@ export(intensityplot.simEpidata)        # for convenience
 ### twinstim-specific
 
 export(as.epidataCS)
+export(glm_epidataCS)
 export(twinstim)
 export(simEpidataCS)
-export(siaf.constant, siaf.gaussian, siaf.lomax, qlomax, siaf.powerlaw, siaf.powerlawL)
-export(tiaf.constant, tiaf.exponential)
+export(siaf,
+       siaf.constant, siaf.step,
+       siaf.gaussian,
+       siaf.powerlaw, siaf.powerlawL, siaf.student)
+export(tiaf,
+       tiaf.constant, tiaf.step,
+       tiaf.exponential)
 export(epidataCS2sts)
 
 S3method(nobs, epidataCS)
@@ -273,12 +291,14 @@ S3method(print, epidataCS)
 S3method(subset, epidataCS)
 S3method(summary, epidataCS)
 S3method(print, summary.epidataCS)
+S3method(as.stepfun, epidataCS)
 S3method(animate, epidataCS)
 export(animate.epidataCS)               # for convenience
 export(marks)                           # as imported from spatstat
 S3method(marks, epidataCS)
 export(marks.epidataCS)            # for convenience since its a foreign generic
 S3method(plot, epidataCS)
+export(epidataCSplot_time, epidataCSplot_space)
 S3method(as.epidata, epidataCS)
 export(as.epidata.epidataCS)            # for convenience
 
@@ -330,7 +350,7 @@ S3method("[[", simEpidataCSlist)
 S3method(plot, simEpidataCSlist)
 
 
-### hhh-specific
+### algo.hhh-specific
 
 export(algo.hhh)
 export(algo.hhh.grid)
@@ -348,33 +368,55 @@ S3method(predict, ahg)
 S3method(residuals, ahg)
 S3method(logLik, ahg)
 
+export(simHHH, simHHH.default)
+S3method(simHHH, default)
+S3method(simHHH, ah)
+
+
+### hhh4-specific
+
+## main functions
 export(hhh4) 
 export(addSeason2formula)
-export(zetaweights, powerlaw)
-export(ranef)  # S3-generic
-export(fixef)  # S3-generic
+export(zetaweights, W_powerlaw)
+export(W_np)
+export(oneStepAhead, scores)
+export(permutationTest)
+export(pit)
 
+## S3-methods
+S3method(print, hhh4)
+S3method(summary, hhh4)
+S3method(print, summary.hhh4)
+S3method(nobs, hhh4)
+S3method(logLik, hhh4)
+S3method(terms, hhh4)
+S3method(coef, hhh4)
+S3method(vcov, hhh4)
+S3method(fixef, hhh4)
+S3method(ranef, hhh4)
+S3method(confint, hhh4)
+S3method(residuals, hhh4)
+S3method(predict, hhh4)
+S3method(update, hhh4)
+S3method(simulate, hhh4)
+S3method(plot, hhh4)
+export(plotHHH4_fitted, plotHHH4_fitted1,
+       plotHHH4_season, getMaxEV_season,
+       plotHHH4_maxEV, getMaxEV,
+       plotHHH4_ri)
+
+## backwards-compatibility for old class name "ah4"
 S3method(print, ah4)
-S3method(print, summary.ah4)
 S3method(summary, ah4)
-S3method(coef, ah4)
+S3method(print, summary.ah4)
 S3method(logLik, ah4)
-S3method(AIC, ah4)
+S3method(terms, ah4)
+S3method(coef, ah4)
 S3method(fixef, ah4)
 S3method(ranef, ah4)
 S3method(confint, ah4)
 S3method(predict, ah4)
-S3method(plot, ah4)
 S3method(update, ah4)
-
-export(simHHH, simHHH.default)
-S3method(simHHH, default)
-S3method(simHHH, ah)
 S3method(simulate, ah4)
-
-export(oneStepAhead)
-export(scores)
-
-# functions not yet documented, but used in (dontrun) part of example(hhh4)
-export(permutationTest)
-export(pit)
+S3method(plot, ah4)

@@ -5,9 +5,6 @@
 ### code chunk number 1: setup
 ###################################################
 library("surveillance")  
-library("maptools")
-gpclibPermit()
-library("Matrix")
 
 options(width=70)
 set.seed(247)
@@ -54,32 +51,24 @@ plot(fluMen, type = observed ~ time | unit, # type of plot
 
 
 ###################################################
-### code chunk number 5: readInFlu (eval = FALSE)
+### code chunk number 5: readInFlu
 ###################################################
-## # read in observed number of cases
-## flu.counts <- as.matrix(read.table(system.file("extdata/counts_flu_BYBW.txt", 
-##                                       package = "surveillance")))
-## # remove 'X' in column names                                      
-## colnames(flu.counts) <- substring(colnames(flu.counts),first = 2, last = 5)                                      
-## # read in adjacency matrix with elements 1 if two regions share a common border
-## nhood <- as.matrix(read.table(system.file("extdata/neighbourhood_BYBW.txt",
-##                                       package = "surveillance")))
-## # visualize adjacency matrix
-## image(Matrix(nhood))
+# read in observed number of cases
+flu.counts <- as.matrix(read.table(system.file("extdata/counts_flu_BYBW.txt", 
+                                      package = "surveillance")))
+# remove 'X' in column names                                      
+colnames(flu.counts) <- substring(colnames(flu.counts),first = 2, last = 5)                                      
+# read in adjacency matrix with elements 1 if two regions share a common border
+nhood <- as.matrix(read.table(system.file("extdata/neighbourhood_BYBW.txt",
+                                      package = "surveillance")))
 
 
 ###################################################
 ### code chunk number 6: nhoodByBw
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
-# read in observed number of cases
-flu.counts <- as.matrix(read.table(system.file("extdata/counts_flu_BYBW.txt", package = "surveillance")))
-# remove 'X' in columnnames                                      
-colnames(flu.counts) <- substring(colnames(flu.counts),first=2,last=5)                                      
-# read in a shapefile of the districts in Bavaria and Baden-Wuerttemberg
-map <- readShapePoly(system.file("shapes/districts_BYBW.shp", package = "surveillance"), IDvar = "id")
-# read in adjacency matrix with elements 1 if two regions share a common border
-nhood <- as.matrix(read.table(system.file("extdata/neighbourhood_BYBW.txt", package = "surveillance")))
+# visualize adjacency matrix
+library("Matrix")
 print(image(Matrix(nhood)))
 
 
@@ -87,12 +76,16 @@ print(image(Matrix(nhood)))
 ### code chunk number 7: fluAsSTS
 ###################################################
 # read in a shapefile of the districts in Bavaria and Baden-Wuerttemberg
-map <- readShapePoly(system.file("shapes/districts_BYBW.shp",
-                        package = "surveillance"), IDvar = "id")
+map <- maptools::readShapePoly(
+    system.file("shapes/districts_BYBW.shp", package = "surveillance"),
+    IDvar = "id"
+    )
 # read in population fractions
-p <- matrix(read.table(system.file("extdata/population_2001-12-31_BYBW.txt",
-                          package = "surveillance"), header = TRUE)$popFrac, 
-            nrow = nrow(flu.counts), ncol= ncol(flu.counts), byrow = TRUE)
+p <- matrix(
+    read.table(system.file("extdata/population_2001-12-31_BYBW.txt",
+                           package = "surveillance"),
+               header = TRUE)$popFrac, 
+    nrow = nrow(flu.counts), ncol = ncol(flu.counts), byrow = TRUE)
 # create sts object
 flu <- new("sts", epoch = 1:nrow(flu.counts),
                   observed = flu.counts,
@@ -141,25 +134,19 @@ plot(measles2w, type = observed ~ time,   # plot aggregated over all units i
 ## control = list(
 ##     ar = list(f = ~ -1),       # formula: exp(u'alpha) * y_i,t-1 
 ##     ne = list(f = ~ -1,        # formula: exp(x'beta) * sum_j {w_ji * y_j,t-1} 
-##               weights = NULL   # matrix with weights w_ji 
-##                                # [w_ji = neighbourhood(stsObj) as default]
-##               ),              
+##               weights = neighbourhood(stsObj)),  # matrix of weights w_ji 
 ##     end = list(f = ~ 1,        # formula:  exp(z'gamma) * e_it 
-##               offset = NULL    # optional offset e_it 
-##               ),
+##                offset = 1),     # optional offset e_it 
 ##     family = "Poisson",                # Poisson or NegBin model
 ##     subset = 2:nrow(stsObj),           # subset of observations to be used 
-##                                        # in the fitting process
-##     optimizer = list(tech = "nlminb"), # details for optimizer 
+##     optimizer = list(),                # control optimization procedure
 ##     verbose = FALSE,                   # no progress information is printed
 ##     start = list(fixed = NULL,         # list with initial values for fixed,
 ##                  random = NULL,        # random, and
-##                  sd.corr = NULL        # variance parameters
-##                  ),
-##     data = data.frame(t = epoch(sts))  # data.frame,
-##                                        # or named list with covariates 
-##     )
-##            
+##                  sd.corr = NULL),      # variance parameters
+##     data = list(t=epoch(stsObj)-1),    # named list of covariates 
+##     keep.terms = FALSE                 # do not keep the model terms
+## )
 
 
 ###################################################
@@ -200,7 +187,7 @@ AIC(result2)
 
 
 ###################################################
-### code chunk number 15: hhh4.Rnw:529-530
+### code chunk number 15: hhh4.Rnw:525-526
 ###################################################
 neighbourhood(fluMen) <- matrix(c(0,0,1,0),2,2)
 
@@ -229,7 +216,7 @@ summary(result <- hhh4(fluMen, control = m))
 ### code chunk number 17: plot-fit_men
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
-plot(result, i = 2, col = c("orange", "blue", "grey85"), legend = TRUE)
+plot(result, units = "meningococcus")
 
 
 ###################################################
@@ -292,7 +279,7 @@ if(compute){
 
 
 ###################################################
-### code chunk number 21: hhh4.Rnw:632-633
+### code chunk number 21: hhh4.Rnw:628-629
 ###################################################
 s.B2
 
@@ -310,7 +297,7 @@ s.B2
 
 
 ###################################################
-### code chunk number 24: hhh4.Rnw:654-655
+### code chunk number 24: hhh4.Rnw:650-651
 ###################################################
 meanSc.B2[ c("logs", "rps")]
 
@@ -332,7 +319,7 @@ colnames(vac0) <- colnames(measles2w)
 
 
 ###################################################
-### code chunk number 26: hhh4.Rnw:687-688
+### code chunk number 26: hhh4.Rnw:683-684
 ###################################################
 vac0[1:2, 1:5]
 

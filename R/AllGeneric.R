@@ -14,22 +14,35 @@ intersectPolyCircle <- function (object, center, radius, ...)
 ## internal function with methods for "twinSIR" and "simEpidata"
 getModel <- function (object, ...) UseMethod("getModel")
 
-## (rather internal) generic with a default and a "Spatial" method
-multiplicity <- function (x, ...) UseMethod("multiplicity")
+
+### Declare some existing R functions (which we import) to be S4-generic.
+### This is not strictly necessary, but considered better programming style, and
+### it avoids messages noting the creation of the generics during package build
+### and installation, see the section "Basic Use" in help("setGeneric").
+
+setGeneric("plot")
+setGeneric("aggregate")
+setGeneric("toLatex")
+
+## data frame-like methods defined in sts.R
+setGeneric("nrow")
+setGeneric("ncol")
+setGeneric("colnames")
 
 
-### Define some functions to be S4 generic
+######################################################################
+# Conversion to and from sts objects
+######################################################################
 
-if(!isGeneric("plot")) setGeneric("plot", useAsDefault=plot)
-if(!isGeneric("aggregate")) setGeneric("aggregate", useAsDefault=aggregate)
-
+#setGeneric("as.sts") 
+setGeneric("as.data.frame")
 
 
 ######################################################################
 #Access and replace functions for the "sts" class
 ######################################################################
 #epoch slot
-if(!isGeneric("epoch")) setGeneric("epoch", function(x, as.Date=x@epochAsDate) standardGeneric("epoch"))
+setGeneric("epoch", function(x, as.Date=x@epochAsDate) standardGeneric("epoch"))
 setMethod("epoch", "sts", function(x, as.Date=x@epochAsDate) {
   if (!as.Date) {
     return(x@epoch)
@@ -43,7 +56,7 @@ setReplaceMethod("epoch", "sts", function(x, value) {
  x
 })
 # observed slot
-if(!isGeneric("observed")) setGeneric("observed", function(x) standardGeneric("observed"))
+setGeneric("observed", function(x) standardGeneric("observed"))
 setMethod("observed", "sts", function(x) {
   return(x@observed)
 })
@@ -53,7 +66,7 @@ setReplaceMethod("observed", "sts", function(x, value) {
  x
 })
 # alarms slot
-if(!isGeneric("alarms")) setGeneric("alarms", function(x) standardGeneric("alarms"))
+setGeneric("alarms", function(x) standardGeneric("alarms"))
 setMethod("alarms", "sts", function(x) {
   return(x@alarm)
 })
@@ -63,7 +76,7 @@ setReplaceMethod("alarms", "sts", function(x, value) {
  x
 })
 # upperbound slot
-if(!isGeneric("upperbound")) setGeneric("upperbound", function(x) standardGeneric("upperbound"))
+setGeneric("upperbound", function(x) standardGeneric("upperbound"))
 setMethod("upperbound", "sts", function(x) {
   return(x@upperbound)
 })
@@ -73,7 +86,7 @@ setReplaceMethod("upperbound", "sts", function(x, value) {
  x
 })
 # population slot (actually its populationFrac)
-if(!isGeneric("population")) setGeneric("population", function(x) standardGeneric("population"))
+setGeneric("population", function(x) standardGeneric("population"))
 setMethod("population", "sts", function(x) {
   return(x@populationFrac)
 })
@@ -83,7 +96,7 @@ setReplaceMethod("population", "sts", function(x, value) {
  x
 })
 ##control slot
-if(!isGeneric("control")) setGeneric("control", function(x) standardGeneric("control"))
+setGeneric("control", function(x) standardGeneric("control"))
 setMethod("control", "sts", function(x) {
   return(x@control)
 })
@@ -94,7 +107,7 @@ setReplaceMethod("control", "sts", function(x, value) {
 })
 ###multinomial Time series slot
 ##control slot
-if(!isGeneric("multinomialTS")) setGeneric("multinomialTS", function(x) standardGeneric("multinomialTS"))
+setGeneric("multinomialTS", function(x) standardGeneric("multinomialTS"))
 setMethod("multinomialTS", "sts", function(x) {
   return(x@multinomialTS)
 })
@@ -105,7 +118,7 @@ setReplaceMethod("multinomialTS", "sts", function(x, value) {
 })
 
 ### neighbourhood matrix slot 
-if(!isGeneric("neighbourhood")) setGeneric("neighbourhood", function(x) standardGeneric("neighbourhood"))
+setGeneric("neighbourhood", function(x) standardGeneric("neighbourhood"))
 setMethod("neighbourhood", "sts", function(x) {
   return(x@neighbourhood)
 })
@@ -115,16 +128,24 @@ setReplaceMethod("neighbourhood", "sts", function(x, value) {
  x
 })
 
-
-
 ######################################################################
-#Some access functions similar to matrix/dataframe (definition in sts.R)
+# For stsNC class
 ######################################################################
-if(!isGeneric("nrow")) setGeneric("nrow", useAsDefault=nrow)
-if(!isGeneric("ncol")) setGeneric("ncol", useAsDefault=ncol)
-if(!isGeneric("colnames")) setGeneric("colnames", useAsDefault=colnames)
 
-#New methods 
-if(!isGeneric("as.data.frame")) setGeneric("as.data.frame", useAsDefault=as.data.frame)
+### access function for repotringTriangle slot 
+setGeneric("reportingTriangle", function(x) standardGeneric("reportingTriangle"))
+setMethod("reportingTriangle", "stsNC", function(x) {
+  return(x@reportingTriangle)
+})
 
+### access function for delayCDF slot 
+setGeneric("delayCDF", function(x) standardGeneric("delayCDF"))
+setMethod("delayCDF", "stsNC", function(x) {
+  return(x@delayCDF)
+})
 
+### access function for SR slot 
+setGeneric("score", function(x) standardGeneric("score"))
+setMethod("score", "stsNC", function(x) {
+  return(x@SR)
+})

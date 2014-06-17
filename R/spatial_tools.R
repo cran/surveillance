@@ -5,9 +5,9 @@
 ###
 ### Auxiliary functions for operations on spatial data
 ###
-### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 666 $
-### $Date: 2013-11-08 15:45:36 +0100 (Fre, 08 Nov 2013) $
+### Copyright (C) 2009-2014 Sebastian Meyer
+### $Revision: 803 $
+### $Date: 2014-02-27 09:54:43 +0100 (Thu, 27 Feb 2014) $
 ################################################################################
 
 
@@ -84,21 +84,21 @@ unionSpatialPolygons <- function (SpP,
     W
 }
 
-    
+
 ### Compute distance from points to boundary
 ### copied in part from function bdist.points() of the "spatstat" package
 ### authored by A. Baddeley and R. Turner (DEPENDS ON spatstat::distppl)
-## xy is the coordinate matrix of the points
+## xy is the coordinate _matrix_ of the points
 ## poly is a polygonal domain of class "owin" or "gpc.poly"
 ## Note that we do not check if points are actually inside the polygonal domain
 bdist <- function (xy, poly)
 {
-    result <- rep.int(Inf, nrow(xy))
+    result <- rep.int(Inf, length(xy)/2) # faster than nrow, xy must be a matrix
     bdry <- if (is.polygonal(poly)) {
         poly$bdry
     } else if (inherits(poly, "gpc.poly")) {
         poly@pts
-    } else stop("'poly' must be \"owin\" or \"gpc.poly\"")
+    } else stop("'poly' must be a polygonal \"owin\" or a \"gpc.poly\"")
     for (i in seq_along(bdry)) {
         polly <- bdry[[i]]
         px <- polly$x
@@ -117,26 +117,20 @@ bdist <- function (xy, poly)
 
 ### sample n points uniformly on a disc with radius r
 
-runifdisc <- function (n, r = 1)
+runifdisc <- function (n, r = 1, buffer = 0)
 {
+    stopifnot(buffer <= r)
     rangle <- runif(n, 0, 2*pi)
-    rdist <- r * sqrt(runif(n, 0, 1))
+    rdist <- r * sqrt(runif(n, (buffer/r)^2, 1))
     rdist * cbind(cos(rangle), sin(rangle))
 }
 
 
-### Count number of instances at the same location of a SpatialPoint object
+### Count number of instances at the same location of a SpatialPoints object
+## NOTE: the default multiplicity-method has been integrated into the spatstat
+## package which we import
 
-multiplicity.default <- function (x, ...)
-{
-    distmat <- as.matrix(dist(x))
-    as.integer(rowSums(distmat == 0))
-}
-
-multiplicity.Spatial <- function (x, ...)
-{
-    multiplicity(coordinates(x))
-}
+multiplicity.Spatial <- function (x) multiplicity(coordinates(x))
 
     
 ### determines which polygons of a SpatialPolygons object are at the border,

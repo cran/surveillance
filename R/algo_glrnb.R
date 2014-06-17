@@ -75,8 +75,11 @@ algo.glrnb <- function(disProgObj,
     
     mod[[1]] <- estimateGLRNbHook()$mod
     
-    # if it is necessary to estimate alpha
-    if(is.null(control[["alpha",exact=TRUE]])) control$alpha <- mod[[1]]$theta
+    # if it is necessary to estimate alpha. Note: glm.nb uses a different
+    # parametrization of the negative binomial distribution, i.e. the
+    # variance is 'mu + mu^2/size' (?dnbinom).
+    # Hence the correct alpha is 1/theta
+    if(is.null(control[["alpha",exact=TRUE]])) control$alpha <- 1/mod[[1]]$theta
   }
   
    #Postprocess
@@ -158,6 +161,7 @@ algo.glrnb <- function(disProgObj,
         mu0 <- estimateGLRNbHook()$pred
         mod[[noofalarms+2]] <-  estimateGLRNbHook()$mod 
         control$mu0[(doneidx + res$N + 1):length(control$mu0)] <- mu0
+        #Note: No updating of alpha is currently done. 
       }
 
       noofalarms <- noofalarms + 1

@@ -76,7 +76,7 @@ farringtonFlexible(sts, control = list(range = NULL, b = 3, w = 3,
     \item{\code{thresholdMethod}}{Number of past weeks to ignore in the calculation.
     Options are "delta" for the method described in Farrington et al. (1996),
     "Noufaily" for the method described in Noufaily et al. (2012),
-    and "pban" for the method extended from Noufaily et al. (2012).}
+    and "muan" for the method extended from Noufaily et al. (2012).}
       }
     }
 }
@@ -107,12 +107,13 @@ in Farrington et al. (1996).}
 a negative binomial distribution parameterized by the expected count and the overdispersion
 estimated in the GLM. The threshold is deduced from a quantile of this discrete distribution.
 This process disregards the estimation error, though. This method was used in Noufaily, et al. (2012).}
-    \item{"pban"}{One also uses the assumption of the negative
+    \item{"muan"}{One also uses the assumption of the negative
 binomial sampling distribution but does not plug in the estimate of the expected count from the GLM,
 instead one uses a quantile from the asymptotic normal distribution of the expected count estimated
 in the GLM; in order to take into account both the estimation error and the prediction error.   }        }
 \item Computation of exceedance score
 }
+Warning: monthly data containing the last day of each month as date should be analysed with \code{epochAsDate=FALSE} in the \code{sts} object. Otherwise February makes it impossible to find some reference time points. 
 }
 \value{
 An object of class \code{sts} with the slots \code{upperbound} and \code{alarm} filled by appropriate output of the algorithm.

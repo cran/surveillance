@@ -5,23 +5,23 @@
 ###
 ### Simulate from a HHH4 model
 ###
-### Copyright (C) 2012-2013 Michaela Paul and Sebastian Meyer
-### $Revision: 594 $
-### $Date: 2013-07-08 16:05:55 +0200 (Mon, 08 Jul 2013) $
+### Copyright (C) 2012-2014 Michaela Paul and Sebastian Meyer
+### $Revision: 860 $
+### $Date: 2014-03-25 21:16:54 +0100 (Tue, 25 Mar 2014) $
 ################################################################################
 
 
-### Simulate-method for ah4-objects
+### Simulate-method for hhh4-objects
 
-simulate.ah4 <- function (object, # result from a call to hhh4
-                          nsim=1, # number of replicates to simulate
-                          seed=NULL,
-                          y.start=NULL, # initial counts for epidemic components
-                          subset=1:nrow(object$stsObj),
-                          coefs=coef(object), # coefficients used for simulation
-                          components=c("ar","ne","end"), # which comp to include
-                          simplify=nsim>1, # counts array only (no full sts)
-                          ...)
+simulate.hhh4 <- function (object, # result from a call to hhh4
+                           nsim=1, # number of replicates to simulate
+                           seed=NULL,
+                           y.start=NULL, # initial counts for epidemic components
+                           subset=1:nrow(object$stsObj),
+                           coefs=coef(object), # coefficients used for simulation
+                           components=c("ar","ne","end"), # which comp to include
+                           simplify=nsim>1, # counts array only (no full sts)
+                           ...)
 {
     ## Determine seed (this part is copied from stats:::simulate.lm with
     ## Copyright (C) 1995-2012 The R Core Team)
@@ -96,7 +96,7 @@ simulate.ah4 <- function (object, # result from a call to hhh4
     res <- if (nsim==1) eval(simcall) else
            replicate(nsim, eval(simcall),
                      simplify=if (simplify) "array" else FALSE)
-    if (simplify) dimnames(res) <- list(subset, colnames(model$response), NULL)
+    if (simplify) dimnames(res)[1:2] <- list(subset, colnames(model$response))
     
     ## Done
     attr(res, "call") <- cl
@@ -178,29 +178,4 @@ checkCoefs <- function (object, coefs, reparamPsi=TRUE)
         stop(sQuote("coefs"), " must be of length ", length(theta))
     names(coefs) <- names(theta)
     coefs
-}
-
-
-### extract the (final) weight matrix/array from a fitted ah4 object
-
-getNEweights <- function (object, pars = coefW(object))
-{
-    neweights <- object$control$ne$weights
-    
-    if (!is.list(neweights))  # NULL or fixed weight structure
-        return(neweights)
-
-    ## parametric weights
-    nd <- length(neweights$initial)
-    if (length(pars) != nd) stop("'pars' must be of length ", nd)
-    neweights$w(pars, neighbourhood(object$stsObj), object$control$data)
-}
-
-
-### extract parameters of neighbourhood weights from ah4-object or coef vector
-
-coefW <- function (object)
-{
-    coefs <- if (inherits(object, "ah4")) object$coefficients else object
-    coefs[grep("^neweights", names(coefs))]
 }

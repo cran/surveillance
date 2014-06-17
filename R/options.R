@@ -9,8 +9,8 @@
 ### available under GPL-2 from http://CRAN.R-project.org/package=spatstat
 ###
 ### Copyright (C) 2012 Sebastian Meyer
-### $Revision: 465 $
-### $Date: 2012-12-07 16:53:25 +0100 (Fre, 07 Dez 2012) $
+### $Revision: 835 $
+### $Date: 2014-03-12 10:50:47 +0100 (Wed, 12 Mar 2014) $
 ################################################################################
 
 .Options <- new.env()
@@ -35,6 +35,13 @@
                          valid="a single logical value"
                          )
 
+#Tick sizes of sts xaxis relative to par()$tcl
+.Options$stsTickFactors <- list(
+  default=c("%d"=0.33,"%W"=0.33,"%V"=0.33,"%m"=1,"%Q"=1.25,"%Y"=1.5,"%G"=1.5),
+  check=function(x) is.numeric(x),
+  valid="vector of pairs"
+)
+  
 ## Function to activate the defaults
 reset.surveillance.options <- function ()
 {

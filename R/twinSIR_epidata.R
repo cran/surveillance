@@ -290,7 +290,7 @@ as.epidata.default <- function(data, id.col, start.col, stop.col, atRiskY.col,
 # INSERT BLOCKS FOR EXTRA STOP TIMES IN 'EPIDATA' OBJECTS
 ################################################################################
 
-intersperse <- function (epidata, stoptimes)
+intersperse <- function (epidata, stoptimes, verbose = FALSE)
 {
     # Check arguments
     if (!inherits(epidata, "epidata")) {
@@ -301,8 +301,8 @@ intersperse <- function (epidata, stoptimes)
     }
     
     # Identify new 'stoptimes'
-    epiStop <- unique(epidata$stop)
-    extraStoptimes <- stoptimes[! stoptimes %in% epiStop]
+    sortedEpiStop <- sort(unique(epidata$stop))
+    extraStoptimes <- stoptimes[! stoptimes %in% sortedEpiStop]
     
     # Return original 'epidata' if nothing to do
     if (length(extraStoptimes) == 0) {
@@ -327,8 +327,15 @@ intersperse <- function (epidata, stoptimes)
     # Impute blocks for extraStoptimes
     oldclass <- class(epidata)
     class(epidata) <- "data.frame" # Avoid use of [.epidata (not necessary here)
-    sortedEpiStop <- sort(epiStop)
-    for(extraStop in extraStoptimes) {
+    blocksize <- sum(epidata$BLOCK == 1)
+    nInsert <- length(extraStoptimes)
+    lastRow <- nrow(epidata)
+    epidata <- rbind(epidata,
+                     epidata[rep.int(NA_integer_, nInsert * blocksize),],
+                     deparse.level = 0) # add NA rows, to be replaced below
+    if (verbose) pb <- txtProgressBar(min=0, max=nInsert, initial=0, style=3)
+    for(i in seq_len(nInsert)) {
+      extraStop <- extraStoptimes[i]
       nextStoptime <- sortedEpiStop[match(TRUE, sortedEpiStop > extraStop)]
       # Find the block (row indexes) into which the extraStop falls
       rowsMatchedBlock <- which(epidata$stop == nextStoptime)
@@ -340,9 +347,12 @@ intersperse <- function (epidata, stoptimes)
       epidata[rowsMatchedBlock, "stop"] <- extraStop
       epidata[rowsMatchedBlock, "event"] <- 0
       epidata[rowsMatchedBlock, "Revent"] <- 0
-      # append the new block to epidata (reorder rows later)
-      epidata <- rbind(epidata, newBlock)
+      # write the new block to epidata (reorder rows later)
+      epidata[lastRow + seq_along(rowsMatchedBlock),] <- newBlock
+      lastRow <- lastRow + length(rowsMatchedBlock)
+      if (verbose) setTxtProgressBar(pb, i)
     }
+    if (verbose) close(pb)
     
     # Adjust BLOCK column
     sortedEpiStop <- sort(c(sortedEpiStop, extraStoptimes))
@@ -350,7 +360,7 @@ intersperse <- function (epidata, stoptimes)
     
     # Reorder rows by time and id
     epidata <- epidata[order(epidata$BLOCK, epidata$id), ]
-#     rownames(epidata) <- NULL
+    row.names(epidata) <- NULL
     class(epidata) <- oldclass
     
     return(epidata)

@@ -68,13 +68,13 @@ such that it works for a very large class of distributions.
   Book chapter in T. Kneib and G. Tutz (Eds.), Statistical
   Modelling and Regression Structures - Festschrift in Honour of Ludwig
   Fahrmeir, Springer, pp. 377-397. Preprint available as
-  http://www.stat.uni-muenchen.de/~hoehle/pubs/hoehle2010-preprint.pdf
+  http://www.math.su.se/~hoehle/pubs/hoehle2010-preprint.pdf
 
   Höhle, M. and Mazick, A. (2009), Aberration detection in R illustrated
   by Danish mortality monitoring, Book chapter to appear in T. Kass-Hout
   and X. Zhang (Eds.) Biosurveillance: A Health Protection Priority,
   CRCPress. Preprint available as
-  http://www.stat.uni-muenchen.de/~hoehle/pubs/hoehle_mazick2009-preprint.pdf
+  http://www.math.su.se/~hoehle/pubs/hoehle_mazick2009-preprint.pdf
   
   Brook, D. and Evans, D. A. (1972),  An approach to the probability
   distribution of Cusum run length, Biometrika,
@@ -130,6 +130,26 @@ if (surveillance.options("allExamples"))
 # and multinomial CUSUMs. Hopefully, these will be added
 # in the future.
 ########################################################
+
+#dfun function for the multinomial distribution (Note: Only k-1 categories are specified).
+dmult <- function(y, size,mu, log = FALSE) {
+    return(dmultinom(c(y,size-sum(y)), size = size, prob=c(mu,1-sum(mu)), log = log))
+}
+
+#Example for the time-constant multinomial distribution
+#with size 100 and in-control and out-of-control parameters as below.
+n <- 100
+pi0 <- as.matrix(c(0.5,0.3,0.2))
+pi1 <- as.matrix(c(0.38,0.46,0.16))
+
+#ARL_0
+LRCUSUM.runlength(mu=pi0[1:2,,drop=FALSE],mu0=pi0[1:2,,drop=FALSE],mu1=pi1[1:2,,drop=FALSE],
+                  h=5,dfun=dmult, n=n, g=15)$arl
+#ARL_1
+LRCUSUM.runlength(mu=pi1[1:2,,drop=FALSE],mu0=pi0[1:2,,drop=FALSE],mu1=pi1[1:2,,drop=FALSE],
+                  h=5,dfun=dmult, n=n, g=15)$arl
+
+
 }
 
 \author{M. \enc{Höhle}{Hoehle}}

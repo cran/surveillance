@@ -21,7 +21,8 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
   \code{\link{nobs}}. This
   also enables the use of, e.g., \code{\link{confint}} and
   \code{\link{AIC}}. The model \code{summary} can be exported to LaTeX
-  by the corresponding \code{\link{toLatex}} method.
+  by the corresponding \code{\link{toLatex}} or \code{\link{xtable}}
+  methods.
 }
 
 \usage{
@@ -39,12 +40,13 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
 
 \method{toLatex}{summary.twinstim}(object,
         digits = max(3, getOption("digits") - 3), eps.Pvalue = 1e-4,
-        align = "lrrrr", withAIC = FALSE, ...)
+        align = "lrrrr", booktabs = getOption("xtable.booktabs", FALSE),
+        withAIC = FALSE, ...)
 \method{xtable}{summary.twinstim}(x, caption = NULL, label = NULL,
       align = c("l", "r", "r", "r"), digits = 3,
       display = c("s", "f", "s", "s"),
       ci.level = 0.95, ci.fmt = "\%4.2f", ci.to = "--",
-      eps.pvalue = 1e-4, ...)
+      eps.Pvalue = 1e-4, ...)
 }
 
 \arguments{
@@ -70,7 +72,10 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
   }
   \item{signif.stars}{logical. If \code{TRUE}, \dQuote{significance
       stars} are printed for each coefficient.}
-  \item{eps.Pvalue}{see \code{\link{printCoefmat}}.}
+  \item{eps.Pvalue}{passed to \code{\link{format.pval}}.}
+  \item{booktabs}{logical indicating if the \code{toprule},
+  \code{midrule} and \code{bottomrule} commands from the LaTeX package
+  \pkg{booktabs} should be used for horizontal lines rather than \code{hline}.}
   \item{withAIC}{logical indicating if the AIC and the log-likelihood of
     the model should be included below the table of coefficients in the
     LaTeX tabular.}
@@ -78,7 +83,6 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
   \item{ci.level,ci.fmt,ci.to}{the confidence intervals are calculated
     at level \code{ci.level} and printed using \code{\link{sprintf}}
     with format \code{ci.fmt} and seperator \code{ci.to}.}
-  \item{eps.pvalue}{argument passed to \code{\link{formatPval}}.}
   \item{\dots}{
     For \code{print.summary.twinstim}, arguments passed to
     \code{\link{printCoefmat}}.\cr
@@ -87,34 +91,58 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
 }
 
 \details{
+  The estimated coefficients and standard Wald-type confidence intervals
+  can be extracted using the default \code{\link{coef}} and
+  \code{\link{confint}} methods from package \pkg{stats}.
+
   The \code{print} and \code{summary} methods allow the compact or comprehensive
   representation of the fitting results, respectively.  The former only prints
   the original function call, the estimated coefficients and the maximum
   log-likelihood value.  The latter prints the whole coefficient matrix
   with standard errors, z- and p-values (see \code{\link{printCoefmat}})
   -- separately for the endemic and the epidemic component -- and 
-  additionally the AIC, the number of log-likelihood and score
-  evaluations, and the runtime.  They both append a big
-  \dQuote{WARNING}, if the optimization algorithm did not converge.
+  additionally the AIC, the achieved log-likelihood, the number of
+  log-likelihood and score evaluations, and the runtime.
+  They both append a big \dQuote{WARNING}, if the optimization algorithm
+  did not converge.
 
-  The estimated coefficients may be extracted by using the default
-  \code{coef}-method from package \pkg{stats}.
+  The \code{toLatex} method is essentially a
+  translation of the printed summary table of coefficients to LaTeX
+  code (using \pkg{xtable}). However, the \code{xtable} method does a
+  different job in that it first converts coefficients to rate ratios
+  (RR, i.e., the \code{exp}-transformation) and gives confidence
+  intervals for those instead of standard errors and z-values.
+  Intercepts and interaction function parameters are ignored by the
+  \code{xtable} method.
 }
 
 \value{
   The \code{print} methods return their first argument, invisibly, as
-  they always should. The \code{vcov}, \code{logLik}, and \code{nobs}
-  methods return the estimated variance-covariance
-  matrix of the parameters (here, the inverse of the estimate of the
-  expected Fisher information matrix), the maximum log-likelihood
-  value of the model, and the number of events (excluding events of the
-  pre-history), respectively.
+  they always should.
+  The \code{vcov} method returns the estimated variance-covariance
+  matrix of the parameters, which is the inverse of
+  \code{object$fisherinfo} (estimate of the \emph{expected} Fisher
+  information matrix). This \code{"fisherinfo"} is not always available
+  (see \code{\link{twinstim}}), in which case
+  \code{object$fisherinfo.observed} is used if available or an error is
+  returned otherwise. 
+  The \code{logLik} and \code{nobs} methods return the maximum
+  log-likelihood value of the model, and the number of events (excluding
+  events of the pre-history), respectively.
+  
   The \code{summary} method returns a list containing some summary
   statistics of the model, which is nicely printed by the corresponding
   \code{print} method.
+  
   The \code{toLatex} method returns a character vector of class
   \code{"Latex"}, each element containing one line of LaTeX code (see
-  \code{\link{print.Latex}}). 
+  \code{\link{print.Latex}}).
+  The \code{xtable} method returns an object of class
+  \code{"\link{xtable}"}. Note that the column name of the confidence
+  interval, e.g. \dQuote{95\% CI}, contains the percent symbol that may
+  need to be escaped when printing the \code{"xtable"} in the output
+  format (see \code{sanitize.text.function} in
+  \code{\link{print.xtable}}). This may also hold for row names.
 }
 
 \author{
@@ -149,7 +177,7 @@ summary(imdepifit, test.iaf=FALSE, correlation=TRUE, symbolic.cor=TRUE)
 # create LaTeX code of coefficient table
 toLatex(summary(imdepifit), withAIC=FALSE)
 
-# or using the xtable-method (which produces RR's)
+# or using the xtable-method (which produces rate ratios)
 xtable(summary(imdepifit))
 }
 

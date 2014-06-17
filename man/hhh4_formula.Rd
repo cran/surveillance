@@ -66,6 +66,10 @@ intercept must be excluded with \code{-1}.
 # some calls of the fitting function 'hhh4': 
 # see vignette("hhh4") for further details
 
+data("influMen")
+fluMen <- disProg2sts(influMen)
+meningo <- fluMen[, "meningococcus"]
+
 ## Ex: univariate time series of meningococcal infections in Germany
 # Negative binomial model with
 # endemic component: Intercept + S = 1 sine/cosine pair
@@ -100,18 +104,19 @@ hhh4(fluMen, control = m)
 # neighbour-driven component: random intercepts
 # endemic component: random intercepts + trend + S = 3 sine/cosine pairs
 
+data("fluBYBW")
 f.end <- addSeason2formula(f = ~ -1 + ri(type = "iid", corr="all") +
                                  I((t-208)/100), S = 3, period = 52)
-
+wji <- neighbourhood(fluBYBW)/rowSums(neighbourhood(fluBYBW))
 model.B2 <- list(ar = list(f = ~ 1),
                  ne = list(f = ~ -1 + ri(type = "iid", corr="all"), 
                            weights = wji),
-                 end = list(f = f.end, offset = population(flu)),
+                 end = list(f = f.end, offset = population(fluBYBW)),
                  family = "NegBin1")
-hhh4(flu, model.B2)
+hhh4(fluBYBW, model.B2)
 
 
-## Ex: measles in Germany
+## Ex: measles in Germany (see vignette("hhh4"))
 # Poisson model with
 # autoregressive component: Intercept + vaccination coverage info
 # endemic component: Intercept + S = 1 sine/cosine pair
@@ -119,9 +124,6 @@ hhh4(flu, model.B2)
 f.end <- addSeason2formula(f = ~ 1, S = 1, period = 26)
 model.A0 <- list(ar = list(f = ~ 1 + logVac0),
                  end = list(f = f.end, offset = population(measles2w)),
-                 data = list(t = epoch(measles2w), logVac0 = log(vac0)))
-hhh4(measles2w, model.A0)    
+                 data = list(logVac0 = log(vac0)))
 }
 }
-
-

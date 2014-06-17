@@ -6,14 +6,13 @@
 ### hhh4 is an extended version of algo.hhh for the sts-class
 ### The function allows the incorporation of random effects and covariates.
 ###
-### Copyright (C) 2010-2013 Michaela Paul and Sebastian Meyer
-### $Revision: 671 $
-### $Date: 2013-11-18 22:54:36 +0100 (Mon, 18 Nov 2013) $
+### Copyright (C) 2010-2014 Michaela Paul and Sebastian Meyer
+### $Revision: 816 $
+### $Date: 2014-03-05 20:31:56 +0100 (Wed, 05 Mar 2014) $
 ################################################################################
 
 # - some function arguments are currently not used (but will eventually)
 # - formula formulation is experimental and not yet implemented in full generality 
-# - do some profiling...
 
 ## Error message issued in loglik, score and fisher functions upon NA parameters
 ADVICEONERROR <- "\n  Try different starting values, more iterations, or another optimizer.\n"
@@ -26,18 +25,20 @@ ADVICEONERROR <- "\n  Try different starting values, more iterations, or another
 CONTROL.hhh4 <- alist(
     ar = list(f = ~ -1,        # a formula " exp(x'lamba)*y_t-1 "
                                # (ToDo: or a matrix " Lambda %*% y_t-1 ")
-              lag = 1,         # autoregression on y_i,t-lag (currently unused)
+              offset = 1,      # multiplicative offset
+              lag = 1,         # autoregression on y_i,t-lag
               weights = NULL,  # for a contact matrix model (currently unused)
               initial = NULL   # initial parameters values if pred is a matrix
                                # or if pred = ~1 (not really used ATM)
     ),
     ne = list(f = ~ -1,        # a formula "exp(x'phi) * sum_j w_ji * y_j,t-lag"
-              lag = 1,         # regression on y_j,t-lag  (currently unused)
+              offset = 1,      # multiplicative offset
+              lag = 1,         # regression on y_j,t-lag
               weights = neighbourhood(stsObj),  # weights w_ji
               initial = NULL   # initial parameter values if pred = ~1 (not really used ATM)
     ),
     end = list(f = ~ 1,        # a formula " exp(x'nu) * n_it "
-               offset = 1,     # optional offset e_it
+               offset = 1,     # optional multiplicative offset e_it
                initial = NULL  # initial parameter values if pred = ~1 (not really used ATM)
     ),
     family = c("Poisson", "NegBin1", "NegBinM"),
@@ -48,9 +49,8 @@ CONTROL.hhh4 <- alist(
     verbose = FALSE,           # level of reporting during hhh4() processing
     start = list(fixed=NULL,random=NULL,sd.corr=NULL),  # list with initials,
                                # overrides any initial values in formulas 
-    data = data.frame(t=epoch(stsObj)-1), # data.frame or named list with
-                               # covariates that appear in any of the formulae
-    keep.terms = FALSE
+    data = list(t=epoch(stsObj)-1), # named list of covariates from any of the formulae
+    keep.terms = FALSE   # keep the result of interpretControl(control, stsObj)?
 )
 
 
@@ -59,6 +59,8 @@ CONTROL.hhh4 <- alist(
 
 hhh4 <- function (stsObj, control, check.analyticals = FALSE)
 {
+  ptm <- proc.time()
+  
   ## Convert old disProg class to new sts class
   if(inherits(stsObj, "disProg")) stsObj <- disProg2sts(stsObj)
   
@@ -105,66 +107,70 @@ hhh4 <- function (stsObj, control, check.analyticals = FALSE)
   convergence <- myoptim$convergence == 0
   thetahat <- c(myoptim$fixef, myoptim$ranef)
   loglik <- myoptim$loglik
-  fisher <- myoptim$fisher
-  cov <- try(solve(fisher), silent=TRUE) # approximation to inverted fisher info
+  cov <- try(solve(myoptim$fisher), silent=TRUE)
 
   ## check for degenerate fisher info
   if(inherits(cov, "try-error")){ # fisher info is singular
-    cat("Fisher info singular!\n")
+    if (control$verbose)
+        cat("WARNING: Final Fisher information matrix is singular!\n")
     convergence <- FALSE
   } else if(any(!is.finite(diag(cov))) || any(diag(cov)<0)){
-    cat("Infinite or negative cov!\n")
+    if (control$verbose)
+        cat("WARNING: non-finite or negative covariance of regression parameters!\n")
     convergence <- FALSE
   }
-
   if (!convergence) {
-      cat("Penalized loglikelihood =", loglik, "\n")
-      thetastring <- paste(round(thetahat,2), collapse=", ")
-      thetastring <- strwrap(thetastring, exdent=10, prefix="\n", initial="")
-      cat("theta = (", thetastring, ")\n")
-      cat("WARNING: Results are not reliable!", ADVICEONERROR)
+      if (control$verbose) {
+          cat("Penalized loglikelihood =", loglik, "\n")
+          thetastring <- paste(round(thetahat,2), collapse=", ")
+          thetastring <- strwrap(thetastring, exdent=10, prefix="\n", initial="")
+          cat("theta = (", thetastring, ")\n")
+      }
+      warning("Results are not reliable!", ADVICEONERROR)
       res <- myoptim
       res$convergence <- convergence
       res$call <- match.call()
-      class(res) <- "ah4"
+      class(res) <- "hhh4"
       return(res)
   }
 
-  ## optimization successful, return a full "ah4" object
-  fitted <- meanHHH(thetahat, model, total.only=TRUE)
-
-  if(dimRandomEffects>0){
-    Sigma.orig <- myoptim$sd.corr
-    Sigma.cov <- solve(myoptim$fisherVar)
-    dimnames(Sigma.cov) <- list(names(Sigma.orig),names(Sigma.orig))
+  ## optimization successful, return a full "hhh4" object
+  dimnames(cov) <- list(names(thetahat), names(thetahat))
+  if (dimRandomEffects>0) {
+      Sigma.orig <- myoptim$sd.corr
+      Sigma.cov <- solve(myoptim$fisherVar)
+      dimnames(Sigma.cov) <- list(names(Sigma.orig),names(Sigma.orig))
+      Sigma.trans <- getSigmai(head(Sigma.orig,model$nVar),
+                               tail(Sigma.orig,model$nCorr),
+                               model$nVar)
+      dimnames(Sigma.trans) <-
+          rep.int(list(sub("^sd\\.", "",
+                           names(Sigma.orig)[seq_len(model$nVar)])), 2L)
   } else {
-    Sigma.orig <- Sigma.cov <- NULL
+      Sigma.orig <- Sigma.cov <- Sigma.trans <- NULL
   }
-
-  se <- sqrt(diag(cov))
-
-  margll <- marLogLik(Sigma.orig, thetahat, model)
-  Sigma.trans <- getSigmai(head(Sigma.orig,model$nVar),
-                           tail(Sigma.orig,model$nCorr),
-                           model$nVar)
-
+  
   ## Done
-  result <- list(coefficients=thetahat, se=se, cov=cov, 
+  result <- list(coefficients=thetahat, se=sqrt(diag(cov)), cov=cov, 
                  Sigma=Sigma.trans,     # estimated covariance matrix of ri's
                  Sigma.orig=Sigma.orig, # variance parameters on original scale
                  Sigma.cov=Sigma.cov,   # covariance matrix of Sigma.orig
                  call=match.call(),
                  dim=c(fixed=dimFixedEffects,random=dimRandomEffects),
-                 loglikelihood=loglik, margll=margll, 
+                 loglikelihood=loglik,
+                 margll=marLogLik(Sigma.orig, thetahat, model),
                  convergence=convergence,
-                 fitted.values=fitted,
+                 fitted.values=meanHHH(thetahat, model, total.only=TRUE),
                  control=control,
                  terms=if(control$keep.terms) model else NULL,
-                 stsObj=stsObj,         # FIXME: stsObj also in 'control$data'
-                 lag=1, nObs=sum(!model$isNA[control$subset,]),
-                 nTime=length(model$subset), nUnit=ncol(stsObj))
-       ## FIXME: nTime has a different meaning here than everywhere else!!!
-  class(result) <- "ah4"
+                 stsObj=stsObj,
+                 lags=sapply(control[c("ar","ne")], function (comp)
+                             if (comp$inModel) comp$lag else NA_integer_),
+                 nObs=sum(!model$isNA[control$subset,]),
+                 nTime=length(model$subset), nUnit=ncol(stsObj),
+                 ## CAVE: nTime is not nrow(stsObj) as usual!
+                 runtime=proc.time()-ptm)
+  class(result) <- "hhh4"
   result
 }
 
@@ -177,24 +183,15 @@ setControl <- function (control, stsObj)
 {
   stopifnot(is.list(control))
   nTime <- nrow(stsObj)
-  nUnits <- ncol(stsObj)
+  nUnit <- ncol(stsObj)
   if(nTime <= 2) stop("too few observations")
   
   ## arguments in 'control' override any corresponding default arguments
   defaultControl <- lapply(CONTROL.hhh4, eval, envir=environment())
   environment(defaultControl$ar$f) <- environment(defaultControl$ne$f) <-
       environment(defaultControl$end$f) <- .GlobalEnv
-  defaultControl$data <- as.list(defaultControl$data) # since we will add stsObj
-  ##<- NROW(stsObj) only works as intended since R 2.15.0, but this is required
-  ##   for adding stsObj to a data.frame; thus we switch to a list
+  defaultControl$data <- as.list(defaultControl$data)
   control <- modifyList(defaultControl, control)
-
-  ## add stsObj (maybe overwrite an old one from the control object)
-  control$data$.sts <- stsObj
-  
-  ## add nTime and nUnits to control list
-  control$nTime <- nTime                # FIXME: are these actually
-  control$nUnits <- nUnits              #        used anywhere?
 
   ## check that component specifications are list objects
   for (comp in c("ar", "ne", "end")) {
@@ -203,11 +200,10 @@ setControl <- function (control, stsObj)
 
   ## check lags in "ar" and "ne" components
   for (comp in c("ar", "ne")) {
-      if (!isScalar(control[[comp]]$lag))
-          stop("'control$", comp, "$lag' must be scalar")
+      if (!isScalar(control[[comp]]$lag) || control[[comp]]$lag < (comp=="ar"))
+          stop("'control$", comp, "$lag' must be a ",
+               if (comp=="ar") "positive" else "non-negative", " integer")
       control[[comp]]$lag <- as.integer(control[[comp]]$lag)
-      if (control[[comp]]$lag != 1L)
-          stop("currently, only 'control$", comp, "$lag=1' is supported")
   }
 
   
@@ -216,10 +212,10 @@ setControl <- function (control, stsObj)
   control$ar$isMatrix <- is.matrix(control$ar$f)
 
   if (is.matrix(control$ar$f)) {
-      if (any(dim(control$ar$f) != nUnits))
-          stop("'control$ar$f' must be a square matrix of size ", nUnits)
+      if (any(dim(control$ar$f) != nUnit))
+          stop("'control$ar$f' must be a square matrix of size ", nUnit)
       # use identity matrix if weight matrix is missing
-      if (is.null(control$ar$weights)) control$ar$weights <- diag(nrow=nUnits)
+      if (is.null(control$ar$weights)) control$ar$weights <- diag(nrow=nUnit)
       control$ar$inModel <- TRUE
   } else if (inherits(control$ar$f, "formula")) {
       if (!is.null(control$ar$weights)) {
@@ -233,8 +229,8 @@ setControl <- function (control, stsObj)
   }
 
   if (is.matrix(control$ar$weights)) {
-      if (any(dim(control$ar$weights) != nUnits))
-          stop("'control$ar$weights' must be a square matrix of size ", nUnits)
+      if (any(dim(control$ar$weights) != nUnit))
+          stop("'control$ar$weights' must be a square matrix of size ", nUnit)
   }
   
   
@@ -250,7 +246,7 @@ setControl <- function (control, stsObj)
           stop("there must not be an extra \"ne\" component ",
                "if 'control$ar$f' is a matrix")
       ## check ne$weights specification
-      checkWeights(control$ne$weights, nUnits, nTime,
+      checkWeights(control$ne$weights, nUnit, nTime,
                    neighbourhood(stsObj), control$data)
   } else control$ne$weights <- NULL
 
@@ -261,17 +257,28 @@ setControl <- function (control, stsObj)
       stop("'control$end$f' must be a formula")
   control$end$inModel <- isInModel(control$end$f)
 
-  if (is.matrix(control$end$offset) && is.numeric(control$end$offset)){
-      if (!identical(dim(control$end$offset), dim(stsObj)))
-          stop("'control$end$offset' must be a numeric matrix of size ",
-               nTime, "x", nUnits)
-      if (any(is.na(control$end$offset)))
-          stop("'control$end$offset' must not contain NA values")
-  } else if (!identical(as.numeric(control$end$offset), 1)) {
-      stop("'control$end$offset' must either be 1 or a numeric ",
-           nTime, "x", nUnits, " matrix")
+
+  ### check offsets
+
+  for (comp in c("ar", "ne", "end")) {
+      if (is.matrix(control[[comp]]$offset) && is.numeric(control[[comp]]$offset)){
+          if (!identical(dim(control[[comp]]$offset), dim(stsObj)))
+              stop("'control$",comp,"$offset' must be a numeric matrix of size ",
+                   nTime, "x", nUnit)
+          if (any(is.na(control[[comp]]$offset)))
+              stop("'control$",comp,"$offset' must not contain NA values")
+      } else if (!identical(as.numeric(control[[comp]]$offset), 1)) {
+          stop("'control$",comp,"$offset' must either be 1 or a numeric ",
+               nTime, "x", nUnit, " matrix")
+      }
   }
 
+
+  ### stop if no component is included in the model
+  
+  if (length(componentsHHH4(list(control=control))) == 0L)
+      stop("none of the components 'ar', 'ne', 'end' is included in the model")
+  
 
   ### check remaining components of the control list
   
@@ -286,10 +293,9 @@ setControl <- function (control, stsObj)
                    function(x) is.list(control$optimizer[[x]]))))
       stop("'control$optimizer' must be a list of lists")
 
-  if (!length(control$verbose) == 1L ||
-      (!is.logical(control$verbose) && !is.numeric(control$verbose)))
-      stop("'control$verbose' must be a numeric or logical value")
   control$verbose <- as.integer(control$verbose)
+  if (length(control$verbose) != 1L || control$verbose < 0)
+      stop("'control$verbose' must be a logical or non-negative numeric value")
 
   if (!is.list(control$start) ||
       any(! sapply(c("fixed", "random", "sd.corr"),
@@ -320,12 +326,12 @@ isInModel <- function(formula, name=deparse(substitute(formula))){
 # used to incorporate covariates and unit-specific effects
 fe <- function(x,          # covariate 
                which=NULL, # Null= overall, vector with booleans = unit-specific
-               initial=NULL # vector of inital values for parameters
-               ){
-  sts <- get("env",parent.frame(1))$.sts
-  nTime <- nrow(sts)
-  nUnits <- ncol(sts)
-               
+               initial=NULL) # vector of inital values for parameters
+{
+  stsObj <- get("stsObj", envir=parent.frame(1), inherits=TRUE) #checkFormula()
+  nTime <- nrow(stsObj)
+  nUnits <- ncol(stsObj)
+  
   if(!is.numeric(x)){
     stop("Covariate \'",deparse(substitute(x)),"\' is not numeric\n")
   }
@@ -377,7 +383,7 @@ fe <- function(x,          # covariate
   summ <- ifelse(unitSpecific,"colSums","sum")
     
   name <- deparse(substitute(x))
-  if(unitSpecific) name <- paste(name, colnames(sts)[which], sep=".")
+  if(unitSpecific) name <- paste(name, colnames(stsObj)[which], sep=".")
     
   result <- list(terms=terms,
                 name=name,
@@ -403,12 +409,9 @@ fe <- function(x,          # covariate
 ri <- function(type=c("iid","car")[1], 
                corr=c("none","all")[1],
                initial.var=NULL,  # initial value for variance
-               initial.re=NULL 
-               ){
-  x <- 1
-  
-  sts <- get("env",parent.frame(1))$.sts
-  
+               initial.re=NULL)
+{
+  stsObj <- get("stsObj", envir=parent.frame(1), inherits=TRUE) #checkFormula()
   type <- match.arg(type, c("iid","car"))
   corr <- match.arg(corr, c("none","all"))
   corr <- switch(corr, 
@@ -417,10 +420,10 @@ ri <- function(type=c("iid","car")[1],
                   
   if(type=="iid"){
     Z <- 1
-    dim.re <- ncol(sts)
+    dim.re <- ncol(stsObj)
     mult <- "*"
   } else if(type=="car"){ # construct penalty matrix K
-    K <- neighbourhood(sts)
+    K <- neighbourhood(stsObj)
     checkNeighbourhood(K)
     K <- K == 1                         # indicate first-order neighbours
     ne <- colSums(K)                    # number of first-order neighbours
@@ -456,7 +459,7 @@ ri <- function(type=c("iid","car")[1],
     initial.var <- -.5
   }
 
-  result <- list(terms=x,
+  result <- list(terms=1,
                 name=paste("ri(",type,")",sep=""),
                 Z.intercept=Z,
                 which=NULL,
@@ -478,22 +481,23 @@ ri <- function(type=c("iid","car")[1],
 
 ### check specification of formula
 ## f: one of the component formulae (ar$f, ne$f, or end$f)
-## env: the "data" argument of hhh4()
 ## component: 1, 2, or 3, corresponding to the ar/ne/end component, respectively
-checkFormula <- function(f, env, component)
+## data: the data-argument of hhh4()
+## stsObj: the stsObj is not used directly in checkFormula, but in fe() and ri()
+checkFormula <- function(f, component, data, stsObj)
 {
   term <- terms.formula(f, specials=c("fe","ri"))
   
   # check if there is an overall intercept
   intercept.all <- attr(term, "intercept") == 1
   
-  # list of terms in the component
+  # list of variables in the component
   vars <- as.list(attr(term,"variables"))[-1] # first element is "list"
   nVars <- length(vars)
 
   # begin with intercept
   res <- if (intercept.all) {
-      c(eval(fe(1),envir=env), list(offsetComp=component))
+      c(fe(1), list(offsetComp=component))
   } else {
       if (nVars==0)
           stop("formula ", deparse(substitute(f)), " contains no variables")
@@ -507,14 +511,14 @@ checkFormula <- function(f, env, component)
   # evaluate covariates
   for(i in fe.raw)
       res <- cbind(res, c(
-          eval(substitute(fe(x), list(x=vars[[i]])), envir=env),
+          eval(substitute(fe(x), list(x=vars[[i]])), envir=data),
           list(offsetComp=component)
           ))
   
   # fixed effects
   for(i in attr(term, "specials")$fe)
       res <- cbind(res, c(
-          eval(vars[[i]], envir=env),
+          eval(vars[[i]], envir=data),
           list(offsetComp=component)
           ))
   
@@ -527,7 +531,7 @@ checkFormula <- function(f, env, component)
            deparse(substitute(f)))
   for(i in RI)
       res <- cbind(res, c(
-          eval(vars[[i]], envir=env),
+          eval(vars[[i]], envir=data),
           list(offsetComp=component)
           ))
   
@@ -542,8 +546,9 @@ checkFormula <- function(f, env, component)
 ## otherwise a list of such matrices,
 ## which for the gradient has length length(pars) and
 ## length(pars)*(length(pars)+1)/2 for the hessian.
-## If neweights=NULL (i.e. no ne component in model), the result is always 0.
-neOffsetFUN <- function (Y, neweights, nbmat, data, lag)
+## If neweights=NULL (i.e. no NE component in model), the result is always 0.
+## offset is a multiplicative offset for \phi_{it}, e.g., the population.
+neOffsetFUN <- function (Y, neweights, nbmat, data, lag = 1, offset = 1)
 {
     if (is.null(neweights)) { # no neighbourhood component
         as.function(alist(...=, 0), envir=.GlobalEnv)
@@ -557,25 +562,24 @@ neOffsetFUN <- function (Y, neweights, nbmat, data, lag)
             weights <- neweights[[name]](pars, nbmat, data)
             ## gradient and hessian are lists if length(pars$d) > 1L
             ## and single matrices/arrays if == 1 => _c_onditional lapply
-            res <- clapply(weights, function(W) weightedSumNE(Y, W, lag))
+            res <- clapply(weights, function (W)
+                           offset * weightedSumNE(Y, W, lag))
             ##<- clapply always returns a list (possibly of length 1)
             if (type=="response") res[[1L]] else res
         }
     } else { # fixed (known) weight structure (0-length pars)
-        initoffset <- weightedSumNE(Y, neweights, lag)
-        function (pars, type = "response") initoffset
-        ## this will not be called for other types
-    } ## returns function (living in THIS environment)
+        env <- new.env(hash = FALSE, parent = emptyenv())  # small -> no hash
+        env$initoffset <- offset * weightedSumNE(Y, neweights, lag)
+        as.function(c(alist(pars=, type = "response"), quote(initoffset)),
+                    envir=env)     # it will not be called for other types
+    }
 }
 
 
 # interpret and check the specifications of each component
 # control must contain all arguments, i.e. setControl was used
-interpretControl <- function(control, stsObj){
-
-  # get environment for evaluation of covariates
-  env <- control$data
-  
+interpretControl <- function (control, stsObj)
+{
   nTime <- nrow(stsObj)
   nUnits <- ncol(stsObj)
 
@@ -598,11 +602,16 @@ interpretControl <- function(control, stsObj){
     ## array(ne$weights, dim(ne$weights)) do not have this effect...
   }
 
+  ## for backwards compatibility with surveillance < 1.8-0, where the ar and ne
+  ## components of the control object did not have an offset
+  if (is.null(ar$offset)) ar$offset <- 1
+  if (is.null(ne$offset)) ne$offset <- 1
+  
   ## create list of offsets of the three components
   Ym1 <- rbind(matrix(NA_integer_, ar$lag, nUnits), head(Y, nTime-ar$lag))
-  Ym1.ne <- neOffsetFUN(Y, ne$weights, neighbourhood(stsObj), control$data,
-                        ne$lag)
-  offsets <- list(ar=Ym1, ne=Ym1.ne, end=end$offset)
+  Ym1.ne <- neOffsetFUN(Y, ne$weights,
+                        neighbourhood(stsObj), control$data, ne$lag, ne$offset)
+  offsets <- list(ar=ar$offset*Ym1, ne=Ym1.ne, end=end$offset)
   ## -> offset$ne is a function of the parameter vector 'd', which returns a
   ##    nTime x nUnits matrix -- or 0 (scalar) if there is no NE component
   ## -> offset$end might just be 1 (scalar)
@@ -617,22 +626,21 @@ interpretControl <- function(control, stsObj){
   }
 
   ## determine all NA's (FIXME: why do we need this? Why include is.na(Y)?)
-  isNA <- is.na(offsets[[1L]]) | is.na(offsets[[2L]](initial.d)) | is.na(Y)
-
+  isNA <- is.na(Y)
+  if (ar$inModel)
+      isNA <- isNA | is.na(offsets[[1L]])
+  if (ne$inModel)
+      isNA <- isNA | is.na(offsets[[2L]](initial.d))
 
   ## get terms for all components
   all.term <- NULL
-  if(ar$isMatrix){                      # ar$f is a matrix
-      stop("not yet implemented")
-  } else if(ar$inModel){                # ar$f is a formula
-      all.term <- cbind(all.term, checkFormula(ar$f, env=env, component=1))
-  }
-  if(ne$inModel){
-      all.term <- cbind(all.term, checkFormula(ne$f, env=env, component=2))
-  }
-  if(end$inModel){
-      all.term <- cbind(all.term, checkFormula(end$f,env=env, component=3))
-  }
+  if(ar$isMatrix) stop("matrix-form of 'control$ar$f is not yet implemented")
+  if(ar$inModel) # ar$f is a formula
+      all.term <- cbind(all.term, checkFormula(ar$f, 1, control$data, stsObj))
+  if(ne$inModel)
+      all.term <- cbind(all.term, checkFormula(ne$f, 2, control$data, stsObj))
+  if(end$inModel)
+      all.term <- cbind(all.term, checkFormula(end$f,3, control$data, stsObj))
   
   dim.fe <- sum(unlist(all.term["dim.fe",]))
   dim.re.group <- unlist(all.term["dim.re",], use.names=FALSE)
@@ -744,20 +752,6 @@ interpretControl <- function(control, stsObj){
                  isNA = isNA
                  )
   return(result)
-}
-
-
-getSdCorr <- function(x){
-  return(x$Sigma.orig)
-}
-
-getCov <- function(x){
-  Sigma <- x$Sigma
-  corr <- cov2cor(Sigma)
-  diag(corr) <- diag(Sigma)
-  rownames(corr) <- colnames(corr) <-
-      sub("^sd\\.","",names(x$Sigma.orig))[grep("^sd\\.",names(x$Sigma.orig))]
-  return(corr)
 }
 
 
@@ -985,7 +979,7 @@ penScore <- function(theta, sd.corr, model)
       
       if(term["unitSpecific",i][[1]]){
         which <- term["which",i][[1]]
-        dTheta <- summ(dTheta,na.rm=TRUE)[ which ]
+        dTheta <- summ(dTheta)[ which ]
         grad.fe <- c(grad.fe,dTheta)
         
       } else if(term["random",i][[1]]){
@@ -995,7 +989,7 @@ penScore <- function(theta, sd.corr, model)
         grad.re <- c(grad.re, dRTheta)
         grad.fe <- c(grad.fe, sum(dTheta))
       } else{
-        grad.fe <- c(grad.fe, summ(dTheta,na.rm=TRUE))
+        grad.fe <- c(grad.fe, summ(dTheta))
       }
     }
     
@@ -1031,7 +1025,7 @@ penScore <- function(theta, sd.corr, model)
   ## add penalty to random effects gradient
   s.pen <- if(dimRE > 0) c(Sigma.inv %*% randomEffects) else numeric(0L)
   if(length(gradients$re) != length(s.pen)) # FIXME: could this ever happen?
-      cat("length of s(b) != Sigma.inv %*% b\n") # should probably better stop()
+      stop("length of s(b) != Sigma.inv %*% b")
   grRandom <- c(gradients$re - s.pen)
 
   ## Done
@@ -1409,33 +1403,31 @@ getSigmaInv <- function(sd, correlation, dimSigma, dimBlocks, SigmaInvi=NULL){
   if(is.null(SigmaInvi)){
     SigmaInvi <- getSigmaiInv(sd,correlation,dimSigma)
   }
-  SigmaInv <- if(length(unique(dimBlocks))==1){  # kronecker product formulation possible
+  if(length(unique(dimBlocks))==1){  # kronecker product formulation possible
     kronecker(SigmaInvi,diag(nrow=dimBlocks[1]))
     # the result is a symmetric matrix if SigmaInvi is symmetric
   } else { # kronecker product not possible -> correlation=0 
-    diag(rep(diag(SigmaInvi),dimBlocks))
+    diag(rep.int(diag(SigmaInvi),dimBlocks))
   }
-  return(SigmaInv)
 }
 
 getSigma <- function(sd, correlation, dimSigma, dimBlocks, Sigmai=NULL){
   if(is.null(Sigmai)){
     Sigmai <- getSigmai(sd,correlation,dimSigma)
   }
-  Sigma <- if(length(unique(dimBlocks))==1){  # kronecker product formulation possible
+  if(length(unique(dimBlocks))==1){  # kronecker product formulation possible
     kronecker(Sigmai,diag(nrow=dimBlocks[1]))
     # the result is a symmetric matrix if Sigmai is symmetric
   } else { # kronecker product not possible -> correlation=0 
-    diag(rep(diag(Sigmai),dimBlocks))
+    diag(rep.int(diag(Sigmai),dimBlocks))
   }
-  return(Sigma)
 }
 
 
 ## Approximate marginal likelihood for variance components
 ## Parameter and model unpacking at the beginning (up to the ###...-line) is
 ## identical in marScore() and marFisher()
-marLogLik <- function(sd.corr, theta, model, fisher.unpen=NULL){
+marLogLik <- function(sd.corr, theta, model, fisher.unpen=NULL, verbose=FALSE){
 
   dimVar <- model$nVar
   dimCorr <- model$nCorr
@@ -1494,7 +1486,7 @@ marLogLik <- function(sd.corr, theta, model, fisher.unpen=NULL){
 }
 
 
-marScore <- function(sd.corr, theta,  model, fisher.unpen=NULL){
+marScore <- function(sd.corr, theta, model, fisher.unpen=NULL, verbose=FALSE){
 
   dimVar <- model$nVar
   dimCorr <- model$nCorr
@@ -1529,7 +1521,7 @@ marScore <- function(sd.corr, theta,  model, fisher.unpen=NULL){
   # inverse of penalized fisher info
   F.inv <- try(solve(fisher),silent=TRUE)
   if(inherits(F.inv,"try-error")){
-    cat("\n WARNING (in marScore): penalized Fisher is singular!\n")
+    if(verbose) cat("  WARNING (in marScore): penalized Fisher is singular!\n")
     #return(rep.int(0,dimSigma))
     ## continuing with the generalized inverse often works, otherwise we would
     ## have to stop() here, because nlminb() cannot deal with NA's
@@ -1572,7 +1564,7 @@ marScore <- function(sd.corr, theta,  model, fisher.unpen=NULL){
 }
 
 
-marFisher <- function(sd.corr, theta,  model, fisher.unpen=NULL){
+marFisher <- function(sd.corr, theta, model, fisher.unpen=NULL, verbose=FALSE){
   
   dimVar <- model$nVar
   dimCorr <- model$nCorr
@@ -1607,7 +1599,7 @@ marFisher <- function(sd.corr, theta,  model, fisher.unpen=NULL){
   # inverse of penalized fisher info
   F.inv <- try(solve(fisher),silent=TRUE)
   if(inherits(F.inv,"try-error")){
-    cat("\n WARNING (in marFisher): penalized Fisher is singular!\n")
+    if(verbose) cat("  WARNING (in marFisher): penalized Fisher is singular!\n")
     #return(matrix(Inf,dimSigma,dimSigma))
     ## continuing with the generalized inverse often works, otherwise we would
     ## have to stop() here, because nlminb() cannot deal with NA's
@@ -1915,10 +1907,10 @@ checkParBounds <- function (par, lower, upper)
 {
     if (is.null(names(par))) names(par) <- seq_along(par)
     if (any(atl <- par <= lower))
-        cat("WARNING: parameters reached lower bounds:",
+        cat("  WARNING: parameters reached lower bounds:",
             paste(names(par)[atl], par[atl], sep="=", collapse=", "), "\n")
     if (any(atu <- par >= upper))
-        cat("WARNING: parameters reached upper bounds:",
+        cat("  WARNING: parameters reached upper bounds:",
             paste(names(par)[atu], par[atu], sep="=", collapse=", "), "\n")
 }
 
@@ -1939,9 +1931,8 @@ defaultOptimControl <- function (method = "nlminb", lower = -Inf, upper = Inf,
     defaults.optim <- list(maxit=iter.max, fnscale=-1, trace=max(0,verbose-1),
                            lower=if (luOptimMethod) lower else -Inf,
                            upper=if (luOptimMethod) upper else Inf)
-    defaults <- switch(method, "nr" = defaults.nr, "nlm" = defaults.nlm,
-                       "nlminb" = defaults.nlminb, defaults.optim)
-    return(defaults)
+    switch(method, "nr" = defaults.nr, "nlm" = defaults.nlm,
+           "nlminb" = defaults.nlminb, defaults.optim)
 }
 
 setOptimControl <- function (method, control, ...)
@@ -1971,8 +1962,8 @@ fitHHH <- function(theta, sd.corr, model,
       method <- cntrl$method; cntrl$method <- NULL
       if (length(start) == 1 && method == "Nelder-Mead") {
           method <- "Brent"
-          cat("NOTE: switched optimizer from \"Nelder-Mead\" to \"Brent\"",
-              " (dim(", deparse(substitute(start)), ")=1)\n", sep="")
+          message("Switched optimizer from \"Nelder-Mead\" to \"Brent\"",
+                  " (dim(", deparse(substitute(start)), ")=1)")
       }
       list(paste("updateParams",
                  if (method %in% c("nlminb", "nlm", "nr"))
@@ -1980,8 +1971,13 @@ fitHHH <- function(theta, sd.corr, model,
            control = setOptimControl(method, cntrl, ...))
   }
 
+  ## ## artificial lower bound on intercepts of epidemic components
+  ## reg.lower <- rep.int(-Inf, length(theta))
+  ## reg.lower[grep("^(ar|ne)\\.(1|ri)", model$namesFE)] <- -20
+  
   ## set optimizer for regression parameters
   updateRegressionControl <- getUpdater(cntrl.regression, theta,
+                                        ## lower=reg.lower,
                                         iter.max=if(dimRE==0) 100,
                                         verbose=verbose+(dimRE==0))
   updateRegression <- function (theta, sd.corr)
@@ -1996,7 +1992,8 @@ fitHHH <- function(theta, sd.corr, model,
   updateVariance <- function (sd.corr, theta, fisher.unpen)
       do.call(updateVarianceControl[[1]],
               alist(sd.corr, marLogLik, marScore, marFisher,
-                    theta=theta, model=model, fisher.unpen=fisher.unpen,
+                    theta=theta, model=model,
+                    fisher.unpen=fisher.unpen, verbose=verbose>1,
                     control=updateVarianceControl[[2]]))
 
   ## Let's go
@@ -2009,7 +2006,8 @@ fitHHH <- function(theta, sd.corr, model,
   if (dimRE == 0) { # optimization of regression coefficients only
       parReg <- updateRegression(theta, sd.corr)
       theta <- parReg$par
-      convergence <- parReg$convergence
+      if ((convergence <- parReg$convergence) != 0 && !is.null(parReg$message))
+          cat("! Non-convergence message from optimizer:", parReg$message, "\n")
   } else { # swing between updateRegression & updateVariance
       convergence <- 99
       i <- 0
@@ -2024,15 +2022,18 @@ fitHHH <- function(theta, sd.corr, model,
                                "fisher")
 
           if(verbose>0)
-              cat("Update of regression parameters:  max|x_0 - x_1| / max|x_0| =",
-                  parReg$rel.tol, "\n")
+              cat("Update of regression parameters: ",
+                  "max|x_0 - x_1| / max|x_0| =", parReg$rel.tol, "\n")
           
-          if(parReg$convergence!=0) {
-              if (!is.null(parReg$message)) print(parReg$message)
-              cat("Update of regression coefficients in iteration ", i, " unreliable\n")
+          if(parReg$convergence != 0) {
+              if (!is.null(parReg$message))
+                  cat("! Non-convergence message from optimizer:",
+                      parReg$message, "\n")
+              cat("Update of regression coefficients in iteration ",
+                  i, " unreliable\n")
           }
 
-          if(parReg$convergence >20 && shrinkage){
+          if(parReg$convergence > 20 && shrinkage){
               cat("\n\n***************************************\nshrinkage",
                   0.1*theta[abs(theta)>10],"\n")
               theta[abs(theta)>10] <- 0.1*theta[abs(theta)>10]
@@ -2056,7 +2057,7 @@ fitHHH <- function(theta, sd.corr, model,
           ##     updateVarianceControl[[1]] <- "updateParams_optim"
           ##     updateVarianceControl[[2]]$method <-
           ##         if (length(sd.corr) == 1L) "Brent" else "Nelder-Mead"
-          ##     cat("WARNING: at least one updated variance parameter is not a number\n",
+          ##     cat("  WARNING: at least one updated variance parameter is not a number\n",
           ##         "\t-> NO UPDATE of variance\n",
           ##         "\t-> SWITCHING to robust", dQuote(updateVarianceControl[[2]]$method),
           ##         "for variance updates\n")
@@ -2125,8 +2126,10 @@ addSeason2formula <- function(f=~1,       # formula to start with
 ## a given model (the result of interpretControl(control, stsObj))
 ## and given parameters theta (regression par.) and sd.corr (variance par.).
 ## This is a wrapper around functionality of the numDeriv and maxLik packages.
-checkAnalyticals <- function (model, theta, sd.corr,
-                              methods=c("numDeriv","maxLik"))
+checkAnalyticals <- function (model,
+                              theta = model$initialTheta,
+                              sd.corr = model$initialSigma,
+                              methods = c("numDeriv","maxLik"))
 {
     cat("\nPenalized log-likelihood:\n")
     resCheckPen <- sapply(methods, function(derivMethod) {

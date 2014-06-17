@@ -10,8 +10,8 @@
 % Preamble parts
 \usepackage[T1]{fontenc}        % Make it possible to use danish characters !!
 \usepackage[utf8]{inputenc}
-\usepackage{url}
 \usepackage{hyperref}
+\newcommand{\email}[1]{\href{mailto:#1}{\normalfont\texttt{#1}}}
 \usepackage{times}  
 \renewcommand{\sfdefault}{ptm} 
 
@@ -34,21 +34,21 @@
 \newcommand{\NegBin}{\operatorname{NegBin}}
 \newcommand{\n}{{\cal N}}
 
-\newcommand{\surveillance}{\texttt{surveillance}}
+\newcommand{\pkg}[1]{{\fontseries{b}\selectfont #1}}
+\newcommand{\surveillance}{\pkg{surveillance}}
 \newcommand{\code}[1]{\texttt{#1}}
 \newcommand{\hhh}{\texttt{hhh4}}
 \newcommand{\R}{\textsf{R}}
 \newcommand{\sts}{\texttt{sts}}
 \newcommand{\example}[1]{\textit{Example: #1}}
 
-\title{The function `hhh4' in the R-package `surveillance'}  %'
+\title{The function \code{hhh4} in the \R-package \surveillance}  %'
 \author{
-Michaela Paul\thanks{Author of correspondence: Email: \texttt{michaela.paul@ifspm.uzh.ch}}\\
+Michaela Paul and Sebastian Meyer\thanks{Author of correspondence: \email{Sebastian.Meyer@ifspm.uzh.ch}}\\
 Division of Biostatistics\\
 Institute of Social and Preventive Medicine\\
 University of Zurich, Switzerland
 } 
-\date{\today}
 
 \begin{document}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -73,9 +73,6 @@ University of Zurich, Switzerland
 
 <<setup, echo=F,results=hide>>=
 library("surveillance")  
-library("maptools")
-gpclibPermit()
-library("Matrix")
 
 options(width=70)
 set.seed(247)
@@ -163,7 +160,7 @@ For spatially stratified time series, the slot \code{neighbourhood}
 denotes an $I \times I$ adjacency matrix with elements 1 if two regions are
 neighbors and 0 otherwise. For map visualizations, the slot \code{map} 
 links the multivariate time series to geographical regions of an ESRI shapefile
-(using functionality from the package \code{maptools}~\citep{maptools}).
+(using functionality from the package \pkg{maptools}~\citep{maptools}).
 Additionally, the slot \code{populationFrac} contains a $T\times I$ matrix
 representing population fractions in unit $i$ at time $t$.
 
@@ -179,6 +176,7 @@ into the S4 \sts\ data structure using the function
 \code{disProg2sts}. The resulting \sts\ object can be accessed similar
 as standard \code{matrix} objects and allows easy temporal and spatial
 aggregation as will be shown in the remainder of this section. \\
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \example{Influenza and meningococcal disease in Germany 01/2001--52/2006}
@@ -213,11 +211,12 @@ See \cite{hoehle-mazick-2010} for a detailed description of the plot routines.\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \example{Influenza in Southern Germany, 01/2001-52/2008}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 The spatio-temporal spread of influenza in the 140 Kreise (districts) 
 of Bavaria and Baden-W\"urttemberg  is analyzed using the weekly number of 
 cases reported to the RKI~\citep{survstat-fluByBw} in the years 2001--2008.
 An \sts\ object containing the data is created as follows:
-<<readInFlu, eval=F>>=
+<<readInFlu>>=
 # read in observed number of cases
 flu.counts <- as.matrix(read.table(system.file("extdata/counts_flu_BYBW.txt", 
                                       package = "surveillance")))
@@ -226,32 +225,30 @@ colnames(flu.counts) <- substring(colnames(flu.counts),first = 2, last = 5)
 # read in adjacency matrix with elements 1 if two regions share a common border
 nhood <- as.matrix(read.table(system.file("extdata/neighbourhood_BYBW.txt",
                                       package = "surveillance")))
+@ 
+<<nhoodByBw, fig=TRUE, width=4,height=4, include=FALSE>>=
 # visualize adjacency matrix
-image(Matrix(nhood))
-@
-\begin{center}
-\vspace*{-2em}
-\setkeys{Gin}{width=.5\textwidth}
-<<nhoodByBw, fig=TRUE, echo=F, width=4,height=4>>=
-# read in observed number of cases
-flu.counts <- as.matrix(read.table(system.file("extdata/counts_flu_BYBW.txt", package = "surveillance")))
-# remove 'X' in columnnames                                      
-colnames(flu.counts) <- substring(colnames(flu.counts),first=2,last=5)                                      
-# read in a shapefile of the districts in Bavaria and Baden-Wuerttemberg
-map <- readShapePoly(system.file("shapes/districts_BYBW.shp", package = "surveillance"), IDvar = "id")
-# read in adjacency matrix with elements 1 if two regions share a common border
-nhood <- as.matrix(read.table(system.file("extdata/neighbourhood_BYBW.txt", package = "surveillance")))
+library("Matrix")
 print(image(Matrix(nhood)))
 @
+
+\begin{center}
+\vspace*{-2em}
+\includegraphics[width=0.5\textwidth]{figs/hhh4-nhoodByBw}
 \end{center}
+
 <<fluAsSTS, keep.source=T>>=
 # read in a shapefile of the districts in Bavaria and Baden-Wuerttemberg
-map <- readShapePoly(system.file("shapes/districts_BYBW.shp",
-                        package = "surveillance"), IDvar = "id")
+map <- maptools::readShapePoly(
+    system.file("shapes/districts_BYBW.shp", package = "surveillance"),
+    IDvar = "id"
+    )
 # read in population fractions
-p <- matrix(read.table(system.file("extdata/population_2001-12-31_BYBW.txt",
-                          package = "surveillance"), header = TRUE)$popFrac, 
-            nrow = nrow(flu.counts), ncol= ncol(flu.counts), byrow = TRUE)
+p <- matrix(
+    read.table(system.file("extdata/population_2001-12-31_BYBW.txt",
+                           package = "surveillance"),
+               header = TRUE)$popFrac, 
+    nrow = nrow(flu.counts), ncol = ncol(flu.counts), byrow = TRUE)
 # create sts object
 flu <- new("sts", epoch = 1:nrow(flu.counts),
                   observed = flu.counts,
@@ -278,9 +275,11 @@ plot(flu[year(flu) == 2001, ],    # select year 2001
 @
 \end{center}
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \example{Measles in Germany, 01/2005--52/2007}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 The following data set contains the weekly number of measles cases in the 16
 German Bundesl\"ander (federal states), in the years 2005--2007. These data 
 are analyzed in~\cite{herzog-etal-2010} after aggregation into successive 
@@ -419,33 +418,30 @@ The \code{control} setting is a list of the following arguments:
 control = list(
     ar = list(f = ~ -1),       # formula: exp(u'alpha) * y_i,t-1 
     ne = list(f = ~ -1,        # formula: exp(x'beta) * sum_j {w_ji * y_j,t-1} 
-              weights = NULL   # matrix with weights w_ji 
-                               # [w_ji = neighbourhood(stsObj) as default]
-              ),              
+              weights = neighbourhood(stsObj)),  # matrix of weights w_ji 
     end = list(f = ~ 1,        # formula:  exp(z'gamma) * e_it 
-              offset = NULL    # optional offset e_it 
-              ),
+               offset = 1),     # optional offset e_it 
     family = "Poisson",                # Poisson or NegBin model
     subset = 2:nrow(stsObj),           # subset of observations to be used 
-                                       # in the fitting process
-    optimizer = list(tech = "nlminb"), # details for optimizer 
+    optimizer = list(),                # control optimization procedure
     verbose = FALSE,                   # no progress information is printed
     start = list(fixed = NULL,         # list with initial values for fixed,
                  random = NULL,        # random, and
-                 sd.corr = NULL        # variance parameters
-                 ),
-    data = data.frame(t = epoch(sts))  # data.frame,
-                                       # or named list with covariates 
-    )
-           
+                 sd.corr = NULL),      # variance parameters
+    data = list(t=epoch(stsObj)-1),    # named list of covariates 
+    keep.terms = FALSE                 # do not keep the model terms
+)
 @
 The first three arguments \code{ar}, \code{ne}, and \code{end} 
 specify the model components using \code{formula} objects.
 As default, the counts $y_{it}$ are assumed to be Poisson distributed.
 A negative binomial model is obtained with \code{family = "NegBin1"}.
-The log-likelihood is maximized using the optimization routine implemented
-in \code{nlminb}. Alternatively, the methods implemented in
-\code{optim} may be used, e.g.\ \code{optimizer = list(tech = "BFGS")}.
+By default, both the penalized and marginal log-likelihoods are maximized using
+the optimization routine implemented in \code{nlminb}.
+The methods implemented in \code{optim} may also be used, e.g.\
+\code{optimizer = list(variance = list(method="Nelder-Mead")} is an attractive
+alternative for maximization of the marginal log-likelihood with respect to the
+variance parameters (see \code{?hhh4}).
 Initial values for the fixed, random, and variance parameters 
 are passed on in the \code{start} argument.
 If the model contains covariates, these have to be specified in the \code{data} 
@@ -551,7 +547,7 @@ decomposed into the three components, is obtained with
 \setkeys{Gin}{width=.8\textwidth}
 \begin{center}
 <<plot-fit_men, fig=T, width=8,height=5>>=
-plot(result, i = 2, col = c("orange", "blue", "grey85"), legend = TRUE)
+plot(result, units = "meningococcus")
 @
 \end{center}
 

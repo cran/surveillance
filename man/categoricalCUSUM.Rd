@@ -51,7 +51,7 @@ categoricalCUSUM(stsObj,control = list(range=NULL,h=5,pi0=NULL,
   regression models, proportional odds models or Bradley-Terry models
   for paired comparisons. See the \enc{Höhle}{Hoehle} (2010) reference
   for further details about the methodology.
-  
+
   Once an alarm is found the CUSUM scheme is resetted (to zero) and
   monitoring continues from there.
 }

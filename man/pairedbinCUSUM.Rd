@@ -99,7 +99,7 @@ observed(deleval) <- observed(deleval)[,c(2,1)]
 pb.surv <- pairedbinCUSUM(deleval,control=list(theta0=theta0,
              theta1=theta1,h1=Inf,h2=Inf,h11=Inf,h22=Inf))
 
-plot(pb.surv, xaxis.years=FALSE)
+plot(pb.surv, xaxis.labelFormat=NULL)
 
 
 
@@ -152,7 +152,7 @@ plot(1:nrow(deleval),S[,2],type="l",main="Death",xlab="Patient No.",
 pb.surv2 <- pairedbinCUSUM(deleval,control=list(theta0=theta0,
              theta1=theta1,h1=70*w1,h2=32*w2,h11=38*w1,h22=17*w2))
 
-plot(pb.surv2, xaxis.years=FALSE)
+plot(pb.surv2, xaxis.labelFormat=NULL)
 }
 
 \author{S. Steiner and M. \enc{Höhle}{Hoehle}}

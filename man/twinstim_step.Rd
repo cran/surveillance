@@ -57,8 +57,7 @@ data("imdepi")
 data("imdepifit")
 
 ## simple baseline model
-m0 <- update(imdepifit, epidemic = ~1, siaf=NULL, cumCIF=FALSE,
-             start=c("e.(Intercept)"=-16))
+m0 <- update(imdepifit, epidemic=~1, siaf=NULL, start=c("e.(Intercept)"=-17))
 
 ## AIC-based step-wise backward selection of the endemic component
 m0_step <- stepComponent(m0, "endemic", scope=list(lower=~I(start/365-3.5)))

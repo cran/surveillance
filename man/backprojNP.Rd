@@ -208,14 +208,14 @@ Y <- table( factor(symptomTimes,levels=1:(max(symptomTimes)+dmax)))
 sts <- new("sts", epoch=1:length(Y),observed=matrix(Y,ncol=1))
 
 #Plot the outbreak
-plot(sts,xaxis.years=FALSE,legend=NULL)
+plot(sts, xaxis.labelFormat=NULL, legend=NULL)
 #Add true number of exposures to the plot
 lines(1:length(Y)+0.2,X,col="red",type="h",lty=2)
 
 
 #Helper function to show the EM step
 plotIt <- function(cur.sts) {
-  plot(cur.sts,xaxis.years=FALSE,legend=NULL,ylim=c(0,140))
+  plot(cur.sts,xaxis.labelFormat=NULL, legend=NULL,ylim=c(0,140))
 }
 
 #Call non-parametric back-projection function with hook function but
@@ -227,7 +227,7 @@ system.time(sts.bp <- backprojNP(sts, incu.pmf=inc.pmf,
     control=modifyList(bpnp.control,list(eq3a.method="C")), ylim=c(0,max(X,Y))))
 
 #Show result
-plot(sts.bp,xaxis.years=FALSE,legend=NULL,lwd=c(1,1,2),lty=c(1,1,1))
+plot(sts.bp,xaxis.labelFormat=NULL,legend=NULL,lwd=c(1,1,2),lty=c(1,1,1),main="")
 lines(1:length(Y)+0.2,X,col="red",type="h",lty=2)
 
 #Do the convolution for the expectation

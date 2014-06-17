@@ -99,7 +99,7 @@ LRCUSUM.runlength <- function(mu,mu0,mu1,h,dfun, n, g=5,outcomeFun=NULL,...) {
     outcomes <- outcomeFun(km1,n[i])
 
     #Compute all possible likelihood ratios and their probability under mu
-    llr <- LLR.fun(outcomes,mu=mu0[,i],mu0=mu0[,i],mu1=mu1[,i],dfun=dfun,size=n[i],...)
+    llr <- LLR.fun(outcomes,mu=mu[,i],mu0=mu0[,i],mu1=mu1[,i],dfun=dfun,size=n[i],...)
 
     #Exact CDF of the LLR for this time
     F <- stepfun(sort(llr[,"llr"]),c(0,cumsum(llr[order(llr[,"llr"]),"p"])))

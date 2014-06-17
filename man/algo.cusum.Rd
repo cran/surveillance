@@ -5,9 +5,9 @@
 \description{ 
         Approximate one-side CUSUM method for a Poisson variate based on the 
         cumulative sum of the deviation between a reference value k and the 
-        (standardized) observed values.
+        transformed observed values.
         An alarm is raised if the cumulative sum equals or exceeds a prespecified
-        decision boundary h.
+        decision boundary h. The function can handle time varying expectations.
 }
 \usage{
 
@@ -40,8 +40,8 @@
                 }}
             \item{\code{trans}}{one of the following transformations (warning: anscombe and negbin transformations are experimental)
                 \describe{
-                \item{\code{rossi}}{compute standardized variables z3 as proposed by Rossi}
-                \item{\code{standard}}{compute standardized variables z1 (based on asympotic normality)}
+                \item{\code{rossi}}{standardized variables z3 as proposed by Rossi}
+                \item{\code{standard}}{standardized variables z1 (based on asympotic normality)}
                 \item{\code{anscombe}}{anscombe residuals -- experimental}
                 \item{\code{anscombe2nd}}{ anscombe residuals as in Pierce and Schafer (1986) based on 2nd order approximation of E(X)  -- experimental}
                 \item{\code{pearsonNegBin}}{compute Pearson residuals for NegBin -- experimental}
@@ -70,7 +70,7 @@
 
   }
 }
-\details{This implementation is still experimental}
+\details{This implementation is experimental, but will not be developed further.}
 %\seealso{}
 \author{M. Paul and M. \enc{Höhle}{Hoehle}}
 \examples{

@@ -5,9 +5,9 @@
 ###
 ### Gaussian spatial interaction function for twinstim's epidemic component
 ###
-### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 666 $
-### $Date: 2013-11-08 15:45:36 +0100 (Fre, 08 Nov 2013) $
+### Copyright (C) 2009-2014 Sebastian Meyer
+### $Revision: 771 $
+### $Date: 2014-02-17 10:52:54 +0100 (Mon, 17 Feb 2014) $
 ################################################################################
 
 
@@ -34,10 +34,15 @@ siaf.gaussian <- function (nTypes = 1, logsd = TRUE, density = FALSE,
 {
     nTypes <- as.integer(nTypes)
     stopifnot(length(nTypes) == 1L, nTypes > 0L)
+    if (isScalar(F.adaptive)) {
+        adapt <- F.adaptive
+        F.adaptive <- TRUE
+    } else adapt <- 0.1
 
     f <- function (s, pars, types) {}       # coordinate matrix s, length(types) = 1 or nrow(s)
     F <- if (F.adaptive) {
-        function(polydomain, f, pars, type, adapt=0.1) {}
+        as.function(c(alist(polydomain=, f=, pars=, type=),
+                      list(adapt=adapt), quote({})))
     } else siaf.fallback.F
     Fcircle <- function (r, pars, type) {}  # single radius and type
     effRange <- function (pars) {}
@@ -103,15 +108,15 @@ siaf.gaussian <- function (nTypes = 1, logsd = TRUE, density = FALSE,
     # derivative of f wrt pars
     derivexpr <- if (logsd) { # derive f wrt psi=log(sd) !!
         if (density) {
-            quote(deriv[cbind(1:L,colidx)] <- exp(-frac) / pi/sdss^2 * (frac-1))
+            quote(deriv[cbind(seq_len(L),colidx)] <- exp(-frac) / pi/sdss^2 * (frac-1))
         } else {
-            quote(deriv[cbind(1:L,colidx)] <- exp(-frac) * 2*frac)
+            quote(deriv[cbind(seq_len(L),colidx)] <- exp(-frac) * 2*frac)
         }
     } else { # derive f wrt sd !!
         if (density) {
-            quote(deriv[cbind(1:L,colidx)] <- exp(-frac) / pi/sdss^3 * (frac-1))
+            quote(deriv[cbind(seq_len(L),colidx)] <- exp(-frac) / pi/sdss^3 * (frac-1))
         } else {
-            quote(deriv[cbind(1:L,colidx)] <- exp(-frac) * 2*frac/sdss)
+            quote(deriv[cbind(seq_len(L),colidx)] <- exp(-frac) * 2*frac/sdss)
         }
     }
     derivexpr <- do.call("substitute", args=list(expr=derivexpr,

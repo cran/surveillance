@@ -14,7 +14,7 @@ coordinates are then back-transformed to cartesian coordinates.
 }
 
 \usage{
-runifdisc(n, r = 1)
+runifdisc(n, r = 1, buffer = 0)
 }
 
 \arguments{
@@ -23,6 +23,9 @@ runifdisc(n, r = 1)
   }
   \item{r}{
     numeric radius of the disc (centered at (0,0)).
+  }
+  \item{buffer}{
+    radius of inner buffer zone without points.
   }
 }
 
