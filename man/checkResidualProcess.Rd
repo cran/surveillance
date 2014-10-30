@@ -18,7 +18,7 @@ Check the residual process of a fitted \code{twinSIR} or \code{twinstim}
 }
 
 \usage{
-checkResidualProcess(object, plot = 1:2, mfrow = n2mfrow(length(plot)), ...)
+checkResidualProcess(object, plot = 1:2, mfrow = c(1,length(plot)), ...)
 }
 
 \arguments{
@@ -34,7 +34,7 @@ checkResidualProcess(object, plot = 1:2, mfrow = n2mfrow(length(plot)), ...)
     \eqn{u_{i+1}}. By default (\code{plot = 1:2}), both plots are produced.
   }
   \item{mfrow}{
-    see \code{\link{par}} (and \code{\link{n2mfrow}} for the default choice).
+    see \code{\link{par}}.
   }
   \item{\dots}{
     further arguments passed to \code{\link{ks.plot.unif}}.

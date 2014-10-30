@@ -5,11 +5,10 @@
 }
 
 \description{
-  Given a square binary matrix indicating adjacencies, the function
-  \code{nbOrder} determines the integer matrix of orders of
-  neighbourhood using the function \code{\link[spdep]{nblag}} from the
-  \pkg{spdep} package. Hence this function is essentially a wrapper
-  around functionality of the \pkg{spdep} package.
+  Given a square binary adjacency matrix, the function
+  \code{nbOrder} determines the integer matrix of neighbourhood orders
+  (shortest-path distance) using the function \code{\link[spdep]{nblag}}
+  from the \pkg{spdep} package.
 }
 
 \usage{
@@ -20,8 +19,8 @@ nbOrder(neighbourhood, maxlag = 1)
   \item{neighbourhood}{
     a square, numeric or logical, and usually symmetric matrix with
     finite entries (and usually zeros on the diagonal) which indicates
-    first-order neighbourhood (interpreted as \code{neighbourhood == 1},
-    \emph{not} \code{>0}).
+    vertex adjacencies, i.e., first-order neighbourhood (interpreted as
+    \code{neighbourhood == 1}, \emph{not} \code{>0}).
   }
   \item{maxlag}{
     positive scalar integer specifying an upper bound for the
@@ -34,7 +33,8 @@ nbOrder(neighbourhood, maxlag = 1)
 }
 
 \value{
-An integer matrix of neighbourhood order.
+An integer matrix of neighbourhood orders, i.e., the shortest-path
+distance matrix of the vertices.
 The \code{dimnames} of the input \code{neighbourhood} matrix are preserved.
 }
 

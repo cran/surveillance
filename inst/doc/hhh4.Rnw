@@ -521,9 +521,11 @@ data and $S=1$ seasonal terms for the \textsc{MEN} data is considered.
 Here, $\phi$ quantifies the influence of past influenza cases on the meningococcal
 disease incidence. 
 This model corresponds to the second model of Tab.~2 in \cite{paul-etal-2008}
-and is fitted with
-<<echo=F>>=
-neighbourhood(fluMen) <- matrix(c(0,0,1,0),2,2)
+and is fitted as follows:
+<<neighbourhood_fluMen, echo=TRUE>>=
+# no "transmission" from meningococcus to influenza
+neighbourhood(fluMen)["meningococcus","influenza"] <- 0
+neighbourhood(fluMen)
 @
 <<fitFluMen, eval=T,echo=T>>=
 # create formula for endemic component
@@ -537,7 +539,6 @@ m <- list(ar = list(f = ~ -1 + fe(1, which=c(TRUE, TRUE))),
           end = list(f = f.end),
           family = "NegBinM"
           )
-
 
 # fit model
 summary(result <- hhh4(fluMen, control = m))

@@ -13,14 +13,14 @@ The package currently defines a method for the \code{"\link{twinstim}"} class, w
 computes mean numbers of infections caused by infected individuals depending on the event type
 and marks attached to the individual, which contribute to the infection pressure
 in the epidemic predictor of that class.
-There is also a method for simulated epidemics (internally just a
-wrapper for the \code{"twinstim"}-method).
+There is also a method for simulated \code{"epidataCS"}
+(just a wrapper for the \code{"twinstim"}-method).
 }
 
 \usage{
 R0(object, ...)
 
-\method{R0}{twinstim}(object, newevents, trimmed = TRUE, ...)
+\method{R0}{twinstim}(object, newevents, trimmed = TRUE, newcoef = NULL, ...)
 \method{R0}{simEpidataCS}(object, trimmed = TRUE, ...)
 }
 
@@ -58,6 +58,14 @@ R0(object, ...)
     events near the (spatial or temporal) edges of the observation
     domain have lower reproduction numbers (ceteris paribus) because
     events outside the observation domain are not observed.
+  }
+  \item{newcoef}{
+    the model parameters to use when calculating reproduction numbers.
+    The default (\code{NULL}) is to use the MLE \code{coef(object)}.
+    This argument mainly serves the construction of Monte Carlo
+    confidence intervals by evaluating \code{R0} for parameter vectors
+    sampled from the asymptotic multivariate normal distribution of the MLE,
+    see Examples.
   }
   \item{\dots}{additional arguments passed to methods.
     Currently unused for the \code{twinstim} method.}
@@ -105,14 +113,41 @@ supplied) or the original fitted events including events of the prehistory.
 \author{Sebastian Meyer}
 
 \examples{
-# load the 'imdepi' data and a model fit
+## load the 'imdepi' data and a model fit
 data("imdepi")
 data("imdepifit")
 
+## calculate individual and type-specific reproduction numbers
 R0s <- R0(imdepifit)
 tapply(R0s, imdepi$events@data[names(R0s), "type"], summary)
 
+## untrimmed R0 for a specific event
 R0(imdepifit, newevents=marks(imdepi)[1,], trimmed=FALSE)
+
+
+### compute a Monte Carlo confidence interval
+
+## use a simpler model with constant 'siaf' for speed
+simplefit <- update(imdepifit, epidemic=~type, siaf=NULL)
+
+## we'd like to compute the mean R0's by event type
+meanR0ByType <- function (newcoef) {
+    R0events <- R0(simplefit, newcoef=newcoef)
+    tapply(R0events, imdepi$events@data[names(R0events),"type"], mean)
+}
+meansMLE <- meanR0ByType(newcoef=NULL)
+
+## sample B times from asymptotic multivariate normal of the MLE
+B <- 5  # CAVE: toy example! In practice this has to be much larger
+set.seed(123)
+parsamples <- MASS::mvrnorm(B, mu=coef(simplefit), Sigma=vcov(simplefit))
+
+## for each sample compute the 'meanR0ByType'
+meansMC <- apply(parsamples, 1, meanR0ByType)
+
+## get the quantiles and print the result
+cisMC <- apply(cbind(meansMLE, meansMC), 1, quantile, probs=c(0.025,0.975))
+print(rbind(MLE=meansMLE, cisMC))
 }
 
 \keyword{methods}

@@ -1,25 +1,26 @@
 ################################################################################
-# Simulate data from the spatial SIR model as described in Hoehle (2008)
-#
-# Authors: Sebastian Meyer, Michael Hoehle
-# Date: 20 Jun 2009
-#
-# Note:
-# This function is based on work from the Bachelor's thesis by
-# Sebastian Meyer, University of Munich.
-#
-# Other applications:
-# It is also possible to simulate data from
-# SI (infPeriod = function(ids) rep(Inf, length(ids)),
-# SIS (remPeriod = function(ids) rep(0, length(ids)) 
-# or SIRS (remPeriod in (0;Inf))
-# models. Furthermore, one can simulate data from the cox-model:
-# no removal (i.e. infPeriod = function(ids) rep(Inf, length(ids)) and
-# no epidemic component (i.e. no alpha and no f).
+### Part of the surveillance package, http://surveillance.r-forge.r-project.org
+### Free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at http://www.r-project.org/Licenses/.
+###
+### Simulate from a "twinSIR" model as described in Hoehle (2009)
+###
+### Copyright (C) 2009 Michael Hoehle, 2009, 2012, 2014 Sebastian Meyer
+### $Revision: 1079 $
+### $Date: 2014-10-18 01:26:00 +0200 (Sat, 18 Oct 2014) $
 ################################################################################
 
+## Apart from simulation of SIR data, it is possible to simulate
+## - SI: infPeriod = function(ids) rep(Inf, length(ids)
+## - SIS: remPeriod = function(ids) rep(0, length(ids)
+## - SIRS: remPeriod in (0;Inf)
+##
+## One can even simulate from a Cox model with the following settings:
+## + no removal (i.e. infPeriod = function(ids) rep(Inf, length(ids))
+## + no epidemic component (i.e. no alpha, no f, no w).
+
 simEpidata <- function (formula, data, id.col, I0.col, coords.cols,
-    subset, beta, h0, f = list(), alpha, infPeriod,
+    subset, beta, h0, f = list(), w = list(), alpha, infPeriod,
     remPeriod = function(ids) rep(Inf, length(ids)),
     end = Inf, trace = FALSE, .allocate = NULL)
 {
@@ -157,30 +158,36 @@ simEpidata <- function (formula, data, id.col, I0.col, coords.cols,
         beta <- numeric(0L)
     }
     ## epidemic part
-    nPredEpi <- length(f)
+    nPredEpi <- length(f) + length(w)
     if (nPredEpi > 0L) {
-        if (ncol(coords) == 0) {
-            stop("need coordinates for an epidemic component")
-        }
-        if (missing(alpha) || length(alpha) != nPredEpi || !is.numeric(alpha)) {
-            stop(gettextf(paste("'alpha', a numeric vector of length %d",
-                "(number of distance functions), must be specified"), nPredEpi))
-        }
-        if (!is.list(f) || is.null(names(f)) || any(!sapply(f, is.function))) {
-            stop("'f' must be a named list of functions or 'list()'")
-        }
-        if (any(sapply(f, function(B) B(Inf)) != 0)) {
-            stop("all functions in 'f' must return 0 at infinite distance: ",
-                 "f[[i]](Inf) = 0")
-        }
-        if (!is.null(names(alpha))) {
-            alpha <- alpha[match(names(f), names(alpha))]
-            if (any(is.na(alpha))) {
-                stop("names of 'alpha' and 'f' do not match")
+        ## check f
+        if (length(f) > 0L) {
+            if (ncol(coords) == 0L) {
+                stop("need coordinates for distance-based epidemic covariates 'f'")
             }
+            if (!is.list(f) || is.null(names(f)) || any(!sapply(f, is.function))) {
+                stop("'f' must be a named list of functions")
+            }
+            distmat <- as.matrix(dist(coords, method = "euclidean"))
         }
+        ## check w
+        if (length(w) > 0L) {
+            if (!is.list(w) || is.null(names(w)) || any(!sapply(w, is.function))) {
+                stop("'w' must be a named list of functions")
+            }
+            wijlist <- compute_wijlist(w = w, data = mf[idsInteger, ])
+        }
+        ## check alpha (coefficients for all of f and w)
+        if (missing(alpha) || !is.numeric(alpha) || is.null(names(alpha))) {
+            stop(gettextf(paste("'alpha', a named numeric vector of length %d",
+                "(number of epidemic terms), must be specified"), nPredEpi))
+        }
+        alpha <- alpha[c(names(f), names(w))]
+        if (any(is.na(alpha))) {
+            stop("'alpha' is incomplete for 'f' or 'w'")
+        }
+        stopifnot(alpha >= 0)
     } else {
-        f <- list()
         alpha <- numeric(0L)
     }
 
@@ -237,26 +244,6 @@ simEpidata <- function (formula, data, id.col, I0.col, coords.cols,
     ### Preparation ###
     ###################
     
-    ### Calculate the euclidean distances between the individuals
-    distmat <- as.matrix(dist(coords, method = "euclidean"))
-    diag(distmat) <- Inf    # no influence on yourself
-#     ### Calculate the euclidean distances and apply functions in 'f' on those
-#     dists <- dist(coords, method = "euclidean")
-#     fdists <- lapply(f, function(B) {
-#             Bdists <- B(dists)
-#             if (inherits(Bdists, "dist")) {
-#                 as.matrix(Bdists)
-#             } else {
-#                 if (length(Bdists) != choose(nObs, 2)) {
-#                     stop("functions in 'f' must be vectorized: returned ",
-#                          "vector must be as long as the input vector")
-#                 }
-#                 .Bdists <- structure(as.vector(Bdists), class = "dist", 
-#                     Size = nObs, Labels = ids, Diag = FALSE, Upper = FALSE)
-#                 as.matrix(.Bdists)
-#             }
-#         })
-
     ### Initialize set of infected and susceptible individuals
     infected <- which(
         mf[idsInteger,"(I0)"] == as.numeric(!inherits(data, "epidata"))
@@ -292,11 +279,20 @@ simEpidata <- function (formula, data, id.col, I0.col, coords.cols,
         # Epidemic component of susceptibles
         lambdaEpidemic <- numeric(length(susceptibles)),   # zeros
         if (nPredEpi > 0L && length(infected) > 0L) {
-            u <- distmat[,infected, drop = FALSE]
-            fCovars <- sapply(f, function(B) rowSums(B(u)))
-            # fCovars is a matrix [nObs x nPredEpi] also used by updateNextEvent
+            fCovars <- if (length(f) > 0L) {
+                u <- distmat[,infected, drop = FALSE]
+                vapply(X = f, FUN = function (B) rowSums(B(u)),
+                       FUN.VALUE = numeric(nObs), USE.NAMES = FALSE)
+            } else NULL
+            wCovars <- if (length(w) > 0L) {
+                vapply(X = wijlist, FUN = function (wij) {
+                    rowSums(wij[, infected, drop = FALSE])
+                }, FUN.VALUE = numeric(nobs), USE.NAMES = FALSE)
+            } else NULL
+            epiCovars <- cbind(fCovars, wCovars, deparse.level=0)
+            # epiCovars is a matrix [nObs x nPredEpi] also used by updateNextEvent
             if (length(susceptibles) > 0L) {
-                lambdaEpidemic <- fCovars[susceptibles,,drop=FALSE] %*% alpha
+                lambdaEpidemic <- epiCovars[susceptibles,,drop=FALSE] %*% alpha
             }
         },
         # Combined intensity
@@ -328,16 +324,16 @@ simEpidata <- function (formula, data, id.col, I0.col, coords.cols,
     # ct %in% h0ChangePoints, thus h0$upper should be a stepfun with right=FALSE
     
     ### Create a history object alongside the simulation
-    fCovars0 <- matrix(0, nrow = nObs, ncol = nPredEpi,
-        dimnames = list(NULL, names(f)))
+    epiCovars0 <- matrix(0, nrow = nObs, ncol = nPredEpi,
+                         dimnames = list(NULL, c(names(f), names(w))))
     basicVars0 <- matrix(0, nrow = nObs, ncol = nBasicVars,
-        dimnames = list(NULL, basicVarNames))
+                         dimnames = list(NULL, basicVarNames))
     emptyEvent <- cbind(BLOCK = 0, id = idsInteger,
                         start = 0, stop = 0, atRiskY = 0,
-                        event = 0, Revent = 0, coords, basicVars0, fCovars0)
+                        event = 0, Revent = 0, coords, basicVars0, epiCovars0)
     # WARNING: if you change the column order, you have to adjust the
     # hard coded column indexes everywhere below, also in getModel.simEpidata !
-    .fIdx <- tail(1:ncol(emptyEvent), nPredEpi)
+    .epiIdx <- tail(seq_len(ncol(emptyEvent)), nPredEpi)
     .basicIdx <- 7L + ncol(coords) + seq_len(nBasicVars)
     .nrowsEvHist <- .allocate * nObs   # initial size of the event history
     evHist <- matrix(NA_real_, nrow = .nrowsEvHist, ncol = ncol(emptyEvent),
@@ -346,10 +342,9 @@ simEpidata <- function (formula, data, id.col, I0.col, coords.cols,
     ## Hook - create new event and populate it with appropriate covariates
     updateNextEvent <- expression(
         nextEvent <- emptyEvent,
-        # populate fdist covariates
+        # populate epidemic covariates
         if (nPredEpi > 0L && length(infected) > 0L) {
-          nextEvent[,.fIdx] <- fCovars
-          # fCovars was calculated in lambdaCalc
+          nextEvent[,.epiIdx] <- epiCovars  # was calculated in lambdaCalc
         },
         # Which time is currently appropriate in (time varying) covariates
         tIdx <- match(TRUE, c(externalChangePoints,Inf) > ct) - 1L,
@@ -414,7 +409,7 @@ simEpidata <- function (formula, data, id.col, I0.col, coords.cols,
         if (!pointRejected) {
             ## Compute current conditional intensity
             eval(lambdaCalc)
-            ## Update event history (uses fCovars from lambdaCalc)
+            ## Update event history (uses epiCovars from lambdaCalc)
             eval(updateNextEvent)
         }
         pointRejected <- FALSE
@@ -538,6 +533,7 @@ simEpidata <- function (formula, data, id.col, I0.col, coords.cols,
     attr(epi, "timeRange") <- c(timeIntervals[1L,1L], ct)
     attr(epi, "coords.cols") <- 7L + seq_len(ncol(coords))
     attr(epi, "f") <- f
+    attr(epi, "w") <- w
     attr(epi, "config") <- list(h0 = h0$exact, beta = beta, alpha = alpha)
     attr(epi, "call") <- cl
     attr(epi, "terms") <- Terms
@@ -567,11 +563,18 @@ simulate.twinSIR <- function (object, nsim = 1, seed = 1,
     px <- ncol(object$model$X)
     pz <- ncol(object$model$Z)
     nh0 <- attr(object$terms, "intercept") * length(object$nEvents)
-    f <- object$model$f[colnames(object$model$X)]
-    if (any(missingf <- is.na(names(f)))) {
+    
+    f <- object$model$f  # contains only the f's used in the model formula
+    w <- object$model$w  # contains only the w's used in the model formula
+    if (any(missingf <- !names(f) %in% colnames(object$model$X))) {
         stop("simulation requires distance functions 'f', missing for: ",
              paste(colnames(object$model$X)[missingf], collapse=", "))
     }
+    if (any(missingw <- !names(w) %in% colnames(object$model$X))) {
+        stop("simulation requires functions 'w', missing for: ",
+             paste(colnames(object$model$X)[missingw], collapse=", "))
+    }
+
     formulaLHS <- "cbind(start, stop)"
     formulaRHS <- paste(c(as.integer(nh0 > 0), # endemic intercept?
                           names(theta)[px+nh0+seq_len(pz-nh0)]),
@@ -645,7 +648,7 @@ simulate.twinSIR <- function (object, nsim = 1, seed = 1,
     res <- replicate(nsim,
         simEpidata(formula, data = data,
                    beta = theta[px + nh0 + seq_len(pz-nh0)],
-                   h0 = h0, f = f, alpha = theta[seq_len(px)],
+                   h0 = h0, f = f, w = w, alpha = theta[seq_len(px)],
                    infPeriod = infPeriod, remPeriod = remPeriod,
                    end = end, trace = trace, .allocate = .allocate),
         simplify = FALSE

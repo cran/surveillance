@@ -3,17 +3,15 @@
 \alias{oneStepAhead}
 \alias{scores}
 
-\title{
- Predictive Model Assessment for \code{hhh4} models
-}
+\title{Predictive Model Assessment for \code{hhh4} Models}
 \description{
- The function \code{oneStepAhead} computes successive one-step-ahead predictions for
- a (random effects) HHH model fitted by \code{\link{hhh4}}. 
+  The function \code{oneStepAhead} computes successive one-step-ahead
+  predictions for a (random effects) HHH model fitted by \code{\link{hhh4}}. 
 
- The function \code{scores} computes a number of (strictly) proper scoring rules based
- on the one-step-ahead predictions.
+  The function \code{scores} computes a number of (strictly) proper
+  scoring rules based on such one-step-ahead predictions.
 
- See Paul and Held (2011) for further details.
+  See Paul and Held (2011) for further details.
 }
 
 \usage{
@@ -21,7 +19,8 @@ oneStepAhead(result, tp, type = c("rolling", "first", "final"),
              which.start = c("current", "final"),
              keep.estimates = FALSE, verbose = TRUE, cores = 1)
 
-scores(object, unit = NULL, sign = FALSE, individual = FALSE)
+scores(object, which = c("logs", "rps", "dss", "ses"), units = NULL,
+       sign = FALSE, individual = FALSE)
 }
 
 \arguments{
@@ -71,32 +70,68 @@ scores(object, unit = NULL, sign = FALSE, individual = FALSE)
     Note that parallelization is not possible in the default setting
     \code{type="rolling"} and \code{which.start="current"} (use
     \code{which.start="final"} for this to work).}
+  
   \item{object}{result of \code{oneStepAhead}.}
-  \item{unit}{integer specifying a specific unit for which the scores
-    are computed. If \code{NULL} all units are considered.}
-  \item{sign}{logical indicating if the sign of the difference between
-    the observed counts and corresponding predictions should be
-    returned.}
-  \item{individual}{logical indicating if individual scores for all
-    units or a mean score over all units should be returned.}
+  \item{which}{character vector determining which scores to compute.
+    The package \pkg{surveillance} implements the following proper
+    scoring rules: logarithmic score (\code{"logs"}), ranked probability
+    score (\code{"rps"}), Dawid-Sebastiani score (\code{"dss"}), and
+    squared error score (\code{"ses"}). The normalized SES
+    (\code{"nses"}) is also available but it is improper and not
+    computed by default.\cr
+    It is possible to name own scoring rules in \code{which}. These
+    must be functions of \code{(x, mu, size)}, where all arguments are
+    time x unit matrices, except that \code{size} is \code{NULL}
+    in case of a Poisson model.
+    See the package-internal scoring rules for guidance, e.g.,
+    \code{surveillance:::logs} or \code{surveillance:::dss}.}
+  \item{units}{integer or character vector indexing the units for which
+    the scores should be computed. By default (\code{NULL}) all units
+    are considered.}
+  \item{sign}{logical indicating if the function should also return
+    \code{sign(x-mu)}, i.e., the sign of the difference between
+    the observed counts and corresponding predictions.
+    This does not really make sense when averaging over multiple
+    \code{units} with \code{individual=FALSE}.}
+  \item{individual}{logical indicating if the individual scores of the
+    \code{units} should be returned. By default (\code{FALSE}), the
+    individual scores are averaged over all \code{units}.}
 }
 
 \value{
-\code{oneStepAhead} returns a list with
-\item{pred}{matrix of one-step-ahead predictions}
-\item{observed}{matrix with observed counts at the predicted time-points}
-\item{psi}{overdispersion parameter on -log-scale in case of a
-  negative-binomial model and \code{NULL} otherwise}
-\item{allConverged}{logical indicating if all successive fits converged}
-If \code{keep.estimates=TRUE}, there are the following additional elements:
-\item{coefficients}{matrix with estimated regression parameters from the successive fits}
-\item{Sigma.orig}{matrix with estimated variance parameters from the successive fits}
-\item{logliks}{matrix with columns \code{"loglikelihood"} and
-  \code{"margll"} with their obvious meanings}
+\code{oneStepAhead} returns a list with the following components:
+\item{pred}{one-step-ahead predictions in a matrix, where each row
+  corresponds to one of the time points requested via the argument
+  \code{tp}, and which has \code{ncol(result$stsObj)}
+  unit-specific columns. The rownames indicate the predicted time points
+  and the column names are identical to \code{colnames(result$stsObj)}.}
+\item{observed}{matrix with observed counts at the predicted time
+  points. It has the same dimensions and names as \code{pred}.}
+\item{psi}{in case of a negative-binomial model, a matrix of the
+  estimated overdispersion parameter(s) at each time point on 
+  the internal -log-scale (1 column if \code{"NegBin1"},
+  \code{ncol(observed)} columns if \code{"NegBinM"}). For a
+  \code{"Poisson"} model, this component is \code{NULL}.}
+\item{allConverged}{logical indicating if all successive fits
+  converged.}
 
-\code{scores} returns a matrix with the computed logarithmic, ranked
-probability, squared error, Dawid-Sebastiani, and normalized squared
-error score as columns.
+If \code{keep.estimates=TRUE}, there are the following additional elements:
+\item{coefficients}{matrix of estimated regression parameters from the successive fits.}
+\item{Sigma.orig}{matrix of estimated variance parameters from the successive fits.}
+\item{logliks}{matrix with columns \code{"loglikelihood"} and
+  \code{"margll"} with their obvious meanings.}
+
+
+The function \code{scores} computes the scoring rules specified in the
+argument \code{which}.
+If multiple \code{units} are selected and \code{individual=TRUE}, the
+result is an array of dimensions
+\code{c(nrow(pred),length(units),5+sign)} (up to \pkg{surveillance}
+1.8-0, the first two dimensions were collapsed to give a matrix).
+Otherwise, the result is a matrix with \code{nrow(pred)} rows and
+\code{5+sign} columns. If there is only one predicted time point, the
+first dimension is dropped in both cases.
+CAVE: The order of the rows (time points) is reversed!
 }
 
 \references{
@@ -113,43 +148,48 @@ Michaela Paul and Sebastian Meyer
 }
 
 \seealso{
-\code{vignette{"hhh4"}} and \code{\link{hhh4}}.
+\code{vignette("hhh4")} and \code{\link{hhh4}}.
 }
 
 \examples{
+### univariate salmonella agona data
 
-## univariate salmonella agona data
-data(salmonella.agona)
-# convert to sts class
+data("salmonella.agona")
+## convert to sts class
 salmonella <- disProg2sts(salmonella.agona)
 
-# generate formula for temporal and seasonal trends
-f.end <- addSeason2formula(f = ~ 1 + t, S=1, period=52)
-model1 <- list(ar = list(f = ~ 1), end = list(f =f.end),
-			  family = "NegBin1")
-# run model
+## generate formula for temporal and seasonal trends
+f.end <- addSeason2formula(f = ~1 + t, S=1, period=52)
+model1 <- list(ar = list(f=~1), end = list(f=f.end), family = "NegBin1")
+## fit the model
 result <- hhh4(salmonella, model1)
 
-# do one-step-ahead predictions for the last 5 weeks
-pred <- oneStepAhead(result, nrow(salmonella)-5,
+## do sequential one-step-ahead predictions for the last 5 weeks
+pred <- oneStepAhead(result, nrow(salmonella)-5, type="rolling",
                      which.start="final", verbose=FALSE)
 
 \dontshow{
 ## test equivalence of parallelized version
 if (.Platform$OS.type == "unix" && isTRUE(parallel::detectCores() > 1))
     stopifnot(identical(pred,
-        oneStepAhead(result, nrow(salmonella)-5,
+        oneStepAhead(result, nrow(salmonella)-5, type="rolling",
                      which.start="final", verbose=FALSE, cores=2)))
 }
 
-# compute mean scores
-colMeans(scores(pred))
-
-# type="final" just means fitted values
+## oneStepAhead(..., type="final") just means fitted values
 stopifnot(identical(
     unname(oneStepAhead(result, nrow(salmonella)-5,
                         type="final", verbose=FALSE)$pred),
     unname(tail(fitted(result), 5))))
+
+## compute scores
+(sc <- scores(pred))
+
+## compute mean scores
+colMeans(sc)
+
+## plot a (non-randomized) PIT histogram for the predictions
+with(pred, pit(x = observed, pdistr = "pnbinom", mu = pred, size = exp(psi)))
 
 
 \dontrun{
@@ -186,18 +226,15 @@ val_D <- oneStepAhead(res_D,tp=tp)
 
 #scores
 vals <- ls(pattern="val_")
-
 nam <- substring(vals,first=5,last=6)
 
-uni <- NULL
-indiv <- TRUE
-
+whichScores <- c("logs", "rps", "ses")
 scores_i <- list()
 meanScores <- NULL
 for(i in seq(along.with=vals)){
-  sc <- scores(get(vals[i]),unit=uni, individual=indiv)
+  sc <- scores(get(vals[i]), which=whichScores, individual=TRUE)
   scores_i[[i]] <- sc
-  meanScores <- rbind(meanScores,colMeans(sc))
+  meanScores <- rbind(meanScores,colMeans(sc, dims=2))
 }
 
 names(scores_i) <- nam
@@ -205,27 +242,26 @@ rownames(meanScores) <- nam
 
 ##comparison with best model B2 
 
-compareWithBest <- function(best, whichModels, whichScores=1:3, nPermut=9999, seed=1234){
+compareWithBest <- function(best, whichModels, nPermut=9999, seed=1234){
   set.seed(seed)
   pVals <- NULL
-  for(score in whichScores){
+  for(score in seq_along(whichScores)){
     p <- c()
     for(model in whichModels){
       if(model==best) p <- c(p,NA)
-      else p <- c(p,permutationTest(scores_i[[model]][,score],scores_i[[best]][,score],
-     plot=TRUE,nPermutation=nPermut)$pVal.permut)
+      else p <- c(p,permutationTest(scores_i[[model]][,,score],scores_i[[best]][,,score],
+     plot=TRUE,nPermutation=nPermut, verbose=TRUE)$pVal.permut)
     }  
     pVals <- cbind(pVals,p)
   }
   return(pVals)
 }
 
-
 pVals_flu <- compareWithBest(best=6, whichModels=1:10,seed=2059710987)
 rownames(pVals_flu) <- nam
-
 }
 
 }
+
 \keyword{ts}
 \keyword{regression}

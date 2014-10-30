@@ -115,9 +115,10 @@ ks.plot.unif <- function (U, conf.level = 0.95, exact = NULL,
 # 95% Kolmogorov-Smirnov error bounds.
 ######################################################################
 
-checkResidualProcess <- function (object, plot = 1:2, mfrow = n2mfrow(length(plot)), ...)
+checkResidualProcess <- function (object, plot = 1:2, mfrow = c(1,length(plot)),
+                                  ...)
 {
-    stopifnot(inherits(object, c("twinSIR", "twinstim")))
+    stopifnot(inherits(object, c("twinSIR", "twinstim", "simEpidataCS")))
     
     ## check plot argument
     if (is.logical(plot)) plot <- which(rep(plot, length.out = 2)) else {
@@ -146,7 +147,7 @@ checkResidualProcess <- function (object, plot = 1:2, mfrow = n2mfrow(length(plo
                  ## Investigate serial correlation between U_t and U_{t+1} which
                  ## corresponds to Figure 11 in Ogata (1988)
                  plot(tail(U,n=-1), head(U,n=-1),
-                      xlab=expression(u[(i)]), ylab=expression(u[i+1]))
+                      xlab=expression(u[i]), ylab=expression(u[i+1]))
                  )
     
     ## eval selected plot calls

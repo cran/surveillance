@@ -6,8 +6,8 @@
 ### Auxiliary functions for operations on spatial data
 ###
 ### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 803 $
-### $Date: 2014-02-27 09:54:43 +0100 (Thu, 27 Feb 2014) $
+### $Revision: 1086 $
+### $Date: 2014-10-23 20:33:18 +0200 (Thu, 23 Oct 2014) $
 ################################################################################
 
 
@@ -85,36 +85,6 @@ unionSpatialPolygons <- function (SpP,
 }
 
 
-### Compute distance from points to boundary
-### copied in part from function bdist.points() of the "spatstat" package
-### authored by A. Baddeley and R. Turner (DEPENDS ON spatstat::distppl)
-## xy is the coordinate _matrix_ of the points
-## poly is a polygonal domain of class "owin" or "gpc.poly"
-## Note that we do not check if points are actually inside the polygonal domain
-bdist <- function (xy, poly)
-{
-    result <- rep.int(Inf, length(xy)/2) # faster than nrow, xy must be a matrix
-    bdry <- if (is.polygonal(poly)) {
-        poly$bdry
-    } else if (inherits(poly, "gpc.poly")) {
-        poly@pts
-    } else stop("'poly' must be a polygonal \"owin\" or a \"gpc.poly\"")
-    for (i in seq_along(bdry)) {
-        polly <- bdry[[i]]
-        px <- polly$x
-        py <- polly$y
-        nsegs <- length(px)
-        for (j in seq_len(nsegs)) {
-            j1 <- if (j < nsegs) j + 1L else 1L
-            seg <- c(px[j], py[j], px[j1], py[j1])
-            ## calculate distances of points to segment j of polygon i
-            result <- pmin.int(result, distppl(xy, seg))
-        }
-    }
-    return(result)
-}
-
-
 ### sample n points uniformly on a disc with radius r
 
 runifdisc <- function (n, r = 1, buffer = 0)
@@ -159,4 +129,41 @@ polyAtBorder <- function (SpP,
     })
     names(atBorder) <- row.names(SpP)
     atBorder
+}
+
+
+### sp.layout item for spplot() to draw labels for Spatial* objects
+
+layout.labels <- function (obj, labels = TRUE)
+{
+    stopifnot(inherits(obj, "Spatial"))
+
+    ## get region labels
+    getLabels <- function (labels) {
+        if (isTRUE(labels)) {
+            row.names(obj)
+        } else if (length(labels) == 1L &&
+                   (is.numeric(labels) | is.character(labels))) {
+            if (!"data" %in% slotNames(obj))
+                stop("no data slot to select labels from")
+            obj@data[[labels]]
+        } else labels
+    }
+    
+    ## convert labels argument to a list
+    labels.args <- if (is.list(labels)) {
+        labels
+    } else if (!is.null(labels) && !identical(labels, FALSE)) {
+        list(labels = getLabels(labels))
+    } else { # labels = FALSE or labels = NULL
+        return(NULL)
+    }
+
+    ## set default coordinates for panel.text() and parse labels
+    labels.args <- modifyList(list(x = coordinates(obj), labels = TRUE),
+                              labels.args)
+    labels.args$labels <- getLabels(labels.args$labels)
+
+    ## return layout item
+    c("panel.text", labels.args)
 }

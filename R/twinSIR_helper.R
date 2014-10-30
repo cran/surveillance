@@ -1,9 +1,14 @@
 ################################################################################
-# Author: Sebastian Meyer with contributions by Michael Hoehle
-# Date: 19 Jun 2009
-#
-# This file contains helper for the main functions in twinSIR.R.
-# and functions to compute one-sided AIC by simulation (in twinSIR_methods.R)
+### Part of the surveillance package, http://surveillance.r-forge.r-project.org
+### Free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at http://www.r-project.org/Licenses/.
+###
+### Auxiliary functions for twinSIR()
+### and to compute one-sided AIC by simulation (in twinSIR_methods.R)
+###
+### Copyright (C) 2009-2014 Sebastian Meyer, contributions by Michael Hoehle
+### $Revision: 991 $
+### $Date: 2014-09-01 23:13:26 +0200 (Mon, 01 Sep 2014) $
 ################################################################################
 
 
@@ -107,7 +112,7 @@ getSummary <- function (object, class)
 ############################## OSAIC function ##################################
 ################################################################################
 # Two functions:
-# Ztilde.chibarsq <- function(Z,p,W,R)
+# Ztilde.chibarsq <- function(Z,p,Winv,tR,s=1)
 # w.chibarsq.sim <- function(p, W, N=1e4) 
 #
 # Both functions are only used internally, no need for documentation
@@ -120,26 +125,29 @@ getSummary <- function (object, class)
 # See also p. 37 for the quadprog link.
 #
 # Params:
-#  Z - px1 vector with specific Z value
+#  Z - px1 matrix or vector with specific Z value
 #  p - dimension of the problem, where theta is restricted to R^{+p}
-#  W - covariance matrix of Z
-#  R - constraint matrix R\theta \geq 0. In all cases equal to diag(p),
-#      but to save time we deliver it to the function every time
+#  Winv - inverse of covariance matrix of Z
+#  tR - transpose of constraint matrix R\theta \geq 0. In all cases equal to
+#      diag(p), but to save time we deliver it to the function every time
+#  s - rescale objective function (division by s)
 #
 # Returns:
 #  Ztilde, the point at which (Z-\theta)' W^{-1} (Z-\theta) is the
 #  minimum over \theta \geq 0.
 ##########################################################################
 
-Ztilde.chibarsq <- function(Z,p,W,R)  {
-  #Inverse of W
-  Winv <- solve(W)
+Ztilde.chibarsq <- function(Z,p,Winv,tR,s=1)  {
   #The solve.QP function minimizes
   #-d^T b + 1/2 b^T D b subject to the constraints A^T b >= b_0.
   #Thus using p. 37 we have d = t(Winv) %*% Z.
-  #Note: solve.QP$value is only correct up to a constant
-  d <- t(Winv) %*% Z
-  theta <- matrix(quadprog::solve.QP(Dmat = Winv, dvec= d, Amat= t(R),  bvec= rep(0,p),meq=0)$solution,p,1)
+  d <- crossprod(Winv, Z)
+  #Note: Winv and d can become quiet large (or small), but since the solution is
+  #invariant to the scaling of the function being minimized, we can equivalently
+  #call solve.QP using D/s and d/s (e.g., s=mean(D)) to avoid the error
+  #"constraints are inconsistent, no solution!"
+  theta <- quadprog::solve.QP(Dmat = Winv/s, dvec = d/s, Amat = tR,
+                              bvec = rep.int(0,p), meq = 0)$solution
   return(sum(theta > 0))
 }
 
@@ -153,19 +161,21 @@ Ztilde.chibarsq <- function(Z,p,W,R)  {
 #  N - number of simulations to use
 #
 # Returns:
-#  vector of length p containing the weights w_i, i=1, \ldots, p,
+#  vector of length p+1 containing the weights w_i, i=0, \ldots, p,
 #  computed by Monte Carlo simulation
 ######################################################################
 
 w.chibarsq.sim <- function(p, W, N=1e4) {
-  #Matrix for constraints - always the identity matrix
-  R <- diag(p)
   #Draw Z's from multivariate normal distribution with covariance
   #matrix W
-  Z <-t(t(mvrnorm(N,rep(0,p),W)))
+  Z <- mvrnorm(N, rep.int(0,p), W)
+  if (is.vector(Z)) Z <- t(Z)  # case N==1
+  #inverse of W
+  Winv <- solve(W)
   #For each simulation calculate Ztilde
-  sims <- apply(Z,MARGIN=1,function(Z) Ztilde.chibarsq(Z=matrix(Z,p,1), p=p,W=W,R=R))
-  w <- table(factor(sims, levels=0:p))/length(sims)
+  sims <- apply(X=Z, MARGIN=1, FUN=Ztilde.chibarsq,
+                p=p, Winv=Winv, tR=diag(p), s=mean(Winv))
+  w <- table(factor(sims, levels=0:p)) / N
   return(w)
 }
 

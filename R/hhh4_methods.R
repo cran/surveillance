@@ -5,9 +5,9 @@
 ###
 ### Standard methods for hhh4-fits
 ###
-### Copyright (C) 2010-2014 Michaela Paul and Sebastian Meyer
-### $Revision: 833 $
-### $Date: 2014-03-12 00:46:56 +0100 (Wed, 12 Mar 2014) $
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2014 Sebastian Meyer
+### $Revision: 1049 $
+### $Date: 2014-10-06 14:33:20 +0200 (Mon, 06 Oct 2014) $
 ################################################################################
 
 
@@ -164,7 +164,7 @@ coef.hhh4 <- function(object, se=FALSE,
     if (se) {
         cov <- vcov.hhh4(object, reparamPsi=reparamPsi, idx2Exp=idx2Exp,
                          amplitudeShift=amplitudeShift)
-        cbind("Estimates"=coefs, "Std. Error"=sqrt(diag(cov)))
+        cbind("Estimate"=coefs, "Std. Error"=sqrt(diag(cov)))
     } else coefs
 }
 
@@ -275,16 +275,15 @@ confint.hhh4 <- function (object, parm, level = 0.95,
 {
     cf <- coef.hhh4(object, se=TRUE, reparamPsi=reparamPsi, idx2Exp=idx2Exp,
                     amplitudeShift=amplitudeShift, ...)
-    pnames <- rownames(cf)
-    if (missing(parm)) 
-        parm <- pnames
-    else if (is.numeric(parm)) 
-        parm <- pnames[parm]
+    ## CAVE: random intercepts have no names (all "")
+    if (missing(parm))
+        parm <- seq_len(nrow(cf))
+    pnames <- if (is.numeric(parm)) rownames(cf)[parm] else parm
     a <- (1 - level)/2
     a <- c(a, 1 - a)
     pct <- paste(format(100*a, trim=TRUE, scientific=FALSE, digits=3), "%")
     fac <- qnorm(a)
-    ci <- array(NA, dim = c(length(parm), 2L), dimnames = list(parm, pct))
+    ci <- array(NA, dim = c(length(parm), 2L), dimnames = list(pnames, pct))
     ses <- cf[parm,2]
     ci[] <- cf[parm,1] + ses %o% fac
     ci
@@ -313,19 +312,64 @@ predict.hhh4 <- function(object, newSubset = object$control$subset,
 
 ### refit hhh4-model
 ## ...: arguments modifying the original control list
+## S: a named list to adjust the number of harmonics of the three components
 ## subset.upper: refit on a subset of the data up to that time point
 ## use.estimates: use fitted parameters as new start values
 ##                (only applicable if same model)
 
-update.hhh4 <- function (object, ..., subset.upper=NULL, use.estimates=FALSE)
+update.hhh4 <- function (object, ..., S = NULL, subset.upper = NULL,
+                         use.estimates = FALSE, evaluate = TRUE)
 {
     control <- object$control
+
+    ## first modify the control list according to the components in ...
     control <- modifyList(control, list(...))
+
+    ## adjust seasonality
+    if (!is.null(S)) {
+        stopifnot(is.list(S), !is.null(names(S)),
+                  names(S) %in% c("ar", "ne", "end"))
+        control[names(S)] <- mapply(function (comp, S) {
+            comp$f <- addSeason2formula(removeSeasonFromFormula(comp$f),
+                                        period = object$stsObj@freq, S = S)
+            comp
+        }, control[names(S)], S, SIMPLIFY=FALSE, USE.NAMES=FALSE)
+    }
+
+    ## restrict fit to those epochs of control$subset which are <=subset.upper
     if (isScalar(subset.upper))
         control$subset <- control$subset[control$subset <= subset.upper]
+
+    ## use previous estimates as new start values
     if (use.estimates)
         control$start <- hhh4coef2start(object)
-    hhh4(object$stsObj, control)
+
+    ## fit the updated model or just return the modified control list
+    if (evaluate) { 
+        hhh4(stsObj = object$stsObj, control = control)
+    } else {
+        control
+    }
+}
+
+## remove sine-cosine terms from a formula
+## f: usually a model "formula", but can generally be of any class for which
+##    terms() and formula() apply
+removeSeasonFromFormula <- function (f)
+{
+    fterms <- terms(f, keep.order = TRUE)
+    ## search sine-cosine terms of the forms "sin(..." and "fe(sin(..."
+    idxSinCos <- grep("^(fe\\()?(sin|cos)\\(", attr(fterms, "term.labels"))
+    formula(if (length(idxSinCos)) fterms[-idxSinCos] else f)
+}
+
+## remove all temporal terms from a formula
+removeTimeFromFormula <- function (f, timevar = "t") {
+    fterms <- terms(f, keep.order = TRUE)
+    containsTime <- vapply(attr(fterms, "variables")[-1L],
+                           FUN = function (x) timevar %in% all.vars(x),
+                           FUN.VALUE = TRUE, USE.NAMES = FALSE)
+    formula(if (any(containsTime)) fterms[!containsTime] else f)
 }
 
 
@@ -371,3 +415,10 @@ residuals.hhh4 <- function (object, type = c("deviance", "response"), ...)
     di2 <- dev.resids(y=obs, mu=fit, wt=1)
     sign(obs-fit) * sqrt(pmax.int(di2, 0))
 }
+
+## extract the formulae of the three log-linear predictors
+formula.hhh4 <- function (x, ...)
+{
+    lapply(x$control[c("ar", "ne", "end")], "[[", "f")
+}
+

@@ -6,8 +6,8 @@
 ### Plot estimated interaction kernel (siaf/tiaf) as a function of distance
 ###
 ### Copyright (C) 2012-2014 Sebastian Meyer
-### $Revision: 858 $
-### $Date: 2014-03-25 13:53:59 +0100 (Tue, 25 Mar 2014) $
+### $Revision: 948 $
+### $Date: 2014-06-29 22:23:16 +0200 (Sun, 29 Jun 2014) $
 ################################################################################
 
 
@@ -203,6 +203,8 @@ iafplot <- function (object, which = c("siaf", "tiaf"), types = NULL,
             fvalsSample <- apply(parSample, 1, if (scaled) {
                 function (pars) FUN(xgrid, pars[-1L], types[i], pars[1L])
             } else function (pars) FUN(xgrid, pars, types[i]))
+            if (length(xgrid) == 1L)  # e.g., single-step function
+                fvalsSample <- t(fvalsSample)  # convert to matrix form
             lowerupper <- if (conf.type == "parbounds") {
                 t(apply(fvalsSample, 1, range))
             } else { # Monte-Carlo sample of parameter values

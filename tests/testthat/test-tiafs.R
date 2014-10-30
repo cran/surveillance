@@ -12,11 +12,14 @@ test_that("Step kernel of a single type agrees with numerical approximations",
          }), tolerance=1e-8)
 
          ## check deriv
-         expect_that(maxLik::compareDerivatives(
-             f = function(pars, x) steptiaf$g(x, pars),
-             grad = function(pars, x) steptiaf$deriv(x, pars),
-             t0 = logvals, x = c(0.5,2,5,7,10,15,20,25,30), print=FALSE)$maxRelDiffGrad,
-                     is_less_than(1e-8))
+         if (requireNamespace("maxLik")) {
+             expect_that(maxLik::compareDerivatives(
+                 f = function(pars, x) steptiaf$g(x, pars),
+                 grad = function(pars, x) steptiaf$deriv(x, pars),
+                 t0 = logvals, x = c(0.5,2,5,7,10,15,20,25,30),
+                 print = FALSE)$maxRelDiffGrad,
+                         is_less_than(1e-8))
+         }
 
          ## check Deriv
          for (paridx in seq_along(logvals))

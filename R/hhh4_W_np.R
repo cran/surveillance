@@ -6,8 +6,8 @@
 ### Non-parametric specification of neighbourhood weights in hhh4()
 ###
 ### Copyright (C) 2014 Sebastian Meyer
-### $Revision: 868 $
-### $Date: 2014-04-02 00:14:36 +0200 (Wed, 02 Apr 2014) $
+### $Revision: 1024 $
+### $Date: 2014-09-22 16:02:37 +0200 (Mon, 22 Sep 2014) $
 ################################################################################
 
 
@@ -19,7 +19,7 @@
 ###   and to0 indicates which weight is assumed for orders > maxlag, either zero
 ###   or the same as for order 'maxlag'
 
-W_np <- function (maxlag, to0 = FALSE, normalize = TRUE,
+W_np <- function (maxlag, to0 = TRUE, normalize = TRUE,
                   initial = log(zetaweights(2:maxlag)))
 {
     if (missing(maxlag)) {

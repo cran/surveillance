@@ -27,14 +27,16 @@ boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE
 
   #Check if the INLA package is available.
   if (!require("INLA")) {
-      stop("The boda function requires the INLA package to be installed. The package is not available on CRAN, but can be downloaded by calling source(\"http://www.math.ntnu.no/inla/givemeINLA.R\") as described at http://www.r-inla.org/download in detail.")
+      stop("The boda function requires the INLA package to be installed.\n",
+           "  The package is not available on CRAN, but can be downloaded by calling\n",
+           "\tsource(\"http://www.math.ntnu.no/inla/givemeINLA.R\")\n",
+           "  as described at http://www.r-inla.org/download in detail.")
   }
 
   #Possibly speed up the computations by using multiple cores.
   if (is.null(control[["multicore",exact=TRUE]])) { control$multicore <- TRUE }
   if (control$multicore) {
-      noCores <- if (require("parallel")) detectCores(logical = TRUE) else 1
-      inla.setOption("num.threads", noCores)
+      INLA::inla.setOption("num.threads", parallel::detectCores(logical = TRUE))
   }
   
   #Stop if the sts object is multivariate
@@ -188,7 +190,7 @@ bodaFit <- function(dat=dat, modelformula=modelformula,prior=prior,alpha=alpha, 
 
   ### fit model
   E <- mean(dat$observed, na.rm=TRUE)
-  model <- inla(modelformula,data=dat,family='nbinomial',E=E,control.predictor=list(compute=TRUE))#,verbose=TRUE)
+  model <- INLA::inla(modelformula,data=dat,family='nbinomial',E=E,control.predictor=list(compute=TRUE))#,verbose=TRUE)
   if(is.null(model)){
     return(qi=NA)
   }
@@ -198,19 +200,19 @@ bodaFit <- function(dat=dat, modelformula=modelformula,prior=prior,alpha=alpha, 
   # quantile by sampling. hoehle: inla.marginal.transform does not exist anymore!  
   # Since the observation corresponding to T1 is NA we manually need to transform
   # the fitted values (had there been an observation this is not necessary!!)
-  marg <- try(inla.tmarginal(function(x) exp(x),model$marginals.fitted.values[[T1]]), silent=TRUE)
+  marg <- try(INLA::inla.tmarginal(function(x) exp(x),model$marginals.fitted.values[[T1]]), silent=TRUE)
   #browser()
  
   if(inherits(marg,'try-error')){
       return(qi=NA)
   }
-  mT1 <- try(inla.rmarginal(n=mc.munu,marg), silent=TRUE)
+  mT1 <- try(INLA::inla.rmarginal(n=mc.munu,marg), silent=TRUE)
   if(inherits(mT1,'try-error')){
       return(qi=NA)
   }
   # take variation in size hyperprior into account by also sampling from it
   mtheta <- model$internal.marginals.hyperpar[[1]]
-  theta <- inla.rmarginal(n=mc.munu,mtheta)
+  theta <- INLA::inla.rmarginal(n=mc.munu,mtheta)
   if(inherits(theta,'try-error')){
       return(qi=NA)
   }

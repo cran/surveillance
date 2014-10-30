@@ -8,8 +8,6 @@
 \alias{tail.epidataCS}
 \alias{[.epidataCS}
 \alias{subset.epidataCS}
-\alias{marks}	       % the generic 'marks()' is imported from spatstat and
-                       % then exported (unchanged) -> documentation required
 \alias{marks.epidataCS}
 \alias{summary.epidataCS}
 \alias{print.summary.epidataCS}
@@ -41,8 +39,8 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
 \method{nobs}{epidataCS}(object, ...)
 \method{head}{epidataCS}(x, n = 6L, ...)
 \method{tail}{epidataCS}(x, n = 6L, ...)
-\method{[}{epidataCS}(x, i, j, drop = FALSE)
-\method{subset}{epidataCS}(x, subset, select, drop = FALSE, ...)
+\method{[}{epidataCS}(x, i, j, ..., drop = TRUE)
+\method{subset}{epidataCS}(x, subset, select, drop = TRUE, ...)
 
 \method{marks}{epidataCS}(x, coords = TRUE, ...)
 
@@ -163,24 +161,25 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
 
   \item{n}{a single integer. If positive, the first (\code{head}, \code{print})
     / last (\code{tail}) \code{n} events are extracted. If negative,
-    all but the \code{n} first/last events are extracted.
-  }
+    all but the \code{n} first/last events are extracted.}
 
   \item{digits}{minimum number of significant digits to be printed in
     values.}
 
-  \item{i,j}{
+  \item{i,j,drop}{
     arguments passed to the
     \code{\link[=[,SpatialPointsDataFrame-method]{[-method}} for
-    \code{SpatialPointDataFrame}s for subsetting the \code{events} (not
-    \code{stgrid} or \code{W}).
-    Only epidemic covariates can be removed from \code{events} by the
-    \code{j} index. The other components of \code{x} (\code{stgrid},
-    \ldots) are retained.}
+    \code{SpatialPointDataFrame}s for subsetting the \code{events} while
+    retaining \code{stgrid} and \code{W}.\cr
+    If \code{drop=TRUE} (the default), event types that completely
+    disappear due to \code{i}-subsetting will be dropped, which reduces
+    \code{qmatrix} and the factor levels of the \code{type} column.\cr
+    By the \code{j} index, epidemic covariates can be removed from
+    \code{events}.}
 
-  \item{drop, \dots}{unused (arguments of the generics).
-    However, the \code{print} method for \code{"epidataCS"} passes
-    \dots to the \code{\link{print.data.frame}} method, and the
+  \item{\dots}{unused (arguments of the generics) with a few exceptions:
+    The \code{print} method for \code{"epidataCS"} passes
+    \code{\dots} to the \code{\link{print.data.frame}} method, and the
     \code{print} method for \code{"summary.epidataCS"} passes additional
     arguments to \code{\link{print.table}}.}
 
@@ -188,8 +187,8 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
     an \code{"epidataCS"} object like in \code{\link{subset.data.frame}}.}
 
   \item{coords}{logical indicating if the data frame of event marks
-    returned by \code{marks.epidataCS} should also include the event
-    coordinates. This defaults to \code{TRUE}.}
+    returned by \code{marks(x)} should have the event
+    coordinates appended as last columns. This defaults to \code{TRUE}.}
 
   \item{object}{an object of class \code{"epidataCS"}.}
 }
@@ -383,10 +382,11 @@ legend("topright", legend=levels(events$type), title="Type", pch=1:2, col=1:2)
 myimdepi <- as.epidataCS(events = events, stgrid = stgrid,
                          W = stateD, qmatrix = diag(2), nCircle2Poly = 16)
 \dontshow{
-## should be equal as long as the internal structures of "epidataCS" and
-## of the embedded classes ("owin", "SpatialPolygons", ...) do not change
-if (!identical(imdepi, myimdepi))
-    warning("@Sebastian: update data(imdepi)")
+## should be equal as long as the internal structures of "epidataCS",
+## of the embedded classes ("owin", "SpatialPolygons", ...), and the
+## calculation of the influence regions by "polyclip" do not change
+if (!isTRUE(all.equal(imdepi, myimdepi, tolerance=1E-6)))
+    warning("@Sebastian: maybe update data(imdepi)")
 }
 
 ## internal structure of an "epidataCS"-object

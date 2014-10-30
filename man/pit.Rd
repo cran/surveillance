@@ -18,11 +18,17 @@ pit(x, pdistr, J = 10, relative = TRUE, ..., plot = list())
     numeric vector representing the observed counts.
   }
   \item{pdistr}{
-    the predictive CDF for the observations \code{x}, i.e.,
-    a vectorized \code{function (x, ...)}.
-    If the observations \code{x} have different predictive
-    distributions, these may be provided in a list of the same length as
-    the vector \code{x}.
+    either a list of predictive cumulative distribution functions for
+    the observations \code{x}, or (the name of) a single predictive CDF
+    used for all \code{x} (with potentially varying arguments \code{...}).
+    It is checked that the predictive CDF returns 0 at \code{x=-1}.
+    The name of its first argument can be different from \code{x}, e.g.,
+    \code{pdistr="pnbinom"} is possible.\cr
+    If \code{pdistr} is a single function and no additional \code{\dots}
+    arguments are supplied, \code{pdistr} is assumed to be vectorized,
+    i.e., it is simply called as \code{pdistr(x)} and \code{pdistr(x-1)}.
+    Otherwise, the predictive CDF is called sequentially and does not
+    need to be vectorized.
   }
   \item{J}{
     the number of bins of the histogram.
@@ -31,7 +37,9 @@ pit(x, pdistr, J = 10, relative = TRUE, ..., plot = list())
     logical indicating if relative frequency or the density should be plotted.
   }
   \item{\dots}{
-    arguments for \code{pdistr}. Ignored if \code{pdistr} is a list.
+    ignored if \code{pdistr} is a list. Otherwise, such additional
+    arguments are used in sequential calls of \code{pdistr} via
+    \code{\link{mapply}(pdistr, x, ...)}.
   }
   \item{plot}{
     a list of arguments for \code{\link{plot.histogram}} or \code{NULL}
@@ -56,13 +64,23 @@ pit(x, pdistr, J = 10, relative = TRUE, ..., plot = list())
 
 \examples{
 ## Simulation example of Czado et al. (2009, Section 2.4)
-set.seed(321)  # different from the paper
+set.seed(100)
 x <- rnbinom(200, mu = 5, size = 2)
-op <- par(mfrow=c(1,3))
-pit(x, function (x) ppois(x, lambda=5), J=10, relative=TRUE, plot=list(ylim=c(0,3)))
-pit(x, function (x) pnbinom(x, mu=5, size=2), J=10, relative=TRUE, plot=list(ylim=c(0,3)))
-pit(x, function (x) pnbinom(x, mu=5, size=1), J=10, relative=TRUE, plot=list(ylim=c(0,3)))
+pdistrs <- list("NB(5,0)"   = function (x) ppois(x, lambda=5),
+                "NB(5,1/2)" = function (x) pnbinom(x, mu=5, size=2),
+                "NB(5,1)"   = function (x) pnbinom(x, mu=5, size=1))
+## Reproduce Figure 1
+op <- par(mfrow = c(1,3))
+for (i in seq_along(pdistrs)) {
+    pit(x, pdistr = pdistrs[[i]], J = 10, relative = TRUE,
+        plot = list(ylim = c(0,2.75), main = names(pdistrs)[i]))
+    box()
+}
 par(op)
+
+## Alternative call using ... arguments for pdistr (less efficient)
+stopifnot(identical(pit(x, "pnbinom", mu = 5, size = 2, plot = NULL),
+                    pit(x, pdistrs[[2]], plot = NULL)))
 }
 
 \keyword{dplot}

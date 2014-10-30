@@ -7,8 +7,8 @@
 ### Specific implementations are in seperate files (e.g.: Gaussian, power law).
 ###
 ### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 779 $
-### $Date: 2014-02-18 14:48:18 +0100 (Tue, 18 Feb 2014) $
+### $Revision: 997 $
+### $Date: 2014-09-03 14:21:22 +0200 (Wed, 03 Sep 2014) $
 ################################################################################
 
 
@@ -83,22 +83,20 @@ siaf <- function (f, F, Fcircle, effRange, deriv, Deriv, simulate, npars,
 
 siaf.constant <- function ()
 {
-    r <- s <- n <- ub <- "just cheating on codetools::checkUsage"
-    ## to avoid notes in R CMD check ("no visible binding for global variable")
-    ## one could also use utils::globalVariables() in R >= 2.15.1 as follows:
-    ## if (getRversion() >= "2.15.1") utils::globalVariables("r")
     res <- list(
-        f = as.function(alist(s=, pars=NULL, types=NULL,
-                              rep.int(1, length(s)/2)),
+        ## use explicit quote()ing to prevent notes from codetools::checkUsage
+        f = as.function(c(alist(s=, pars=NULL, types=NULL),
+                          quote(rep.int(1, length(s)/2))),
         ##<- nrow() would take extra time in standardGeneric()
                         envir = .GlobalEnv),
         ## integration over polydomains is handled specially in twinstim
-        Fcircle = as.function(alist(r=, pars=NULL, type=NULL, pi*r^2),
+        Fcircle = as.function(c(alist(r=, pars=NULL, type=NULL),
+                                quote(pi*r^2)),
                               envir = .GlobalEnv),
         ## simulation will be handled specially in simEpidataCS, this is only
         ## included here for completeness
-        simulate = as.function(alist(n=, pars=NULL, type=NULL, ub=,
-                                     runifdisc(n, ub)),
+        simulate = as.function(c(alist(n=, pars=NULL, type=NULL, ub=),
+                                 quote(runifdisc(n, ub))),
                                envir = getNamespace("surveillance")),
         npars = 0L
     )
@@ -163,12 +161,12 @@ siaf.simulatePC <- function (intrfr)    # e.g., intrfr.powerlaw
         QF <- function (p) uniroot(function(q) CDF(q)-p, lower=0, upper=ub)$root
 
         ## Now sample r as QF(U), where U ~ U(0,1)
-        r <- sapply(runif(n), QF)
+        r <- vapply(X=runif(n), FUN=QF, FUN.VALUE=0, USE.NAMES=FALSE)
         ## Check simulation of r via kernel estimate:
         ## plot(density(r, from=0, to=ub)); curve(p(x)/normconst,add=TRUE,col=2)
         
         ## now rotate each point by a random angle to cover all directions
-        theta <- stats::runif(n, 0, 2*pi)
+        theta <- runif(n, 0, 2*pi)
         r * cbind(cos(theta), sin(theta))
     })), envir=parent.frame())
 }
@@ -212,12 +210,14 @@ checksiaf <- function (siaf, pargrid, type = 1, tolerance = 1e-5,
     ## Check 'deriv'
     if (!is.null(siaf$deriv)) {
         cat("'deriv' vs. numerical derivative ... ")
-        maxRelDiffs.deriv <- checksiaf.deriv(siaf$deriv, siaf$f, pargrid,
-                                             type=type)
-        cat(attr(maxRelDiffs.deriv, "all.equal") <-
-            if (any(maxRelDiffs.deriv > tolerance))
-            paste("maxRelDiff =", max(maxRelDiffs.deriv)) else TRUE,
-            "\n")
+        if (requireNamespace("maxLik", quietly=TRUE)) {
+            maxRelDiffs.deriv <- checksiaf.deriv(siaf$deriv, siaf$f, pargrid,
+                                                 type=type)
+            cat(attr(maxRelDiffs.deriv, "all.equal") <-
+                if (any(maxRelDiffs.deriv > tolerance))
+                paste("maxRelDiff =", max(maxRelDiffs.deriv)) else TRUE,
+                "\n")
+        } else cat("Failed: need package", sQuote("maxLik"), "\n")
     }
 
     ## Check 'Deriv'
@@ -284,6 +284,7 @@ checksiaf.deriv <- function (deriv, f, pargrid, type=1, rmax=100)
     apply(pargrid, 1, function (pars) {
         maxLik::compareDerivatives(f, deriv, t0=pars, s=sgrid,
                                    print=FALSE)$maxRelDiffGrad
+        ## Note: numDeriv::grad() would only allow one location s at a time
     })
 }
 
@@ -303,29 +304,32 @@ checksiaf.Deriv <- function (Deriv, deriv, pargrid, type=1, method="SV", ...)
     res
 }
 
-checksiaf.simulate <- function (simulate, f, pars, type=1, B=3000, ub=10)
+checksiaf.simulate <- function (simulate, f, pars, type=1, B=3000, ub=10,
+                                plot=interactive())
 {
     ## Simulate B points on the disc with radius 'ub'
     simpoints <- simulate(B, pars, type=type, ub=ub)
 
-    ## Graphical check in 2D
-    opar <- par(mfrow=c(2,1), mar=c(4,3,2,1)); on.exit(par(opar))
-    plot(as.im.function(function(x,y,...) f(cbind(x,y), pars, type),
-                        W=discpoly(c(0,0), ub, class="owin")),
-         axes=TRUE, main="Simulation from the spatial kernel")
-    points(simpoints, cex=0.2)
-    kdens <- kde2d(simpoints[,1], simpoints[,2], n=100)
-    contour(kdens, add=TRUE, col=2, lwd=2,
-            labcex=1.5, vfont=c("sans serif", "bold"))
-    ##x11(); image(kdens, add=TRUE)
+    if (plot) {
+        ## Graphical check in 2D
+        opar <- par(mfrow=c(2,1), mar=c(4,3,2,1)); on.exit(par(opar))
+        plot(as.im.function(function(x,y,...) f(cbind(x,y), pars, type),
+                            W=discpoly(c(0,0), ub, class="owin")),
+             axes=TRUE, main="Simulation from the spatial kernel")
+        points(simpoints, cex=0.2)
+        kdens <- kde2d(simpoints[,1], simpoints[,2], n=100)
+        contour(kdens, add=TRUE, col=2, lwd=2,
+                labcex=1.5, vfont=c("sans serif", "bold"))
+        ##x11(); image(kdens, add=TRUE)
 
-    ## Graphical check of distance distribution
-    MASS::truehist(sqrt(rowSums(simpoints^2)), xlab="Distance")
-    rfr <- function (r) r*f(cbind(r,0), pars, type)
-    rfrnorm <- integrate(rfr, 0, ub)$value
-    do.call("curve", list(quote(rfr(x)/rfrnorm), add=TRUE, col=2, lwd=2))
-    ##<- use do.call-construct to prevent codetools::checkUsage from noting "x"
-
+        ## Graphical check of distance distribution
+        truehist(sqrt(rowSums(simpoints^2)), xlab="Distance")
+        rfr <- function (r) r*f(cbind(r,0), pars, type)
+        rfrnorm <- integrate(rfr, 0, ub)$value
+        do.call("curve", list(quote(rfr(x)/rfrnorm), add=TRUE, col=2, lwd=2))
+        ##<- use do.call-construct to prevent codetools::checkUsage from noting "x"
+    }
+    
     ## invisibly return simulated points
     invisible(simpoints)
 }

@@ -7,8 +7,8 @@
 ### vcov, logLik, print, summary, plot (intensity, iaf), R0, residuals, update
 ###
 ### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 933 $
-### $Date: 2014-05-23 14:17:41 +0200 (Fri, 23 May 2014) $
+### $Revision: 988 $
+### $Date: 2014-09-01 16:58:44 +0200 (Mon, 01 Sep 2014) $
 ################################################################################
 
 
@@ -323,9 +323,9 @@ plot.twinstim <- function (x, which, ...)
 ### Calculates the basic reproduction number R0 for individuals
 ### with marks given in 'newevents'
 
-R0.twinstim <- function (object, newevents, trimmed = TRUE, ...)
+R0.twinstim <- function (object, newevents, trimmed = TRUE, newcoef = NULL, ...)
 {
-    ## extract model information
+    ## check for epidemic component
     npars <- object$npars
     if (npars["q"] == 0L) {
         message("no epidemic component in model, returning 0-vector")
@@ -334,6 +334,12 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE, ...)
                              names = rownames(newevents)))
         }
     }
+    ## update object for use of new parameters
+    if (!is.null(newcoef)) {
+        object <- update(object, optim.args = list(par=newcoef, fixed=TRUE),
+                         cumCIF = FALSE, cores = 1L, verbose = FALSE)
+    }
+    ## extract model information
     t0 <- object$timeRange[1L]
     T <- object$timeRange[2L]
     typeNames <- rownames(object$qmatrix)
@@ -498,10 +504,9 @@ residuals.twinstim <- function (object, ...)
       if (is.null(modelenv <- environment(object))) {
           stop("residuals not available; re-fit the model with 'cumCIF = TRUE'")
       } else {
-          cat("'", substitute(object), "' was fit with disabled 'cumCIF'",
-              " -> calculate it now...\n", sep="")
-          res <- with(modelenv, LambdagEvents(cumCIF.pb = TRUE))
-          cat("Done.\n")
+          message("'", substitute(object), "' was fit with disabled 'cumCIF'",
+                  " -> calculate it now ...")
+          res <- with(modelenv, LambdagEvents(cumCIF.pb = interactive()))
           try({
               objname <- deparse(substitute(object))
               object$tau <- res
@@ -752,13 +757,11 @@ update.twinstim <- function (object, endemic, epidemic,
         ## evaluate in the environment calling update.twinstim()
         message("Setting up the model environment ...")
         objectWithModel <- eval(call, parent.frame(2L))
-        ## add the extra "model" components
-        object <- append(object, objectWithModel["functions"],
-                         after=match("optim.args", names(object)))
+        ## add the model "functions" and environment
+        object$functions <- objectWithModel$functions
         environment(object) <- environment(objectWithModel)
-        class(object) <- class(objectWithModel) # dropped by append()
     } else { # remove model environment
-        object$functions <- NULL
+        object["functions"] <- list(NULL)
         environment(object) <- NULL
     }
     object$call$model <- model

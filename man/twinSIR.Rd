@@ -235,7 +235,8 @@ twinSIR(formula, data, weights, subset,
     columns), \code{"X"} (matrix of the epidemic variables), \code{"Z"} (matrix
     of the endemic variables), \code{"weights"} (the specified \code{weights}), 
     \code{"lambda.smooth"} (the specified \code{lambda.smooth}), \code{"K"}
-    (the penalty matrix used) and \code{"f"} (the distance functions used).
+    (the penalty matrix used), and \code{"f"} and \code{"w"}
+    (the functions to generate the used epidemic covariates).
     Be aware that the model only contains those rows with \code{atRiskY == 1}!}
   \item{data}{if requested, the supplied \code{"epidata"} \code{data}.}
   \item{call}{the matched call.}
@@ -290,9 +291,13 @@ data("fooepidata")
 summary(fooepidata)
 
 # fit an overall constant baseline hazard rate
-fit1 <- twinSIR(~ B1 + B2 + cox(z2), data = fooepidata, keep.data = TRUE)
+fit1 <- twinSIR(~ B1 + B2 + cox(z2), data = fooepidata)
 fit1
 summary(fit1)
+
+# fit1 is what is used as data("foofit") in other examples
+data("foofit")
+stopifnot(all.equal(fit1, foofit))
 
 # fit a piecewise constant baseline hazard rate with 3 intervals using 
 # _un_penalized ML and estimated coefs from fit1 as starting values 
@@ -313,17 +318,6 @@ plot(x=fit3$intervals, y=coef(fit3)[c(3,3:11)], type="S")
 
 ### -> for more sophisticated intensity plots, see 'plot.twinSIR'
 plot(fit3)
-
-\dontshow{
-### TODO (@Michael): Analysis of the 1861 hagelloch measles epidemic
-#data(hagelloch)
-#m <- twinSIR(~c1 + c2 + household + local1, data = hagelloch)
-#FIXME: what is "local1"? what is "local"? what about c1, c2, household?
-#       describe this on the help page of data(hagelloch)?
-#FIXME: there are no functions to generate c1 and c2 in attr(hagelloch, "f")
-#       which implies that the simulate-method doesn't work for this model
-#summary(m)
-}
 }
 
 \keyword{models}

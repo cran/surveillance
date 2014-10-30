@@ -1,4 +1,4 @@
-\name{twinSIR_epidata_plot}
+\name{epidata_plot}
 \alias{plot.epidata}
 \alias{plot.summary.epidata}
 \alias{stateplot}
@@ -17,7 +17,8 @@ Plotting the Evolution of an Epidemic
 
 \usage{
 \method{plot}{summary.epidata}(x,
-     lty = c(2, 1, 3), lwd = 2, col = 1, col.hor = col, col.vert = col,
+     lty = c(2, 1, 3), lwd = 2,
+     col = c("#1B9E77", "#D95F02", "#7570B3"), col.hor = col, col.vert = col,
      xlab = "Time", ylab = "Number of individuals",
      xlim = NULL, ylim = NULL, legend.opts = list(), do.axis4 = NULL,
      panel.first = grid(), rug.opts = list(),
@@ -51,7 +52,9 @@ stateplot(x, id, ...)
     \code{col.hor} defines the color for the horizontal parts of the step
     function, whilst \code{col.vert} defines the color for its vertical parts.
     The argument \code{col} is just short for \code{col.hor = col} and
-    \code{col.vert = col}.  By default, all lines are completely drawn in black.
+    \code{col.vert = col}.  The default \code{col} vector corresponds to
+    \code{\link[RColorBrewer]{brewer.pal}("Dark2",n=3)} from the
+    \pkg{RColorBrewer} package.
     The vectors are recycled if necessary.  For information about the possible
     values of \code{col}, see the help pages of \code{\link{par}}.
   }
@@ -64,15 +67,14 @@ stateplot(x, id, ...)
     to fit the time range of the epidemic and the number of individuals.
   }
   \item{legend.opts}{
-    either a list of arguments passed to the \code{\link{legend}} function or
-    \code{NULL} (or \code{NA}), in which case no legend will be plotted.  All
-    necessary arguments have sensible defaults and need not be specified, i.e.
+    if this is a list (of arguments for the \code{\link{legend}} function),
+    a legend will be plotted.  The defaults are as follows:
     \describe{
       \item{\code{x}:}{\code{"topright"}}
+      \item{\code{inset}:}{\code{c(0,0.02)}}
       \item{\code{legend}:}{\code{c("susceptible", "infectious", "removed")}}
-      \item{\code{lty}:}{same as argument \code{lty} of the main function}
-      \item{\code{lwd}:}{same as argument \code{lwd} of the main function}
-      \item{\code{col}:}{same as argument \code{col.hor} of the main function}
+      \item{\code{lty},\code{lwd},\code{col}:}{same as the arguments
+        \code{lty}, \code{lwd}, and \code{col.hor} of the main function}
       \item{\code{bty}:}{\code{"n"}}
     }
   }

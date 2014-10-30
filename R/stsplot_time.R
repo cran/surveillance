@@ -6,8 +6,8 @@
 ### Time series plot for sts-objects
 ###
 ### Copyright (C) 2007-2013 Michael Hoehle
-### $Revision: 918 $
-### $Date: 2014-05-10 23:16:41 +0200 (Sat, 10 May 2014) $
+### $Revision: 1003 $
+### $Date: 2014-09-07 11:28:42 +0200 (Sun, 07 Sep 2014) $
 ################################################################################
 
 
@@ -15,34 +15,27 @@
 # stsplot_time sets the scene and calls stsplot_time1 for each unit
 ######################################################################
 
-stsplot_time <- function(x, method=x@control$name, disease=x@control$data,
+stsplot_time <- function(x, units,
+                         method=x@control$name, disease=x@control$data,
                          as.one=FALSE, same.scale=TRUE, par.list=list(), ...)
 {
   #Extract
   observed <- x@observed
-  state <- x@state
-  alarm <- x@alarm
   population <- x@populationFrac
   binaryTS <- x@multinomialTS
-  
-  #univariate timeseries ?
-  if(is.vector(observed))
-    observed <- matrix(observed,ncol=1)
-  if(is.vector(state))
-    state <- matrix(state,ncol=1)
-  if(is.vector(alarm)) 
-    alarm <- matrix(alarm,ncol=1)
-  nAreas <- ncol(observed)
+  nUnits <- ncol(observed)
 
-  #If no "mar" or "mfrow" argument in par.list add default values.
-  if (is.null(par.list[["mar",exact=TRUE]])) { par.list$mar <- c(5,4,1,1)}
-  if (is.null(par.list[["mfrow",exact=TRUE]])) { par.list$mfrow=magic.dim(nAreas)}
-  
   #multivariate time series
-  if(nAreas > 1){
+  if(nUnits > 1){
+    if (missing(units))
+      units <- seq_len(nUnits)
     if(as.one) { # all areas in one plot
       stop("this type of plot is currently not implemented")
     } else {
+      par.list <- modifyList(
+        list(mar = c(5,4,1,1), mfrow = magic.dim(nUnits)),
+        par.list)
+
       #set window size
       oldpar <- par(par.list)
 
@@ -62,7 +55,7 @@ stsplot_time <- function(x, method=x@control$name, disease=x@control$data,
       }
       
       #plot areas
-      for (k in 1:nAreas) {
+      for (k in units) {
         argsK <- modifyList(args, list(x=x, k=k, main="", legend.opts=NULL),
                             keep.null = TRUE)
         do.call("stsplot_time1",args=argsK)
@@ -92,7 +85,7 @@ stsplot_time1 <- function(
     outbreak.symbol=list(pch=3, col=3, cex=1, lwd=1),
     alarm.symbol=list(pch=24, col=2, cex=1, lwd=1),
     legend.opts=list(x="top", legend=NULL, lty=NULL, pch=NULL, col=NULL),
-    dx.upperbound=0L, hookFunc=function(){}, ...)
+    dx.upperbound=0L, hookFunc=function(){}, .hookFuncInheritance=function() {}, ...)
 {
 
   #Extract slots -- depending on the algorithms: x@control$range
@@ -121,7 +114,9 @@ stsplot_time1 <- function(
   if (is.null(main)) {
     #If no surveillance algorithm has been run
     if (length(x@control) != 0) {
-      main = paste("Surveillance using ", as.character(method),sep="") 
+#      main = paste("Surveillance using ", as.character(method),sep="")
+        action = switch(class(x), "sts"="surveillance","stsNC"="nowcasting","stsBP"="backprojection")
+        main = paste(action," using ", as.character(method),sep="") 
     }
   }
 
@@ -190,9 +185,13 @@ stsplot_time1 <- function(
     do.call("legend",legend.opts)
   }
 
-  #Call hook function for user customized action
+  #Call hook function for user customized action using the current environment
   environment(hookFunc) <- environment()
   hookFunc()
+
+  #Extra hook functions for inheritance plotting (see e.g. plot function of stsNC objects)
+  environment(.hookFuncInheritance) <- environment()
+  .hookFuncInheritance()
 
   invisible()
 }

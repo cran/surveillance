@@ -333,7 +333,7 @@ farringtonFlexible <- function(sts, control = list(range = NULL, b = 3, w = 3,
 				
 				#Do we have an alarm -- i.e. is observation beyond CI??
 				#upperbound only relevant if we can have an alarm (enoughCases)
-				sts@alarm[k,j] <- !is.na(X) && (X>=1) && observed[k,j]!=0
+				sts@alarm[k,j] <- !is.na(X) && (X>1) && observed[k,j]!=0
 				sts@upperbound[k,j] <- ifelse(enoughCases,lu$upper,NA)
 				
 				# Possible bug alarm although upperbound <- 0? 
@@ -473,7 +473,6 @@ algo.farrington.referencetimepoints <- function(dayToConsider,b=control$b,freq=f
 anscombe.residuals <- function(m,phi) {
     y <- m$y
     mu <- fitted.values(m)
-
     #Compute raw Anscombe residuals
     a <- 3/2*(y^(2/3) * mu^(-1/6) - mu^(1/2))
     
@@ -777,7 +776,6 @@ epochAsDate) {
     referenceWeeks <- rev(as.numeric(
                     vectorOfAbsoluteNumbers[referenceTimePointsOrNot=='TRUE'])) 
 
-
     for (i in 1:b) {
 		
 			# reference week
@@ -852,7 +850,7 @@ algo.farrington.data.glm <- function(dayToConsider, b, freq,
 															   )
 
 	if (sum((vectorOfDates %in% min(referenceTimePoints)) == rep(FALSE,length(vectorOfDates))) == length(vectorOfDates)){
-		warning("Some reference values did not exist (index<1).")
+		stop("Some reference values did not exist (index<1).")
 		}
 
 	if (verbose) { cat("k=", k,"\n")} 
@@ -896,7 +894,7 @@ algo.farrington.data.glm <- function(dayToConsider, b, freq,
 
 	dataGLM <- data.frame(response=response,wtime=wtime,population=pop,
 						seasgroups=seasgroups,vectorOfDates=vectorOfDates[blockIndexes])
-	
+	dataGLM <- dataGLM[is.na(dataGLM$response)==FALSE,]
 	return(dataGLM)
 
 }
@@ -959,7 +957,7 @@ algo.farrington.glm <- function(dataGLM,timeTrend,populationOffset,factorsBool,
 		#have to use at least three years of data to allow for a trend
 		atLeastThreeYears <- (b>=3)
 		#no horrible predictions
-		noExtrapolation <- (pred$fit <= max(dataGLM$response))
+		noExtrapolation <- (pred$fit <= max(dataGLM$response,na.rm=T))
 			
 		#All 3 criteria have to be met in order to include the trend. Otherwise
 		#it is removed. Only necessary to check this if a trend is requested.

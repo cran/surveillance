@@ -6,8 +6,8 @@
 ### plot-method for "epidataCS" objects
 ###
 ### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 903 $
-### $Date: 2014-04-10 22:18:03 +0200 (Thu, 10 Apr 2014) $
+### $Revision: 1033 $
+### $Date: 2014-09-26 17:06:42 +0200 (Fri, 26 Sep 2014) $
 ################################################################################
 
 
@@ -37,13 +37,23 @@ epidataCSplot_time <- function (x, subset, t0.Date = NULL, freq = TRUE,
                                    select = c("time", "type")))
     }
     if (nrow(eventTimesTypes) == 0L) stop("no events left after 'subset'")
+    typeNames <- levels(eventTimesTypes$type)
+    nTypes <- length(typeNames)
+    if (!freq && nTypes > 1L)
+        warning("a stacked barplot of multiple event types only makes sense for 'freq=TRUE'")
+
     if (is.list(cumulative)) {
         csums <- tapply(eventTimesTypes$time, eventTimesTypes["type"],
                         function (t) cumsum(table(t)), simplify=FALSE)
+        if (!is.null(cumulative[["offset"]])) {
+            stopifnot(is.vector(cumulative$offset, mode="numeric"),
+                      length(cumulative$offset) == nTypes)
+            csums <- mapply(FUN="+", csums, cumulative$offset,
+                            SIMPLIFY=FALSE, USE.NAMES=TRUE)
+        }
         if (is.null(cumulative[["axis"]])) cumulative[["axis"]] <- TRUE
     }
-    typeNames <- levels(eventTimesTypes$type)
-    nTypes <- length(typeNames)
+    
     eventTimesTypes$type <- as.integer(eventTimesTypes$type)
     col <- rep_len(col, nTypes)
     
@@ -91,7 +101,8 @@ epidataCSplot_time <- function (x, subset, t0.Date = NULL, freq = TRUE,
 
     ## plot histogram (over all types)
     plot(histdata, freq = freq, add = TRUE, col = col[1L], ...)
-    box()          # because white filling of bars might overdraw the inital box
+    if (!add)  # doesn't work as expected when adding to plot with cumulative axis
+        box()  # because white filling of bars might overdraw the inital box
 
     ## add type-specific sub-histograms
     typesEffective <- sort(unique(eventTimesTypes$type))
@@ -175,7 +186,7 @@ epidataCSplot_space <- function (x, subset,
     
     ## plot
     if (!add) plot(x$W, ...)
-    do.call("points", c(alist(x=eventCoordsTypesCounts[,1:2]),
+    do.call("points", c(alist(x=eventCoordsTypesCounts[,1:2,drop=FALSE]),
                         points.args_pointwise))
 
     ## optionally add legends

@@ -6,8 +6,194 @@
 \encoding{latin1}
 
 
-\section{Changes in surveillance version 1.8-0 (2014-06-16)}{
+\section{Changes in surveillance version 1.8-1 (2014-10-29)}{
+  
+\subsection{NEW FEATURES}{
+  \itemize{
+    \item The \code{R0}-method for \code{"twinstim"} gained an argument
+    \code{newcoef} to simplify computation of reproduction numbers with
+    a different parameter vector (also used for Monte Carlo CI's).
 
+    \item New plot \code{type="neweights"} for \code{"hhh4"} fits.
+
+    \item The \code{scores()} function allows the selection of multiple
+    \code{units} (by index or name) for which to compute (averaged) proper
+    scores. Furthermore, one can now select \code{which} scores to compute.
+
+    \item Added a \code{formula}-method for \code{"hhh4"} fits to
+    extract the \code{f} specifications of the three components from the
+    control list.
+
+    \item The \code{update()}-method for fitted \code{"hhh4"} models
+    gained an argument \code{S} for convenient modification of component
+    seasonality using \code{addSeason2formula()}.
+
+    \item The new auxiliary function \code{layout.labels()} generates an
+    \code{sp.layout} item for \code{spplot()} in order to draw labels.
+
+    \item When generating the \code{pit()} histogram with a single
+    predictive CDF \code{pdistr}, the \code{\dots} arguments can now be
+    \code{x}-specific and are recycled if necessary using \code{mapply()}.
+    If \code{pdistr} is a list of CDFs, \code{pit()} no longer requires
+    the functions to be vectorized.
+
+    \item New method \code{as.epidata.data.frame()}, which constructs the
+    start/stop SIR event history format from a simple individual-based
+    data frame (e.g., \code{hagelloch.df}).
+
+    \item New argument \code{w} in \code{as.epidata.default()} to
+    generate covariate-based weights for the force of infection in
+    \code{twinSIR}. The \code{f} argument is for distance-based weights.
+
+    \item The result of \code{profile.twinSIR()} gained a class and an
+    associated \code{plot}-method.
+  }
+}
+
+\subsection{MAJOR CHANGES}{
+  \itemize{
+    \item For multivariate \code{oneStepAhead()} predictions,
+    \code{scores(..., individual=TRUE)} now returns a 3d array instead
+    of a collapsed matrix. Furthermore, the scores computed by default
+    are \code{c("logs","rps","dss","ses")}, excluding the normalized
+    squared error score \code{"nses"} which is improper.
+
+    \item The plot-\code{type="season"} for \code{"hhh4"} fits now by
+    default plots the multiplicative effect of seasonality on the
+    respective component (new argument \code{intercept=FALSE}).
+    The default set of components to plot has also changed.
+    
+    \item When \code{as.epidata()} and \code{simEpidata()} calculate
+    distance-based epidemic weights from the \code{f} functions, they no
+    longer set the distance of an infectious individual to itself
+    artificially to \code{Inf}.
+    This changes the corresponding columns in the \code{"epidata"} in
+    rows of currently infectious individuals, but the \code{twinSIR}
+    model itself is invariant, since only rows with \code{atRiskY=1}
+    contribute to the likelihood.
+
+    \item Several modifications and corrections in \code{data("hagelloch")}.
+  }
+}
+
+\subsection{MINOR CHANGES}{
+  \itemize{
+    \item Better plotting of \code{stsNC} objects by writing an own plot
+    method for them. Prediction intervals are now shown jointly with the
+    point estimate.
+
+    \item Reduced package size by applying \code{tools::resaveRdaFiles}
+    to some large datasets and by building the package with
+    \code{--compact-vignettes=both}, i.e., using additional GhostScript
+    compression with ebook quality, see \code{?tools::compactPDF}.
+
+    \item Added \code{units} argument to \code{stsplot_time} to select
+    only a subset of the multivariate time series for plotting.
+
+    \item The \code{untie}-method for class \code{"epidataCS"} gained an
+    argument \code{verbose} which is now \code{FALSE} by default.
+
+    \item \code{"epidataCS"} objects store the \code{clipper} used
+    during generation as attribute of \code{$events$.influenceRegion}.
+
+    \item In \code{plotHHH4_fitted()}, the argument \code{legend.observed}
+    now defaults to \code{FALSE}.
+
+    \item The default weights for the spatio-temporal component in
+    \code{hhh4} models now are \code{neighbourhood(stsObj) == 1}.
+    The previous default \code{neighbourhood(stsObj)} does not make
+    sense for the newly supported \code{nbOrder} neighbourhood matrices
+    (shortest-path distances). The new default makes no difference for
+    (old) models with binary adjacency matrices in the neighbourhood
+    slot of the \code{stsObj}.
+
+    \item The default for nonparametric weights \code{W_np()} in
+    \code{hhh4()} is now to assume zero weight for neighbourhood orders
+    above \code{maxlag}, i.e., \code{W_np()}'s argument \code{to0} now
+    defaults to \code{TRUE}.
+
+    \item Added a \code{verbose} argument to \code{permutationTest()},
+    which defaults to \code{FALSE}. The previous behaviour corresponds
+    to \code{verbose=TRUE}.
+
+    \item \code{simulate.twinstim()} now by default uses the original
+    \code{data$W} as observation region.
+
+    \item The \code{data("measlesWeserEms")} contain two additional
+    variables in the \code{@map@data} slot: \code{"vaccdoc.2004"} and
+    \code{"vacc1.2004"}.
+
+    \item The plot-method for \code{"epidata"} objects now uses colored
+    lines by default.
+
+    \item The \pkg{surveillance} package now depends on \R >= 3.0.2,
+    which, effectively, is the minimum version required since
+    \pkg{surveillance} 1.7-0 (see the corresponding NEWS below).
+
+    \item The two diagnostic plots of \code{checkResidualProcess()} are
+    now by default plotted side by side (\code{mfrow=c(1,2)}) instead of
+    one below the other.
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item In \code{farringtonFlexible} alarms are now for
+    \code{observed>upperbound} and not for \code{observed>=upperbound}
+    which was not correct.
+
+    \item Fixed duplicate \code{"functions"} element resulting from
+    \code{update.twinstim(*,model=TRUE)} and ensured that
+    \code{"twinstim"} objects always have the same components (some may
+    be \code{NULL}).
+
+    \item \code{animate.epidata} works again with the
+    \CRANpkg{animation} package (\code{ani.options("outdir")} was
+    removed in version 2.3)
+
+    \item For \code{hhh4} models with random effects, \code{confint()}
+    only worked if argument \code{parm} was specified.
+
+    \item Computing one-sided AIC weights by simulation for \code{twinSIR}
+    models with more than 2 epidemic covariates now is more robust (by
+    rescaling the objective function for the quadratic programming
+    solver) and twice as fast (due to code optimization).
+
+    \item \code{simulate.twinstim(..., rmarks=NULL)} can now handle the
+    case where \code{data} has no events within the simulation period
+    (by sampling marks from all of \code{data$events}).
+
+    \item The \code{lambda.h} values of simulated events in
+    \code{"simEpidataCS"} objects were wrong if the model contained an
+    endemic intercept (which is usually the case).
+
+    \item Automatic choice of color breaks in the \code{animate}-method
+    for class \code{"sts"} now also works for incidence maps (i.e., with
+    a \code{population} argument).
+
+    \item \code{hhh4()} did not allow the use of nonparametric
+    neighbourhood weights \code{W_np()} with \code{maxlag=2}.
+
+    \item \code{scores()} did not work for multivariate \code{oneStepAhead()}
+    predictions if both \code{individual=TRUE} and \code{sign=TRUE}, and
+    it could not handle a \code{oneStepAhead()} prediction of only one
+    time point. Furthermore, the \code{"sign"} column of
+    \code{scores(..., sign=TRUE)} was wrong (reversed).
+
+    \item For \code{"epidataCS"} with only one event,
+    \code{epidataCSplot_space()} did not draw the point.
+
+    \item The trivial (identity) call
+    \code{aggregate(stsObj, nfreq=stsObj@freq)} did not work.
+  }
+}
+
+}
+
+
+
+\section{Changes in surveillance version 1.8-0 (2014-06-16)}{
+  
 \subsection{PACKAGE INFRASTRUCTURE}{
   \itemize{
     \item Package \pkg{surveillance} now depends on newer versions of

@@ -18,12 +18,7 @@ test_that("toLatex accepts basic input and returns Latex", {
   laTex <- toLatex(result, subset=(280:290), table.placement="h", size = "scriptsize",
                        sanitize.text.function = identity,
                        NA.string = "-",include.rownames=FALSE)
-  
-  laTex2 <- toLatex(list(result, result, result), subset=(280:290), 
-                        table.placement="h", size = "scriptsize",
-                       sanitize.text.function = identity,
-                       NA.string = "-",include.rownames=FALSE)
-  
+    
   laTex3 <- toLatex(result, subset=(280:290),
                     alarmPrefix = "aaaa",
                     alarmSuffix = "bbbb", table.placement="h", size = "scriptsize",
@@ -33,7 +28,7 @@ test_that("toLatex accepts basic input and returns Latex", {
   expect_true(grepl("aaaa", paste(as.character(laTex3), collapse = ' ')))
   expect_true(grepl("bbbb", paste(as.character(laTex3), collapse = ' ')))
   expect_is(laTex, "Latex")
-  expect_is(laTex2, "Latex")
+  expect_is(laTex3, "Latex")
 })
 
 test_that("caption is incorporated", {
@@ -54,6 +49,19 @@ test_that("ubColumnLabel is incorporated", {
   expect_true(grepl(testUBLabel, paste(as.character(latex), collapse = ' ')))
 })
 
+test_that("one can override the default table column labels", {
+  columnLabels <- c("Jahr", "Woche", "chwi1", "UB",
+                    "frkr2", "UB", "lich3", "UB", "mahe4", "UB", "mitt5", "UB", 
+                    "neuk6", "UB", "pank7", "UB", "rein8", "UB", "span9", "UB", 
+                    "zehl10", "UB", "scho11", "UB", "trko12", "UB")
+  latex <- toLatex(ha.sts, columnLabels = columnLabels)
+  expect_true(all(
+    sapply(columnLabels, 
+               function(l) grepl(l, paste(as.character(latex), collapse = ' '))
+           , USE.NAMES = FALSE) 
+    ))
+})
+
 test_that("toLatex works with output from farringtonFlexible()", {
   # Create the corresponding sts object from the old disProg object
   salm <- disProg2sts(salmonella.agona)
@@ -67,6 +75,10 @@ test_that("toLatex works with output from farringtonFlexible()", {
                    thresholdMethod="delta",alpha=0.1)
   salm1 <- farringtonFlexible(salm,control=control1)  
   expect_is(toLatex(salm1), "Latex")
+})
+
+test_that("toLatex only accepts a single sts object", {
+  expect_error(toLatex(list(ha.sts, ha.sts)))
 })
 
 test_that("toLatex stops if 'subset' is not applicable", {

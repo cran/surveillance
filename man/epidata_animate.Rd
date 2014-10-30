@@ -1,4 +1,4 @@
-\name{twinSIR_epidata_animate}
+\name{epidata_animate}
 \alias{animate.epidata}
 \alias{animate.summary.epidata}
 
@@ -66,6 +66,8 @@ Spatio-Temporal Animation of an Epidemic
     Thus, for \code{time.spacing = NULL} the animation has a duration of
     approximately 5 seconds. In the other case, \code{sleep} is the duration of
     the artificial pause between two time points.
+    Note that \code{sleep} is ignored on non-interactive devices
+    (see \code{\link{dev.interactive}})
   }
   \item{legend.opts}{
     either a list of arguments passed to the \code{\link{legend}} function or
@@ -152,7 +154,6 @@ The contributed \R package \pkg{animation}.
 }
 
 \examples{
-\dontrun{
 data("fooepidata")
 (s <- summary(fooepidata))
 
@@ -162,11 +163,17 @@ animate(s, sleep=0.01)   # or: animate(fooepidata)
 # with timer (animate only up to t=10)
 animate(s, time.spacing=0.1, end=10, sleep=0.01)
 
-# using features of the animation package:
-if (require("animation")) saveHTML(
-    animate(s, time.spacing = 1, sleep = 0, generate.snapshots = "epiani"),
-    img.name = "epiani", use.dev = FALSE, ani.type = "png", width = 600
-)
+\donttest{
+# Such an animation can be saved in various ways using tools of
+# the animation package, e.g., saveHTML()
+if (require("animation")) {
+  oldwd <- setwd(tempdir())  # to not clutter up the current working dir
+  saveHTML({
+    par(bg="white")  # default "transparent" is grey in some browsers
+    animate(s, time.spacing=1, sleep=0, generate.snapshots="epiani")
+  }, use.dev=FALSE, img.name="epiani", ani.width=600, interval=0.5)
+  setwd(oldwd)
+}
 }
 }
 

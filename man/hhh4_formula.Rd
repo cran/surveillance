@@ -87,6 +87,7 @@ hhh4(meningo, control = list(ar = list(f = ~ 1),
 # neighbour-driven component: only intercept for flu -> men
 # endemic component: S=3 and S=1 sine/cosine pairs for flu and men, respectively
 
+neighbourhood(fluMen)["meningococcus","influenza"] <- 0
 f.end <- addSeason2formula(f = ~ -1 + fe(1, which = c(TRUE, TRUE)), 
                            S = c(3, 1),   
                            period = 52)

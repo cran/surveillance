@@ -245,6 +245,9 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     \pkg{multicore}-type of parallel computing via forking is
     supported, which is not available on Windows, see
     \code{\link[parallel]{mclapply}} in package \pkg{parallel}.
+    Note that for a \pkg{memoise}d \code{\link{siaf.step}} kernel,
+    \code{cores=1} is fixed internally since parallelization would slow
+    down model fitting significantly.
   }
   \item{verbose}{
     logical indicating if information should be printed during
@@ -365,9 +368,8 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
 
   Meyer, S. and Held, L. (2014):
   Power-law models for infectious disease spread.
-  \emph{Annals of Applied Statistics}. In press.
-  \emph{arXiv:1308.5115}\cr
-  arXiv-Link: \url{http://arxiv.org/abs/1308.5115}
+  \emph{The Annals of Applied Statistics}, \bold{8} (3), 1612-1639.\cr
+  DOI-Link: \url{http://dx.doi.org/10.1214/14-AOAS743}
 
   Rathbun, S. L. (1996):
   Asymptotic properties of the maximum likelihood estimator for

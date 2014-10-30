@@ -8,14 +8,17 @@
 ### algorithm (cf. Daley & Vere-Jones, 2003, Algorithm 7.5.V.).
 ###
 ### Copyright (C) 2010-2014 Sebastian Meyer
-### $Revision: 877 $
-### $Date: 2014-04-03 13:59:10 +0200 (Thu, 03 Apr 2014) $
+### $Revision: 1035 $
+### $Date: 2014-09-26 17:59:14 +0200 (Fri, 26 Sep 2014) $
 ################################################################################
 
 ### CAVE:
 ### - the type of contrasts for factor variables has to be set through options("contrasts")
 ### - if epidemic-only process (!hash), we actually don't need stgrid, but we
 ###   want to have valid epidataCS at the end, which requires stgrid
+
+## model.frame() evaluates '...' with 'data'
+utils::globalVariables(c("BLOCK", "tile", "area"))
 
 simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     events, stgrid, tiles, beta0, beta, gamma, siafpars, tiafpars,
@@ -82,17 +85,18 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
         cat("Checking 'stgrid':\n")
         stgrid <- check_stgrid(stgrid[grep("^BLOCK$", names(stgrid), invert=TRUE)])
     }
-    
-    tileLevels <- levels(stgrid$tile)
-    tiles <- check_tiles(tiles, tileLevels,
-                         areas.stgrid = stgrid[["area"]][seq_len(nlevels(stgrid$tile))],
-                         W = W, keep.data = FALSE)
+
     W <- if (is.null(W)) {
         cat("Building 'W' as the union of 'tiles' ...\n")
     	unionSpatialPolygons(tiles)
-    } else check_W(W)
+    } else check_W(W)  # does as(W, "SpatialPolygons")
+
+    tileLevels <- levels(stgrid$tile)
+    tiles <- check_tiles(tiles, tileLevels,
+                         areas.stgrid = stgrid[["area"]][seq_along(tileLevels)],
+                         W = W, keep.data = FALSE)
     
-    # Transform W to class "owin"
+    ## Transform W to class "owin"
     Wowin <- as(W, "owin")
     maxExtentOfW <- diameter.owin(Wowin)
 
@@ -324,12 +328,9 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
 
     ### Build endemic model matrix on stgrid
 
-    BLOCK <- tile <- area <- "just cheating on codetools::checkUsage"
-    ## model.frame() will evaluate these variables in the context of 'stgrid'
     mfhGrid <- model.frame(endemic, data = stgrid, na.action = na.fail,
                            drop.unused.levels = FALSE,
                            BLOCK = BLOCK, tile = tile, ds = area)
-    rm(BLOCK, tile, area)
     # we don't actually need 'tile' in mfhGrid; this is only for easier identification when debugging
     mmhGrid <- model.matrix(endemic, mfhGrid)
     # exclude intercept from endemic model matrix below, will be treated separately
@@ -769,8 +770,18 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
                 whichTile <- over(SpatialPoints(.eventLocation,
                                                 proj4string=tiles@proj4string),
                                   tiles)
+                if (is.na(whichTile)) {
+                    warning("event generated at (",
+                            paste(.eventLocation, collapse=","),
+                            ") not in 'tiles'")
+                    stop("'tiles' must cover all of 'W'")
+                }
                 .eventTile <- row.names(tiles)[whichTile]
                 .eventTile <- factor(.eventTile, levels=tileLevels)
+                if (is.na(.eventTile))
+                    stop("tile \"", row.names(tiles)[whichTile],
+                         "\" of simulated event is no level of stgrid$tile",
+                         "\n-> verify row.names(tiles)")
             }
             .eventType <- factor(.eventType, levels=typeNames)
 
@@ -791,8 +802,13 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
             # calculate actual intensity at this time, location and type
             .mmhEvent <- buildmmh(.eventData)
             .etaEvent <- .mmhEvent %*% beta
-            .offsetEvent <- attr(.mmhEvent, "offset")
-            if (!is.null(.offsetEvent)) .etaEvent <- .offsetEvent + .etaEvent
+            if (!is.null(.offsetEvent <- attr(.mmhEvent, "offset")))
+                .etaEvent <- .etaEvent + .offsetEvent
+            if (nbeta0 == 1L) {
+                .etaEvent <- .etaEvent + beta0
+            } else if (nbeta0 > 1L) {
+                .etaEvent <- .etaEvent + beta0[.eventType]
+            }
             .lambdah <- exp(.etaEvent)
             .lambdae <- if (hase && length(.sources) > 0L) {
                 .sdiffs <- .eventLocation[rep.int(1L,length(.sources)),,drop=FALSE] - eventCoords[.sources,,drop=FALSE]
@@ -861,6 +877,8 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
 
 
     ### throw an error if no events have been simulated
+    ## because SpatialPoints[DataFrame]() does not allow the empty set, try:
+    ## SpatialPoints(coords = matrix(numeric(0), 0, 2), bbox=bbox(W))
     
     if (j-1L == Nout) {
         stop("no events have been simulated")
@@ -973,15 +991,12 @@ R0.simEpidataCS <- function (object, trimmed = TRUE, ...)
 
 as.twinstim.simEpidataCS <- function (x)
 {
-    capture.output(
-    m <- do.call("twinstim",
-                 c(formula(x),
-                   alist(data=x),
-                   list(control.siaf = x$control.siaf,
-                        optim.args=list(par=coef(x), fixed=seq_along(coef(x))),
-                        model=TRUE, cumCIF=FALSE)
-                   ))
-    )
+    m <- do.call("twinstim", c(
+        formula(x),
+        list(data = quote(x), control.siaf = x$control.siaf,
+             optim.args = list(par=coef(x), fixed=TRUE),
+             model = TRUE, cumCIF = FALSE, verbose = FALSE)
+        ))
     components2copy <- setdiff(names(m), names(x))
     for (comp in components2copy) x[[comp]] <- m[[comp]]
     environment(x) <- environment(m)
@@ -993,17 +1008,25 @@ intensityplot.simEpidataCS <- function (x, ...)
 {
     if (is.null(environment(x))) {
         objname <- deparse(substitute(x))
-        cat("Setting up model environment ...\n")
+        message("Setting up the model environment ...")
         x <- as.twinstim.simEpidataCS(x)
         try({
             assign(objname, x, envir=parent.frame())
-            cat("Note: added model environment to '", objname,
-                "' for future use.\n", sep="")
+            message("Note: added model environment to '", objname,
+                    "' for future use.")
         }, silent=TRUE)
     }
     intensityplot.twinstim(x, ...)
 }
 
+
+### the residual process Lambda_g(t) is stored with the simulated events
+
+residuals.simEpidataCS <- function (object, ...)
+{
+    setNames(object$events$Lambdag,
+             row.names(object$events))[!is.na(object$events$Lambdag)]
+}
 
 
 
@@ -1017,7 +1040,7 @@ intensityplot.simEpidataCS <- function (x, ...)
 simulate.twinstim <- function (object, nsim = 1, seed = NULL, data, tiles,
     rmarks = NULL, t0 = NULL, T = NULL, nEvents = 1e5,
     control.siaf = object$control.siaf,
-    W = NULL, trace = FALSE, nCircle2Poly = NULL, gmax = NULL,
+    W = data$W, trace = FALSE, nCircle2Poly = NULL, gmax = NULL,
     .allocate = 500, simplify = TRUE, ...)
 {
     ptm <- proc.time()[[3]]
@@ -1059,6 +1082,11 @@ simulate.twinstim <- function (object, nsim = 1, seed = NULL, data, tiles,
     if (is.null(rmarks)) {
         observedMarks <- subset(marks.epidataCS(data, coords=FALSE),
                                 subset = time > t0 & time <= T)
+        if (nrow(observedMarks) == 0) {
+            message("Note: 'data' does not contain events in the simulation window ('t0';'T'],\n",
+                    "      'rmarks' thus samples marks from all of 'data$events'")
+            observedMarks <- marks.epidataCS(data, coords=FALSE)
+        }
         observedMarks <- observedMarks[match("eps.t", names(observedMarks)):ncol(observedMarks)]
         rmarks <- function (t, s) {
             as.data.frame(lapply(observedMarks, function (x)

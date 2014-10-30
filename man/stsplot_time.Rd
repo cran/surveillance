@@ -22,7 +22,7 @@
 }
 
 \usage{
-stsplot_time(x, method=x@control$name, disease=x@control$data,
+stsplot_time(x, units, method=x@control$name, disease=x@control$data,
              as.one=FALSE, same.scale=TRUE, par.list=list(), ...)
 
 stsplot_time1(x, k=1, ylim=NULL,
@@ -34,7 +34,8 @@ stsplot_time1(x, k=1, ylim=NULL,
               outbreak.symbol=list(pch=3, col=3, cex=1, lwd=1),
               alarm.symbol=list(pch=24, col=2, cex=1, lwd=1),
               legend.opts=list(x="top",legend=NULL,lty=NULL,pch=NULL,col=NULL),
-              dx.upperbound=0L, hookFunc=function(){}, ...)
+              dx.upperbound=0L, hookFunc=function(){},
+              .hookFuncInheritance=function() {}, ...)
 
 stsplot_alarm(x, lvl=rep(1,nrow(x)), ylim=NULL,
               xaxis.tickFreq=list("\%Q"=atChange),
@@ -48,8 +49,12 @@ stsplot_alarm(x, lvl=rep(1,nrow(x)), ylim=NULL,
 
 \arguments{
   \item{x}{an object of class \code{"\linkS4class{sts}"}.}
-  \item{method}{surveillance method to be used in the main title.}
-  \item{disease}{name of the disease to be used for annotation.
+  \item{units}{optional integer vector to select the units (=columns of
+    \code{observed(x)}) to plot. \code{stsplot_time1} is called for
+    \code{k in units}. The default is to plot all time series.}
+  \item{method}{name of the surveillance method to be used in the main
+    title. Currently ignored.}
+  \item{disease}{name of the disease to be used in the main title.
     Currently ignored.}
   \item{as.one}{logical indicating if all time series should be plotted
     within the same frame. This is currently not implemented
@@ -119,6 +124,8 @@ stsplot_alarm(x, lvl=rep(1,nrow(x)), ylim=NULL,
   \item{hookFunc}{a function that is called after all the basic plotting
     has be done, i.e., it is not possible to control formatting with
     this function. See Examples.}
+  \item{.hookFuncInheritance}{a function which is altered by sub-classes
+    plot method. Do not alter this function manually.}
   \item{...}{further arguments for the function \code{matplot}. If
     e.g. \code{xlab} or \code{main} are provided they overwrite the
     default values.} 

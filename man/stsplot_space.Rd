@@ -53,14 +53,8 @@ stsplot_space(x, tps = NULL, map = x@map, population = NULL,
     the main title.
   }
   \item{labels}{
-    determines if and how regions are labeled. A \code{FALSE} (default)
-    or \code{NULL} value omits region labels. \code{labels=TRUE} uses
-    \code{row.names(map)}. Alternatively, \code{labels} can also be a
-    character or numeric index for a column of \code{map@data} which
-    contains suitable labels, or a vector of length \code{length(map)}
-    with labels. Furthermore, \code{labels} can also be a list of
-    arguments for \code{\link[lattice]{panel.text}}, where the
-    optional \code{labels} component follows the same rules as above.
+    determines if and how regions are labeled, see
+    \code{\link{layout.labels}}.
   }
   \item{at}{
     either a number of levels (default: 10) for the categorization

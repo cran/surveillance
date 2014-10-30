@@ -140,8 +140,7 @@ legend("right", legend="endemic proportion \n(= 1 - epidemic proportion)",
        lty=1, col=2, bty="n")
 
 # individual intensities
-tmp <- plot(foofit, which="total", aggregate=FALSE,
-    col=rgb(0,0,0,alpha=if(getRversion() < "2.7.0") 1 else 0.1),
+tmp <- plot(foofit, which="total", aggregate=FALSE, col=rgb(0,0,0,alpha=0.1),
     main=expression("Individual infection intensities " *
                     lambda[i](t) == Y[i](t) \%.\% (e[i](t) + h[i](t))))
 # return value: matrix of individual intensity paths

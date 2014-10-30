@@ -1,4 +1,4 @@
-\name{twinSIR_epidata_intersperse}
+\name{epidata_intersperse}
 \alias{intersperse}
 
 \title{

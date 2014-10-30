@@ -5,9 +5,9 @@
 ###
 ### Compute one-step-ahead predictions (means) at a series of time points
 ###
-### Copyright (C) 2011-2014 Michaela Paul and Sebastian Meyer
-### $Revision: 802 $
-### $Date: 2014-02-26 21:01:45 +0100 (Wed, 26 Feb 2014) $
+### Copyright (C) 2011-2012 Michaela Paul, 2012-2014 Sebastian Meyer
+### $Revision: 1059 $
+### $Date: 2014-10-10 15:19:15 +0200 (Fri, 10 Oct 2014) $
 ################################################################################
 
 
@@ -26,7 +26,8 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
     type <- match.arg(type)
     which.start <- if (type == "rolling") match.arg(which.start) else "final"
     if (cores > 1 && which.start == "current")
-        stop("no parallelization for \"rolling\" if 'which.start=\"current\"'")
+        stop("no parallelization for 'type=\"rolling\"' ",
+             "if 'which.start=\"current\"'")
     startfinal <- hhh4coef2start(result)
 
     ## get model terms
@@ -52,7 +53,7 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
     verbose <- as.integer(verbose)
     result$control$verbose <- max(0, verbose - (ntps>1))
     if (type != "rolling" && verbose > 1L) verbose <- 1L
-    do_pb <- verbose == 1L
+    do_pb <- verbose == 1L && interactive()
     
     ## initial fit
     fit <- if (type == "first") {

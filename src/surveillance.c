@@ -874,14 +874,17 @@ static R_INLINE double mu1(int i, double theta, double *mu0, double *xm1) {
   return( mu0[i] + exp(theta) * xm1[i]);
 }
 /* first derivative */
+/*
 static R_INLINE double d1mu1(int i, double theta, double *mu0, double *xm1) {
   return( exp(theta) * xm1[i]);
 }
+*/
 /* second derivative */
+/*
 static R_INLINE double d2mu1(int i, double theta, double *mu0, double *xm1) {
   return( exp(theta) * xm1[i]);
 }
-
+*/
 /************************************/
 
 /********** Intercept Chart (only upwards) ***********/
@@ -919,6 +922,7 @@ static R_INLINE double d2mu1(int i, double theta, double *mu0, double *xm1) {
 
 
 /* Score function for the general negative binomial chart*/
+/* 
 static R_INLINE double nbGeneralScore(double theta, int *x, double *xm1, double *mu0, double alpha, int k, int n) {
   register int i;
   double sum = 0;
@@ -930,8 +934,10 @@ static R_INLINE double nbGeneralScore(double theta, int *x, double *xm1, double 
   }
   return(sum);
 }
+*/
 
 /*fisher information for the general chart -- its minus the hesse */
+/*
 static R_INLINE double nbGeneralFisher(double theta,int *x, double *xm1, double *mu0, double alpha, int k,int n) {
   register int i;
   double sum = 0;
@@ -946,6 +952,7 @@ static R_INLINE double nbGeneralFisher(double theta,int *x, double *xm1, double 
   }
   return( sum );
 }
+*/
 
 /* Formula to compute a single l_{n,k} for the general chart */
 static R_INLINE double nbGeneralLnk(double theta,int *x, double *xm1,  double *mu0, double alpha, int k,int n) {

@@ -2,7 +2,7 @@
 \name{hhh4}
 \alias{hhh4}
 
-\title{Random effects HHH model fit as described in Paul and Held (2011)} 
+\title{Fitting HHH Models with Random Effects and Neighbourhood Structure}
 
 \description{
   Fits a Poisson or negative binomial model with conditional mean
@@ -13,21 +13,23 @@
                  \phi_it sum_(j != i) w_ji y_j,t-1 +
                    e_it \nu_it  }
   containing epidemic and endemic components to a multivariate time series
-  of counts. In the case of a negative binomial model, the conditional 
+  of counts \eqn{Y_{it}}{Y_it} (unit \eqn{i}, period \eqn{t}).
+  In the case of a negative binomial model, the conditional 
   variance is \eqn{\mu_{it}(1+\psi\mu_{it})}{\mu_it(1+\psi*\mu_it)} 
   with overdispersion parameter \eqn{\psi}. 
-  The three unknown quantities of the mean \eqn{\mu_{it}}{\mu_it}
+  The three unknown quantities of the mean \eqn{\mu_{it}}{\mu_it},
   \itemize{
   \item \eqn{\lambda_{it}}{\lambda_it} in the autoregressive (\code{ar}) component, 
   \item \eqn{\phi_{it}}{\phi_it} in the neighbor-driven (\code{ne}) component, and
   \item \eqn{\nu_{it}}{\nu_it} in the endemic (\code{end}) component,
   }
-  are decomposed additively on the log scale,
-  \eqn{w_{ji}}{w_ji} are known weights, 
-  and \eqn{e_{it}}{e_it} is a (multiplicative) offset.
-  The linear predictors may contain random effects.
-  It is also possible to include multiplicative offsets in the
-  autoregressive and neighbor-driven components.
+  are log-linear predictors incorporating time-/unit-specific
+  covariates. They may contain unit-specific random intercepts
+  (\code{\link{ri}}) as proposed by Paul and Held (2011).
+  The \eqn{e_{it}}{e_it} is a (multiplicative) endemic offset; it is
+  also possible to include such offsets in the epidemic components.
+  The \eqn{w_{ji}}{w_ji} are neighbourhood weights, which can either be
+  prespecified or estimated parametrically as proposed by Meyer and Held (2014).
 }
 
 \usage{
@@ -42,7 +44,7 @@ hhh4(stsObj,
                ne = list(f = ~ -1,
                          offset = 1,
                          lag = 1,
-                         weights = neighbourhood(stsObj),
+                         weights = neighbourhood(stsObj) == 1,
                          initial = NULL
                          ),
                end = list(f = ~ 1,
@@ -66,8 +68,7 @@ hhh4(stsObj,
 \arguments{
   \item{stsObj}{object of class \code{"\linkS4class{sts}"} containing the multivariate
     count data time series}
-  \item{control}{control object, which is a list containing several
-    components:
+  \item{control}{a list containing the model specification and control arguments:
     \describe{
       \item{\code{ar}}{ Model for the autoregressive component given as
           list with the following components: 
@@ -92,9 +93,14 @@ hhh4(stsObj,
 	    a matrix of the same dimension as \code{observed(stsObj)}}
 	  \item{lag = 1}{a non-negative integer meaning dependency on
 	    \eqn{y_{j,t-lag}}}
-	  \item{weights = neighbourhood(stsObj)}{
-	    neighbourhood weights \eqn{w_{ji}}{w_ji}. By default, 
-	    the neighbourhood slot of \code{stsObj} is used.
+	  \item{weights = neighbourhood(stsObj) == 1}{
+	    neighbourhood weights \eqn{w_{ji}}{w_ji}. The default
+	    corresponds to the original formulation by Held et al
+	    (2005), i.e., the spatio-temporal component incorporates an
+	    unweighted sum over the lagged cases of the first-order
+	    neighbours. See Paul et al (2008) and Meyer and Held (2014)
+	    for alternative specifications, e.g.,
+	    \code{\link{W_powerlaw}}.
 	    Time-varying weights are possible by specifying an
 	    array of \code{dim()} \code{c(nUnits, nUnits, nTime)}, where
 	    \code{nUnits=ncol(stsObj)} and \code{nTime=nrow(stsObj)}.}
@@ -154,10 +160,14 @@ hhh4(stsObj,
 	In general, covariates in this list can be either vectors of
 	length \code{nrow(stsObj)} interpreted as time-varying but
 	common across all units, or matrices of the same dimension as
-	the disease counts \code{observed(stsObj)}.
-      }
-      \item{\code{keep.terms}}{ Logical if the terms object used in the fit
-	is to be returned }
+	the disease counts \code{observed(stsObj)}.}
+      \item{\code{keep.terms}}{logical indicating if the terms object
+	used in the fit is to be kept as part of the returned object.
+	This is usually not necessary, since the terms object is
+	reconstructed by the \code{\link{terms}}-method for class
+	\code{"hhh4"} if necessary (based on \code{stsObj} and
+	\code{control}, which are both part of the returned
+	\code{"hhh4"} object).}
     }
   }
   \item{check.analyticals}{logical (or a subset of
@@ -170,7 +180,9 @@ hhh4(stsObj,
     This is mainly intended for internal use by the package developers.}
 }
 
-\value{Returns an object of class \code{"hhh4"} with elements
+\value{
+  \code{hhh4} returns an object of class \code{"hhh4"},
+  which is a list containing the following components:
   \item{coefficients}{named vector with estimated (regression) parameters of the model}
   \item{se}{estimated standard errors (for regression parameters)}
   \item{cov}{covariance matrix (for regression parameters)}
@@ -186,7 +198,7 @@ hhh4(stsObj,
   \item{convergence}{logical. Did optimizer converge?}
   \item{fitted.values}{fitted mean values \eqn{\mu_{i,t}}{\mu_it}}
   \item{control}{control object of the fit}
-  \item{terms}{ the terms object used in the fit if \code{keep.terms = TRUE}
+  \item{terms}{the terms object used in the fit if \code{keep.terms = TRUE}
     and \code{NULL} otherwise}
   \item{stsObj}{ the supplied \code{stsObj} }
   \item{lags}{named integer vector of length two containing the lags
@@ -401,9 +413,8 @@ res_D <- hhh4(fluBYBW,cntrl_D)
     
   Meyer, S. and Held, L. (2014):
     Power-law models for infectious disease spread.
-    \emph{Annals of Applied Statistics}. In press.
-    \emph{arXiv:1308.5115}\cr
-    arXiv-Link: \url{http://arxiv.org/abs/1308.5115}
+    \emph{The Annals of Applied Statistics}, \bold{8} (3), 1612-1639.\cr
+    DOI-Link: \url{http://dx.doi.org/10.1214/14-AOAS743}
 }
 
 \keyword{ts}

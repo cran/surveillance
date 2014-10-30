@@ -7,8 +7,8 @@
 ### various classes (currently: owin, gpc.poly, or SpatialPolygons)
 ###
 ### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 696 $
-### $Date: 2014-01-13 21:04:50 +0100 (Mon, 13 Jan 2014) $
+### $Revision: 1096 $
+### $Date: 2014-10-30 11:59:12 +0100 (Thu, 30 Oct 2014) $
 ################################################################################
 
 
@@ -16,7 +16,7 @@ intersectPolyCircle.gpc.poly <- function (object, center, radius,
                                           npoly = 32, useGEOS = FALSE, ...)
 {
     if (useGEOS) {
-        library("rgeos")  # coerce gpc.poly to SpatialPolygons
+        loadNamespace("rgeos")  # coerce gpc.poly to SpatialPolygons
         res <- intersectPolyCircle.SpatialPolygons(as(object, "SpatialPolygons"),
                                                center, radius, npoly)
         as(res, "gpc.poly")  # also defined in rgeos

@@ -6,8 +6,8 @@
 ### Spatial and temporal tie-breaking of events
 ###
 ### Copyright (C) 2012-2014 Sebastian Meyer
-### $Revision: 851 $
-### $Date: 2014-03-21 17:01:29 +0100 (Fri, 21 Mar 2014) $
+### $Revision: 1005 $
+### $Date: 2014-09-10 23:55:11 +0200 (Wed, 10 Sep 2014) $
 ################################################################################
 
 
@@ -16,7 +16,8 @@
 untie.epidataCS <- function (x,
                              amount = list(t=NULL, s=NULL),
                              minsep = list(t=0, s=0),
-                             direction = "left", keep.sources = FALSE, ...)
+                             direction = "left", keep.sources = FALSE,
+                             ..., verbose = FALSE)
 {
     stopifnot(is.list(amount), !is.null(names(amount)),
               is.list(minsep), !is.null(names(minsep)))
@@ -48,8 +49,12 @@ untie.epidataCS <- function (x,
                                         # string e.g. add +towgs84=0,0,0,0,0,0,0
     events@proj4string <- x$W@proj4string
     npoly <- attr(x$events$.influenceRegion, "nCircle2Poly")
-    res <- as.epidataCS(events, x$stgrid[,-1], x$W, x$qmatrix,
-                        nCircle2Poly=npoly)
+    clipper <- attr(x$events$.influenceRegion, "clipper")
+    if (is.null(clipper))  # epidataCS < 1.8-1
+        clipper <- "polyclip"
+    res <- as.epidataCS(events=events, stgrid=x$stgrid[,-1L], W=x$W,
+                        qmatrix=x$qmatrix, nCircle2Poly=npoly,
+                        clipper=clipper, verbose=verbose)
     if (keep.sources) {
         res$events$.sources <- x$events$.sources
     }

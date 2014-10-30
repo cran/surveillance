@@ -1,54 +1,153 @@
 ################################################################################
-# Author: Sebastian Meyer
-# Date: 19 Jun 2009
-#
-# This file contains methods related to the class "epidata" (a history
-# data.frame of the observed epidemic): A converter function as.epidata and 
-# standard methods like print, summary and plot.
-# There are also more sophisticated functions 'animate' and 'stateplot'.
-# NB: The summary and plot functions stem from my Bachelor Thesis.
+### Part of the surveillance package, http://surveillance.r-forge.r-project.org
+### Free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at http://www.r-project.org/Licenses/.
+###
+### Data structure "epidata" representing the SIR event history of a fixed
+### geo-referenced population (e.g., farms, households) for twinSIR() analysis
+###
+### Copyright (C) 2008-2010, 2012, 2014 Sebastian Meyer
+### $Revision: 1079 $
+### $Date: 2014-10-18 01:26:00 +0200 (Sat, 18 Oct 2014) $
 ################################################################################
+
+## CAVE:
+## - we assume fixed coordinates (this is important since time-varying
+##   coordinates would result in more sophisticated and time consuming
+##   calculations of distance matrices) !
+## - in the first block (start = t0) all id's must be present (for coordinates)
+## - those id's with atRiskY(t0) = 0 are taken as initially infectious
+## - SIS epidemics are possible, but must be given as SIRS with pseudo R-events,
+##   i.e. individuals will be removed and become susceptible directly afterwards
 
 
 ################################################################################
-# CONVERTER FUNCTION
-# the main purpose is to prepare the data of an epidemic for the inference
-# function 'twinSIR', i.e. perform consistency checks, transform data to common
-# format and calculate epidemic covariates with distance function f.
-# - we assume fixed coordinates (this is important as time-varying coordinates
-# would result in more sophisticated and time consuming calculations of
-# distance matrices) !
-# - in the first block (start = t0) all id's must be present (for coordinates)
-# - those id's with atRiskY(t0) = 0 are taken as initially infectious
-# - SIS epidemics are possible, but must be given as SIRS with pseudo R-events,
-# i.e. individuals will be removed and become susceptible directly afterwards
+## Convert a simple data.frame with one row per individual and with columns for
+## the times of becoming exposed/infectious/removed
+## to the long "epidata" event history start/stop format.
+## tE.col and tR.col can be missing corresponding to SIR, SEI, or SI data.
+## NA's in time variables mean that the respective event has not yet occurred.
+## Time-varying covariates are not supported by this converter.
 ################################################################################
 
-# default method (original data in a data.frame)
+as.epidata.data.frame <- function (data, t0, tE.col, tI.col, tR.col,
+                                   id.col, coords.cols, f = list(), w = list(),
+                                   keep.cols = TRUE, ...)
+{
+    if (missing(t0)) {
+        return(NextMethod("as.epidata"))  # as.epidata.default
+    }
+
+    ## drop individuals that have already been removed prior to t0
+    ## since they would otherwise be considered as initially infective
+    ## (atRiskY = 0 in first time block) and never be removed
+    if (!missing(tR.col)) {
+        alreadyRemoved <- !is.na(data[[tR.col]]) & data[[tR.col]] <= t0
+        if (any(alreadyRemoved)) {
+            data <- data[!alreadyRemoved,]
+            message("Note: dropped rows with tR <= t0 (",
+                    paste0(which(alreadyRemoved), collapse = ", "), ")")
+        }
+    }
+
+    ## parse id column
+    id <- factor(data[[id.col]]) # removes unused levels
+    stopifnot(!anyDuplicated(id), !is.na(id))
+    N <- nlevels(id) # = nrow(data)
+
+    ## make time relative to t0
+    subtract_t0 <- function (x) as.numeric(x - t0)
+    tI <- subtract_t0(data[[tI.col]])
+    tE <- if (missing(tE.col)) tI else subtract_t0(data[[tE.col]])
+    tR <- if (missing(tR.col)) rep.int(NA_real_, N) else subtract_t0(data[[tR.col]])
+
+    ## check E-I-R order
+    if (any((is.na(tE) & !(is.na(tI) & is.na(tR))) | (is.na(tI) & !is.na(tR)))) {
+        stop("events cannot be skipped (NA in E/I => NA in I/R)")
+    }
+    if (any(.wrongsequence <- (tE > tI | tI >= tR) %in% TRUE)) {  # TRUE | NA = TRUE
+        stop("E-I-R events are in wrong order for the following id's: ",
+             paste0(id[.wrongsequence], collapse = ", "))
+    }
+
+    ## vector of stop times
+    stopTimes <- c(tE, tI, tR)
+    stopTimes <- stopTimes[!is.na(stopTimes) & stopTimes > 0]
+    stopTimes <- sort.int(unique.default(stopTimes), decreasing = FALSE)
+    nBlocks <- length(stopTimes)
+    if (nBlocks == 0L) {
+        stop("nothing happens after 't0'")
+    }
+    
+    ## initialize event history
+    evHist <- data.frame(
+        id = rep.int(id, nBlocks),
+        start = rep.int(c(0,stopTimes[-nBlocks]), rep.int(N, nBlocks)),
+        stop = rep.int(stopTimes, rep.int(N, nBlocks)),
+        atRiskY = NA, event = 0, Revent = 0, # adjusted in the loop below
+        row.names = NULL, check.rows = FALSE, check.names = FALSE)
+    
+    ## indexes of the last rows of the time blocks
+    blockbase <- c(0, seq_len(nBlocks) * N)
+
+    ## which individuals are at risk in the first (next) block
+    Y <- is.na(tE) | tE > 0
+    
+    ## Loop over the blocks/stop times to adjust atRiskY, event and Revent
+    for (i in seq_len(nBlocks)) {
+        ct <- stopTimes[i]
+
+        ## set individual at-risk indicators for the current time block
+        evHist$atRiskY[blockbase[i] + seq_len(N)] <- Y
+        ## individuals who become exposed at the current stop time
+        ## will no longer be at risk in the next block
+        Y[which(tE == ct)] <- FALSE
+        
+        ## process events at this stop time
+        evHist$event[blockbase[i] + which(tI == ct)] <- 1
+        evHist$Revent[blockbase[i] + which(tR == ct)] <- 1
+    }
+
+    ## add additional time-constant covariates
+    extraVarNames <- coords.cols  # may be NULL
+    if (isTRUE(keep.cols)) {
+        extraVarNames <- c(extraVarNames, setdiff(names(data), id.col))
+    } else if (length(keep.cols) > 0L && !identical(FALSE, keep.cols)) {
+        extraVarNames <- c(extraVarNames, names(data[keep.cols]))
+    }
+    extraVarNames <- unique.default(extraVarNames)
+    if (length(extraVarNames) > 0L) {
+        evHist <- data.frame(
+            evHist,
+            data[rep.int(seq_len(N), nBlocks), extraVarNames, drop=FALSE],
+            row.names = NULL, check.names = TRUE, stringsAsFactors = TRUE)
+    }
+
+    ## Now we can pass the generated event history to the default method
+    ## for the usual consistency checks and the pre-calculation of f covariates
+    as.epidata.default(
+        data = evHist,
+        id.col = "id", start.col = "start", stop.col = "stop",
+        atRiskY.col = "atRiskY", event.col = "event", Revent.col = "Revent",
+        coords.cols = coords.cols, f = f, w = w)
+}
+
+
+################################################################################
+# DEFAULT CONVERTER, which requires a start/stop event history data.frame
+# It performs consistency checks, and pre-calculates the distance-based
+# epidemic covariates from f.
+################################################################################
+
 as.epidata.default <- function(data, id.col, start.col, stop.col, atRiskY.col,
-    event.col, Revent.col, coords.cols, f = list(), ...)
+    event.col, Revent.col, coords.cols, f = list(), w = list(), ...)
 {
     cl <- match.call()
     
     # If necessary, convert 'data' into a data.frame (also converting
     # column names to syntactically correct names for use in formulae)
     data <- as.data.frame(data, stringsAsFactors = FALSE)
-    
-    # Check f
-    if (length(f) > 0L) {
-        if (is.null(coords.cols)) {
-            stop("need coordinates to calculate epidemic covariates")
-        }
-        if (!is.list(f) || is.null(names(f)) || any(!sapply(f, is.function))) {
-            stop("'f' must be a named list of functions or 'list()'")
-        }
-        if (any(fInfNot0 <- sapply(f, function(B) B(Inf)) != 0)) {
-            stop("all functions in 'f' must return 0 at infinite distance: ",
-                 "f[[i]](Inf) == 0 fails for i = ",
-                 paste(which(fInfNot0), collapse=", "))
-        }
-    }
-    
+        
     # Use column numbers as indices and check them
     colargs <- c("id.col", "start.col", "stop.col", "atRiskY.col",
                  "event.col", "Revent.col", "coords.cols")
@@ -156,36 +255,112 @@ as.epidata.default <- function(data, id.col, start.col, stop.col, atRiskY.col,
     {
         .checkFunction(eventTable[k,"BLOCK"], eventTable[k,"id"])
     }
-    
-    # Compute epidemic variables x
-    if ((nf <- length(f)) > 0L)
-    {
-        # check names(f) and initialize x-columns
-        if (any(names(f) %in% names(data))) {
-            warning("some 'names(f)' already existed in 'names(data)' ",
-                    "and have been replaced")
+
+    # Set attributes
+    attr(data, "eventTimes") <- sort(eventTimes)
+    attr(data, "timeRange") <- c(histIntervals[1L,1L],histIntervals[nBlocks,2L])
+    attr(data, "coords.cols") <- coords.cols
+    # <- must include this info because externally of this function
+    #    we don't know how many coords.cols (dimensions) we have
+    class(data) <- c("epidata", "data.frame")
+
+    # Compute epidemic variables
+    update.epidata(data, f = f, w = w)
+}
+
+
+update.epidata <- function (object, f = list(), w = list(), ...)
+{
+    oldclass <- class(object)
+    class(object) <- "data.frame" # avoid use of [.epidata
+
+    ## block indexes and first block
+    beginBlock <- which(!duplicated(object[["BLOCK"]],
+                                    nmax = object[["BLOCK"]][nrow(object)]))
+    endBlock <- c(beginBlock[-1L]-1L, nrow(object))
+    firstDataBlock <- object[seq_len(endBlock[1L]), ]
+
+    ## check f and calculate distance matrix
+    if (length(f) > 0L) {
+        if (is.null(coords.cols <- attr(object, "coords.cols"))) {
+            stop("need coordinates for distance-dependent force of infection")
         }
-        data[names(f)] <- 0
+        if (!is.list(f) || is.null(names(f)) || any(!sapply(f, is.function))) {
+            stop("'f' must be a named list of functions")
+        }
+        lapply(X = f, FUN = function (B) {
+            if (!isTRUE(all.equal(c(5L,2L), dim(B(matrix(0, 5, 2))))))
+                stop("'f'unctions must retain the dimensions of their input")
+        })
+        if (any(names(f) %in% names(object))) {
+            warning("'f' components replace existing columns of the same name")
+        }
+
+        ## reset / initialize columns for distance-based epidemic weights
+        object[names(f)] <- 0
+        ## keep functions as attribute
+        attr(object, "f")[names(f)] <- f
         
-        # Compute distance matrix
-        firstDataBlock <- data[beginBlock[1L]:endBlock[1L],]
-        coords <- firstDataBlock[coords.cols]
-        rownames(coords) <- firstDataBlock[["id"]]
+        ## compute distance matrix
+        coords <- as.matrix(firstDataBlock[coords.cols], rownames.force = FALSE)
+        rownames(coords) <- as.character(firstDataBlock[["id"]])
         distmat <- as.matrix(dist(coords, method = "euclidean"))
-        diag(distmat) <- Inf   # no influence on yourself
+    } else {
+        attr(object, "f") <- list()
+    }
+
+    ## check covariate-based epidemic weights
+    if (length(w) > 0L) {
+        if (!is.list(w) || is.null(names(w)) || any(!sapply(w, is.function))) {
+            stop("'w' must be a named list of functions")
+        }
+        if (any(names(w) %in% names(object))) {
+            warning("'w' components replace existing columns of the same name")
+        }
         
-        # Compute sum of distances over infectious individuals
+        ## reset / initialize columns for covariate-based epidemic weights
+        object[names(w)] <- 0
+        ## keep functions as attribute
+        attr(object, "w")[names(w)] <- w
+
+        ## compute wij matrix for each of w
+        wijlist <- compute_wijlist(w = w, data = firstDataBlock)
+    } else {
+        attr(object, "w") <- list()
+    }
+
+    ## Compute sum of epidemic covariates over infectious individuals
+    if (length(f) + length(w) > 0L) {
         infectiousIDs <- firstDataBlock[firstDataBlock[["atRiskY"]] == 0, "id"]
+        ##<- this is a factor variable
         for(i in seq_along(beginBlock)) {
             blockidx <- beginBlock[i]:endBlock[i]
-            blockdata <- data[blockidx,]
+            blockdata <- object[blockidx,]
             blockIDs <- blockdata[["id"]]
             if (length(infectiousIDs) > 0L) {
-                u <- distmat[as.character(blockIDs),as.character(infectiousIDs),
-                             drop = FALSE]
-                # numerical indices would be better, but be careful with factors
-                data[blockidx,names(f)] <- sapply(f, function(B) rowSums(B(u)))
+                if (length(f) > 0L) {
+                    u <- distmat[as.character(blockIDs),
+                                 as.character(infectiousIDs),
+                                 drop = FALSE] # index by factor levels
+                    object[blockidx,names(f)] <- vapply(
+                        X = f, FUN = function (B) rowSums(B(u)),
+                        FUN.VALUE = numeric(length(blockIDs)),
+                        USE.NAMES = FALSE)
+                }
+                if (length(w) > 0L) {
+                    object[blockidx,names(w)] <- vapply(
+                        X = wijlist, FUN = function (wij) {
+                            ## actually don't have to care about the diagonal:
+                            ## i at risk => sum does not include it
+                            ## i infectious => atRiskY = 0 (ignored in twinSIR)
+                            rowSums(wij[as.character(blockIDs),
+                                        as.character(infectiousIDs),
+                                        drop = FALSE]) # index by factor levels
+                        }, FUN.VALUE = numeric(length(blockIDs)),
+                        USE.NAMES = FALSE)
+                }
             }
+            ## update the set of infectious individuals for the next block
             recoveredID <- blockIDs[blockdata[["Revent"]] == 1]
             infectedID <- blockIDs[blockdata[["event"]] == 1]
             if (length(recoveredID) > 0L) {
@@ -195,15 +370,38 @@ as.epidata.default <- function(data, id.col, start.col, stop.col, atRiskY.col,
             }
         }
     }
+    
+    ## restore "epidata" class
+    class(object) <- oldclass
+    return(object)
+}
 
-    attr(data, "eventTimes") <- sort(eventTimes)
-    attr(data, "timeRange") <- c(histIntervals[1L,1L],histIntervals[nBlocks,2L])
-    attr(data, "coords.cols") <- coords.cols
-    # must include this info because externally of this function
-    # we don't know how many coords.cols (dimensions) we have
-    attr(data, "f") <- f
-    class(data) <- c("epidata", "data.frame")
-    return(data)
+compute_wijlist <- function (w, data)
+{
+    ## for each function in 'w', determine the variable on which it acts;
+    ## this is derived from the name of the first formal argument, which
+    ## must be of the form "varname.i"
+    wvars <- vapply(X = w, FUN = function (wFUN) {
+        varname.i <- names(formals(wFUN))[[1L]]
+        substr(varname.i, 1, nchar(varname.i)-2L)
+    }, FUN.VALUE = "", USE.NAMES = TRUE)
+    
+    if (any(wvarNotFound <- !wvars %in% names(data))) {
+        stop("'w' function refers to unknown variables: ",
+             paste0(names(w)[wvarNotFound], collapse=", "))
+    }
+   
+    ## compute weight matrices w_ij for each of w
+    mapply(
+        FUN = function (wFUN, wVAR, ids) {
+            wij <- outer(X = wVAR, Y = wVAR, FUN = wFUN)
+            dimnames(wij) <- list(ids, ids)
+            wij
+        },
+        wFUN = w, wVAR = data[wvars],
+        MoreArgs = list(ids = as.character(data[["id"]])),
+        SIMPLIFY = FALSE, USE.NAMES = TRUE
+    )
 }
 
 
@@ -570,320 +768,4 @@ print.summary.epidata <- function(x, ...)
     print(counters2print, quote = FALSE, right = TRUE, na.print = "")
     cat("\n")
     invisible(x)
-}
-
-
-################################################################################
-# PLOT METHOD FOR "summary.epidata" OR "epidata" OBJECTS
-# shows the evolution of the numbers of susceptible, infectious and recovered
-# individuals.
-################################################################################
-
-plot.summary.epidata <- function (x,
-    lty = c(2,1,3), lwd = 2, col = 1, col.hor = col, col.vert = col,
-    xlab = "Time", ylab = "Number of individuals", xlim = NULL, ylim = NULL,
-    legend.opts = list(), do.axis4 = NULL, panel.first = grid(),
-    rug.opts = list(), which.rug = c("infections", "removals",
-    "susceptibility", "all"), ...)
-{
-    counters <- x[["counters"]]
-    type <- x[["type"]]
-
-    n <- counters[1L,"nSusceptible"]
-    m <- counters[1L,"nInfectious"]
-    N <- n + m
-    times <- counters[-1L,"time"]
-    if (missing(lty)) {
-        lty <- c(2, 1, 3 * (type %in% c("SIR","SIRS")))
-    }
-    recycle3 <- function (xnam)
-        assign(xnam, rep(get(xnam), length.out = 3), inherits = TRUE)
-    for(varname in c("lty", "lwd", "col", "col.hor", "col.vert"))
-        recycle3(varname)
-    if (is.null(xlim)) {
-        xlim <- attr(x, "timeRange")
-        if (xlim[2] == Inf) xlim[2] <- times[length(times)]
-    }
-    if (is.null(ylim))
-        ylim <- c(0, max(
-            (lty[1] > 0) * {if (type %in% c("SIRS", "SIS")) N else n},
-            (lty[2] > 0) * max(counters$nInfectious),
-            (lty[3] > 0) * max(counters$nRemoved)
-            ))
-
-    # basic plotting frame
-    plot(xlim, ylim, type = "n", xlab = xlab, ylab = ylab,
-         panel.first = panel.first, ...)
-    abline(h = c(0, N), col = "grey")
-
-    # for real xlim in lines.stepfun (see 'dr' adjustment in plot.stepfun code)
-    fakexlim <- c(1,2) * (xlim[2] + 2*xlim[1])/3 - c(0,xlim[1])
-    # this isn't nice, a user argument 'dr' in plot.stepfun would be appreciated
-    
-    # add #Susceptibles
-    if (all(counters$nSusceptible == n)) {
-        lines(x = xlim, y = c(n,n),
-              lty = lty[1], lwd = lwd[1], col = col.hor[1], ...)
-    } else {
-        lines(stepfun(times, counters$nSusceptible), xlim = fakexlim,
-              lty = lty[1], lwd = lwd[1], col.hor = col.hor[1],
-              col.vert = col.vert[1], do.points = FALSE, ...)
-    }
-
-    # add #Infected
-    if (all(counters$nInfectious == m)) {
-        lines(x = xlim, y = c(m,m),
-              lty = lty[2], lwd = lwd[2], col = col.hor[2], ...)
-    } else {
-        lines(stepfun(times, counters$nInfectious),
-              xlim = fakexlim, lty = lty[2], lwd = lwd[2], col.hor = col.hor[2],
-              col.vert = col.vert[2], do.points = FALSE, ...)
-    }
-
-    # add #Removed
-    if (all(counters$nRemoved == 0)) {
-        lines(x = xlim, y = c(0,0),
-              lty = lty[3], lwd = lwd[3], col = col.hor[3], ...)
-    } else {
-        lines(stepfun(times, counters$nRemoved),
-              xlim = fakexlim, lty = lty[3], lwd = lwd[3], col.hor = col.hor[3],
-              col.vert = col.vert[3], do.points = FALSE, ...)
-    }
-
-    # add special annotations
-    if (is.null(do.axis4)) do.axis4 <- type == "SIR"
-    if (do.axis4) {
-        finalvalues <- counters[nrow(counters), c("nSusceptible", "nRemoved")]
-        axis(4, at = finalvalues[lty[c(1,3)] > 0], font = 2, ...)
-    }
-    if (is.list(rug.opts)) {
-        if (is.null(rug.opts$ticksize)) rug.opts$ticksize <- 0.02
-        if (is.null(rug.opts$quiet)) rug.opts$quiet <- TRUE
-        which.rug <- match.arg(which.rug)
-        if (is.null(rug.opts$col)) rug.opts$col <-
-            switch(which.rug, all = 1, infections = col.hor[2],
-                   removals = col.hor[3], susceptibility = col.hor[1])
-        rugLocations <- switch(which.rug,
-            all = times, infections = attr(x, "eventTimes"),
-            removals = counters$time[counters$type == "R"],
-            susceptibility = counters$time[counters$type == "S"]
-        )
-        if (length(rugLocations) > 0) {
-            do.call(rug, c(list(x = rugLocations), rug.opts))
-        }
-    }
-    if (is.list(legend.opts)) {
-        if (is.null(legend.opts[["x",exact=TRUE]]))
-            legend.opts$x <- "topright"
-        if (is.null(legend.opts$legend))
-            legend.opts$legend <- c("susceptible", "infectious", "removed")
-        if (any(lty == 0) && length(legend.opts$legend) == 3)
-            legend.opts$legend <- legend.opts$legend[lty > 0]
-        if (is.null(legend.opts$lty)) legend.opts$lty <- lty[lty > 0]
-        if (is.null(legend.opts$lwd)) legend.opts$lwd <- lwd[lty > 0]
-        if (is.null(legend.opts$col)) legend.opts$col <- col.hor[lty > 0]
-        if (is.null(legend.opts$bty)) legend.opts$bty <- "n"
-        do.call(legend, legend.opts)
-    }
-    invisible(as.matrix(
-        counters[c("time", "nSusceptible", "nInfectious", "nRemoved")]
-    ))
-}
-
-plot.epidata <- function(x, ...)
-{
-    sx <- summary(x)
-    plot(sx, ...)
-}
-
-
-################################################################################
-# ANIMATION OF EPIDEMICS
-# spatio-temporal animation (for 1/2d-coordinates only)
-# two types:
-#   - sequential plots regardless of time between events (i.e. only ordering)
-#   - chronological animation with timer
-################################################################################
-
-animate.summary.epidata <- function (object,
-    main = "An animation of the epidemic",
-    pch = 19, col = c(3, 2, gray(0.6)), time.spacing = NULL,
-    sleep = quote(5/.nTimes), legend.opts = list(), timer.opts = list(),
-    end = NULL, generate.snapshots = NULL, ...)
-{
-    counters <- object[["counters"]]
-    # remove pseudo-R-events, which come before S-event
-    directSevents <- which(duplicated(counters[["time"]]))
-    counters_noPseudoR <- if (length(directSevents)) {
-            counters[-(directSevents-1), ]
-        } else {
-            counters
-        }
-    # remove initial row and keep essential columns
-    eventTable <- counters_noPseudoR[-1, c("time", "type", "id")]
-    eventTable[["type"]] <- unclass(eventTable[["type"]])  # get integer codes
-    .nTimes <- nrow(eventTable)
-    
-    # extract initial individual information (id, at-risk, coordinates)
-    coords <- object[["coordinates"]]
-    d <- ncol(coords)
-    if (d > 2L) {
-        stop("spatial plotting in more than two dimensions is not implemented")
-    } else if (d == 1L) {
-        coords <- cbind(coords, 0)
-    } else if (d == 0L) {
-        stop ("'object' does not contain any defined coordinates")
-    }
-    
-    # plot the initial state
-    pch <- rep(pch, length.out = 3)
-    col <- rep(col, length.out = 3)
-    isInitiallyInfected <- rownames(coords) %in% object[["initiallyInfected"]]
-    plot(coords, pch = ifelse(isInitiallyInfected, pch[2L], pch[1L]), 
-                 col = ifelse(isInitiallyInfected, col[2L], col[1L]),
-                 main = main, ...)
-    if (is.list(legend.opts)) {
-        if (is.null(legend.opts[["x",exact=TRUE]]))
-            legend.opts$x <- "topright"
-        if (is.null(legend.opts$legend))
-            legend.opts$legend <- c("susceptible", "infectious", "removed")
-        if (is.null(legend.opts$col)) legend.opts$col <- col
-        if (is.null(legend.opts$pch)) legend.opts$pch <- pch
-        do.call(legend, legend.opts)
-    }
-    
-    # animate the epidemic by iteratively re-drawing points at the coordinates
-    sleep <- eval(sleep)
-    if (is.null(time.spacing)) { # plot events sequentially
-        for(i in seq_len(.nTimes)) {
-            Sys.sleep(sleep)
-            tmp <- eventTable[i,]  # c(time, type, id)
-            points(coords[as.character(tmp[["id"]]),,drop=FALSE],
-                   pch = pch[tmp[["type"]]], col = col[tmp[["type"]]])
-        }
-    } else { # plot events chronologically
-        if (is.null(end))
-            end <- eventTable[.nTimes, "time"] + time.spacing
-        timeGrid <- seq(from = time.spacing, to = end, by = time.spacing)
-        timeWidth <- nchar(timeGrid[length(timeGrid)])
-        timeDigits <- nchar(strsplit(as.character(time.spacing), ".",
-            fixed = TRUE)[[1L]][2L])
-        form <- paste("%", timeWidth, ".", timeDigits, "f", sep = "")
-        if (is.list(timer.opts)) {
-            if (is.null(timer.opts[["x",exact=TRUE]]))
-                timer.opts$x <- "bottomright"
-            if (is.null(timer.opts$title))   timer.opts$title <- "time"
-            if (is.null(timer.opts$box.lty)) timer.opts$box.lty <- 0
-            if (is.null(timer.opts$adj))     timer.opts$adj <- c(0.5,0.5)
-            if (is.null(timer.opts$inset))   timer.opts$inset <- 0.01
-            if (is.null(timer.opts$bg))      timer.opts$bg <- "white"
-            do.call(legend, c(list(legend = sprintf(form, 0)), timer.opts))
-        }
-        oldtp <- tp <- attr(object, "timeRange")[1L]
-        i <- 1L                   # to be used in the file argument in dev.print
-        if (is.vector(generate.snapshots, mode="character") &&
-            length(generate.snapshots) == 1L && require("animation")) {
-            img.name <- generate.snapshots
-            ani.dev <- animation::ani.options("ani.dev")
-            if (is.character(ani.dev)) ani.dev <- get(ani.dev)
-            imgdir <- file.path(animation::ani.options("outdir"),
-                                animation::ani.options("imgdir"))
-            imgtype <- animation::ani.options("ani.type")
-            generate.snapshots <- list(
-                device = ani.dev,
-                file = quote(file.path(imgdir, paste0(img.name,i,".",imgtype))),
-                width = animation::ani.options("ani.width"),
-                height = animation::ani.options("ani.height")
-            )
-        }
-        if (is.list(generate.snapshots)) {
-            do.call(dev.print, generate.snapshots)
-        }
-        for(i in 1L+seq_along(timeGrid)) {
-            tp <- timeGrid[i-1L]
-            Sys.sleep(sleep)
-            timeIndex <- which(eventTable[["time"]] > oldtp & eventTable[["time"]] <= tp)
-            if (length(timeIndex) > 0L) {
-                tmp <- eventTable[timeIndex,]  # c(time, type, id)
-                points(coords[as.character(tmp[["id"]]),,drop=FALSE],
-                       pch = pch[tmp[["type"]]], col = col[tmp[["type"]]])
-            }
-            if (is.list(timer.opts)) {
-                do.call(legend, c(list(legend = sprintf(form,tp)), timer.opts))
-            }
-            oldtp <- tp
-            if (is.list(generate.snapshots)) {
-                do.call(dev.print, generate.snapshots)
-            }
-        }
-    }
-    invisible(NULL)
-}
-
-animate.epidata <- function (object, ...)
-{
-    s <- summary(object)
-    animate(s, ...)
-}
-
-
-
-################################################################################
-# PLOT THE STATE CHANGES OF INDIVIDUALS IN AN EPIDEMIC ('EPIDATA' OBJECT)
-# ... will be passed to the plot function (stepfun or curve),
-# e.g. add, xlim, ylim, main, xlab, ylab, ...
-################################################################################
-
-stateplot <- function(x, id, ...)
-{
-    sx <- getSummary(x, class = "epidata")
-
-    .id <- as.character(id)
-    if (length(.id) != 1) {
-        stop ("'id' must have length 1")
-    }
-    initiallyInfected <- sx[["initiallyInfected"]]
-    if (! .id %in% levels(initiallyInfected)) {
-        stop ("invalid 'id', does not exist in 'x'")
-    }
-    isInitiallyInfected <- .id %in% initiallyInfected
-    
-    counters <- sx[["counters"]]
-    states <- levels(counters[["type"]])
-    
-    path <- counters[which(counters$id == .id), c("time", "type")]
-    # remove pseudo-R-events, which come before S-event
-    directSevents <- which(duplicated(path[["time"]]))
-    path_noPseudoR <- if (length(directSevents)) {
-            path[-(directSevents-1), ]
-        } else {
-            path
-        }
-    
-    pathfunc <-
-        if (nrow(path_noPseudoR) > 0) {
-            stepfun(
-                x = path_noPseudoR[["time"]],
-                y = c(1+isInitiallyInfected, unclass(path_noPseudoR[["type"]])),
-                right = FALSE
-            )
-        } else {
-            function(t) rep(1+isInitiallyInfected, length(t))
-        }
-    
-    # plot it
-    dotargs <- list(...)
-    nms <- names(dotargs)
-    if(! "xlab" %in% nms) dotargs$xlab <- "time"
-    if(! "ylab" %in% nms) dotargs$ylab <- "state"
-    if(! "main" %in% nms) dotargs$main <- ""
-    if(! "xlim" %in% nms) dotargs$xlim <- attr(sx, "timeRange")
-    if(! "xaxs" %in% nms) dotargs$xaxs <- "i"
-    if(! "do.points" %in% nms && inherits(pathfunc, "stepfun")) {
-        dotargs$do.points <- FALSE
-    }
-    do.call("plot", args = c(list(x = pathfunc, yaxt = "n"), dotargs))
-    axis(2, at = seq_along(states), labels = states)
-
-    invisible(pathfunc)
 }

@@ -10,12 +10,11 @@ Spatio-Temporal Animation of a Continuous-Time Continuous-Space Epidemic
   Function for the animation of continuous-time continuous-space
   epidemic data, i.e. objects inheriting from class \code{"epidataCS"}.
   There are three types of animation, see argument \code{time.spacing}.
-  Besides the direct plotting in the \R session, it is 
-  also possible to generate a sequence of graphics files to create animations 
-  outside \R, since this function is compatible to the framework of the
-  contributed \R package \pkg{animation} and respects the
-  \code{\link[animation]{ani.options}} \code{"interval"} and
-  \code{"nmax"} if this package is available.
+  Besides the on-screen plotting in the interactive \R session, it is possible
+  and recommended to redirect the animation to an off-screen graphics
+  device using the contributed \R package \pkg{animation}. For instance,
+  the animation can be watched and navigated in a web browser via
+  \code{\link[animation]{saveHTML}} (see Examples).
 }
 
 \usage{
@@ -124,24 +123,25 @@ The contributed \R package \pkg{animation}.
 data("imdepi")
 imdepiB <- subset(imdepi, type == "B")
 
-\dontrun{
-  # Animate the first year of type B with a step size of 7 days
-  animate(imdepiB, interval=c(0,365), time.spacing=7, nmax=Inf, sleep=0.1)
+# Animate the first year of type B with a step size of 7 days
+animate(imdepiB, interval=c(0,365), time.spacing=7, nmax=Inf, sleep=0.1)
 
-  # Sequential animation of type B events during the first year
-  animate(imdepiB, interval=c(0,365), time.spacing=NULL, sleep=0.1)
+# Sequential animation of type B events during the first year
+animate(imdepiB, interval=c(0,365), time.spacing=NULL, sleep=0.1)
 
-  # Animate the whole time range but with nmax=60 snapshots only
-  animate(imdepiB, time.spacing=NA, nmax=60, sleep=0.1)
-}
+# Animate the whole time range but with nmax=20 snapshots only
+animate(imdepiB, time.spacing=NA, nmax=20, sleep=0.1)
 
+\donttest{
 # Such an animation can be saved in various ways using the tools of
 # the animation package, e.g., saveHTML()
 if (require("animation")) {
-   saveHTML(animate(imdepiB, interval=c(0,365), time.spacing=7),
-            outdir = tempdir(), htmlfile = "imdepi_animation.html",
-            nmax = Inf, interval = 0.2, loop = FALSE,
-            title = "Animation of the first year of type B events")
+  oldwd <- setwd(tempdir())  # to not clutter up the current working dir
+  saveHTML(animate(imdepiB, interval = c(0,365), time.spacing = 7),
+           nmax = Inf, interval = 0.2, loop = FALSE,
+           title = "Animation of the first year of type B events")
+  setwd(oldwd)
+}
 }
 }
 

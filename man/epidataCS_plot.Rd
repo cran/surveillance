@@ -45,8 +45,8 @@ epidataCSplot_space(x, subset,
   \item{subset}{
     logical expression indicating a subset of events to consider for
     plotting: missing values are taken as false. Note that the
-    expression is evaluated in the events data frame
-    \code{x$events@data}, which means that column names can be referred to
+    expression is evaluated in the data frame of event marks
+    (\code{marks(x)}), which means that column names can be referred to
     by name (like in \code{\link{subset.data.frame}}).
   }
   \item{\dots}{
@@ -77,7 +77,8 @@ epidataCSplot_space(x, subset,
     lines for the cumulative number of events (per type) will be
     added to the plot. Possible options are \code{axis} (logical),
     \code{lab} (axis label), \code{maxat} (single integer affecting
-    the axis range), \code{lwd}, and \code{col}.}
+    the axis range), \code{lwd}, \code{col}, and \code{offset} (a
+    numeric vector of length the number of types).}
   \item{add}{logical (default: \code{FALSE}) indicating if the plot
     should be added to an existing window.}
   \item{mar}{see \code{\link{par}}. The default (\code{NULL}) is

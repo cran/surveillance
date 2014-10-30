@@ -7,8 +7,8 @@
 ### CONTINUOUS SPATIO-temporal infectious disease case data
 ###
 ### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 909 $
-### $Date: 2014-04-16 14:09:38 +0200 (Wed, 16 Apr 2014) $
+### $Revision: 1031 $
+### $Date: 2014-09-26 15:36:26 +0200 (Fri, 26 Sep 2014) $
 ################################################################################
 
 
@@ -82,13 +82,13 @@ update.epidataCS <- function (object, eps.t, eps.s, qmatrix, nCircle2Poly, ...)
 ### but retain stgrid and W. If any event types disappear due to subsetting,
 ### these types will be dropped from the factor levels and from qmatrix
 
-"[.epidataCS" <- function (x, i, j, drop = FALSE)
+"[.epidataCS" <- function (x, i, j, ..., drop = TRUE)
 {
     ## Store nCircle2Poly attribute of x$events$.influenceRegion since this will
     ## be dropped when subsetting
     nCircle2Poly <- attr(x$events$.influenceRegion, "nCircle2Poly")
 
-    ## apply [,SpatialPointsDataFrame-method
+    ## apply [,SpatialPointsDataFrame-method (where "drop" is ignored)
     cl <- sys.call()
     cl[[1]] <- as.name("[")
     cl[[2]] <- substitute(x$events)
@@ -106,14 +106,16 @@ update.epidataCS <- function (object, eps.t, eps.s, qmatrix, nCircle2Poly, ...)
     if (!missing(i)) {
         ## update .sources
         x$events$.sources <- determineSources.epidataCS(x)
-        ## update types and qmatrix (a type could have disappeared)
-        x$events$type <- x$events$type[drop=TRUE]
-        typeNames <- levels(x$events$type)
-        if (!identical(rownames(x$qmatrix), typeNames)) {
-            message("Note: dropped type(s) ",
-                    paste0("\"", setdiff(rownames(x$qmatrix), typeNames), "\"",
-                           collapse = ", "))
-            x$qmatrix <- checkQ(x$qmatrix, typeNames)
+        if (drop) {
+            ## update type levels and qmatrix (a type could have disappeared)
+            x$events$type <- x$events$type[drop=TRUE]
+            typeNames <- levels(x$events$type)
+            if (!identical(rownames(x$qmatrix), typeNames)) {
+                message("Note: dropped type(s) ",
+                        paste0("\"", setdiff(rownames(x$qmatrix), typeNames), "\"",
+                               collapse = ", "))
+                x$qmatrix <- checkQ(x$qmatrix, typeNames)
+            }
         }
     }
     
@@ -131,7 +133,7 @@ update.epidataCS <- function (object, eps.t, eps.s, qmatrix, nCircle2Poly, ...)
 ## The R Core Team) with slight modifications only
 ## (we just replace 'x' by 'x$events@data' for evaluation of subset and select)
 
-subset.epidataCS <- function (x, subset, select, drop = FALSE, ...)
+subset.epidataCS <- function (x, subset, select, drop = TRUE, ...)
 {
     if (missing(subset)) 
         r <- TRUE
@@ -177,9 +179,9 @@ marks.epidataCS <- function (x, coords = TRUE, ...)
     endemicCovars <- setdiff(names(x$stgrid), c(
         reservedColsNames_stgrid, obligColsNames_stgrid))
     idxnonmarks <- match(c(reservedColsNames_events, endemicCovars),
-                         names(x$events))
-    if (coords) {          # use as.data.frame method for SpatialPointsDataFrame
-        as.data.frame(x$events[-idxnonmarks])
+                         names(x$events@data))
+    if (coords) { # append coords (cp. as.data.frame.SpatialPointsDataFrame)
+        data.frame(x$events@data[-idxnonmarks], x$events@coords)
     } else {                            # return marks without coordinates
         x$events@data[-idxnonmarks]
     }
@@ -198,14 +200,22 @@ print.epidataCS <- function (x, n = 6L, digits = getOption("digits"), ...)
         nTiles = nlevels(x$stgrid$tile),
         digits = digits
         )
-    cat("Types of events:", paste0("'",levels(x$events$type),"'"), "\n")
+    cat("Types of events: ")
+    str(levels(x$events$type), give.attr = FALSE, give.head = FALSE,
+        width = getOption("width") - 17L)
     cat("Overall number of events:", nEvents <- nobs(x), "\n\n")
     
-    # 2014-03-24: since sp 1.0-15, print.SpatialPointsDataFrame()
-    # appropriately passes its "digits" argument to print.data.frame()
     visibleCols <- grep("^\\..+", names(x$events@data), invert = TRUE)
-    print(head.matrix(x$events[visibleCols], n = n), digits = digits, ...)
-    if (n < nEvents) cat("[....]\n")
+    if (nEvents == 0L) { # not handled by [,SpatialPointsDataFrame-method
+                         # and thus actually not supported by "epidataCS"
+        ## display header only
+        print(data.frame(coordinates = character(0L), x$events@data[visibleCols]))
+    } else {
+        ## 2014-03-24: since sp 1.0-15, print.SpatialPointsDataFrame()
+        ## appropriately passes its "digits" argument to print.data.frame()
+        print(head.matrix(x$events[visibleCols], n = n), digits = digits, ...)
+        if (n < nEvents) cat("[....]\n")
+    }
     invisible(x)
 }
 

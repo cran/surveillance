@@ -6,8 +6,8 @@
 ### Helper functions for neighbourhood weight matrices in hhh4()
 ###
 ### Copyright (C) 2012-2014 Sebastian Meyer
-### $Revision: 704 $
-### $Date: 2014-01-15 13:36:50 +0100 (Wed, 15 Jan 2014) $
+### $Revision: 1025 $
+### $Date: 2014-09-22 17:58:48 +0200 (Mon, 22 Sep 2014) $
 ################################################################################
 
 
@@ -66,8 +66,8 @@ checkWeightsArray <- function (W, nUnits, nTime, name)
         stop("missing values in '", name, "' are not allowed")
     diags <- if (is.matrix(W)) diag(W) else apply(W, 3, diag)
     if (any(diags != 0))
-        stop("'", name, "' must only contain zeroes on the diagonal",
-             if (!is.matrix(W)) "s")
+        warning("'", name, "' has nonzeros on the diagonal",
+                if (!is.matrix(W)) "s")
 }
 
 
@@ -119,7 +119,7 @@ checkWeights <- function (weights, nUnits, nTime,
         dim.d <- length(weights$initial)
         dw <- weights$dw(weights$initial, nbmat, data)
         d2w <- weights$d2w(weights$initial, nbmat, data)
-        if (dim.d == 1L) {
+        if (dim.d == 1L && !is.list(dw) && !is.list(d2w)) {
             checkWeightsArray(dw, nUnits, nTime, name=paste0(name, "$dw"))
             checkWeightsArray(d2w, nUnits, nTime, name=paste0(name, "$d2w"))
         } else {

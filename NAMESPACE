@@ -7,7 +7,7 @@ useDynLib(surveillance)
 ###############
 
 ### Import all packages listed as Depends
-### (for utils and xtable: only selected methods are imported)
+### (for utils and polyCub: only selected methods are imported)
 
 import(methods, grDevices, graphics, stats)
 import(Rcpp)
@@ -19,15 +19,15 @@ import(Rcpp)
 ## (we "Depend" on package sp since it defines essential data classes & methods)
 import(sp)
 
+## we define own methods for generating xtable()'s, which we want to be useable
+import(xtable) 
+
 
 ### required generics for own methods (that's why we "Depend" on these packages)
 
 ## importFrom(stats, coef, vcov, logLik, nobs, residuals, confint, AIC, extractAIC,
 ##                   profile, simulate, update, terms, add1, drop1, predict, as.stepfun)
 importFrom(utils, head, tail, toLatex)
-importFrom(xtable, xtable) # if we wouldn't "Depend" on xtable, our
-                           # xtable-methods would not be useable except if the
-                           # user attaches the xtable package himself
 
 
 ### required functions from utils and stats
@@ -73,14 +73,20 @@ importMethodsFrom(Matrix, coerce, diag, forceSymmetric, solve)
 ### twinstim-specific
 
 importFrom(spatstat, area.owin, as.im.function, coords.ppp, diameter,
-                     diameter.owin, disc, distppl, inside.owin, intersect.owin,
-                     is.polygonal, marks, multiplicity, runifpoint, shift.owin,
+                     diameter.owin, disc, inside.owin, intersect.owin,
+                     is.polygonal, runifpoint, shift.owin,
                      spatstat.options, vertices)
+importFrom(spatstat, marks)
+export(marks)                           # we define an epidataCS-method
+importFrom(spatstat, multiplicity)
+export(multiplicity)                    # we define a Spatial-method
 
-importFrom(polyCub, polyCub, polyCub.SV, polyCub.midpoint, xylist)
+## Note: we depend on instead of import package polyCub to avoid "::" references
+##       in some of the siaf.* generators which create functions in .GlobalEnv
+importFrom(polyCub, polyCub, .polyCub.iso, polyCub.SV, polyCub.midpoint, xylist)
 importMethodsFrom(polyCub, coerce)
 
-importFrom(MASS, kde2d)
+importFrom(MASS, kde2d, truehist)
 
 
 
@@ -117,6 +123,7 @@ S3method(diameter, gpc.poly)
 export(nbOrder)
 export(poly2adjmat)
 export(polyAtBorder)
+export(layout.labels)
 
 # randomly break tied event times or coordinates
 export(untie)                           # new S3-generic
@@ -132,7 +139,6 @@ S3method(intersectPolyCircle, SpatialPolygons)
 S3method(intersectPolyCircle, gpc.poly)
 
 # little helper: multiplicity of points
-export(multiplicity)                    # as imported from spatstat
 S3method(multiplicity, Spatial)
 
 # Spatio-temporal cluster detection
@@ -231,13 +237,16 @@ export(sts2disProg)
 
 export(cox)
 export(as.epidata)
+S3method(as.epidata, data.frame)
+export(as.epidata.data.frame)
 S3method(as.epidata, default)
-export(as.epidata.default)              # for convenience
+export(as.epidata.default)
 export(intersperse)
 export(twinSIR)
 export(stateplot)
 export(simEpidata)
 
+S3method(update, epidata)
 S3method("[", epidata)
 S3method(print, epidata)
 S3method(summary, epidata)
@@ -254,6 +263,7 @@ S3method(plot, twinSIR)
 S3method(intensityplot, twinSIR)
 export(intensityplot.twinSIR)           # for convenience
 S3method(profile, twinSIR)
+S3method(plot, profile.twinSIR)
 S3method(vcov, twinSIR)
 S3method(logLik, twinSIR)
 S3method(AIC, twinSIR)
@@ -294,7 +304,6 @@ S3method(print, summary.epidataCS)
 S3method(as.stepfun, epidataCS)
 S3method(animate, epidataCS)
 export(animate.epidataCS)               # for convenience
-export(marks)                           # as imported from spatstat
 S3method(marks, epidataCS)
 export(marks.epidataCS)            # for convenience since its a foreign generic
 S3method(plot, epidataCS)
@@ -342,6 +351,7 @@ S3method(drop1, twinstim)
 S3method(drop1, twinstim_stependemic)
 S3method(drop1, twinstim_stepepidemic)
 
+S3method(residuals, simEpidataCS)
 S3method(R0, simEpidataCS)
 S3method(intensityplot, simEpidataCS)
 export(intensityplot.simEpidataCS)      # for convenience
@@ -390,6 +400,7 @@ S3method(summary, hhh4)
 S3method(print, summary.hhh4)
 S3method(nobs, hhh4)
 S3method(logLik, hhh4)
+S3method(formula, hhh4)
 S3method(terms, hhh4)
 S3method(coef, hhh4)
 S3method(vcov, hhh4)
@@ -404,7 +415,8 @@ S3method(plot, hhh4)
 export(plotHHH4_fitted, plotHHH4_fitted1,
        plotHHH4_season, getMaxEV_season,
        plotHHH4_maxEV, getMaxEV,
-       plotHHH4_ri)
+       plotHHH4_ri,
+       plotHHH4_neweights)
 
 ## backwards-compatibility for old class name "ah4"
 S3method(print, ah4)

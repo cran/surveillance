@@ -17,17 +17,15 @@ citHeader("Some guidelines for citing package",
 plpaper <- bibentry(
     bibtype = "Article",
     header = "For multivariate hhh4() with estimated neighbourhood weights, cite:",
-    author = authors[c("SM","LH")],
+    author = authors[c("SM", "LH")],
     title = "Power-law models for infectious disease spread",
-    journal = "Annals of Applied Statistics",
+    journal = "The Annals of Applied Statistics",
     issn = "1932-6157",
     year = "2014",
-    note = "In press, available as arXiv:1308.5115",
-#    volume = "",
-#    number = "",
-#    pages = "",
-#    doi = ""
-    eprint = "http://arxiv.org/abs/1308.5115"
+    volume = "8",
+    number = "3",
+    pages = "1612--1639",
+    doi = "10.1214/14-AOAS743"
 )
 
 bibentry(

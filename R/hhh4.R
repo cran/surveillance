@@ -7,8 +7,8 @@
 ### The function allows the incorporation of random effects and covariates.
 ###
 ### Copyright (C) 2010-2014 Michaela Paul and Sebastian Meyer
-### $Revision: 816 $
-### $Date: 2014-03-05 20:31:56 +0100 (Wed, 05 Mar 2014) $
+### $Revision: 1044 $
+### $Date: 2014-10-03 10:33:07 +0200 (Fri, 03 Oct 2014) $
 ################################################################################
 
 # - some function arguments are currently not used (but will eventually)
@@ -34,7 +34,7 @@ CONTROL.hhh4 <- alist(
     ne = list(f = ~ -1,        # a formula "exp(x'phi) * sum_j w_ji * y_j,t-lag"
               offset = 1,      # multiplicative offset
               lag = 1,         # regression on y_j,t-lag
-              weights = neighbourhood(stsObj),  # weights w_ji
+              weights = neighbourhood(stsObj) == 1,  # weights w_ji
               initial = NULL   # initial parameter values if pred = ~1 (not really used ATM)
     ),
     end = list(f = ~ 1,        # a formula " exp(x'nu) * n_it "
@@ -593,15 +593,6 @@ interpretControl <- function (control, stsObj)
   ne <- control$ne
   end <- control$end
 
-  ## FIXME: really weird... if the array below is evaluated, code will be faster
-  ## A complex example model takes 132s (without this nonsense array evaluation)
-  ## or 116s (with) for the whole fit
-  if (ne$inModel && is.array(ne$weights)) {
-    dev.null <- array(ne$weights, c(nUnits,nUnits,nTime))
-    ## for instance, str(ne$weights), as.vector(ne$weights), or
-    ## array(ne$weights, dim(ne$weights)) do not have this effect...
-  }
-
   ## for backwards compatibility with surveillance < 1.8-0, where the ar and ne
   ## components of the control object did not have an offset
   if (is.null(ar$offset)) ar$offset <- 1
@@ -802,7 +793,7 @@ meanHHH <- function(theta, model, subset=model$subset, total.only=FALSE)
         return(list(exppred = zeroes, mean = zeroes))
     }
     
-    for(i in (1:nGroups)[comp==component]){
+    for(i in seq_len(nGroups)[comp==component]){
       fe <- fixed[idxFE==i]
       if(term["unitSpecific",i][[1]]){
         fe <- nullMatrix
@@ -967,7 +958,7 @@ penScore <- function(theta, sd.corr, model)
     grad.fe <- numeric(0L)
     grad.re <- numeric(0L)
        
-    for(i in 1:nGroups){
+    for(i in seq_len(nGroups)){
       comp <- term["offsetComp",i][[1]]
       Xit<- term["terms",i][[1]] # eiter 1 or a matrix with values
       if(is.matrix(Xit)){
@@ -1024,8 +1015,8 @@ penScore <- function(theta, sd.corr, model)
   
   ## add penalty to random effects gradient
   s.pen <- if(dimRE > 0) c(Sigma.inv %*% randomEffects) else numeric(0L)
-  if(length(gradients$re) != length(s.pen)) # FIXME: could this ever happen?
-      stop("length of s(b) != Sigma.inv %*% b")
+  if(length(gradients$re) != length(s.pen))
+      stop("oops... lengths of s(b) and Sigma.inv %*% b do not match")
   grRandom <- c(gradients$re - s.pen)
 
   ## Done
@@ -1177,9 +1168,7 @@ penFisher <- function(theta, sd.corr, model, attributes=FALSE)
         dIJ <- colSums(didj %mj% Z.j)   # didj must not contain NA's (all NA's set to 0)
         hessian.FE.RE[idxFE==i,idxRE==j] <<- diag(dIJ)[ which.i, ]
         dIJ <- dIJ[ which.i ]           # added which.i subsetting in r432
-                                        # FIXME @Michaela: please confirm this correction
       } else if(unitSpecific.j){
-        ## which.ij <- (which.i & which.j) # FIXME: this is actually unused...?
         dIJ <- diag(colSums(didj))[ which.i, which.j ] 
       } else {
         dIJ <- colSums(didj)[ which.i ]
@@ -1199,18 +1188,18 @@ penFisher <- function(theta, sd.corr, model, attributes=FALSE)
           hessian.RE.RE[which(idxRE==i),idxRE==j] <<- diag(colSums( didj %m% Z))
         } else if(length(Z.j)==1 & length(Z.i)>1){         #*
           Z.j <- diag(nrow=model$nUnits)
-          for(k in 1:ncol(Z.j)){
+          for(k in seq_len(ncol(Z.j))){
             Z <- Z.i*Z.j[,k]
             hessian.RE.RE[idxRE==i,which(idxRE==j)[k]] <<- colSums( didj %m% Z)
           }  
         } else if(length(Z.j)>1 & length(Z.i)==1){         #* 
           Z.i <- diag(nrow=model$nUnits)
-          for(k in 1:ncol(Z.i)){
+          for(k in seq_len(ncol(Z.i))){
             Z <- Z.i[,k]*Z.j
             hessian.RE.RE[which(idxRE==i)[k],idxRE==j] <<- colSums( didj %mj% Z)
           }  
         } else {         
-          for(k in 1:ncol(Z.j)){
+          for(k in seq_len(ncol(Z.j))){
             Z <- Z.i*Z.j[,k]
             hessian.RE.RE[which(idxRE==i)[k],idxRE==j] <<- colSums( didj %m% Z)
           }  
@@ -1228,7 +1217,7 @@ penFisher <- function(theta, sd.corr, model, attributes=FALSE)
     }
   ##----------------------------------------------           
 
-    for(i in 1:nGroups){ #go through rows of hessian
+    for(i in seq_len(nGroups)){ #go through rows of hessian
       # parameter group belongs to which components
       comp.i <- term["offsetComp",i][[1]]      
       # get covariate value
@@ -1548,7 +1537,7 @@ marScore <- function(sd.corr, theta, model, fisher.unpen=NULL, verbose=FALSE){
   d1logDet <- c(-dimBlocks,dimBlocks[1]*corr/(corr^2+1))
   
   # go through all variance parameters
-  for(i in 1:dimSigma){
+  for(i in seq_len(dimSigma)){
     dSi <- -Sigmai.inv %*% d1Sigma[,,i] %*% Sigmai.inv # CAVE: sign
     dS.i <- getSigma(dimSigma=dimVar,dimBlocks=dimBlocks,Sigmai=dSi)
     #dlpen.i <- -0.5* t(randomEffects) %*% dS.i %*% randomEffects
@@ -1634,7 +1623,7 @@ marFisher <- function(sd.corr, theta, model, fisher.unpen=NULL, verbose=FALSE){
   }
   
   # go through all variance parameters
-  for(i in 1:dimSigma){
+  for(i in seq_len(dimSigma)){
     # compute first derivative of the penalized Fisher info (-> of Sigma^-1) 
     # with respect to the i-th element of Sigma (= kronecker prod. of Sigmai and identity matrix)
     # Harville Ch15, Eq. 8.15: (d/d i)S^-1 = - S^-1 * (d/d i) S * S^-1
@@ -2105,13 +2094,13 @@ addSeason2formula <- function(f=~1,       # formula to start with
   f <- paste(deparse(f), collapse="")
   # create formula
   if(length(S)==1 && S>0){
-    for(i in 1:S){
+    for(i in seq_len(S)){
       f <- paste0(f,
                   " + sin(",2*i,"*pi*",timevar,"/",period,")",
                   " + cos(",2*i,"*pi*",timevar,"/",period,")")
     }
   } else {
-    for(i in 1:max(S)){
+    for(i in seq_len(max(S))){
       which <- paste(i <= S,collapse=",")
       f <- paste0(f,
                   " + fe( sin(",2*i,"*pi*",timevar,"/",period,"), which=c(",which,"))",

@@ -15,7 +15,8 @@
 }
 
 \usage{
-permutationTest(score1, score2, nPermutation = 9999, plot = FALSE)
+permutationTest(score1, score2, nPermutation = 9999,
+                plot = FALSE, verbose = FALSE)
 }
 
 \arguments{
@@ -29,6 +30,9 @@ permutationTest(score1, score2, nPermutation = 9999, plot = FALSE)
     logical indicating if a histogram of the \code{nPermutation}
     permutation test statistics should be plotted with a vertical line
     marking the observed difference of the means.
+  }
+  \item{verbose}{
+    logical indicating if the results should be printed in one line.
   }
 }
 

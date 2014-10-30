@@ -19,7 +19,8 @@
 untie(x, amount, ...)
 
 \method{untie}{epidataCS}(x, amount = list(t=NULL, s=NULL),
-      minsep = list(t=0, s=0), direction = "left", keep.sources = FALSE, ...)
+      minsep = list(t=0, s=0), direction = "left", keep.sources = FALSE,
+      ..., verbose = FALSE)
 \method{untie}{matrix}(x, amount = NULL, minsep = 0,
       constraint = NULL, giveup = 1000, ...)
 \method{untie}{default}(x, amount = NULL, minsep = 0,
@@ -86,6 +87,7 @@ untie(x, amount, ...)
     \code{matrix}- or \code{default}-method (\code{giveup}).
     Unused in other methods.
   }
+  \item{verbose}{logical passed to \code{\link{as.epidataCS}}.}
 }
 
 \value{

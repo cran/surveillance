@@ -7,19 +7,19 @@ myexpectation <- function (siaf, intrfr, intrderivr, pargrid, type = 1, ...)
 {
     ## check analytical intrfr specification against numerical approximation
     if (!missing(intrfr)) apply(pargrid, 1, function (pars) expect_that(
-        polyCub:::checkintrfr(intrfr, siaf$f, pars, type, center=c(0,0),
+        polyCub::checkintrfr(intrfr, siaf$f, pars, type, center=c(0,0),
                               rs=c(1,2,5,10,20,50)),
-        not(gives_warning()), label = "polyCub:::checkintrfr()"))
+        not(gives_warning()), label = "polyCub::checkintrfr()"))
     
     ## also check intrfr for deriv
     if (!missing(intrderivr)) for (paridx in seq_along(intrderivr))
         apply(pargrid, 1, function (pars) expect_that(
-            polyCub:::checkintrfr(intrderivr[[paridx]],
+            polyCub::checkintrfr(intrderivr[[paridx]],
                                   function (...) siaf$deriv(...)[,paridx],
                                   pars, type, center=c(0,0),
                                   rs=c(1,2,5,10,20,50)),
             not(gives_warning()),
-            label = paste0("polyCub:::checkintrfr() for deriv[,",paridx,"]")))
+            label = paste0("polyCub::checkintrfr() for deriv[,",paridx,"]")))
 
     ## check deriv, F, Deriv against numerical approximations
     checksiafres <- surveillance:::checksiaf(siaf, pargrid, type, ...)
@@ -45,18 +45,12 @@ test_that("Power-law implementation agrees with numerical approximation",
                         tolerance=0.0005, method="SV", nGQ=13))
 
 test_that("Lagged power-law implementation agrees with numeric results",
-          if (packageVersion("polyCub") < "0.4-3") { # checkintrfr() too strict
-              myexpectation(siaf.powerlawL(),
-                            pargrid=cbind(-0.5,log(c(0.1,1,2))),
-                            tolerance=0.0005, method="midpoint", dimyx=250)
-          } else {
-              myexpectation(siaf.powerlawL(),
-                            surveillance:::intrfr.powerlawL,
-                            list(surveillance:::intrfr.powerlawL.dlogsigma,
-                                 surveillance:::intrfr.powerlawL.dlogd),
-                            pargrid=cbind(-0.5,log(c(0.1,1,2))),
-                            tolerance=0.0005, method="midpoint", dimyx=250)
-          })
+          myexpectation(siaf.powerlawL(),
+                        surveillance:::intrfr.powerlawL,
+                        list(surveillance:::intrfr.powerlawL.dlogsigma,
+                             surveillance:::intrfr.powerlawL.dlogd),
+                        pargrid=cbind(-0.5,log(c(0.1,1,2))),
+                        tolerance=0.0005, method="midpoint", dimyx=250))
 
 test_that("Student implementation agrees with numerical approximation",
           myexpectation(siaf.student(),

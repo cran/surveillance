@@ -207,7 +207,7 @@ nc <- nowcast(now=t.repTriangle,when=when,
 #Show time series and posterior median forecast/nowcast
 plot(nc,xaxis.tickFreq=list("\%d"=atChange,"\%m"=atChange),
      xaxis.labelFreq=list("\%d"=at2ndChange),xaxis.labelFormat="\%d-\%b",
-     legend.opts=NULL, xlab="Time (days)",lty=c(1,1,1,1))
+     xlab="Time (days)",lty=c(1,1,1,1),lwd=c(1,1,2))
 }
 
 \keyword{models}

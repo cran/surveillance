@@ -7,10 +7,14 @@
 ### model described in Meyer et al (2012), DOI: 10.1111/j.1541-0420.2011.01684.x
 ###
 ### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 895 $
-### $Date: 2014-04-08 14:02:10 +0200 (Tue, 08 Apr 2014) $
+### $Revision: 986 $
+### $Date: 2014-08-28 15:09:26 +0200 (Thu, 28 Aug 2014) $
 ################################################################################
 
+
+## model.frame() evaluates 'subset' and '...' with 'data'
+utils::globalVariables(c("tile", "type", "BLOCK", ".obsInfLength", ".bdist",
+                         "area"))
 
 twinstim <- function (
     endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
@@ -31,7 +35,6 @@ twinstim <- function (
     cl <- match.call()
     partial <- as.logical(partial)
     finetune <- if (partial) FALSE else as.logical(finetune)
-    useParallel <- cores > 1L && requireNamespace("parallel")
 
     ## # Collect polyCub.midpoint warnings (and apply unique on them at the end)
     ## .POLYCUB.WARNINGS <- NULL
@@ -154,8 +157,6 @@ twinstim <- function (
         xx
     }
 
-    tile <- type <- BLOCK <- .obsInfLength <- .bdist <-
-        "just cheating on codetools::checkUsage"
     mfe <- model.frame(epidemic, data = eventsData,
                        subset = time + eps.t > t0 & time <= T,
 # here we can have some additional rows (individuals) compared to mfhEvents, which is established below!
@@ -166,7 +167,6 @@ twinstim <- function (
                        time = time, tile = tile, type = type,
                        eps.t = eps.t, eps.s = eps.s, BLOCK = BLOCK,
                        obsInfLength = .obsInfLength, bdist = .bdist)
-    rm(tile, type, BLOCK, .obsInfLength, .bdist)
 
     
     ### Extract essential information from model frame
@@ -293,7 +293,6 @@ twinstim <- function (
 
     if (hash) {
         offsetEvents <- model.offset(mfhEvents)
-        BLOCK <- tile <- area <- "just cheating on codetools::checkUsage"
         mfhGrid <- model.frame(endemic, data = data$stgrid,
                                subset = start >= t0 & stop <= T,
                                na.action = na.fail,
@@ -303,7 +302,6 @@ twinstim <- function (
                                BLOCK=BLOCK, tile=tile, dt=stop-start, ds=area)
                                # 'tile' is redundant here for fitting but useful
                                # for debugging & necessary for intensityplots
-        rm(BLOCK, tile, area)
         gridBlocks <- mfhGrid[["(BLOCK)"]]
         histIntervals <- unique(data$stgrid[c("BLOCK", "start", "stop")]) # sorted
         row.names(histIntervals) <- NULL
@@ -389,6 +387,16 @@ twinstim <- function (
         if (constantsiaf) control.siaf <- NULL else {
             stopifnot(is.null(control.siaf) || is.list(control.siaf))
             if (is.list(control.siaf)) stopifnot(sapply(control.siaf, is.list))
+        }
+
+        ## should we compute siafInt in parallel?
+        useParallel <- cores > 1L && requireNamespace("parallel")
+        ## but do not parallelize for a memoised siaf.step (becomes slower)
+        if (useParallel &&
+            !is.null(attr(siaf, "knots")) && !is.null(attr(siaf, "maxRange")) &&
+            isTRUE(attr(environment(siaf$f)$ringAreas, "memoised"))) {
+            cores <- 1L
+            useParallel <- FALSE
         }
         
         ## Define function that integrates the 'tiaf' function
@@ -1342,7 +1350,7 @@ twinstim <- function (
     fit$timeRange <- c(t0, T)           # for simulate.twinstim's defaults
     fit$formula <- list(endemic = endemic, epidemic = epidemic,
                         siaf = siaf, tiaf = tiaf)
-    fit$control.siaf <- control.siaf    # might be NULL
+    fit["control.siaf"] <- list(control.siaf)    # might be NULL
 
     
     ### Append optimizer configuration

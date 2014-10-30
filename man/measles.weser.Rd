@@ -50,6 +50,11 @@ data("measlesWeserEms")
       \item{\code{GEN}}{district label.}
       \item{\code{AREA}}{district area in m^2.}
       \item{\code{POPULATION}}{number of inhabitants (as of 31/12/2003).}
+      \item{\code{vaccdoc.2004}}{proportion with a vaccination card
+	among screened abecedarians (2004).}
+      \item{\code{vacc1.2004}}{proportion with at least one vaccination
+	against measles among abecedarians presenting a vaccination card
+	(2004).}
       \item{\code{vacc2.2004}}{proportion of doubly vaccinated
 	abecedarians among the ones presenting their vaccination card at
 	school entry in the year 2004.}

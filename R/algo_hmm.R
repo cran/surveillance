@@ -5,8 +5,8 @@
 algo.hmm <- function(disProgObj, control = list(range=range, Mtilde=-1, noStates=2, trend=TRUE, noHarmonics=1,covEffectEqual=FALSE, saveHMMs = FALSE, extraMSMargs=list() )){
 
   # check if the msm package is available
-  if (!require("msm")) {
-      stop("the HMM method requires package ", dQuote("msm"))
+  if (!requireNamespace("msm")) {
+      stop("the HMM method requires package ", sQuote("msm"))
   }
   
   # Set the default values if not yet set
@@ -63,7 +63,7 @@ algo.hmm <- function(disProgObj, control = list(range=range, Mtilde=-1, noStates
       hcovariates[[j]] <- as.formula(formulaStr)
       val <- crudeMean[j]
       #Substitution necessary, as hmmPois does lazy evaluation of rate argument
-      hmodel[[j]] <- eval(substitute(hmmPois(rate=val),list(val=crudeMean[j])))
+      hmodel[[j]] <- eval(substitute(msm::hmmPois(rate=val),list(val=crudeMean[j])))
     }
 
     #Any constraints on the parameters of the covariates for the different states
@@ -91,7 +91,7 @@ algo.hmm <- function(disProgObj, control = list(range=range, Mtilde=-1, noStates
     msm.args <- modifyList(msm.args, control$extraMSMargs)
 
     # fit the HMM
-    hmm <- do.call(what="msm", args=msm.args)
+    hmm <- do.call(what=msm::msm, args=msm.args)
     
     #In case the model fits should be saved.
     if (control$saveHMMs) {
@@ -102,7 +102,7 @@ algo.hmm <- function(disProgObj, control = list(range=range, Mtilde=-1, noStates
     #highest state then do alarm 
 #    print(observed)
 #    print(matrix(viterbi.msm(hmm)$fitted,ncol=1))
-    alarm[i] <- viterbi.msm(hmm)$fitted[length(t)] == control$noStates
+    alarm[i] <- msm::viterbi.msm(hmm)$fitted[length(t)] == control$noStates
 
     #Upperbound does not have any meaning -- compute posterior probability!
     upperbound[i] <- 0

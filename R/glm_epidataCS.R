@@ -7,10 +7,12 @@
 ### number of events per space-time cell of stgrid and offset log(dt*ds)
 ###
 ### Copyright (C) 2013-2014 Sebastian Meyer
-### $Revision: 892 $
-### $Date: 2014-04-08 00:03:56 +0200 (Tue, 08 Apr 2014) $
+### $Revision: 967 $
+### $Date: 2014-08-25 10:42:07 +0200 (Mon, 25 Aug 2014) $
 ################################################################################
 
+
+utils::globalVariables("area")  # in glm(), the 'offset' is evaluated in 'data'
 
 glm_epidataCS <- function (formula, data, ...)
 {

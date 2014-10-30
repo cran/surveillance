@@ -1,4 +1,4 @@
-\name{twinSIR_epidata_summary}
+\name{epidata_summary}
 \alias{summary.epidata}
 \alias{print.summary.epidata}
 

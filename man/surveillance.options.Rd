@@ -33,7 +33,33 @@ reset.surveillance.options()
 	is still an option (mainly for backwards compatibility).
 	The default setting is \code{FALSE}.
       }
-
+      
+      \item{stsTickFactors:}{
+	A named list containing tick sizes of sts xaxis relative to
+	par()$tcl. Each entry contains the size at \code{strptime}
+	formatting strings. See the help of the plotting function for
+	further details.
+	\describe{
+	  \item{"\%d"}{}
+	  \item{"\%W"}{}
+	  \item{"\%V"}{}
+	  \item{"\%m"}{}
+	  \item{"\%Q"}{}
+	  \item{"\%Y"}{}
+	  \item{"\%G"}{}
+	}
+      }
+      
+      \item{colors:}{
+	A named list containing plotting color defaults.
+	\describe{
+	  \item{nowSymbol}{Color of the "now" symbol in \code{stsNC}
+	    plots. Default: \code{"springgreen4"}.}
+	  \item{piBars}{Color of the prediction interval bars in \code{stsNC}
+	    plots. Default: \code{"orange"}.}
+	}
+      }
+      
       \item{allExamples:}{
 	Logical flag mainly for CRAN-compatibility, i.e. to prevent
 	cumbersome computations in help file examples from being run by

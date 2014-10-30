@@ -23,13 +23,10 @@
         Functions from the \pkg{spc} package are used in a simple univariate
         root finding problem.
 }
-%\seealso{}
-%\author{}
 \examples{
-
+if (requireNamespace("spc")) {
     find.kh(ARLa=500,ARLr=7,sided="one")
     find.kh(ARLa=500,ARLr=3,sided="one")
 }
+}
 \keyword{models}
-%\source{}
-

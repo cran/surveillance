@@ -7,8 +7,8 @@
 ### and a spatio-temporal grid of endemic covariates
 ###
 ### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 885 $
-### $Date: 2014-04-05 21:19:32 +0200 (Sat, 05 Apr 2014) $
+### $Revision: 1032 $
+### $Date: 2014-09-26 15:52:10 +0200 (Fri, 26 Sep 2014) $
 ################################################################################
 
 
@@ -115,7 +115,7 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
     # Are event times covered by stgrid?
     if (verbose) cat("Checking if all events are covered by 'stgrid' ...\n")
     ## FIXME: what about pre-history events? don't need stgrid-data for them
-    if (events$time[1] <= timeRange[1] || events$time[nEvents] > timeRange[2]) {
+    if (events$time[1L] <= timeRange[1L] || events$time[nEvents] > timeRange[2L]) {
         stop("event times are not covered by 'stgrid': must be in (",
              timeRange[1L],",",timeRange[2L],"]")
     }
@@ -270,9 +270,10 @@ check_events <- function (events, dropTypes = TRUE, verbose = TRUE)
     events <- events[order(events$time),]
     
     # First obligatory columns then remainders (epidemic covariates)
-    obligColsIdx <- match(obligColsNames_events, names(events))
+    obligColsIdx <- match(obligColsNames_events, names(events@data))
     covarColsIdx <- setdiff(seq_along(events@data), obligColsIdx)
-    events <- events[c(obligColsIdx, covarColsIdx)]
+    events@data <- events@data[c(obligColsIdx, covarColsIdx)]
+    events@coords.nrs <- numeric(0L)  # forget index of coordinate columns
 
     # Done.
     return(events)
@@ -529,5 +530,6 @@ check_tiles_areas <- function (areas.tiles, areas.stgrid, tolerance = 0.05)
         SIMPLIFY = FALSE, USE.NAMES = FALSE)
     
     attr(res, "nCircle2Poly") <- npoly
+    attr(res, "clipper") <- clipper
     res
 }

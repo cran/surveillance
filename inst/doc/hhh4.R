@@ -187,9 +187,11 @@ AIC(result2)
 
 
 ###################################################
-### code chunk number 15: hhh4.Rnw:525-526
+### code chunk number 15: neighbourhood_fluMen
 ###################################################
-neighbourhood(fluMen) <- matrix(c(0,0,1,0),2,2)
+# no "transmission" from meningococcus to influenza
+neighbourhood(fluMen)["meningococcus","influenza"] <- 0
+neighbourhood(fluMen)
 
 
 ###################################################
@@ -206,7 +208,6 @@ m <- list(ar = list(f = ~ -1 + fe(1, which=c(TRUE, TRUE))),
           end = list(f = f.end),
           family = "NegBinM"
           )
-
 
 # fit model
 summary(result <- hhh4(fluMen, control = m))
@@ -279,7 +280,7 @@ if(compute){
 
 
 ###################################################
-### code chunk number 21: hhh4.Rnw:628-629
+### code chunk number 21: hhh4.Rnw:629-630
 ###################################################
 s.B2
 
@@ -297,7 +298,7 @@ s.B2
 
 
 ###################################################
-### code chunk number 24: hhh4.Rnw:650-651
+### code chunk number 24: hhh4.Rnw:651-652
 ###################################################
 meanSc.B2[ c("logs", "rps")]
 
@@ -319,7 +320,7 @@ colnames(vac0) <- colnames(measles2w)
 
 
 ###################################################
-### code chunk number 26: hhh4.Rnw:683-684
+### code chunk number 26: hhh4.Rnw:684-685
 ###################################################
 vac0[1:2, 1:5]
 

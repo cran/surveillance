@@ -1,14 +1,18 @@
-######################################################################
-# Authors: Michael Hoehle, Sebastian Meyer
-# Date: 02 Nov 2009
-#
-# Function 'twinSIR' performs (penalized) maximum likelihood inference 
-# for the Hoehle (2009) model. Now with REML estimation of smoothing
-# parameter lambda.
-#
-# ATTENTION: the .loglik and .score functions assume atRiskY == 1 data
-######################################################################
+################################################################################
+### Part of the surveillance package, http://surveillance.r-forge.r-project.org
+### Free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at http://www.r-project.org/Licenses/.
+###
+### Function 'twinSIR' performs (penalized) maximum likelihood inference 
+### for the Hoehle (2009) model. Now with REML estimation of smoothing
+### parameter lambda.
+###
+### Copyright (C) 2008-2009 Michael Hoehle, 2008-2009, 2014 Sebastian Meyer
+### $Revision: 1079 $
+### $Date: 2014-10-18 01:26:00 +0200 (Sat, 18 Oct 2014) $
+################################################################################
 
+## ATTENTION: the .loglik and .score functions assume atRiskY == 1 data
 
 ######################################################################
 # Log-Likelihood function
@@ -576,7 +580,8 @@ twinSIR <- function (formula, data, weights, subset,
     fit$model <- list(
       survs = survs, X = X, Z = Z, weights = weights,
       lambda.smooth = lambda.smooth, K = K,
-      f = attr(data, "f")[match(colnames(X), names(attr(data, "f")), nomatch=0)]
+      f = attr(data, "f")[match(colnames(X), names(attr(data, "f")), nomatch=0)],
+      w = attr(data, "w")[match(colnames(X), names(attr(data, "w")), nomatch=0)]
     )
   }
   if (keep.data) {

@@ -8,8 +8,8 @@
 ### package, and it is advisable to use it within saveHTML() or similar
 ###
 ### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 890 $
-### $Date: 2014-04-07 09:56:54 +0200 (Mon, 07 Apr 2014) $
+### $Revision: 1096 $
+### $Date: 2014-10-30 11:59:12 +0100 (Thu, 30 Oct 2014) $
 ################################################################################
 
 
@@ -23,11 +23,8 @@ animate.epidataCS <- function (object, interval = c(0,Inf), time.spacing = NULL,
     pch = 15:18, col.current = "red", col.I = "#C16E41", col.R = "#B3B3B3",
     col.influence = NULL, main = NULL, verbose = interactive(), ...)
 {
-    if (dev.interactive())
-        message("Advice: use facilities of the \"animation\" package, e.g.,\n",
-                "        saveHTML() to view the animation in a web browser.")
     stopifnot(is.numeric(interval), length(interval) == 2L)
-    with.animation <- suppressWarnings(require("animation"))
+    with.animation <- requireNamespace("animation", quietly = TRUE)
     if (is.null(sleep)) {
         sleep <- if (with.animation) animation::ani.options("interval") else 0.1
         ## we cannot set this as default function argument, because we don't
@@ -148,5 +145,8 @@ animate.epidataCS <- function (object, interval = c(0,Inf), time.spacing = NULL,
         if (dev.interactive()) Sys.sleep(sleep)
     }
     if (verbose) close(pb)
+    ## if (dev.interactive())
+    ##     message("Note: use facilities of the \"animation\" package, e.g.,\n",
+    ##             "      saveHTML() to view the animation in a web browser.")
     invisible(NULL)
 }

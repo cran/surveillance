@@ -32,12 +32,15 @@ data(imdepifit)
 }
 
 \details{
-  The dataset contains a simplified version of the data analyzed in
-  Meyer et al. (2012), represented as an \code{"epidataCS"} object, i.e.,
-  a list with components \code{events}, \code{stgrid}, \code{W}, and
-  \code{qmatrix}.
+  The \code{imdepi} data is a simplified version of what has been
+  analyzed by Meyer et al. (2012). Simplification is with respect to the
+  temporal resolution of the \code{stgrid} (see below) to be used in
+  \code{\link{twinstim}}'s endemic model component.
+  In what follows, we describe the elements \code{events},
+  \code{stgrid}, \code{W}, and \code{qmatrix} of \code{imdepi} in
+  greater detail.
 
-  The \code{events} entry is a \code{"\linkS4class{SpatialPointsDataFrame}"}
+  \code{imdepi$events} is a \code{"\linkS4class{SpatialPointsDataFrame}"}
   object (ETRS89 projection, i.e. EPSG code 3035, with unit \sQuote{km})
   containing 636 events, each with the following entries:
   \describe{
@@ -98,8 +101,8 @@ data(imdepifit)
   time trends and seasonality (in this discretized time).
   
   The entry \code{W} contains the observation window as a
-  \code{\link{SpatialPolygons}} object, in this case the boundaries of
-  Germany. It was obtained as
+  \code{"\linkS4class{SpatialPolygons}"} object, in this case the
+  boundaries of Germany. It was obtained as
   \code{stateD <- rgeos::gUnaryUnion(districtsD)},
   where \code{districtsD} represents Germany's districts as at
   2009-01-01 (originally obtained from \url{www.geodatenzentrum.de}),

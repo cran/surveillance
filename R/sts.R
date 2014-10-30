@@ -175,11 +175,12 @@ setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...)
   if (by == "time") {
     if (nfreq == "all") {
       howmany <- dim(x@observed)[1]
-    } else {
-      if (nfreq != x@freq) {
-        howmany <- x@freq / nfreq
-        if (howmany - ceiling(howmany) != 0) { stop("Error: nfreq has to be a multiple of x@freq.")}
-      }
+    } else if (nfreq == x@freq) { # nothing to do
+      return(x)
+    } else { # nfreq != x@freq
+      howmany <- x@freq / nfreq
+      if (howmany - ceiling(howmany) != 0)
+          stop("nfreq has to be a multiple of x@freq.")
     }
     
     n <- dim(x@observed)[1]
@@ -450,16 +451,16 @@ setMethod( "show", "sts", function( object ){
 # toLatex method
 ####################  
 
-toLatex.sts <- function(object, caption = "",label=" ", labels = NULL,
+toLatex.sts <- function(object, caption = "",label=" ", columnLabels = NULL,
                         subset = NULL, 
                         alarmPrefix = "\\textbf{\\textcolor{red}{",
                         alarmSuffix = "}}", ubColumnLabel = "UB", ...) {
   # Takes a list of sts objects and outputs a LaTeX Table. 
   # Args:
-  #   object: A list of sts objects; must not be NULL or empty.
+  #   object: A single sts object; must not be NULL or empty.
   #   caption: A caption for the table. Default is the empty string.
-  #   labels: A list of labels for each sts object. E.g. subtypes of a pathogen. 
-  #           Default is NULL
+  #   label: A label for the table. Default is the empty string.
+  #   columnLabels: A list of labels for each column of the resulting table.
   #   subset: A range of values which should be displayed. If Null, then all 
   #           data in the sts objects will be displayed. Else only a subset of 
   #           data. Therefore range needs to be a numerical vector of indexes
@@ -478,54 +479,45 @@ toLatex.sts <- function(object, caption = "",label=" ", labels = NULL,
   if (isEmpty(object))
     stop("object must not be null or NA.")
   
-  if (is.list(object) 
-      && !is.null(Find(function(o)!isS4(o) || !is(o, "sts"), object)))
+  if (is.list(object))
+    stop("supplying a list of sts has been removed from the api. Sorry.")
+  
+  if (!isS4(object) || !is(object, "sts"))
     stop("object must be of type sts from the surveillance package.")
-  else if(!is.list(object)  
-          && (!isS4(object) || !is(object, "sts")))
-    stop("stsObject must be of type sts from the surveillance package.")
   
   if (!is.character(caption))
     stop("caption must be a character.")
   
   if (!isEmpty(labels) && length(labels) != length(object))
     stop("number of labels differ from the number of sts objects.")
-  
+    
   # derive default values
   
-  if (length(object) == 1)
-    baseSts <- object
-  else
-    baseSts <- object[[1]]
-  
-  if (isEmpty(labels))
-    tableLabels <- colnames(baseSts@observed)
-  else
-    tableLabels <- labels
+  tableLabels <- colnames(object@observed)
+  if (!is.null(columnLabels) && 
+        length(columnLabels) != ncol(object@observed) * 2 + 2) {
+    stop("the number of labels must match the number of columns in the 
+         resulting table; i.e. 2 * columns of sts + 2.")
+  }
   
   tableCaption <- caption
   tableLabel <- label
   
-  epochAsDate <- baseSts@epochAsDate
-  epochStr <- switch( as.character(baseSts@freq), 
+  epochAsDate <- object@epochAsDate
+  epochStr <- switch( as.character(object@freq), 
                       "12" = "month",
                       "52" =  "week",
                       "365" = "day")
-  noDataPoints <- nrow(baseSts@observed)
-  
-  # check if all sts objects have equal length
-  if (length(object) > 1 
-      && length(Filter(function(s)nrow(s@observed) != noDataPoints, object)) > 1)
-    stop("all sts objects must have equal length.")
-    
+  noDataPoints <- nrow(object@observed)
+      
   if (epochAsDate) {
-    vectorOfDates <- as.Date(baseSts@epoch, origin="1970-01-01")
+    vectorOfDates <- as.Date(object@epoch, origin="1970-01-01")
   } else { 
     firstMonday <- as.POSIXlt(
-                              paste(baseSts@start[1],
-                                    baseSts@start[2],"1",sep=" ")
+                              paste(object@start[1],
+                                    object@start[2],"1",sep=" ")
                              ,format = "%Y %W %u") 
-    dateInc <- switch(as.character(baseSts@freq), 
+    dateInc <- switch(as.character(object@freq), 
                           "12" = 30, 
                           "365" = 1, 
                           "52" = 7)
@@ -534,60 +526,53 @@ toLatex.sts <- function(object, caption = "",label=" ", labels = NULL,
   
   yearColumn <- Map(function(d)isoWeekYear(d)$ISOYear, vectorOfDates)
   
-  if (baseSts@freq == 12 )
+  if (object@freq == 12 )
     monthColumn <- Map(function(d) as.POSIXlt(d)$mon, vectorOfDates)
   
-  if (baseSts@freq == 52 )
+  if (object@freq == 52 )
     weekColumn <- Map(function(d)isoWeekYear(d)$ISOWeek, vectorOfDates)
   
   dataTable <- data.frame(unlist(yearColumn))
   colnames(dataTable) <- "year"
   
-  if (baseSts@freq == 12 ) {
+  if (object@freq == 12 ) {
     dataTable$month <- unlist(monthColumn)  
   }
   
-  if (baseSts@freq == 52 ) {
+  if (object@freq == 52 ) {
     dataTable$week <- unlist(weekColumn)
   }
   
-  if (baseSts@freq == 365 ) {
+  if (object@freq == 365 ) {
     dataTable$day <- unlist(vectorOfDates)
     dataTable <- dataTable[c(2)]
   }
   
-  # now append all sts data
-  if (length(object) > 1)
-    stsList <- Map(identity,object)
-  else
-    stsList <- list(object)
   noCols <- ncol(dataTable)
   j <- 1 + noCols
   tableLabelsWithUB <- c()
   
   # I know it is imperative - shame on me
-  for (i in 1:(length(stsList))) {
-    for (k in 1:(ncol(stsList[[i]]@observed))) {
-      upperbounds <- round(stsList[[i]]@upperbound[,k], 2)
-      observedValues <- stsList[[i]]@observed[,k]
-      alarms <- stsList[[i]]@alarm[,k]
-      ubCol <- c()
-      for(l in 1:length(upperbounds)) {
-        if (is.na(upperbounds[l]))
-          ubCol <- c(ubCol, NA)
-        else {
-          if (!is.na(alarms[l]) && alarms[l])
-            ubCol <- c(ubCol, paste0(alarmPrefix, upperbounds[l], alarmSuffix))
-          else
+  for (k in 1:(ncol(object@observed))) {
+    upperbounds <- round(object@upperbound[,k], 2)
+    observedValues <- object@observed[,k]
+    alarms <- object@alarm[,k]
+    ubCol <- c()
+    for (l in 1:length(upperbounds)) {
+        if (is.na(upperbounds[l])) {
+            ubCol <- c(ubCol, NA)
+        } else {
             ubCol <- c(ubCol, upperbounds[l])
+            if (!is.na(alarms[l]) && alarms[l]) {
+                observedValues[l] <- paste0(alarmPrefix, observedValues[l], alarmSuffix)
+            }
         }
-      }
-      dataTable[,(j)] <- observedValues
-      dataTable[,(j + 1)] <- ubCol
-      tableLabelsWithUB <- c(tableLabelsWithUB, tableLabels[k])
-      tableLabelsWithUB <- c(tableLabelsWithUB, ubColumnLabel)
-      j <- j + 2
     }
+    dataTable[,(j)] <- observedValues
+    dataTable[,(j + 1)] <- ubCol
+    tableLabelsWithUB <- c(tableLabelsWithUB, tableLabels[k])
+    tableLabelsWithUB <- c(tableLabelsWithUB, ubColumnLabel)
+    j <- j + 2
   }
   
   # remove rows which should not be displayed
@@ -601,7 +586,11 @@ toLatex.sts <- function(object, caption = "",label=" ", labels = NULL,
   
   # prepare everything for xtable
   newColNames <- c(colnames(dataTable)[1:noCols], tableLabelsWithUB)
-  colnames(dataTable) <- newColNames
+  if (!is.null(columnLabels)) {
+    colnames(dataTable) <- columnLabels
+  } else {
+    colnames(dataTable) <- newColNames
+  }
   xDataTable <- xtable(dataTable, label = tableLabel, caption = tableCaption, digits = c(0))
   toLatex(xDataTable, ...) 
 }

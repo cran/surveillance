@@ -37,14 +37,6 @@ gpclibCheck <- function (fatal = TRUE)
 }
 
 
-### Function 'base::rep_len' only exists as of R version 3.0.0
-### Define it as a wrapper for base::rep() for older versions
-
-if (getRversion() < "3.0.0" || !exists("rep_len", baseenv())) {
-    rep_len <- function (x, length.out) rep(x, length.out=length.out)
-}
-
-
 
 ###########################
 ### Little helper functions
