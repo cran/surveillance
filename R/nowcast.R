@@ -135,6 +135,9 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   if (is.null(control[["alpha",exact=TRUE]])) {
     control$alpha <- 0.05
   }
+  if (is.null(control[["N.tInf.prior",exact=TRUE]])) {
+    control$N.tInf.prior <- "unif"
+  }
   if (is.null(control[["N.tInf.max",exact=TRUE]])) {
     control$N.tInf.max <- 300
   }

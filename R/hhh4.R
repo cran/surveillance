@@ -7,67 +7,51 @@
 ### The function allows the incorporation of random effects and covariates.
 ###
 ### Copyright (C) 2010-2014 Michaela Paul and Sebastian Meyer
-### $Revision: 1044 $
-### $Date: 2014-10-03 10:33:07 +0200 (Fri, 03 Oct 2014) $
+### $Revision: 1143 $
+### $Date: 2014-12-16 14:05:03 +0100 (Tue, 16 Dec 2014) $
 ################################################################################
-
-# - some function arguments are currently not used (but will eventually)
-# - formula formulation is experimental and not yet implemented in full generality 
 
 ## Error message issued in loglik, score and fisher functions upon NA parameters
 ADVICEONERROR <- "\n  Try different starting values, more iterations, or another optimizer.\n"
 
 
-### Default control argument for hhh4
-### This argument list is also set as the formal 'control' argument of hhh4()
-### below the definition of hhh4
+### Main function to be called by the user
 
-CONTROL.hhh4 <- alist(
-    ar = list(f = ~ -1,        # a formula " exp(x'lamba)*y_t-1 "
-                               # (ToDo: or a matrix " Lambda %*% y_t-1 ")
+hhh4 <- function (stsObj, control = list(
+    ar = list(f = ~ -1,        # a formula "exp(x'lamba)*y_t-lag" (ToDo: matrix)
               offset = 1,      # multiplicative offset
               lag = 1,         # autoregression on y_i,t-lag
-              weights = NULL,  # for a contact matrix model (currently unused)
-              initial = NULL   # initial parameters values if pred is a matrix
-                               # or if pred = ~1 (not really used ATM)
-    ),
+              weights = NULL), # for a contact matrix model (currently unused)
     ne = list(f = ~ -1,        # a formula "exp(x'phi) * sum_j w_ji * y_j,t-lag"
               offset = 1,      # multiplicative offset
               lag = 1,         # regression on y_j,t-lag
-              weights = neighbourhood(stsObj) == 1,  # weights w_ji
-              initial = NULL   # initial parameter values if pred = ~1 (not really used ATM)
-    ),
-    end = list(f = ~ 1,        # a formula " exp(x'nu) * n_it "
-               offset = 1,     # optional multiplicative offset e_it
-               initial = NULL  # initial parameter values if pred = ~1 (not really used ATM)
-    ),
+              weights = neighbourhood(stsObj) == 1),  # weights w_ji
+    end = list(f = ~ 1,        # a formula "exp(x'nu) * n_it"
+               offset = 1),    # optional multiplicative offset e_it
     family = c("Poisson", "NegBin1", "NegBinM"),
-    subset = 2:nrow(stsObj),   # typically 2:nTime if model contains lags
-    optimizer = list(stop = list(tol=1e-5, niter=100),   # control arguments
-                     regression = list(method="nlminb"), # for optimization 
-                     variance = list(method="nlminb")),
-    verbose = FALSE,           # level of reporting during hhh4() processing
-    start = list(fixed=NULL,random=NULL,sd.corr=NULL),  # list with initials,
-                               # overrides any initial values in formulas 
-    data = list(t=epoch(stsObj)-1), # named list of covariates from any of the formulae
-    keep.terms = FALSE   # keep the result of interpretControl(control, stsObj)?
-)
-
-
-
-### Main function, which is to be called by the user
-
-hhh4 <- function (stsObj, control, check.analyticals = FALSE)
+    subset = 2:nrow(stsObj),   # epidemic components require Y_{t-lag}
+    optimizer = list(stop = list(tol = 1e-5, niter = 100), # control arguments
+                     regression = list(method = "nlminb"), # for optimization 
+                     variance = list(method = "nlminb")),  # <- or "Nelder-Mead"
+    verbose = FALSE,           # level of reporting during optimization
+    start = list(fixed = NULL, # list of start values, replacing initial
+                 random = NULL,  # values from fe() and ri() in 'f'ormulae
+                 sd.corr = NULL), 
+    data = list(t = epoch(stsObj) - 1), # named list of covariates
+    keep.terms = FALSE  # whether to keep interpretControl(control, stsObj)
+    ), check.analyticals = FALSE)
 {
   ptm <- proc.time()
   
   ## Convert old disProg class to new sts class
-  if(inherits(stsObj, "disProg")) stsObj <- disProg2sts(stsObj)
+  if (inherits(stsObj, "disProg")) {
+      stsObj <- disProg2sts(stsObj)
+  } else {
+      stopifnot(inherits(stsObj, "sts"))
+  }
   
   ## check control and set default values (for missing arguments)
   control <- setControl(control, stsObj)
-  #* if univariate, no neighbouring term
-  #* check nhood matrix
   
   ## get model terms
   model <- interpretControl(control, stsObj)
@@ -174,9 +158,6 @@ hhh4 <- function (stsObj, control, check.analyticals = FALSE)
   result
 }
 
-## Store default control arguments in the formal argument list of hhh4
-formals(hhh4)[["control"]] <- as.pairlist(CONTROL.hhh4)
-
 
 ## set default values for model specifications in control
 setControl <- function (control, stsObj)
@@ -187,10 +168,9 @@ setControl <- function (control, stsObj)
   if(nTime <= 2) stop("too few observations")
   
   ## arguments in 'control' override any corresponding default arguments
-  defaultControl <- lapply(CONTROL.hhh4, eval, envir=environment())
+  defaultControl <- eval(formals(hhh4)$control)
   environment(defaultControl$ar$f) <- environment(defaultControl$ne$f) <-
       environment(defaultControl$end$f) <- .GlobalEnv
-  defaultControl$data <- as.list(defaultControl$data)
   control <- modifyList(defaultControl, control)
 
   ## check that component specifications are list objects
@@ -208,10 +188,8 @@ setControl <- function (control, stsObj)
 
   
   ### check AutoRegressive component
-  
-  control$ar$isMatrix <- is.matrix(control$ar$f)
 
-  if (is.matrix(control$ar$f)) {
+  if (control$ar$isMatrix <- is.matrix(control$ar$f)) {
       if (any(dim(control$ar$f) != nUnit))
           stop("'control$ar$f' must be a square matrix of size ", nUnit)
       # use identity matrix if weight matrix is missing
@@ -241,6 +219,8 @@ setControl <- function (control, stsObj)
   control$ne$inModel <- isInModel(control$ne$f)
   
   if (control$ne$inModel) {
+      if (nUnit == 1)
+          stop("\"ne\" component requires a multivariate 'stsObj'")
       ## if ar$f is a matrix it includes neighbouring units => no "ne" component
       if (control$ar$isMatrix)
           stop("there must not be an extra \"ne\" component ",
@@ -297,10 +277,14 @@ setControl <- function (control, stsObj)
   if (length(control$verbose) != 1L || control$verbose < 0)
       stop("'control$verbose' must be a logical or non-negative numeric value")
 
-  if (!is.list(control$start) ||
-      any(! sapply(c("fixed", "random", "sd.corr"),
-                   function(x) is.null(control$start[[x]]) ||
-                               is.numeric(control$start[[x]]))))
+  stopifnot(is.list(control$start))
+  control$start <- local({
+      defaultControl$start[] <- control$start[names(defaultControl$start)]
+      defaultControl$start
+  })
+  if (!all(vapply(X = control$start,
+                  FUN = function(x) is.null(x) || is.vector(x, mode="numeric"),
+                  FUN.VALUE = TRUE, USE.NAMES = FALSE)))
       stop("'control$start' must be a list of numeric start values")
   
   stopifnot(length(control$keep.terms) == 1L, is.logical(control$keep.terms))
@@ -311,16 +295,11 @@ setControl <- function (control, stsObj)
 
 
 # check whether or not one of the three components is included in the model
-isInModel <- function(formula, name=deparse(substitute(formula))){
+isInModel <- function(formula, name=deparse(substitute(formula)))
+{
   term <- terms.formula(formula)
-  if(attr(term,"response") == 1) stop(name," cannot contain a response variable\n")
-  if(attr(term,"intercept") == 1) {
-    inModel <- TRUE
-  } else {
-    # first element is always a list
-    inModel <- ifelse(length(attr(term, "variables")) > 1, TRUE, FALSE)
-  }
-  return(inModel)
+  if(attr(term,"response") > 0) stop(name, " cannot contain a response")
+  attr(term, "intercept") + length(attr(term, "term.labels")) > 0
 }
 
 # used to incorporate covariates and unit-specific effects
@@ -373,11 +352,11 @@ fe <- function(x,          # covariate
   # get dimension of parameter
   dim.fe <- ifelse(unitSpecific, sum(which), 1)
   
-  #* check length of initial values + set default values?
-  if(!is.null(initial) & length(initial) !=dim.fe){
-    stop("Initial values for \'",deparse(substitute(x)),"\' must be of length ",dim.fe,"\n")
-  } else if(is.null(initial)){
+  # check length of initial values + set default values
+  if (is.null(initial)) {
     initial <- rep.int(0,dim.fe)
+  } else if (length(initial) != dim.fe) {
+    stop("initial values for '",deparse(substitute(x)),"' must be of length ",dim.fe)
   }
   
   summ <- ifelse(unitSpecific,"colSums","sum")
@@ -406,14 +385,17 @@ fe <- function(x,          # covariate
 }
 
 # random intercepts
-ri <- function(type=c("iid","car")[1], 
-               corr=c("none","all")[1],
-               initial.var=NULL,  # initial value for variance
+ri <- function(type=c("iid","car"), 
+               corr=c("none","all"),
+               initial.fe=0,
+               initial.var=-.5,
                initial.re=NULL)
 {
   stsObj <- get("stsObj", envir=parent.frame(1), inherits=TRUE) #checkFormula()
-  type <- match.arg(type, c("iid","car"))
-  corr <- match.arg(corr, c("none","all"))
+  if (ncol(stsObj) == 1)
+      stop("random intercepts require a multivariate 'stsObj'")
+  type <- match.arg(type)
+  corr <- match.arg(corr)
   corr <- switch(corr, 
                   "none"=FALSE,
                   "all"=TRUE)
@@ -443,20 +425,16 @@ ri <- function(type=c("iid","car")[1],
     # Z = L(L'L)^-1, which can't be simplified to Z=(L')^-1 as L is not square
     Z <- L %*% solve(t(L)%*%L)
     
-    dim.re <- dimK-1
+    dim.re <- dimK - 1L
     mult <- "%*%"
   } 
   
-  #* check length of initial values + set default values?
-  if(!is.null(initial.re) & length(initial.re) !=dim.re){
-    stop("Initial values for \'",type,"\' must be of length ",dim.re)
-  } else if(is.null(initial.re)){
+  # check length of initial values + set default values
+  stopifnot(length(initial.fe) == 1, length(initial.var) == 1)
+  if (is.null(initial.re)) {
     initial.re <- rnorm(dim.re,0,sd=sqrt(0.001))
-  }
-  if(!is.null(initial.var) & length(initial.var) !=1){
-    stop("Initial values for \'",type,"\' must be of length ",1)
-  } else if(is.null(initial.var)){
-    initial.var <- -.5
+  } else if (length(initial.re) != dim.re) {
+    stop("'initial.re' must be of length ", dim.re)
   }
 
   result <- list(terms=1,
@@ -464,7 +442,7 @@ ri <- function(type=c("iid","car")[1],
                 Z.intercept=Z,
                 which=NULL,
                 dim.fe=1,
-                initial.fe=0,
+                initial.fe=initial.fe,
                 dim.re=dim.re,
                 dim.var=1,
                 initial.var=initial.var,
@@ -650,10 +628,18 @@ interpretControl <- function (control, stsObj)
   }
   
   n <- c("ar","ne","end")[unlist(all.term["offsetComp",])]
-  names.fe <- names.var <- NULL
-  for(i in 1:length(n)){
-    names.fe <- c(names.fe,paste(n[i],all.term["name",i][[1]], sep="."))
-    if(all.term["random",i][[1]]) names.var <- c(names.var,paste("sd",n[i],all.term["name",i][[1]], sep="."))
+  names.fe <- names.var <- names.re <- character(0L)
+  for(i in seq_along(n)){
+    .name <- all.term["name",i][[1]]
+    names.fe <- c(names.fe, paste(n[i], .name, sep="."))
+    if(all.term["random",i][[1]]) {
+        names.var <- c(names.var, paste("sd", n[i], .name, sep="."))
+        names.re <- c(names.re, paste(n[i], .name, if (.name == "ri(iid)") {
+            colnames(stsObj)
+        } else {
+            seq_len(all.term["dim.re",i][[1]])
+        }, sep = "."))
+    }
   }
   index.fe <- rep(1:ncol(all.term), times=unlist(all.term["dim.fe",]))
   index.re <- rep(1:ncol(all.term), times=unlist(all.term["dim.re",])) 
@@ -682,42 +668,49 @@ interpretControl <- function (control, stsObj)
   }
   environment(ddistr) <- .GlobalEnv     # function is self-contained
 
-  # parameter start values
-  initial.fe <- unlist(all.term["initial.fe",])
-  initial.overdisp <- rep.int(2, dim.overdisp)
-  initial.fe.d.overdisp <- c(initial.fe, initial.d, initial.overdisp)
-  initial.re <- unlist(all.term["initial.re",])
-  initial.sd <- unlist(all.term["initial.var",])
-  initial.corr <- rep.int(0, dim.corr)
-  initial.sd.corr <- c(initial.sd, initial.corr)
-  
-  # check if a list of 'start' values is supplied
-  if(!is.null(control$start$fixed)){
-    if(length(control$start$fixed) != dim.fe + dim.d + dim.overdisp)
-    stop("initial values in start$fixed must be of length ",
-         dim.fe + dim.d + dim.overdisp)
-    initial.fe.d.overdisp <- control$start$fixed
-  }
-  if(!is.null(control$start$random)){
-      if(length(control$start$random) != dim.re)
-          stop("initial values in start$random must be of length ",dim.re,"\n")  
-      initial.re <- control$start$random
-  }
-  if(!is.null(control$start$sd.corr)){
-      if(length(control$start$sd.corr) != dim.var+dim.corr)
-          stop("initial values in start$sd.corr must be of length ",dim.var+dim.corr,"\n")  
-      initial.sd.corr <- control$start$sd.corr
-  }
-
-  # set names of parameter vectors
   names.overdisp <- if(dim.overdisp > 1L){
-    paste(paste("-log(overdisp", colnames(stsObj), sep=".") ,")", sep="")
+    paste0(paste("-log(overdisp", colnames(stsObj), sep="."), ")")
   } else {
-    rep("-log(overdisp)",dim.overdisp)  # dim.overdisp may be 0
+    rep("-log(overdisp)", dim.overdisp)  # dim.overdisp may be 0
   }
-  names(initial.fe.d.overdisp) <- c(names.fe, names.d, names.overdisp)
-  names(initial.sd.corr) <- c(names.var, head(paste("corr",1:3,sep="."),dim.corr))
 
+  # parameter start values from fe() and ri() calls via checkFormula()
+  initial <- list(
+      fixed = c(unlist(all.term["initial.fe",]),
+                initial.d,
+                rep.int(2, dim.overdisp)),
+      random = as.numeric(unlist(all.term["initial.re",])), # NULL -> numeric(0)
+      sd.corr = c(unlist(all.term["initial.var",]),
+                  rep.int(0, dim.corr))
+  )
+  # set names of parameter vectors
+  names(initial$fixed) <- c(names.fe, names.d, names.overdisp)
+  names(initial$random) <- names.re
+  names(initial$sd.corr) <- c(names.var, head(paste("corr",1:3,sep="."), dim.corr))
+
+  # modify initial values according to the supplied 'start' values
+  initial[] <- mapply(
+      FUN = function (initial, start, name) {
+          if (is.null(start))
+              return(initial)
+          if (is.null(names(initial)) || is.null(names(start))) {
+              if (length(start) == length(initial)) {
+                  initial[] <- start
+              } else {
+                  stop("initial values in 'control$start$", name,
+                       "' must be of length ", length(initial))
+              }
+          } else {
+              ## we match by name and silently ignore additional start values
+              start <- start[names(start) %in% names(initial)]
+              initial[names(start)] <- start
+          }
+          return(initial)
+      },
+      initial, control$start[names(initial)], names(initial),
+      SIMPLIFY = FALSE, USE.NAMES = FALSE
+  )
+  
   # Done
   result <- list(response = Y,
                  terms = all.term,
@@ -735,8 +728,8 @@ interpretControl <- function (control, stsObj)
                  namesFE = names.fe,
                  indexFE = index.fe,
                  indexRE = index.re,
-                 initialTheta = c(initial.fe.d.overdisp, initial.re),
-                 initialSigma = initial.sd.corr,
+                 initialTheta = c(initial$fixed, initial$random),
+                 initialSigma = initial$sd.corr,
                  offset = offsets,
                  family = ddistr,
                  subset = control$subset,

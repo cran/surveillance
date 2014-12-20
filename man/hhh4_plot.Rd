@@ -90,7 +90,9 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     \code{plotter}.}
   \item{units,unit}{integer or character vector specifying a single
     \code{unit} or possibly multiple \code{units} to plot.
-    It indexes \code{colnames(x$stsObj)}. In the seasonality plot,
+    It indexes \code{colnames(x$stsObj)}.\cr
+    In \code{plotHHH4_fitted}, \code{units=NULL} plots all units.\cr
+    In the seasonality plot,
     selection of a unit is only relevant if the model contains
     unit-specific intercepts or seasonality terms.}
   \item{names,main}{main title(s) for the selected
@@ -167,9 +169,10 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     \code{\link{layout.labels}}.}
   \item{sp.layout}{optional list of additional layout items, see
     \code{\link{spplot}}.}
-  \item{gpar.missing}{list of graphical parameters applied to regions
-    with missing random intercepts (i.e., not included in the model).
-    Supplementary regions won't be plotted at all if
+  \item{gpar.missing}{list of graphical parameters for
+    \code{\link{sp.polygons}}, applied to regions
+    with missing random intercepts, i.e., not included in the model.
+    Such extra regions won't be plotted if
     \code{!is.list(gpar.missing)}.}
   \item{plotter}{the (name of a) function used to produce the plot of
     weights (a numeric vector) as a function of neighbourhood order (a

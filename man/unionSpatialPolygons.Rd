@@ -54,14 +54,18 @@ unionSpatialPolygons(SpP, method = c("rgeos", "polyclip", "gpclib"), ...)
 
 \examples{
 ## Load districts of Germany
-load(system.file("shapes", "districtsD.RData", package="surveillance"))
+load(system.file("shapes", "districtsD.RData", package = "surveillance"))
+plot(districtsD, border = "gray")
 
-## Union these districts
-plot(unionSpatialPolygons(districtsD, method="polyclip"), border=0, col=1)
-plot(districtsD, add=TRUE, border="lightgrey")
-if (requireNamespace("rgeos"))
-    plot(unionSpatialPolygons(districtsD, method="rgeos"),
-         add=TRUE, border=2, lwd=2)
+## Union these districts using either "rgeos" or "polyclip"
+if (requireNamespace("rgeos"))  {
+    stateD <- unionSpatialPolygons(districtsD, method = "rgeos")
+    plot(stateD, add = TRUE, border = 2, lwd = 2)
+}
+if (requireNamespace("polyclip")) {
+    stateD_pc <- unionSpatialPolygons(districtsD, method = "polyclip")
+    plot(stateD_pc, add = TRUE, border = 1, lwd = 2, lty = 2)
+}
 }
 
 \keyword{spatial}

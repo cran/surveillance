@@ -2,8 +2,8 @@
 \Rdversion{1.1}
 \docType{class}
 \alias{sts-class}
-%
-% accessing the slots
+
+% methods to access and replace slots
 \alias{alarms,sts-method}
 \alias{alarms<-,sts-method}
 \alias{upperbound,sts-method}
@@ -21,15 +21,13 @@
 \alias{neighbourhood,sts-method}
 \alias{neighbourhood<-,sts-method}
 % other access methods
-\alias{nrow,sts-method}
-\alias{ncol,sts-method}
 \alias{dim,sts-method}
-\alias{colnames,sts,missing,missing-method}
+\alias{dimnames,sts-method}
 \alias{epochInYear}
 \alias{epochInYear,sts-method}
 \alias{year}
 \alias{year,sts-method}
-% other methods
+% constructor and conversion methods
 \alias{initialize,sts-method}
 \alias{as.data.frame,sts-method}
 \alias{coerce,sts,ts-method}
@@ -97,11 +95,7 @@
 }
 
 \section{Methods}{
-  \describe{ \item{nrow}{\code{signature(x = "sts")}:
-      extract number of rows of the \code{observed} matrix slot. The
-      dimension of the other matrix slots is similar.}
-    \item{ncol}{\code{signature(x = "sts")}:
-      extract number of columns of the \code{observed} matrix slot.}
+  \describe{ 
     \item{dim}{\code{signature(x = "sts")}: extract matrix dimensions of
       \code{observed} using \code{\link{dim}}.}
     \item{observed}{\code{signature(x = "sts")}: extract the \code{observed}
@@ -123,7 +117,7 @@
       returned object is of class \code{Date}.}
     \item{epochInYear}{\code{signature(x = "sts")}: Returns the epoch
       number within the year of the \code{epoch} slot.}
-    \item{colnames}{\code{signature(x="sts",do.NULL="missing",prefix="missing")}: extract \code{\link{colnames}} of the \code{observed} matrix.}
+    \item{dimnames}{\code{signature(x="sts")}: extract the \code{\link{dimnames}} of the \code{observed} matrix.}
     \item{initialize}{\code{signature(x="sts")}: the internal function
       \code{init.sts} is called, which assigns all slots.  }
     \item{aggregate}{\code{signature(x="sts")}: see

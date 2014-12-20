@@ -6,6 +6,50 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.8-2 (2014-12-16)}{
+
+\subsection{MINOR CHANGES related to \code{hhh4}}{
+  \itemize{
+    \item In the coefficient vector resulting from a \code{hhh4} fit,
+    random intercepts are now named.
+    
+    \item Parameter \code{start} values in \code{hhh4()} are now
+    matched by name but need not be complete in that case (default
+    initial values are used for unspecified parameters).
+
+    \item The \code{update.hhh4()}-method now by default does
+    \code{use.estimates} from the previous fit. This reduces the
+    number of iterations during model fitting but may lead to slightly
+    different parameter estimates (within a tolerance of \code{1e-5}).
+    Setting \code{use.estimates = FALSE} means to re-use the previous
+    start specification.
+  }
+}
+
+\subsection{MINOR CHANGES related to the \code{"sts"}-class}{
+  \itemize{
+    \item For univariate \code{"sts"} objects, the (meaningless)
+    \dQuote{head of neighbourhood} is no longer \code{show}n.
+
+    \item The \code{"sts"} class now has a \code{dimnames}-method
+    instead of a \code{colnames}-method. Furthermore, the redundant
+    \code{nrow} and \code{ncol} methods have been removed
+    (the \code{dim}-method is sufficient).
+
+    \item If a \code{map} is provided when \code{initialize()}ing an
+    \code{"sts"} object, it is now verified that all \code{observed}
+    regions are part of the \code{map} (matched by \code{row.names}).
+
+    \item In \code{stsplot_space()}, extra (unobserved) regions of the
+    \code{map} are no longer dropped but shown with a dashed border by
+    default.
+  }
+}
+
+}
+
+
+
 \section{Changes in surveillance version 1.8-1 (2014-10-29)}{
   
 \subsection{NEW FEATURES}{

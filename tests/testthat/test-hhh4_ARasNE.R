@@ -17,7 +17,8 @@ measlesFit2 <- suppressWarnings(
     update(measlesFit,
            ar = list(f = ~-1),
            ne = list(f = measlesModel$ar$f,
-                     weights = diag(ncol(measlesWeserEms))))
+                     weights = diag(ncol(measlesWeserEms))),
+           use.estimates = FALSE)
     )
 
 ## compare fits

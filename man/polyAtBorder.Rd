@@ -40,18 +40,20 @@ logical vector of the same length as \code{SpP} also inheriting its
 
 \examples{
 ## Load districts of Germany
-load(system.file("shapes", "districtsD.RData", package="surveillance"))
+load(system.file("shapes", "districtsD.RData", package = "surveillance"))
 
-## indicate districts at the border
-districtAtBorder <- polyAtBorder(districtsD)
+## Determine districts at the border and check the result on the map
+if (requireNamespace("rgeos")) {
+    atBorder <- polyAtBorder(districtsD, method = "rgeos")
+    plot(districtsD, col = atBorder)
+}
 
-## plot to check
-plot(districtsD, col=districtAtBorder)
-
-## polyclip cannot be used with the default snapping tolerance
-## but increasing the tolerance gives the correct result
-stopifnot(identical(districtAtBorder,
-                    polyAtBorder(districtsD, snap=1e-6, method="polyclip")))
+## For method = "polyclip", a higher snapping tolerance is required
+## to obtain the correct result
+if (requireNamespace("polyclip")) {
+    atBorder <- polyAtBorder(districtsD, snap = 1e-6, method = "polyclip")
+    plot(districtsD, col = atBorder)
+}
 }
 
 \keyword{spatial}

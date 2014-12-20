@@ -1,8 +1,8 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.8-1
-Date: 2014-10-29
+Version: 1.8-2
+Date: 2014-12-16
 Authors@R: c(MH = person("Michael", "Höhle",
                   email = "hoehle@math.su.se",
                   role = c("aut", "cre", "ths")),
@@ -37,9 +37,9 @@ Author: Michael Höhle [aut, cre, ths], Sebastian Meyer [aut],
         Mikko Virtanen [ctb], Valentin Wimmer [ctb], R Core Team [ctb]
         (A few code segments are modified versions of code from base R)
 Maintainer: Michael Höhle <hoehle@math.su.se>
-Depends: R (>= 3.0.2), methods, grDevices, graphics, stats, utils,
-        Rcpp, sp (>= 1.0-15), xtable, polyCub (>= 0.4-3)
-Imports: MASS, Matrix, spatstat (>= 1.36-0)
+Depends: R (>= 3.0.2), methods, grDevices, graphics, stats, utils, sp
+        (>= 1.0-15), xtable, polyCub (>= 0.4-3)
+Imports: Rcpp (>= 0.11.0), MASS, Matrix, spatstat (>= 1.36-0)
 LinkingTo: Rcpp
 Suggests: parallel, grid, gridExtra, lattice, colorspace, scales,
         animation, msm, spc, quadprog, memoise, polyclip, rgeos,
@@ -79,7 +79,7 @@ License: GPL-2
 URL: http://surveillance.r-forge.r-project.org/
 BugReports: https://r-forge.r-project.org/tracker/?group_id=45
 Encoding: latin1
-Packaged: 2014-10-30 13:42:43 UTC; hoehle
+Packaged: 2014-12-20 10:16:33 UTC; hoehle
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2014-10-30 15:54:15
+Date/Publication: 2014-12-20 14:11:48

@@ -6,8 +6,8 @@
 ### Standard methods for hhh4-fits
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2014 Sebastian Meyer
-### $Revision: 1049 $
-### $Date: 2014-10-06 14:33:20 +0200 (Mon, 06 Oct 2014) $
+### $Revision: 1146 $
+### $Date: 2014-12-17 20:49:46 +0100 (Wed, 17 Dec 2014) $
 ################################################################################
 
 
@@ -315,15 +315,44 @@ predict.hhh4 <- function(object, newSubset = object$control$subset,
 ## S: a named list to adjust the number of harmonics of the three components
 ## subset.upper: refit on a subset of the data up to that time point
 ## use.estimates: use fitted parameters as new start values
-##                (only applicable if same model)
 
 update.hhh4 <- function (object, ..., S = NULL, subset.upper = NULL,
-                         use.estimates = FALSE, evaluate = TRUE)
+                         use.estimates = TRUE, evaluate = TRUE)
 {
     control <- object$control
 
     ## first modify the control list according to the components in ...
-    control <- modifyList(control, list(...))
+    extras <- list(...)
+    control <- modifyList(control, extras)
+
+    ## adjust start values
+    control$start <- if (use.estimates) { # use parameter estimates
+        hhh4coef2start(object)
+    } else local({ # re-use previous 'start' specification
+        ## for pre-1.8-2 "hhh4" objects,
+        ## object$control$start is not necessarily a complete list:
+        template <- eval(formals(hhh4)$control$start)
+        template[] <- object$control$start[names(template)]
+        template
+    })
+    ## and update according to an extra 'start' argument
+    if (!is.null(extras[["start"]])) {
+        if (!is.list(extras$start) || is.null(names(extras$start))) {
+            stop("'start' must be a named list, see 'help(\"hhh4\")'")
+        }
+        control$start[] <- mapply(
+            FUN = function (now, extra) {
+                if (is.null(names(extra))) {
+                    extra
+                } else { # can retain non-extra values
+                    now[names(extra)] <- extra
+                    now
+                }
+            },
+            control$start, extras$start[names(control$start)],
+            SIMPLIFY = FALSE, USE.NAMES = FALSE
+        )
+    }
 
     ## adjust seasonality
     if (!is.null(S)) {
@@ -340,9 +369,6 @@ update.hhh4 <- function (object, ..., S = NULL, subset.upper = NULL,
     if (isScalar(subset.upper))
         control$subset <- control$subset[control$subset <= subset.upper]
 
-    ## use previous estimates as new start values
-    if (use.estimates)
-        control$start <- hhh4coef2start(object)
 
     ## fit the updated model or just return the modified control list
     if (evaluate) { 
@@ -375,9 +401,15 @@ removeTimeFromFormula <- function (f, timevar = "t") {
 
 ## convert fitted parameters to a list suitable for control$start
 hhh4coef2start <- function (fit)
-    list(fixed = fit$coefficients[seq_len(fit$dim[1L])],
-         random = fit$coefficients[fit$dim[1L]+seq_len(fit$dim[2L])],
-         sd.corr = fit$Sigma.orig)
+{
+    res <- list(fixed = fit$coefficients[seq_len(fit$dim[1L])],
+                random = fit$coefficients[fit$dim[1L]+seq_len(fit$dim[2L])],
+                sd.corr = fit$Sigma.orig)
+    if (any(!nzchar(names(res$random)))) { # no names pre 1.8-2
+        names(res$random) <- NULL
+    }
+    res
+}
 
 ## character vector of model components that are "inModel"
 componentsHHH4 <- function (object)
@@ -422,3 +454,57 @@ formula.hhh4 <- function (x, ...)
     lapply(x$control[c("ar", "ne", "end")], "[[", "f")
 }
 
+
+## decompose the fitted mean of a "hhh4" model returning an array
+## with dimensions (t, i, j), where the first j index is "endemic"
+decompose.hhh4 <- function (x, coefs = x$coefficients, ...)
+{
+    ## get three major components from meanHHH() function
+    meancomps <- meanHHH(coefs, terms.hhh4(x))
+
+    ## this contains c("endemic", "epi.own", "epi.neighbours")
+    ## but we really want the mean by neighbour
+    neArray <- c(meancomps$ne.exppred) * neOffsetArray(x, coefW(coefs))
+    ##<- ne.exppred is (t, i) and recycled for (t, i, j)
+    stopifnot(all.equal(rowSums(neArray, dims = 2), meancomps$epi.neighbours,
+                        check.attributes = FALSE))
+    
+    ## add autoregressive part to neArray
+    diagidx <- cbind(c(row(meancomps$epi.own)),
+                     c(col(meancomps$epi.own)),
+                     c(col(meancomps$epi.own)))
+    ## usually: neArray[diagidx] == 0
+    neArray[diagidx] <- neArray[diagidx] + meancomps$epi.own
+    
+    ## add endemic component to the array
+    res <- array(c(meancomps$endemic, neArray),
+          dim = dim(neArray) + c(0, 0, 1),
+          dimnames = with(dimnames(neArray), list(t=t, i=i, j=c("endemic",j))))
+    stopifnot(all.equal(rowSums(res, dims = 2), meancomps$mean,
+                        check.attributes = FALSE))
+    res
+}
+
+## get the w_{ji} Y_{j,t-1} values from a fitted hhh4 model
+## (i.e., before summing the neighbourhood component over j)
+## in an array with dimensions (t, i, j)
+neOffsetArray <- function (object, coefW = NULL, subset = object$control$subset)
+{
+    env <- new.env(hash = FALSE, parent = environment(terms(object)$offset$ne))
+    env$pars <- if (is.null(coefW)) coefW(object) else coefW
+    env$subset <- subset
+    res <- with(env, apply(neweights$w(pars, nbmat, data), 2L, function (wi) {
+        tm1 <- subset - lag
+        is.na(tm1) <- tm1 <= 0
+        t(Y[tm1,,drop=FALSE]) * wi
+    }))
+    dim(res) <- c(object$nUnit, length(subset), object$nUnit)
+    dimnames(res) <- list("j" = colnames(object$stsObj),
+                          "t" = rownames(object$stsObj)[subset],
+                          "i" = colnames(object$stsObj))
+    stopifnot(all.equal(colSums(res),  # sum over j
+                        terms(object)$offset$ne(env$pars)[subset,,drop=FALSE],
+                        check.attributes = FALSE))
+    ## permute dimensions as (t, i, j)
+    aperm(res, perm = c(2L, 3L, 1L), resize = TRUE)
+}

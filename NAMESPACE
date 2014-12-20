@@ -2,6 +2,11 @@
 
 useDynLib(surveillance)
 
+importFrom(Rcpp, evalCpp) # see vignette("Rcpp-package", package="Rcpp")
+## although Rcpp is only used on C-level we need to "ensure that Rcpp is loaded
+## so any dynamic linking to its code can be resolved.  (There may be none, but
+## there could be, now or in future.)" (B. Ripley, 2013-09-08)
+
 ###############
 ### IMPORTS ###
 ###############
@@ -10,10 +15,6 @@ useDynLib(surveillance)
 ### (for utils and polyCub: only selected methods are imported)
 
 import(methods, grDevices, graphics, stats)
-import(Rcpp)
-## although Rcpp is only used on C-level we need to "ensure that Rcpp is loaded
-## so any dynamic linking to its code can be resolved.  (There may be none, but
-## there could be, now or in future.)" (B. Ripley, 2013-09-08)
 
 ## sp classes & utilities (bbox, coordinates, dimensions, overlay, plot, ...)
 ## (we "Depend" on package sp since it defines essential data classes & methods)
@@ -153,7 +154,7 @@ export(linelist2sts)
 # generics for sts class defined in sts.R
 exportMethods("[", plot)
 exportMethods(toLatex)
-exportMethods(nrow, ncol, dim, colnames, epochInYear, year)
+exportMethods(dim, dimnames, epochInYear, year)
 exportMethods(aggregate)
 exportMethods(as.data.frame)
 
@@ -176,10 +177,6 @@ export(earsC)
 export(farringtonFlexible)
 export(categoricalCUSUM, pairedbinCUSUM, pairedbinCUSUM.runlength)
 export(nowcast, backprojNP)
-## auxiliary functions for farringtonFlexible:
-## export(algo.farrington.data.glm, algo.farrington.fitGLM.flexible,
-##        algo.farrington.glm, algo.farrington.referencetimepoints,
-##        algo.farrington.threshold.farrington, algo.farrington.threshold.noufaily)
 
 
 ### disProg-specific

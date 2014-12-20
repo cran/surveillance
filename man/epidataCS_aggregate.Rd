@@ -108,31 +108,31 @@ data("imdepi")
 load(system.file("shapes", "districtsD.RData", package="surveillance"))
 
 ## convert imdepi point pattern into multivariate time series
-imdepi_sts <- epidataCS2sts(imdepi, freq=12, start=c(2002,1),
-                            neighbourhood=NULL, # not needed here
-                            tiles=districtsD)
+imdsts <- epidataCS2sts(imdepi, freq = 12, start = c(2002, 1),
+                        neighbourhood = NULL, # not needed here
+                        tiles = districtsD)
 \dontshow{
-stopifnot(isTRUE(all.equal(colSums(imdepi_sts@observed),
+stopifnot(isTRUE(all.equal(colSums(imdsts@observed),
                            c(table(imdepi$events$tile)))))
 }
 
 ## compare plots of monthly number of cases
-opar <- par(mfrow=c(2,1))
-suppressWarnings(plot(imdepi, "time", breaks=c(0,unique(imdepi$stgrid$stop))))
-plot(imdepi_sts, type=observed~time, legend.opts=NULL)
+opar <- par(mfrow = c(2, 1))
+suppressWarnings(plot(imdepi, "time", breaks = c(0,unique(imdepi$stgrid$stop))))
+plot(imdsts, type = observed ~ time, legend.opts = NULL)
 par(opar)
 
 ## plot number of cases by district
-plot(imdepi_sts, type=observed~1|unit, labels=FALSE)
+plot(imdsts, type = observed ~ 1 | unit, labels = FALSE)
 
 
 ## also test conversion to an SIS event history ("epidata") of the "tiles"
 if (requireNamespace("intervals")) {
     imdepi_short <- subset(imdepi, time < 50)
     imdepi_short$stgrid <- subset(imdepi_short$stgrid, start < 50)
-    imdepi_epidata <- as.epidata(imdepi_short,
-                                 tileCentroids=coordinates(districtsD))
-    summary(imdepi_epidata)
+    imdepidata <- as.epidata(imdepi_short,
+                             tileCentroids = coordinates(districtsD))
+    summary(imdepidata)
 }
 }
 

@@ -25,9 +25,8 @@ setGeneric("aggregate")
 setGeneric("toLatex")
 
 ## data frame-like methods defined in sts.R
-setGeneric("nrow")
-setGeneric("ncol")
-setGeneric("colnames")
+setGeneric("dim")
+setGeneric("dimnames")
 
 
 ######################################################################
@@ -39,7 +38,7 @@ setGeneric("as.data.frame")
 
 
 ######################################################################
-#Access and replace functions for the "sts" class
+# Accessing and replacing slots of the "sts" class
 ######################################################################
 #epoch slot
 setGeneric("epoch", function(x, as.Date=x@epochAsDate) standardGeneric("epoch"))
@@ -127,6 +126,15 @@ setReplaceMethod("neighbourhood", "sts", function(x, value) {
  x@neighbourhood <- value
  x
 })
+
+
+######################################################################
+# Miscellaneous access methods
+######################################################################
+
+setGeneric("epochInYear", function(x, ...) standardGeneric("epochInYear"))
+setGeneric("year", function(x, ...) standardGeneric("year"))
+
 
 ######################################################################
 # For stsNC class

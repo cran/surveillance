@@ -1,4 +1,3 @@
-if (packageVersion("testthat") >= "0.7.1.99") {
-    library("testthat")
+if (require("testthat") && packageVersion("testthat") >= "0.8") {
     test_check("surveillance")
 }

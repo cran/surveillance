@@ -10,7 +10,7 @@
 
 \usage{
 \method{update}{hhh4}(object, ..., S = NULL, subset.upper = NULL,
-       use.estimates = FALSE, evaluate = TRUE)
+       use.estimates = TRUE, evaluate = TRUE)
 }
 
 \arguments{
@@ -42,10 +42,16 @@
     This argument is used by \code{\link{oneStepAhead}}.
   }
   \item{use.estimates}{
-    logical specifying if the \code{coef(object)} should be used as
-    starting values for the new fit. This currently only works if the
-    set of parameters is unchanged by the updated model formulation and
-    thus defaults to \code{FALSE}.
+    logical specifying if \code{coef(object)} should be used as
+    starting values for the new fit (which is the new default since
+    \pkg{surveillance} 1.8-2). This works by matching names
+    against the coefficients of the new model. Extra coefficients no
+    longer in the model are silently ignored. Setting
+    \code{use.estimates = FALSE} means to re-use the previous start
+    specification \code{object$control$start}.\cr
+    Note that coefficients can also receive initial values from an extra
+    \code{start} argument in the update call (as in \code{\link{hhh4}}),
+    which then takes precedence over \code{coef(object)}.
   }
   \item{evaluate}{
     logical indicating if the updated model should be fitted directly

@@ -44,9 +44,9 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
         withAIC = FALSE, ...)
 \method{xtable}{summary.twinstim}(x, caption = NULL, label = NULL,
       align = c("l", "r", "r", "r"), digits = 3,
-      display = c("s", "f", "s", "s"),
+      display = c("s", "f", "s", "s"), ...,
       ci.level = 0.95, ci.fmt = "\%4.2f", ci.to = "--",
-      eps.Pvalue = 1e-4, ...)
+      eps.Pvalue = 1e-4)
 }
 
 \arguments{

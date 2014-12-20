@@ -101,9 +101,9 @@ Spatio-Temporal Animation of an Epidemic
   }
   \item{generate.snapshots}{
     By default (\code{NULL}), the animation is not saved to image files
-    but only shown on the on-screen device. In order to do that,
-    \code{time.spacing} must not be \code{NULL}, and there
-    are two options:\cr
+    but only shown on the on-screen device. In order to print to files,
+    \code{time.spacing} must not be \code{NULL}, a screen device must be
+    available, and there are two options:\cr
     If the framework of the \pkg{animation} package
     should be used, i.e. the \code{animate}-call is passed as the
     \code{expr} argument to one of the \code{save*} functions of the
@@ -163,17 +163,15 @@ animate(s, sleep=0.01)   # or: animate(fooepidata)
 # with timer (animate only up to t=10)
 animate(s, time.spacing=0.1, end=10, sleep=0.01)
 
-\donttest{
 # Such an animation can be saved in various ways using tools of
 # the animation package, e.g., saveHTML()
-if (require("animation")) {
+if (interactive() && require("animation")) {
   oldwd <- setwd(tempdir())  # to not clutter up the current working dir
   saveHTML({
     par(bg="white")  # default "transparent" is grey in some browsers
     animate(s, time.spacing=1, sleep=0, generate.snapshots="epiani")
   }, use.dev=FALSE, img.name="epiani", ani.width=600, interval=0.5)
   setwd(oldwd)
-}
 }
 }
 

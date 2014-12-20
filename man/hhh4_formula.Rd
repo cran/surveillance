@@ -16,8 +16,8 @@ respectively, in formulae used in the function \code{\link{hhh4}}.
 \usage{
   fe(x, which = NULL, initial = NULL)
 
-  ri(type = c("iid","car")[1], corr = c("none", "all")[1],
-     initial.var = NULL, initial.re = NULL)
+  ri(type = c("iid","car"), corr = c("none", "all"),
+     initial.fe = 0, initial.var = -.5, initial.re = NULL)
 }
 
 \arguments{
@@ -26,22 +26,33 @@ respectively, in formulae used in the function \code{\link{hhh4}}.
     In general this covariate expression might use any variables
     contained in the \code{control$data} argument of the parent
     \code{\link{hhh4}} call.}
-  \item{which}{vector of logicals indicating which unit
-   should get an unit-specific parameter. If \code{NULL}, 
-   the effect of the covariate is assumbed to be the same
-   for all units.}
+  \item{which}{vector of logicals indicating which unit(s)
+    should get an unit-specific parameter.
+    For units with a \code{FALSE}
+    value, the effect term for \code{x} will be zero in the log-linear
+    predictor. Note especially that setting a \code{FALSE} value for the
+    intercept term of a unit, e.g.,
+    \code{ar = list(f = ~-1 + fe(1, which=c(TRUE, FALSE)))}
+    in a bivariate \code{hhh4} model, does \emph{not} mean that the
+    (autoregressive) model component is omitted for this unit, but that
+    \eqn{\log(\lambda_1) = \alpha_1} and \eqn{\log(\lambda_2) = 0}, which
+    is usually not of interest. ATM, omiting an autoregressive effect for
+    a specific unit is not possible.\cr
+    If \code{which=NULL}, the parameter is assumed to be the same
+    for all units.}
   \item{initial}{initial values (on internal scale!) 
-    for the fixed effects used for optimization.
-    Not really used ATM.}
-  \item{type}{random intercepts either follow an IID or a CAR
-   model}
-  \item{corr}{logical switch indicating whether random effects
+    for the fixed effects used for optimization. The default
+    (\code{NULL}) means to use zeroes.}
+  \item{type}{random intercepts either follow an IID or a CAR model.}
+  \item{corr}{whether random effects
    in different components (such as \code{ar} and \code{end})
-   should be correlated or not. }
+   should be correlated or not.}
+  \item{initial.fe}{initial value for the random intercept mean.}
   \item{initial.var}{initial values (on internal scale!) 
-    for the variance components used for optimization. Not really used ATM.}
+    for the variance components used for optimization.}
   \item{initial.re}{initial values (on internal scale!) for the random effects 
-    used for optimization. Not really used ATM.}
+    used for optimization. The default \code{NULL} are random numbers
+    from a normal distribution with zero mean and variance 0.001.}
 }
 
 

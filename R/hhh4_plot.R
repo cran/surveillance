@@ -6,8 +6,8 @@
 ### Plot-method(s) for fitted hhh4() models
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2014 Sebastian Meyer
-### $Revision: 1057 $
-### $Date: 2014-10-07 15:29:45 +0200 (Tue, 07 Oct 2014) $
+### $Revision: 1121 $
+### $Date: 2014-11-21 11:39:14 +0100 (Fri, 21 Nov 2014) $
 ################################################################################
 
 
@@ -33,6 +33,7 @@ plotHHH4_fitted <- function (x, units = 1, names = NULL,
                              legend = TRUE, legend.args = list(),
                              legend.observed = FALSE, ...)
 {
+    if (is.null(units)) units <- seq_len(x$nUnit)
     if (!is.null(names)) stopifnot(length(units) == length(names))
     if (length(col) == 3) col <- c(col, "black") else if (length(col) != 4)
         stop("'col' must be of length 3 or 4") # for backwards compatibility
@@ -154,8 +155,8 @@ plotHHH4_ri <- function (x, component, labels = FALSE, sp.layout = NULL,
         stop("'component' must (partially) match one of ",
              paste(dQuote(colnames(ranefmatrix)), collapse=", "))
     
-    map <- x$stsObj@map
-    if (is.null(map)) stop("'x$stsObj' has no map")
+    map <- as(x$stsObj@map, "SpatialPolygonsDataFrame")
+    if (length(map) == 0L) stop("'x$stsObj' has no map")
     map$ranef <- ranefmatrix[,comp][row.names(map)]
     
     if (is.list(gpar.missing) && any(is.na(map$ranef))) {
@@ -433,7 +434,7 @@ getSeason <- function(x, component = c("end", "ar", "ne"), unit = 1)
 
     ## get the intercept
     est <- fixef(x, reparamPsi=FALSE)
-    intercept <- est[[grep(paste0("^", component, "\\.(1|ri)"), names(est))]]
+    intercept <- unname(est[grep(paste0("^", component, "\\.(1|ri)"), names(est))])
     if (length(intercept) == 0) {
         intercept <- 0 # no intercept (not standard)
     } else if (length(intercept) > 1) { # unit-specific intercepts
@@ -488,7 +489,7 @@ getMaxEV_season <- function (x)
                     all(!unlist(epiterms["unitSpecific",]))
         }, FUN.VALUE = TRUE, USE.NAMES = FALSE)
         if (any(!compOK))
-            warning("epidemic components contain (unit-specific)",
+            warning("epidemic components have (unit-specific) ",
                     "covariates/offsets not accounted for;\n",
                     "  use getMaxEV() or plotHHH4_maxEV()")
     }

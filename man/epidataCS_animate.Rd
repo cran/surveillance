@@ -132,7 +132,6 @@ animate(imdepiB, interval=c(0,365), time.spacing=NULL, sleep=0.1)
 # Animate the whole time range but with nmax=20 snapshots only
 animate(imdepiB, time.spacing=NA, nmax=20, sleep=0.1)
 
-\donttest{
 # Such an animation can be saved in various ways using the tools of
 # the animation package, e.g., saveHTML()
 if (require("animation")) {
@@ -141,7 +140,6 @@ if (require("animation")) {
            nmax = Inf, interval = 0.2, loop = FALSE,
            title = "Animation of the first year of type B events")
   setwd(oldwd)
-}
 }
 }
 

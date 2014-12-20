@@ -6,8 +6,8 @@
 ### Compute one-step-ahead predictions (means) at a series of time points
 ###
 ### Copyright (C) 2011-2012 Michaela Paul, 2012-2014 Sebastian Meyer
-### $Revision: 1059 $
-### $Date: 2014-10-10 15:19:15 +0200 (Fri, 10 Oct 2014) $
+### $Revision: 1141 $
+### $Date: 2014-12-16 13:28:38 +0100 (Tue, 16 Dec 2014) $
 ################################################################################
 
 
@@ -28,7 +28,6 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
     if (cores > 1 && which.start == "current")
         stop("no parallelization for 'type=\"rolling\"' ",
              "if 'which.start=\"current\"'")
-    startfinal <- hhh4coef2start(result)
 
     ## get model terms
     model <- result[["terms"]]
@@ -59,7 +58,7 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
     fit <- if (type == "first") {
         if (do_pb)
             cat("\nRefitting model at first time point t =", tps[1L], "...\n")
-        update.hhh4(result, subset.upper = tps[1L], start = startfinal,
+        update.hhh4(result, subset.upper = tps[1L], use.estimates = TRUE,
                     keep.terms = TRUE) # need "model" -> $terms
     } else result
     if (!fit$convergence) stop("initial fit did not converge")
@@ -105,7 +104,7 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
             if (verbose)
                 cat("One-step-ahead prediction @ t =", tp, "...\n")
             if (type == "rolling") { # update fit
-                fit <- update.hhh4(result, subset.upper=tp, start=startfinal,
+                fit <- update.hhh4(result, subset.upper=tp, use.estimates=TRUE,
                                    verbose=FALSE, # chaotic in parallel
                                    keep.terms=TRUE) # need "model" -> $terms
                 if (!fit$convergence) {
@@ -139,9 +138,9 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
             if (type == "rolling") { # update fit
                 fit.old <- fit # backup
                 fit <- update.hhh4(result, subset.upper=tps[i],
-                                   start=switch(which.start,
-                                                current=hhh4coef2start(fit),
-                                                final=startfinal),
+                                   start=if (which.start == "current")
+                                       hhh4coef2start(fit), # takes precedence
+                                   use.estimates=TRUE,
                                    keep.terms=TRUE) # need "model" -> $terms
                 if (!fit$convergence) {
                     if (do_pb) cat("\n")

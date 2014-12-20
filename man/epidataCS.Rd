@@ -135,7 +135,8 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
   }
 
   \item{nCircle2Poly}{
-    accuracy (number of edges) of the polygonal approximation of a circle.
+    accuracy (number of edges) of the polygonal approximation of a circle,
+    see \code{\link{discpoly}}.
   }
 
   \item{T}{

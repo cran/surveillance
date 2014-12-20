@@ -22,6 +22,8 @@ fix.dimnames <- function(x) {
 }
 
 #constructor function
+## FIXME @ Michael: why do 'start' and 'freq' have these specific defaults,
+##                  and 'epoch' not conveniently default to 1:nrow(observed)?
 init.sts <- function(.Object, epoch, start=c(2000,1), freq=52, observed, state=0*observed, map=NULL, neighbourhood=NULL, populationFrac=NULL,alarm=NULL,upperbound=NULL, control=NULL,epochAsDate=FALSE,multinomialTS=FALSE) {
 
   #If used in constructor
@@ -38,18 +40,21 @@ init.sts <- function(.Object, epoch, start=c(2000,1), freq=52, observed, state=0
     nObs <- nrow(observed)
     if(ncol(observed) != ncol(state)){
       #if there is only one state-vector for more than one area, repeat it
-      if(ncol(state)==1)
+      if(ncol(state)==1) {
         state <- ts(matrix(rep(state,nAreas),ncol=nAreas,byrow=FALSE),frequency=frequency(observed))
-      else{ 
-        cat('wrong dimensions of observed and state \n')
-      return(NULL)
+      ## FIXME @ Michael: 1. why convert 'state' to a "ts" object in this special case but not in general
+      ##                  2. frequency(observed) is 1 unless observed has the "tsp" attribute
+      } else { 
+        stop('wrong dimensions of observed and state')
       }
     }
+
+    # check length of epoch
+    stopifnot(length(epoch) == nrow(observed))
     
-    #check neighbourhood matrix. 
-    if(!is.null(neighbourhood) & (any(dim(neighbourhood) != nAreas))) {
-      cat('wrong dimensions of neighbourhood matrix \n')
-      return(NULL)
+    #check neighbourhood matrix
+    if(!is.null(neighbourhood) && any(dim(neighbourhood) != nAreas)) {
+      stop('wrong dimensions of neighbourhood matrix')
     }
     
     #popFrac
@@ -71,15 +76,12 @@ init.sts <- function(.Object, epoch, start=c(2000,1), freq=52, observed, state=0
     dimnames(observed) <- list(NULL,namesObs)
     dimnames(state) <- list(NULL,namesState)
 
-    #FIXME: If ncol(observed) is huge then the generated matrix
-    #might be beyond memory capacities -> use sparse matrices?
     if (is.null(neighbourhood))
-      neighbourhood <- matrix(NA,nrow=ncol(observed),ncol=ncol(observed))
-      #diag(neighbourhood) <- 0  #FIXME: shouldn't we always define the diag as 0?
+      neighbourhood <- matrix(NA,nrow=nAreas,ncol=nAreas)
     if (is.null(alarm)) 
-      alarm      <- matrix(NA,nrow=dim(observed)[1],ncol=dim(observed)[2])
+      alarm      <- matrix(NA,nrow=nObs,ncol=nAreas)
     if (is.null(upperbound))
-      upperbound <- matrix(NA,nrow=dim(observed)[1],ncol=dim(observed)[2])
+      upperbound <- matrix(NA,nrow=nObs,ncol=nAreas)
 
     ##Assign everything else
     .Object@epoch <- epoch
@@ -96,10 +98,12 @@ init.sts <- function(.Object, epoch, start=c(2000,1), freq=52, observed, state=0
     .Object@state <- state
     .Object@observed <- observed
     
-    #It is not possible to assign a null argument to the
-    #SpatialPolygonsDataFrame slot. 
-    if (!is.null(map)) {
-      .Object@map <- map
+    if (length(map) > 0L) {  # i.e., not the empty prototype nor NULL
+      .Object@map <- map  # checkAtAssignment() verifies the class of map
+      ## if a map is provided, it must cover all colnames(observed)
+      if (!all(colnames(observed) %in% row.names(map))) {
+        stop("map is incomplete; check colnames(observed) %in% row.names(map)")
+      }
     }
     
     .Object@neighbourhood <- neighbourhood
@@ -209,8 +213,7 @@ setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...)
     #There is no clever way to aggregate the upperbounds
     x@upperbound <- matrix(NA,ncol=ncol(x@alarm),nrow=nrow(x@alarm))
     x@populationFrac <- as.matrix(apply(x@populationFrac, MARGIN=1, sum))#>0
-    x@neighbourhood <- matrix(1,nrow=1,ncol=1)
-                     # FIXME: |-wouldn't 0 be more appropriate?
+    x@neighbourhood <- matrix(NA, 1, 1) # consistent with default for new("sts")
   }
 
   #validObject(x) #just a check
@@ -223,12 +226,10 @@ setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...)
 # Miscellaneous access methods
 ####################################################################
 
-setMethod("nrow", "sts", function(x) return(nrow(x@observed)))
-setMethod("ncol", "sts", function(x) return(ncol(x@observed)))
-setMethod("dim", "sts", function(x) return(dim(x@observed)))
-setMethod("colnames", signature=c(x="sts",do.NULL="missing",prefix="missing"), function(x,do.NULL, prefix) return(colnames(x@observed)))
+setMethod("dim", "sts", function (x) dim(x@observed))
+setMethod("dimnames", "sts", function (x) dimnames(x@observed))
+
 #Extract which observation within year we have
-setGeneric("epochInYear", function(x, ...) standardGeneric("epochInYear"));
 setMethod("epochInYear", "sts", function(x,...) {
   #Strptime format strings available as:
   #http://www.opengroup.org/onlinepubs/009695399/functions/strptime.html
@@ -239,8 +240,8 @@ setMethod("epochInYear", "sts", function(x,...) {
     return( (x@epoch-1 + x@start[2]-1) %% x@freq + 1)
   }
 })
+
 #Extract the corresponding year for each observation using
-setGeneric("year", function(x, ...) standardGeneric("year"));
 setMethod("year", "sts", function(x,...) {
   if (x@epochAsDate) {
     return(as.numeric(formatDate(epoch(x),"%G")))
@@ -249,10 +250,9 @@ setMethod("year", "sts", function(x,...) {
   }
 })
 
+
 #####################################################################
 #[-method for accessing the observed, alarm, etc. objects
-# new param:
-#  normPopulationFrac - normalize population frac
 #####################################################################
 
 setMethod("[", "sts", function(x, i, j, ..., drop) {
@@ -267,13 +267,18 @@ setMethod("[", "sts", function(x, i, j, ..., drop) {
 
   x@populationFrac <- x@populationFrac[i,j,drop=FALSE]
   #If not binary TS the populationFrac is normed
-  binaryTS <- sum( x@populationFrac > 1 ) > 1
+  binaryTS <- sum( x@populationFrac > 1 ) > 1 # FIXME @ Michael: x@multinomialTS
   if (!binaryTS) {
     x@populationFrac <- x@populationFrac / apply(x@populationFrac,MARGIN=1,sum)
    }  
   x@upperbound <- x@upperbound[i,j,drop=FALSE]
 
   #Neighbourhood matrix
+  if (ncol(x@observed) != ncol(x@neighbourhood) &&  # selected units
+      !all(x@neighbourhood %in% c(NA,0,1))) { # no adjacency matrix
+      message("Note: selection of units could invalidate the 'neighbourhood'")
+      ## e.g., if 'neighbourhood' specifies neighbourhood orders
+  }
   x@neighbourhood <- x@neighbourhood[j,j,drop=FALSE]
 
   #Fix the corresponding start entry. it can either be a vector of
@@ -289,20 +294,12 @@ setMethod("[", "sts", function(x, i, j, ..., drop) {
   start.year <- start[1] + (new.sampleNo - 1) %/% x@freq 
   start.sampleNo <- (new.sampleNo - 1) %% x@freq + 1
   x@start <- c(start.year,start.sampleNo)
-  ## If !epochAsDate and updating "start" (which seems not really to be
-  ## necessary), we have to update epoch, too!
-  if (!x@epochAsDate) x@epoch <- x@epoch - i.min + 1  # FIXME: correct?
+  ## If !epochAsDate, we also have to update epoch since it is relative to start
+  if (!x@epochAsDate) x@epoch <- x@epoch - i.min + 1
                                                      
-  #FIXME: In case there is a map: Also subset map according to region index j.
-  # -> This only makes sense if identical(row.names(map), colnames(observed))
-  #    is a property of the sts-class already verified in init.sts
-  ## if (length(x@map)>0) {
-  ##   ## x@map <- x@map[colnames(x@observed),]
-  ##   #take them in the order as in the map to ensure x and x[] are identical
-  ##   order <- pmatch(row.names(x@map), colnames(x)) #, row.names(x@map))
-  ##   order2 <- pmatch(row.names(x@map)[!is.na(order)], row.names(x@map))
-  ##   x@map <- x@map[order2,]
-  ## }
+  ## Note: We do not automatically subset the map according to j, since
+  ##       identical(row.names(map), colnames(observed))
+  ##       is not a property of the sts-class; Unmonitored regions are allowed.
   
   #Done
   return(x)
@@ -364,6 +361,8 @@ setMethod("plot", signature(x="sts", y="missing"),
 
 
 ###Validity checking
+## NOTE: this is effectively not used ATM, but we could include
+##       validObject(.Object) as the last step in init.sts()
 setValidity("sts", function ( object ) {
   retval <- NULL
 
@@ -392,16 +391,7 @@ setValidity("sts", function ( object ) {
   if (!all( colnames(object@observed) == colnames(object@neighbourhood)))
     retval <- c( retval , " colnames of observed and neighbourhood have to match")
 
-  ## if map is not empty, check that all colnames(object@observed)
-  ## are in row.names(object@map)
-  if (length(object@map)>0) {
-    if (!all(colnames(object@observed) %in% row.names(object@map))) {
-      retval <- c( retval , " colnames of observed have to be contained in the row.names of the map.")
-    }
-  }
-  
-  if(is.null( retval)) return ( TRUE )
-  else return ( retval )
+  if (is.null(retval)) TRUE else retval
 })
 
 
@@ -439,8 +429,10 @@ setMethod( "show", "sts", function( object ){
           cat("Data slot   :", ncol(object@map), "variables\n")
   }
 
-  cat("\nhead of neighbourhood:\n")
-  print( head(object@neighbourhood,n))
+  if (ncol(object@observed) > 1) {
+      cat("\nhead of neighbourhood:\n")
+      print( head(object@neighbourhood,n))
+  }
 } )
 
 

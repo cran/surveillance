@@ -18,7 +18,10 @@ time period.
 stsplot_space(x, tps = NULL, map = x@map, population = NULL,
               main = NULL, labels = FALSE, at = 10, col.regions = NULL,
               colorkey = list(space = "bottom", labels = list(at=at)),
-              total.args = NULL, sp.layout = NULL, ...)
+              total.args = NULL,
+              gpar.missing = list(col = "darkgrey", lty = 2, lwd = 2),
+              sp.layout = NULL,
+              xlim = bbox(map)[1, ], ylim = bbox(map)[2, ], ...)
 }
 
 \arguments{
@@ -53,8 +56,8 @@ stsplot_space(x, tps = NULL, map = x@map, population = NULL,
     the main title.
   }
   \item{labels}{
-    determines if and how regions are labeled, see
-    \code{\link{layout.labels}}.
+    determines if and how the regions of the \code{map} are labeled,
+    see \code{\link{layout.labels}}.
   }
   \item{at}{
     either a number of levels (default: 10) for the categorization
@@ -71,6 +74,9 @@ stsplot_space(x, tps = NULL, map = x@map, population = NULL,
   }
   \item{col.regions}{
     a vector of fill colors of length \code{length(at)-1}.
+    By default (\code{NULL}), a \dQuote{heat} palette is generated
+    using \code{colorspace::\link[colorspace]{heat_hcl}} (if available)
+    or \code{\link{heat.colors}}.
   }
   \item{colorkey}{
     a list describing the color key, see
@@ -84,9 +90,14 @@ stsplot_space(x, tps = NULL, map = x@map, population = NULL,
     \code{list(label="Overall: ", x=1, y=0)}, and
     \code{total.args=list()} will use all of them.
   }
+  \item{gpar.missing}{list of graphical parameters for
+    \code{\link{sp.polygons}} applied to the regions of \code{map},
+    which are not part of \code{x}. Such extra regions won't be plotted
+    if \code{!is.list(gpar.missing)}.}
   \item{sp.layout}{
     optional list of additional layout items, see \code{\link{spplot}}.
   }
+  \item{xlim,ylim}{numeric vectors of length 2 specifying the axis limits.}
   \item{\dots}{
     further arguments for \code{\link{spplot}}.
   }
@@ -124,6 +135,10 @@ plot(measlesWeserEms, type=observed~unit,
 
 # counts in the first week of the second year only (+ display overall)
 plot(measlesWeserEms, type=observed~unit, tps=53, total.args=list())
+
+# if we had only observed a subset of the regions
+plot(measlesWeserEms[,5:11], type = observed~unit,
+     gpar.missing = list(col="gray", lty=4))
 }
 
 \keyword{hplot}
