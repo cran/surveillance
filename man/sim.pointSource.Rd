@@ -4,17 +4,17 @@
 
 \title{Generation of Simulated Point Source Epidemy}
 \description{Simulation of epidemies which were introduced by point sources.
-        The basis of this proagramme is a combination of a Hidden Markov Modell
+        The basis of this programme is a combination of a Hidden Markov Modell
         (to get random timepoints for outbreaks) and a simple model
-        (compare \code{\link{sim.seasonalNoise}}) to simulate the epidemy.
+        (compare \code{\link{sim.seasonalNoise}}) to simulate the baseline.
 }
 \usage{
     sim.pointSource(p = 0.99, r = 0.01, length = 400, A = 1, 
         alpha = 1, beta = 0, phi = 0, frequency = 1, state = NULL, K)
 }
 \arguments{
-        \item{p}{probability to get a new epidemy at time i if there was one at time i-1, default 0.99.}
-        \item{r}{probability to get no new epidemy at time i if there was none at time i-1, default 0.01.}
+        \item{p}{probability to get a new outbreak at time i if there was one at time i-1, default 0.99.}
+        \item{r}{probability to get no new outbreak at time i if there was none at time i-1, default 0.01.}
         \item{length}{number of weeks to model, default 400. \code{length} is ignored if \code{state}
                         is given. In this case the length of \code{state} is used.}
         \item{A}{amplitude (range of sinus), default = 1.}

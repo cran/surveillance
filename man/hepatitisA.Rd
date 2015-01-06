@@ -13,7 +13,7 @@
 }
 \source{
 Robert Koch-Institut: SurvStat: \url{http://www3.rki.de/SurvStat};
-Queried on 11 01 2005.
+Queried on 11-01-2005.
 
 }
 \examples{

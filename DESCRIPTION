@@ -1,8 +1,8 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.8-2
-Date: 2014-12-16
+Version: 1.8-3
+Date: 2015-01-04
 Authors@R: c(MH = person("Michael", "Höhle",
                   email = "hoehle@math.su.se",
                   role = c("aut", "cre", "ths")),
@@ -71,15 +71,18 @@ Description: A package implementing statistical methods for the modeling and
         The package contains several real-world data sets, the ability
         to simulate outbreak data, visualize the results of the
         monitoring in temporal, spatial or spatio-temporal fashion.
-	Note: The suggested package INLA is unfortunately not available from 
-        any mainstream repository - in case one wants to use the 'boda' 
-	algorithm one needs to manually install the INLA package 
-        as specified at http://www.r-inla.org/download. 
+	Note: Using the 'boda' algorithm requires the the INLA
+        package, which should be installed automatically through the
+        specified Additional_repositories, if uninstalled dependencies
+        are also requested. As this might not work under Mac OS X it
+        might be necessary to manually install the INLA package as
+        specified at http://www.r-inla.org/download.
 License: GPL-2
 URL: http://surveillance.r-forge.r-project.org/
+Additional_repositories: http://www.math.ntnu.no/inla/R/stable
 BugReports: https://r-forge.r-project.org/tracker/?group_id=45
 Encoding: latin1
-Packaged: 2014-12-20 10:16:33 UTC; hoehle
+Packaged: 2015-01-05 22:28:32 UTC; hoehle
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2014-12-20 14:11:48
+Date/Publication: 2015-01-06 07:28:14

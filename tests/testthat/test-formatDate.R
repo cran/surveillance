@@ -55,4 +55,11 @@ test_that("at2ndChange function works for %Y",expect_that(
 data("rotaBB")
 plot(rotaBB, xaxis.tickFreq=list("%Y"=atChange), xaxis.labelFreq=list("%Y"=at2ndChange),xaxis.labelFormat="%Y",xlab="time (months)")
 
+#Test quarter formatting
+test_that(formatDate(d2,"%Q"), equals(c("1","2")))
+
+test_that(formatDate(d2,"%q"), equals(c("1","31")))
+
+test_that(as.character(d2 - as.numeric(formatDate(d2,"%q")) + 1),
+          equals(c("2001-01-01","2002-04-01")))
 

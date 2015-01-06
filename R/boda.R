@@ -26,7 +26,7 @@
 boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE, prior=c('iid','rw1','rw2'), alpha=0.05, mc.munu=100, mc.y=10, verbose=FALSE,multicore=TRUE)) {
 
   #Check if the INLA package is available.
-  if (!require("INLA")) {
+  if (!requireNamespace("INLA", quietly = TRUE)) {
       stop("The boda function requires the INLA package to be installed.\n",
            "  The package is not available on CRAN, but can be downloaded by calling\n",
            "\tsource(\"http://www.math.ntnu.no/inla/givemeINLA.R\")\n",

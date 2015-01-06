@@ -5,9 +5,9 @@
 ###
 ### Animated map (and time series chart) of an sts-object (or matrix of counts)
 ###
-### Copyright (C) 2013-2014 Sebastian Meyer
-### $Revision: 1026 $
-### $Date: 2014-09-23 20:43:58 +0200 (Tue, 23 Sep 2014) $
+### Copyright (C) 2013-2015 Sebastian Meyer
+### $Revision: 1157 $
+### $Date: 2015-01-05 17:08:01 +0100 (Mon, 05 Jan 2015) $
 ################################################################################
 
 
@@ -44,10 +44,13 @@ animate.sts <- function (object, tps = NULL, cumulative = FALSE,
         cti <- if (cumulative) seq_len(i) else i
         ls <- stsplot_space(object, tps=tps[cti], population=population,
                             at=at, ...)
-        if (is.list(timeplot) && require("gridExtra")) {
-            ## NOTE: unfortunately (R-exts, Section 1.1.3.1), only loading the
-            ## namespace of package "gridExtra" would not be sufficient here;
-            ## nothing would be plotted by grid.arrange() in that case ...
+        if (is.list(timeplot) && requireNamespace("gridExtra")) {
+            ## For gridExtra 0.9.1, loading its namespace is not sufficient:
+            ## gridExtra::grid.arrange() produces an empty plot in that case.
+            ## Since CRAN now disallows require("gridExtra") in package code,
+            ## the user has to manually attach the package beforehand.
+            ## NOTE: Plotting by namespace works with the current version at
+            ## https://github.com/baptiste/gridextra
             lt <- do.call("stsplot_timeSimple", c(
                 list(x=object, tps=tps, highlight=cti),
                 timeplot))
@@ -55,6 +58,17 @@ animate.sts <- function (object, tps = NULL, cumulative = FALSE,
             lt$aspect.ratio <- timeplot_height * ls$aspect.ratio
             gridExtra::grid.arrange( # calls grid.draw()
                 ls, lt, heights=c(1-timeplot_height, timeplot_height))
+            ## alternative using package "gtable":
+            ## drawDetails.lattice <- function (x, recording = FALSE)
+            ##     plot(x$p, newpage = FALSE)
+            ## heights <- c(1-timeplot_height, timeplot_height)
+            ## gt <- gtable::gtable(widths = grid::unit(1, units = "null"),
+            ##                      heights = grid::unit(heights, units = "null"))
+            ## gt <- gtable::gtable_add_grob(gt, list(grid::grob(p = ls, cl = "lattice"),
+            ##                                        grid::grob(p = lt, cl = "lattice")),
+            ##                               t = 1:2, l = 1)
+            ## grid::grid.newpage()
+            ## grid::grid.draw(gt)
         } else print(ls)
         if (verbose) setTxtProgressBar(pb, i)
         if (dev.interactive()) Sys.sleep(sleep)

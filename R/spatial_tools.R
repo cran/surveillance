@@ -5,9 +5,9 @@
 ###
 ### Auxiliary functions for operations on spatial data
 ###
-### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 1086 $
-### $Date: 2014-10-23 20:33:18 +0200 (Thu, 23 Oct 2014) $
+### Copyright (C) 2009-2015 Sebastian Meyer
+### $Revision: 1154 $
+### $Date: 2015-01-05 13:25:31 +0100 (Mon, 05 Jan 2015) $
 ################################################################################
 
 
@@ -72,8 +72,14 @@ unionSpatialPolygons <- function (SpP,
         },
         "rgeos" = rgeos::gUnaryUnion(SpP, ...),
         "gpclib" = {
-            library("maptools") # loading only the namespace is not sufficient,
-                                # since rgeosStatus is only set in .onAttach
+            ## rgeosStatus needed by maptools::unionSpatialPolygons is only
+            ## set in maptools:::.onAttach. Since it is bad practice to do
+            ## library("maptools") in package code (cf. R-exts 1.1.3.1),
+            ## the user has to attach "maptools" manually beforehand
+            if (!"maptools" %in% .packages()) {
+                stop("need 'library(\"maptools\")'; ",
+                     "then call surveillance::unionSpatialPolygons")
+            }
             gpclibCheck() && maptools::gpclibPermit()
             maptools::unionSpatialPolygons(
                 SpP, IDs = rep.int(1,length(SpP@polygons)),

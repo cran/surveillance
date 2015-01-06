@@ -16,10 +16,10 @@
 \description{
   Nowcasting can help to obtain up-to-date information on trends during
   a situation where reports about events arrive with delay. For example
-  in any type of public health reporting, reports about important
+  in public health reporting, reports about important
   indicators (such as occurrence of cases) are prone to be delayed due to
   for example manual quality checking and reporting system
-  hierarchies. Altogether, delays are subject to a delay distribution,
+  hierarchies. Altogether, the delays are subject to a delay distribution,
   which may or may not vary over time.
 }
 
@@ -61,28 +61,37 @@ nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     which the report arrives at the respective register. Default:
     \code{"dReport"}.
   }
-  \item{method}{A vector of strings denoting the different methods to
-    use to nowcast. Note that results of the first name in this list are officially
+  \item{method}{A vector of strings denoting the different methods for doing
+    the nowcasting. Note that results of the first name in this list are
+    officially 
     returned by the function. However, it is possible to specify several
-    methods here, e.g. in order to compare score evaluations. Details of
+    methods here, e.g., in order to compare score evaluations. Details of
     the methods are described in \enc{Höhle}{Hoehle} and an der Heiden (2014).
     \describe{
       \item{code{"unif"}}{}
       \item{code{"bayes.notrunc"}}{A Bayesian procedure ignoring
 	truncation.}
-      \item{code{"bayes.notrunc.bnb"}}{}
+      \item{code{"bayes.notrunc.bnb"}}{A fast Bayesian procedure ignoring
+	truncation and which calculates the adjustment per-time
+	(i.e. ignoring other delays) using the negative binomial.}
       \item{code{"lawless"}}{A discretized version of the Gaussian
 	predictive distribution suggested in Lawless (1994).}
       \item{code{"bayes.trunc"}}{Bayesian method based on the generalized
 	Dirichlet distribution, which is the conjugate prior-posterior for the
 	delay distribution PMF under right-truncated sampling as shown in HadH
 	(2014).}
-      \item{code{"bayes.trunc.ddcp"}}{}
+      \item{code{"bayes.trunc.ddcp"}}{Fully Bayesian method allowing for
+	change-points in the delay distribution, e.g., due to speed-ups
+	in the reporting process. A discrete-survival
+	model is used for the delay distribution. Details of
+	the methods are described in HadH (2014). Note: This method
+	requires that the JAGS program is installed on the system.}
     }
   }
   \item{aggregate.by}{Time scale used for the temporal aggregation of
     the records in the data \code{data}. See 
-    \link{linelist2sts} and \link{seq.Date} for further information.}
+    \code{\link{linelist2sts}} and \code{\link{seq.Date}} for further
+  information.} 
   \item{D}{Maximum possible or maximum relevant delay (unit:
     \code{aggregate.by}). Default: 15.} 
   \item{m}{Moving window for the estimation of the delay
@@ -159,8 +168,10 @@ nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
 
 \references{
   \enc{Höhle}{Hoehle} M and an der Heiden M (2014), Bayesian Nowcasting
-  during the STEC O104:H4 Outbreak in Germany, 2011, Biometrics, 
-  \url{http://dx.doi.org/10.1111/biom.12194}.
+  during the STEC O104:H4 Outbreak in Germany, 2011, Biometrics,
+  70(4):993-1002. \url{http://dx.doi.org/10.1111/biom.12194}.
+  A preprint is available as
+  \url{http://people.su.se/~mhh/pubs/hoehle_anderheiden2014-preprint.pdf}.
 }
 
 \author{
