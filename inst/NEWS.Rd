@@ -5,12 +5,172 @@
 \title{News for Package 'surveillance'}
 \encoding{latin1}
 
-\section{Changes in surveillance version 1.8-3 (2015-01-05)}{
+
+\section{Changes in surveillance version 1.9-0 (2015-06-09)}{
+
+\subsection{NEW FEATURES}{
   \itemize{
-    \item This version consists only of a minor update of the \code{DESCRIPTION}
-    file to allow for the new INLA additional repository.
+    \item New functions and data for Bayesian outbreak detection in the
+    presence of reporting delays (Salmon et al., 2015):
+    \code{bodaDelay()}, \code{sts_observation()}, and \code{sts_creation()}.
+    
+    \item New functions implementing tests for space-time interaction:
+    \itemize{
+      \item \code{knox()} supports both the Poisson approximation and a
+      Monte Carlo permutation approach to determine the p-value,
+      \item \code{stKtest()} wraps space-time K-function methods from
+      package \CRANpkg{splancs} for use with \code{"epidataCS"},
+      \item and \code{epitest()} for \code{twinstim} models
+      (makes use of the new auxiliary function \code{simpleR0()}).
+    }
+    
+    \item New function \code{plapply()}: a parallel and verbose version
+    of \code{lapply()} wrapping around both \code{mclapply()} and
+    \code{parLapply()} of package \pkg{parallel}.
+    
+    \item New converter \code{as.xts.sts()} to transform \code{"sts"}
+    objects to the quasi standard \code{"xts"} class, e.g., to make use
+    of package \CRANpkg{dygraphs} for interactive time series plots.
+    
+    \item New options for scaling and normalization of neighbourhood
+    weights in \code{hhh4()} models.
+        
+    \item New auxiliary function \code{layout.scalebar()} for use as part
+    of \code{sp.layout} in \code{spplot()} or in the traditional
+    graphics system.
+  }
+  
+  \subsection{New features for \code{"epidataCS"}}{
+  \itemize{
+    \item New argument \code{by} for \code{plot.epidataCS()}, which
+    defines a stratifying variable for the events (default is the event
+    type as before). It can also be set to \code{NULL} to make the plot
+    not distinguish between event types.
+    
+    \item The spatial plot of \code{"epidataCS"} gained the arguments
+    \code{tiles}, \code{pop} and \code{sp.layout}, and can now produce
+    an \code{spplot()} with the tile-specific population levels behind
+    the point pattern.
+    
+    \item New function \code{permute.epidataCS()} to randomly permute
+    time points or locations of the events (holding other marks fixed).
+  }
+  }
+
+  \subsection{New features for \code{twinstim()}}{
+  \itemize{
+    \item New S3-generic \code{coeflist()} to list model coefficients by
+    component. It currently has a default method and one for
+    \code{"twinstim"} and \code{"simEpidataCS"}.
+
+    \item New argument \code{newcoef} for \code{simulate.twinstim()} to
+    customize the model parameters used for the simulation.
+
+    \item New argument \code{epilink} for \code{twinstim()}, offering
+    experimental support for an identity link for the epidemic
+    predictor. The default remains \code{epilink = "log"}.
+
+    \item Simulation from \code{"twinstim"} models and generation of
+    \code{"epidataCS"} is slightly faster now (faster \pkg{spatstat}
+    functions are used to determine the distance of events to the border).
+
+    \item New option \code{scaled = "standardized"} in \code{iafplot()}
+    to plot \eqn{f(x) / f(0)} or \eqn{g(t) / g(0)}, respectively.
+  }
   }
 }
+
+\subsection{MINOR CHANGES}{
+  \itemize{
+    \item Initial data processing in \code{twinstim()} is faster
+    since event sources are only re-determined if there is effective
+    need for an update (due to subsetting or a change of
+    \code{qmatrix}).
+
+    \item \code{formatPval()} disables \code{scientific} notation by default.
+
+    \item The \code{"time"} plot for \code{"epidataCS"} uses the
+    temporal grid points as the default histogram \code{breaks}.
+
+    \item The special \code{fe()} function which sets up fixed effects
+    in \code{hhh4()} models gained an argument \code{unitSpecific} as a
+    convenient shortcut for \code{which = rep(TRUE, nUnits)}.
+
+    \item The convenient \code{plot} option of \code{permutationTest()}
+    uses \CRANpkg{MASS}::\code{truehist()} instead of \code{hist()} and
+    accepts graphical parameters to customize the histogram.
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item The \code{bodaFit} function did not draw samples from the
+    joint posterior. Instead draws were from the respective posterior
+    marginals. A new argument \code{samplingMethod} is now introduced
+    defaulting to the proper 'joint'. For backwards compatibility use
+    the value 'marginal'.
+    
+    \item The functions \code{as.epidataCS()} and \code{simEpidataCS()}
+    could throw inappropriate warnings when checking polygon areas
+    (only if \code{W} or \code{tiles}, respectively, contained holes).
+
+    \item Non-convergent endemic-only \code{twinstim} models
+    produced an error (spotted by Bing Zhang).
+
+    \item The \code{"owin"}-method of \code{intersectPolyCircle} could
+    have returned a rectangle-type \code{"owin"} instead of a polygon.
+
+    \item An error occurred in \code{twinstim()} if \code{finetune=TRUE}
+    or choosing \code{optim()} instead of the default \code{nlminb()}
+    optimizer without supplying a \code{control} list in \code{optim.args}.
+
+    \item The \code{"time"} plot for \code{"epidataCS"} did not
+    necessarily use the same histogram \code{breaks} for all strata.
+
+    \item Specifying a step function of interaction via a numeric vector
+    of knots did not work in \code{twinstim()}.
+
+    \item \code{plot.hhh4()} did not support an unnamed \code{type}
+    argument such as \code{plot(x, "season")}.
+
+    \item \code{simEpidataCS()} did not work if \code{t0} was in the
+    last block of \code{stgrid} (thus it did not work for single-cell
+    grids), and mislabeled the \code{start} column copied to
+    \code{events} if there were no covariates in \code{stgrid}.
+
+    \item Evaluating \code{intensity.twinstim()$hFUN()} at time points
+    before \code{t0} was an error. The function now returns
+    \code{NA_real_} as for time points beyond \code{T}.
+
+    \item Truncated, normalized power-law weights for \code{hhh4()}
+    models, i.e., \code{W_powerlaw(maxlag = M, normalize = TRUE)}
+    with \code{M < max(neighbourhood(stsObj))}, had wrong derivatives
+    and thus failed to converge.
+
+    \item \code{update.hhh4(..., use.estimates = TRUE)} did not
+    use the estimated weight function parameters as initial values for
+    the new fit. It does so now iff the weight function
+    \code{ne$weights} is left unchanged.
+  }
+}
+
+}
+
+
+
+\section{Changes in surveillance version 1.8-3 (2015-01-05)}{
+  
+  \itemize{
+    \item Accommodate a new note given by R-devel checks, and set the new
+    INLA additional repository in the \file{DESCRIPTION} file.
+
+    \item Made \code{linelist2sts()} work for quarters by adding extra
+    \code{"\%q"} formatting in \code{formatDate()}.
+  }
+
+}
+
+
 
 \section{Changes in surveillance version 1.8-2 (2014-12-16)}{
 
@@ -1202,7 +1362,7 @@
             not all documented as good as it could be). This includes code
             for the \code{"twinstim"} and the \code{"hhh4"} model.
 	    The \code{"twinSIR"} class of models has been
-            migrated from package \CRANpkg{RLadyBug} to \pkg{surveillance}.
+            migrated from package \pkg{RLadyBug} to \pkg{surveillance}.
             It may take a while before this version will become available from CRAN.
             For further details see below.
     }
@@ -1222,7 +1382,7 @@
       \item Support for \code{"twinSIR"} models (with associated
             \code{"epidata"} objects) as described 
             in \cite{Höhle (2009)} has been moved from package
-	    \CRANpkg{RLadyBug} to \pkg{surveillance}.
+	    \pkg{RLadyBug} to \pkg{surveillance}.
             That means continuous-time discrete-space \acronym{SIR} models.
       \item Support for \code{"twinstim"} models as described in
             \cite{Meyer et al (2012)}. That means continuous-time

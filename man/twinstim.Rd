@@ -16,7 +16,7 @@
 twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
          subset, t0 = data$stgrid$start[1], T = tail(data$stgrid$stop,1),
          na.action = na.fail, start = NULL, partial = FALSE,
-         control.siaf = list(F = list(), Deriv = list()),
+         epilink = "log", control.siaf = list(F = list(), Deriv = list()),
          optim.args = list(), finetune = FALSE,
          model = FALSE, cumCIF = FALSE, cumCIF.pb = interactive(),
          cores = 1, verbose = TRUE)
@@ -124,6 +124,16 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     by Diggle et al. (2010) should be used (default is \code{FALSE}).
     Note that the partial likelihood implementation is not well tested.
   }
+  \item{epilink}{
+    a character string determining the link function to be used for the
+    \code{epidemic} linear predictor of event marks. By default, the
+    log-link is used. The experimental alternative
+    \code{epilink = "identity"} (for use by \code{\link{epitest}}) does
+    not guarantee the force of infection to be positive. If this leads
+    to a negative total intensity (endemic + epidemic), the point
+    process is not well defined (the log-likelihood will be
+    \code{\link{NaN}}).
+  }
   \item{control.siaf}{
     a list with elements \code{"F"} and \code{"Deriv"}, which are lists
     of extra arguments passed to the functions \code{siaf$F} and
@@ -217,17 +227,20 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     does not improve upon the MLE).
   }
   \item{model}{
-    logical. If \code{TRUE} the result contains an element \code{functions} with
-    the log-likelihood function (or partial log-likelihood function, if
-    \code{partial = TRUE}), and optionally the score and
-    the expected Fisher information functions (not for the partial likelihood,
-    and only if \code{siaf} and \code{tiaf} provide the necessary
-    derivatives).
-    The environment of those functions equals the evaluation environment
-    of the fitting function, i.e. it is kept in the workspace and the
-    necessary model frames are still available when \code{twinstim} has
-    finished.  The environment is also set as an attribute of the
-    \code{twinstim} result.
+    logical indicating if the model environment should be kept with the
+    result, which is required for
+    \code{\link[=intensityplot.twinstim]{intensityplot}}s and
+    \code{\link[=R0.twinstim]{R0}(..., trimmed = FALSE)}.
+    Specifically, if \code{model=TRUE}, the return value will have the
+    evaluation environment set as its \code{\link{environment}},
+    and the returned \code{functions} element will contain the
+    log-likelihood function (or partial log-likelihood function, if
+    \code{partial = TRUE}), and optionally the score and the expected
+    Fisher information functions (not for the partial likelihood, and
+    only if \code{siaf} and \code{tiaf} provide the necessary
+    derivatives).\cr
+    Note that fitted objects with a model environment might consume
+    quiet a lot of memory since they contain the \code{data}.
   }
   \item{cumCIF}{
     logical (default: \code{FALSE}) indicating whether to
@@ -283,7 +296,7 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
   \item{counts}{number of log-likelihood and score evaluations during
     optimization.}
   \item{converged}{either \code{TRUE} (if the optimizer converged) or a
-    character string containing a failure message).}
+    character string containing a failure message.}
   \item{fisherinfo}{\emph{expected} Fisher information evaluated at the
     MLE. Only non-\code{NULL} for full likelihood inference
     (\code{partial = FALSE}) and if spatial and temporal interaction
@@ -394,46 +407,21 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
 # Load invasive meningococcal disease data
 data("imdepi")
 
+
 ### first, fit a simple endemic-only model
 
-## Calculate initial value for the endemic intercept (the crude estimate
-## which is used by default if no initial value is supplied).
-## Assume the model only had a single-cell endemic component
-## (rate of homogeneous Poisson process scaled for population density):
-popdensity.overall <- with(subset(imdepi$stgrid, BLOCK == 1),
-    weighted.mean(popdensity, area))
-popdensity.overall   # pop. density in Germany is ~230 inhabitants/km^2
-W.area <- with(subset(imdepi$stgrid, BLOCK == 1), sum(area))
-W.area               # area of Germany is about 357100 km^2
-# this should actually be the same as
-sum(sapply(imdepi$W@polygons, slot, "area"))
-# which here is not exactly the case because of polygon simplification
-
-## initial value for the endemic intercept
-h.intercept <- with(summary(imdepi),
-    log(nEvents/popdensity.overall/diff(timeRange)/W.area))
-
-## fit the endemic-only model
 m_noepi <- twinstim(
     endemic = addSeason2formula(~ offset(log(popdensity)) + I(start/365-3.5),
                                 S=1, period=365, timevar="start"),
-    data = imdepi, subset = !is.na(agegrp),
-    optim.args = list(par=c(h.intercept,rep(0,3))) # the default anyway
+    data = imdepi, subset = !is.na(agegrp)
 )
 
 ## look at the model summary
 summary(m_noepi)
 
-
-if (surveillance.options("allExamples"))
-{
-  ## type-dependent endemic intercept?
-  m_noepi_type <- update(m_noepi, endemic = ~(1|type) + .)
-  summary(m_noepi_type)
-  
-  # LR-test for a type-dependent intercept in the endemic-only model
-  pchisq(2*(logLik(m_noepi_type)-logLik(m_noepi)), df=1, lower.tail=FALSE)
-}
+## there is no evidence for a type-dependent endemic intercept (LR test)
+m_noepi_type <- update(m_noepi, endemic = ~(1|type) + .)
+pchisq(2*c(logLik(m_noepi_type)-logLik(m_noepi)), df=1, lower.tail=FALSE)
 
 
 ### add an epidemic component with just the intercept, i.e.
@@ -442,39 +430,38 @@ if (surveillance.options("allExamples"))
 
 m0 <- update(m_noepi, epidemic=~1, start=c("e.(Intercept)"=-18), model=TRUE)
 
-\dontrun{
-## NOTE: in contrast to using nlminb() optim's BFGS would miss the
-##       likelihood maximum wrt the epidemic intercept if starting at -10
-m0_BFGS <- update(m_noepi, epidemic=~1, start=c("e.(Intercept)"=-10),
-                  optim.args = list(method="BFGS"))
-format(cbind(coef(m0), coef(m0_BFGS)), digits=3, scientific=FALSE)
-m0_BFGS$fisherinfo   # singular Fisher information matrix here
-m0$fisherinfo
-logLik(m0_BFGS)
-logLik(m0)
-## nlminb is more powerful since we make use of the analytical fisherinfo
-## as estimated by the model during optimization, which optim cannot
-}
-
 ## summarize the model fit
 s <- summary(m0, correlation = TRUE, symbolic.cor = TRUE)
 s
 # output the table of coefficients as LaTeX code
-toLatex(s, digits=2, withAIC=FALSE)
-# or
+toLatex(s, digits=2)
+# or, to report rate ratios
 xtable(s)
 
 ## the default confint-method can be used for Wald-CI's
 confint(m0, level=0.95)
 
-## same R0 estimate for every event (epidemic intercept only)
+## same "untrimmed" R0 for every event (simple epidemic intercept model)
 summary(R0(m0, trimmed=FALSE))
 
 ## plot the path of the fitted total intensity
 plot(m0, "total intensity", tgrid=500)
 
+## the remaining examples are more time-consuming
 if (surveillance.options("allExamples"))
 {
+  ## NB: in contrast to using nlminb() optim's BFGS would miss the
+  ##     likelihood maximum wrt the epidemic intercept if starting at -10
+  m0_BFGS <- update(m_noepi, epidemic=~1, start=c("e.(Intercept)"=-10),
+                    optim.args = list(method="BFGS"))
+  format(cbind(nlminb=coef(m0), BFGS=coef(m0_BFGS)), digits=3, scientific=FALSE)
+  m0_BFGS$fisherinfo   # singular Fisher information matrix here
+  m0$fisherinfo
+  logLik(m0_BFGS)
+  logLik(m0)
+  ## nlminb is more powerful since we make use of the analytical fisherinfo
+  ## as estimated by the model during optimization, which optim cannot
+
   ## extract "residual process" integrating over space (takes some seconds)
   res <- residuals(m0)
   # if the model describes the true CIF well _in the temporal dimension_,
@@ -484,47 +471,35 @@ if (surveillance.options("allExamples"))
   # -> use the function checkResidualProcess
   checkResidualProcess(m0)
 
-  ## NB: the model fit environment is kept in the workspace with model=TRUE
-  sort(sapply(environment(m0), object.size))
-  # saving m0 to RData will include this model environment, thus might
-  # consume quiet a lot of disk space (as it does use memory), mainly
-  # depending on the size of "stgrid", the number of "events" and the
-  # polygonal resolution of "W"
-}
-
-if (surveillance.options("allExamples"))
-{
   ## estimate an exponential temporal decay of infectivity
   m1_tiaf <- update(m0, tiaf=tiaf.exponential())
   plot(m1_tiaf, "tiaf", scaled=FALSE)
 
-  ### try with a spatially decreasing interaction kernel
-  ## Likelihood evaluation takes much longer than for constant spatial spread
-  ## Here we use the kernel of an isotropic bivariate Gaussian with same
-  ## standard deviation for both finetypes
+  ## estimate a step function for spatial interaction
+  m1_fstep <- update(m0, siaf=c(5,10,25,50))
+  plot(m1_fstep, "siaf", scaled=FALSE)
 
+  ## estimate a continuously decreasing spatial interaction function, where
+  ## likelihood evaluation takes much longer than for (piecewise) constant
+  ## spatial spread; here we use the kernel of an isotropic bivariate
+  ## Gaussian with a standard deviation of exp(2.8) = 16.4 km for both
+  ## finetypes (fixed to speed up the example)
   m1 <- update(m0,
       siaf = siaf.gaussian(1, F.adaptive = TRUE),
-      start = c("e.siaf.1" = 2.8),  # exp(2.8) = sigma = 16 km
+      start = c("e.siaf.1" = 2.8), # sigma = exp(2.8) = 16.4 km
       optim.args = list(fixed="e.siaf.1"),
-                        # for reasons of speed of the example, the siaf
-                        # parameter log(sigma) is fixed to 2.8 here
       control.siaf = list(F=list(adapt=0.25)) # use adaptive eps=sigma/4
   )
-
   AIC(m_noepi, m0, m1)   # further improvement
   summary(m1, test.iaf=FALSE)   # nonsense to test H0: log(sigma) = 0
   plot(m1, "siaf", scaled=FALSE)
 
-
-  ### add epidemic covariates
-
+  ## add epidemic covariates
   m2 <- update(m1, epidemic = ~ 1 + type + agegrp)
-  
   AIC(m1, m2)   # further improvement
   summary(m2)
   
-  # look at estimated R0 values by event type
+  ## look at estimated R0 values by event type
   tapply(R0(m2), imdepi$events@data[names(R0(m2)), "type"], summary)
 }
 }

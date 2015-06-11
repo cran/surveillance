@@ -64,7 +64,9 @@ untie(x, amount, ...)
     potential source of infection for the latter, although it could just
     as well be the other way round. Enabling \code{keep.sources} will
     use the \code{.sources} list from the original (tied)
-    \code{"epidataCS"} object.
+    \code{"epidataCS"} object. Note, however, that an update is forced
+    within \code{twinstim} if a subset of the data is selected
+    for model fitting or if a different \code{qmatrix} is supplied.
   }
   \item{constraint}{
     an object of class \code{"\linkS4class{SpatialPolygons}"}

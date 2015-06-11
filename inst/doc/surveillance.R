@@ -1,4 +1,5 @@
 ### R code from vignette source 'surveillance.Rnw'
+### Encoding: UTF-8
 
 ###################################################
 ### code chunk number 1: surveillance.Rnw:54-73

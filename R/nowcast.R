@@ -9,7 +9,7 @@
 #  now  - a Date object representing today
 #  when - a vector of Date objects representing the days to do the forecast for.
 #         A requirement is that for all elements in when are smaller or equal
-#         than "now". 
+#         than "now".
 #  data - the Database containing columns dEventCol and dReportCol, which
 #      contain the date of the event and of when the report arrives in
 #      the database.
@@ -41,16 +41,16 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
         aggregate.by="1 day",
         D=15, m=NULL,
         control=list(
-            dRange=NULL,alpha=0.05,nSamples=1e3, 
-            N.tInf.prior=c("poisgamma","pois","unif"),  
+            dRange=NULL,alpha=0.05,nSamples=1e3,
+            N.tInf.prior=c("poisgamma","pois","unif"),
             N.tInf.max=300, gd.prior.kappa=0.1,
             ddcp=list(ddChangepoint=NULL,
                 logLambda=c("iidLogGa","tps","rw1","rw2"),
                 tau.gamma=1,eta.mu=NULL, eta.prec=NULL,
                 mcmc=c(burnin=2500,sample=10000,thin=1)),
             score=FALSE,predPMF=FALSE)) {
-  
-  
+
+
   #Check if the runjags package is available (required for bayes.trunc.ddcp to work!
   if ("bayes.trunc.ddcp" %in% method) {
     if (!requireNamespace("runjags",quietly=TRUE)) {
@@ -61,7 +61,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   if ((!inherits(now,"Date")) | (length(now)>1)) {
     stop("The parameter 'now' has to be a single Date.")
   }
-  
+
   #Check if all when_i<= now
   if (!all(when<=now)) {
     stop("Assertion when<=now failed.")
@@ -77,11 +77,11 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   ######################################################################
   aggregate.by <- match.arg(aggregate.by,c("1 day","1 week", "1 month"),several.ok=FALSE)
   epochInPeriodStr <- switch(aggregate.by, "1 day"="1","1 week"="%u", "1 month"="%d")
-  
+
   if (aggregate.by != "1 day") {
       warning("Moving dates to first of each epoch.")
-      
-      
+
+
       #Move dates back to first of each epoch unit
       for (colName in c(dEventCol, dReportCol)) {
           data[,colName] <- data[,colName] - as.numeric(format(data[,colName],epochInPeriodStr)) + 1
@@ -91,12 +91,12 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
           stop("The variables 'now' and 'when' needs to be at the first of each epoch")
       }
   }
-  
+
   #Choose the corect difference function
   if (aggregate.by == "1 day") {
       timeDelay <- function(d1,d2) {as.numeric(d2-d1)}
   }
-  if (aggregate.by == "1 week") { 
+  if (aggregate.by == "1 week") {
       timeDelay <- function(d1,d2) { floor(as.numeric(difftime(d2,d1,units="weeks")))  } #Count the number of full weeks
   }
   if (aggregate.by == "1 month") {
@@ -107,9 +107,9 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
               lt$year*12 + lt$mon
           }
           monnb(d2) - monnb(d1) #count the number of full months
-      } 
+      }
   }
-      
+
   ######################################################################
   #If there is a specification of dateRange set dMin and dMax accordingly
   #Otherwise use as limits the range of the data
@@ -126,11 +126,11 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       stop("The variables in dRange needs to be at the first of each epoch.")
   }
   dateRange <- seq(dMin,dMax,by=aggregate.by)
-  
+
   ######################################################################
   # Additional manipulation of the control arguments
   ######################################################################
-  
+
   #Check if alpha is specified
   if (is.null(control[["alpha",exact=TRUE]])) {
     control$alpha <- 0.05
@@ -143,13 +143,13 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   }
   if (is.null(control[["gd.prior.kappa",exact=TRUE]])) {
     control$gd.prior.kappa <- 0.1
-  } 
+  }
   if (is.null(control[["nSamples",exact=TRUE]])) {
     control$nSamples <- 1e3
-  } 
+  }
   if (is.null(control[["score",exact=TRUE]])) {
     control$score <- FALSE
-  } 
+  }
 
   #Checking for the bayes.trun.ddcp procedure. If so make sure params are set up.
   if ("bayes.trunc.ddcp" %in% method) {
@@ -160,14 +160,14 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
                                tau.gamma=1,
                                mcmc=c(burnin=2500,sample=10000,thin=1))
       }
-      #Check form og logLambda      
+      #Check form og logLambda
       if (is.null(control[["ddcp",exact=TRUE]][["logLambda",exact=TRUE]])) {
           control[["ddcp"]] <- modifyList(control[["ddcp",exact=TRUE]],list(logLambda="iidLogGa"))
       } else {
           control[["ddcp"]]$logLambda <- match.arg(control[["ddcp"]][["logLambda"]],c("iidLogGa","tps","rw1","rw2"))
       }
 
-      #Check breakpoint to use in case of bayes.trunc.ddcp (delay distribution with breakpoint)                                 
+      #Check breakpoint to use in case of bayes.trunc.ddcp (delay distribution with breakpoint)
       if (is.null(control[["ddcp",exact=TRUE]][["ddChangepoint",exact=TRUE]]) ||
           (!class(control[["ddcp",exact=TRUE]][["ddChangepoint",exact=TRUE]]) == "Date")) {
           stop("Please specify a Date object as changepoint in control$ddChangepoint.")
@@ -179,7 +179,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
 
       #Make this an accessible variable
       ddChangepoint <- control$ddcp$ddChangepoint
-      
+
       #Precision parameter for gamma coefficients for hazard delay distribution
       if (is.null(control[["ddcp",exact=TRUE]][["tau.gamma",exact=TRUE]])) {
           control[["ddcp"]]$tau.gamma <- 1
@@ -200,7 +200,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
           }
       }
 
-      
+
       #Check MCMC options
       if (is.null(control[["ddcp",exact=TRUE]][["mcmc",exact=TRUE]])) {
           control[["ddcp"]][["mcmc"]] <- c(burnin=2500,sample=10000,thin=1)
@@ -210,7 +210,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
           }
       }
   }
-  
+
   ######################################################################
   # Do preprocessing of the data
   ######################################################################
@@ -226,21 +226,21 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   if (sum(notThereButDThere,na.rm=TRUE)) {
     warning(paste(sum(notThereButDThere,na.rm=TRUE), " observations > \"now\" due to a delay >D. If delay cut to D they would be there."),sep="")
   }
-  
+
   #Which observations are available at time s
   #@hoehle: data.sub <- data[ na2FALSE(data[,dReportCol] <= now),]
   data.sub <- data[ na2FALSE(timeDelay(data[,dReportCol],now) >= 0),]
   if (nrow(data.sub)==0) {
     stop(paste("No data available at now=",now,"\n"))
   }
-  
+
   #Create an sts object containing the observed number of counts until s
   sts <- linelist2sts(data.sub,dEventCol,aggregate.by=aggregate.by,dRange=dateRange)
   sts <- as(sts,"stsNC")
 
   #Create an extra object containing the "truth" based on data
   sts.truth <- linelist2sts(data,dEventCol,aggregate.by=aggregate.by,dRange=dateRange)
-  
+
   #List of scores to calculate. Can become an argument later on
   scores <- c("logS","RPS","dist.median","outside.ci")
 
@@ -253,13 +253,13 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   }
   #Prepare a list of different estimated of the delay CDF
   delayCDF <- list()
-  
+
 
   ######################################################################
   # Done manipulating the control list with default arguments
   ######################################################################
   sts@control <- control
-  
+
   #Save truth
   sts@truth <- sts.truth
 
@@ -269,7 +269,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   ######################################################################
   # Consistency checks
   ######################################################################
-  
+
   #Check if support of N.tInf is large enough
   if (2*control$N.tInf.max < max(observed(sts),na.rm=TRUE)) {
     warning("N.tInf.max appears too small. Largest observed value is more than 50% of N.tInf.max, which -- in case this number is extrapolated -- might cause problems.\n")
@@ -279,7 +279,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
 
   #======================================================================
   #======================================================================
-  # Build reporting triangle and derived parameters for delay 
+  # Build reporting triangle and derived parameters for delay
   #======================================================================
   #======================================================================
 
@@ -289,9 +289,9 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   t0 <- min(dateRange)
   #Sequence from time origin until now (per day??)
   #@hoehle
-  t02s <- seq(t0,now,by=aggregate.by) 
+  t02s <- seq(t0,now,by=aggregate.by)
   #Maximum time index
-  T <- length(t02s)-1  
+  T <- length(t02s)-1
 
   #Check if the maximum delay is longer than the available time series
   if (D>T) {
@@ -308,10 +308,10 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
 
   #Loop over time points. (more efficient that delay and then t)
   for (t in 0:T) {
-    #Extract all reports happening at time (index) t. 
+    #Extract all reports happening at time (index) t.
     #@hoehle: data.att <- data.sub[na2FALSE(data.sub[,dEventCol] == t02s[t+1]), ]
     data.att <- data.sub[na2FALSE(timeDelay(data.sub[,dEventCol], t02s[t+1])) == 0, ]
-    #Loop over all delays 
+    #Loop over all delays
     for (x in 0:(T-t)) {
       #Count number with specific delay
       n[t+1,x+1] <- sum(data.att[,"delay"] == x)
@@ -321,7 +321,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   cat("No. cases: ",sum(n,na.rm=TRUE),"\n")
 
   #Handle delays longer than D
-  #@hoehle: Not done!                 
+  #@hoehle: Not done!
   nLongDelay <- apply(n[,(D+1)+seq_len(T-D)],1,sum,na.rm=TRUE)
   if (any(nLongDelay>0)) {
     warning(paste(sum(nLongDelay)," cases with a delay longer than D=",D," days forced to have a delay of D days.\n",sep=""))
@@ -346,9 +346,9 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       }
     }
   }
-  
+
   cat("No. cases within moving window: ",sum(n.x,na.rm=TRUE),"\n")
-  
+
   #Available observations at time T, definition of N(t;T) on p.17.
   N.tT <- sapply(0:T, function(t) sum(n[t+1, 0:min(D+1,(T-t)+1)]))
 
@@ -366,9 +366,9 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   attr(reportingTriangle, "D") <- D
   attr(reportingTriangle, "t02s") <- t02s
   sts@reportingTriangle <- reportingTriangle
-  
+
   #======================================================================
-  # Calculations are jointly for all t values. 
+  # Calculations are jointly for all t values.
   #======================================================================
 
   #List of casts each containing a table 0..N.tInf.max with the PMF
@@ -379,7 +379,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   # Lawless (1994) method without adjustment for overdispersion
   #
   #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
   if ("lawless" %in% method) {
     #Hazard function estimates, i.e. g-function estimate as in (2.9)
     #of Lawless (1994). NAs are set to zero (consequences??)
@@ -390,7 +390,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     #Check how the estimated CDF looks
     #F <- NULL ; for (d in 0:D) { i <- d+seq_len(D-d) ; F[d+1] <- prod(1-g.hat[i+1]) }
     #plot(0:D,F)
-    
+
     #Compute weights Wt.hat as in eqn. (2.13). Use T1=Inf.
     #Note: Wt.hat estimates F_t(T-t).
     T1 <- Inf
@@ -402,10 +402,10 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
         prod(1-g.hat[x+1])
       }
     })
-    
+
     #Store result of delay distribution estimation for support 0:T
     delayCDF[["lawless"]] <- rev(What.t)
-      
+
     #Do the prediction as in (2.12)
     Nhat.tT1 <- N.tT / What.t
 
@@ -414,7 +414,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       if (t<T-D) {
         0
       } else {
-        x = T-t + seq_len(min(T1-t,D)-(T-t)) 
+        x = T-t + seq_len(min(T1-t,D)-(T-t))
         What.t[t+1]^2 * sum( g.hat[x+1]/(N.x[x+1]*(1-g.hat[x+1])),na.rm=TRUE)
       }
     })
@@ -432,7 +432,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     #conf.level <- 0.95
     #U <- Nhat.tT1 + qnorm( (1+conf.level)/2)* sqrt(Vhat.Zt)
     #L <- pmax(N.tT, Nhat.tT1 - qnorm( (1+conf.level)/2)* sqrt(Vhat.Zt))
-    
+
     #Discretize result: all mass below actual observation is put to observation
     PMFs <- matrix(NA, nrow=control$N.tInf.max+1,ncol=T+1)
     #CDF of a left truncated normal, truncated at "at"
@@ -452,11 +452,11 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
         PMFs[,i] <- (N.tInf.support == Nhat.tT1[i])*1
       }
     }
-    
+
     Ps[["lawless"]] <- PMFs
   } #end lawless procedure
 
-  
+
   #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   #
   # Bayesian method (simple model, clever sampling -> no MCMC)
@@ -466,11 +466,11 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   #Part jointly for both bayes and bayes.notrunc
   if (("bayes.trunc" %in% method) | ("bayes.notrunc" %in% method)) {
     cat("bayes prep...\n")
-    
+
     ######################################################################
     # Prior of N(t,\infty)
     ######################################################################
-    
+
     N.tInf.prior <- control$N.tInf.prior
     #Extract prior parameters from prior choice
     if (N.tInf.prior == "pois") {
@@ -483,7 +483,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
         if (all(c("mean.lambda","var.lambda") %in% names(attributes(N.tInf.prior)))) {
           mean.prior <- attr(N.tInf.prior,"mean.lambda",exact=TRUE)
           var.prior.target <- attr(N.tInf.prior,"var.lambda",exact=TRUE)
-          
+
           size.prior <- uniroot( function(size.prior) { var.prior(size.prior) - var.prior.target},interval=c(1e-12,50))$root
           #Check result
           cat("(E,V) of prior for lambda = (",paste(c(mean.prior,var.prior(size.prior)),collapse=","),")\n")
@@ -513,14 +513,14 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
 
       #All the time points where extrapolation is to be done
       tSet <- max(0,(T-D)):T
-      
+
       ######################################################################
       # Procedure to generate nowcasts of all time points up to T-D,...,T.
       # This is based on the posterior samples available in p.sample.
       # Current code adds up the PMF tables instead of a pure sample based
       # procedure and also prevents PMF=0 better than tabulating the samples.
       ######################################################################
-      
+
       N.tT1.pred <- array(NA, dim=c(dim(p.sample)[1],control$N.tInf.max+1,dim(p.sample)[2]),dimnames=list(NULL,seq_len(control$N.tInf.max+1)-1L,tSet))
       for (j in 1:control$nSamples) {
         #Extract delay PMF from sample
@@ -529,7 +529,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
         F <- c(rep(1,T-D),rev(cumsum(p)))
         #Guard against numerical instability: ensure that not larger than 1.
         F <- ifelse(F>1,1,F)
-        
+
         #Loop over all time points to nowcast
         for (i in 1:length(tSet)) {
           t <- tSet[i]
@@ -544,7 +544,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       if (T-D>0) {
         #Empty PMFs
         determined <- matrix(0,nrow=control$N.tInf.max+1,ncol=T-D-1+1)
-        #Add "1" entry at the observed 
+        #Add "1" entry at the observed
         for (t in 0:(T-D-1)) {
           determined[N.tT[t+1]+1,t+1] <- 1
         }
@@ -553,35 +553,35 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       return(PMF)
     } #done definition of pmfBySampling
   }
-  
+
   if ("bayes.trunc" %in% method) {
     cat("bayes.trunc...\n")
-        
+
     ######################################################################
     #Prior of reporting delay as parameters of generalized Dirichlet prior
     ######################################################################
 
     #Define symmetric dirichlet as prior, just as in the other case
-    alpha.prior <- rep(control$gd.prior.kappa, D) 
+    alpha.prior <- rep(control$gd.prior.kappa, D)
     beta.prior <- rep(0,D)
     beta.prior[D] <- control$gd.prior.kappa
     for (i in (D-1):1) {
       beta.prior[i] <- alpha.prior[i+1] + beta.prior[i+1]
     }
-    
-    
+
+
     ######################################################################
     # Posterior section
     ######################################################################
-   
+
     #Deduce posterior distribution of delay distribution, i.e. it is again
     #a generalized Dirichlet
     alpha <- beta <- rep(NA,D)
-    for (d in 0:(D-1)) { 
+    for (d in 0:(D-1)) {
       alpha[d+1] <- n.x[D-d+1] ##Note: +1 coz index 1 is delay 0.
       beta[d+1] <-  N.x[D-d+1] - n.x[D-d+1]
     }
-    
+
     #Check if there are any points without data and warn about it.
     if (any(alpha + beta == 0)) {
       warning("The delays ",paste(D-which(alpha+beta==0)-1,collapse=",")," have no observations. Results might be instable and depend all on prior.")
@@ -595,10 +595,10 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     #Compute the expectation of the GD distribution and store this as the delay
     delayCDF[["bayes.trunc"]] <- cumsum(rev(Egd(alpha.star,beta.star)))
 
-    #Save result    
+    #Save result
     Ps[["bayes.trunc"]] <- pmfBySampling(alpha.star, beta.star)
-    
-  } # end "bayes.trunc" %in% method 
+
+  } # end "bayes.trunc" %in% method
 
   #======================================================================
   # Bayesian version which ignores truncation
@@ -606,7 +606,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
 
   if ("bayes.notrunc" %in% method) {
     cat("bayes.notrunc...\n")
-    
+
     ######################################################################
     # Prior section
     ######################################################################
@@ -616,7 +616,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     for (i in (D-1):1) {
       beta.prior[i] <- alpha.prior[i+1] + beta.prior[i+1]
     }
-        
+
     ######################################################################
     # Posterior section
     ######################################################################
@@ -626,7 +626,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     alpha <- beta <- rep(NA,D)
     for (d in 0:(D-1)) {
       alpha[d+1] <- n.x[D-d+1]
-      beta[d+1] <-  sum(n.x[D - (d+1):D + 1]) 
+      beta[d+1] <-  sum(n.x[D - (d+1):D + 1])
     }
 
     #Check if there are any points without data and warn about it.
@@ -634,7 +634,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       warning("The delays ",paste(D-which(alpha+beta==0)-1,collapse=",")," have no observations. Results might be instable and depend all on prior.")
     }
 
-    #Posterior parameters. 
+    #Posterior parameters.
     alpha.star <- alpha.prior + alpha
     beta.star  <- beta.prior  + beta
 
@@ -647,9 +647,9 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
 
     #Save resulting delay distribution
     delayCDF[["bayes.notrunc"]] <- cumsum(rev(Egd(alpha.star,beta.star)))
-    
+
     Ps[["bayes.notrunc"]] <- pmfBySampling(alpha.star,beta.star)
-    
+
   } # end bayes.notrunc
 
   ######################################################################
@@ -658,7 +658,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   ######################################################################
   if ("bayes.notrunc.bnb" %in% method) {
     cat("bayes.notrunc.bnb...\n")
-    
+
     ######################################################################
     # Prior section (same as for all methods)
     ######################################################################
@@ -668,7 +668,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     for (i in (D-1):1) {
       beta.prior[i] <- alpha.prior[i+1] + beta.prior[i+1]
     }
-        
+
     ######################################################################
     # Posterior section
     ######################################################################
@@ -678,33 +678,33 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     alpha <- beta <- rep(NA,D)
     for (d in 0:(D-1)) {
       alpha[d+1] <- n.x[D-d+1]
-      beta[d+1] <-  sum(n.x[D - (d+1):D + 1]) 
+      beta[d+1] <-  sum(n.x[D - (d+1):D + 1])
     }
-    
+
     #Check if there are any points without data and warn about it.
     if (any(alpha + beta == 0)) {
       warning("The delays ",paste(D-which(alpha+beta==0)-1,collapse=",")," have no observations. Results might be instable and depend all on prior.")
     }
-    
-    #Posterior parameters. 
+
+    #Posterior parameters.
     alpha.star <- alpha.prior + alpha
     beta.star  <- beta.prior  + beta
-    
+
     #Check that its a ordinary Dirichlet
     for (i in (D-1):1) {
       if (!all.equal(beta.star[i], alpha.star[i+1] + beta.star[i+1])) {
         warning("Posterior at i=",i," is not an ordinary Dirichlet as it's supposed to be.")
       }
     }
-    
+
     #Save resulting delay distribution (i.e. no truncation adjustment)
     delayCDF[["bayes.notrunc"]] <- cumsum(rev(Egd(alpha.star,beta.star)))
 
     #Allocate PMF to return
     PMF <- matrix(0,nrow=control$N.tInf.max+1,ncol=length(max(0,(T-D)):T))
-    
+
     #Concentration parameter vector of the ordinary Dirichlet distribution
-    #Note. alpha.star vector is reversed (shortest delay last). 
+    #Note. alpha.star vector is reversed (shortest delay last).
     alpha <- rev(c(alpha.star,beta.star[length(beta.star)]))
 
     #consistency check
@@ -715,8 +715,8 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     tSet <- max(0,(T-D)):T
     for (i in 1:length(tSet)) {
       t <- tSet[i]
-      alpha.i <- cumsum(alpha)[T-t+1] 
-      beta.i <-  sum(alpha) - alpha.i 
+      alpha.i <- cumsum(alpha)[T-t+1]
+      beta.i <-  sum(alpha) - alpha.i
       if (T-t==D) {
         PMF[,i] <- ifelse( N.tInf.support  == N.tT[t+1], 1, 0)
       } else {
@@ -726,12 +726,12 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
         PMF[,i] <- dbnb( N.tInf.support - N.tT[t+1],n=N.tT[t+1]+1, alpha=alpha.i, beta=beta.i)
       }
     } #done looping over all time points
-    
+
     #Add part, where no prediction needs to be done
     if (T-D>0) {
       #Empty PMFs
       determined <- matrix(0,nrow=control$N.tInf.max+1,ncol=T-D-1+1)
-      #Add "1" entry at the observed 
+      #Add "1" entry at the observed
       for (t in 0:(T-D-1)) {
         determined[N.tT[t+1]+1,t+1] <- 1
       }
@@ -741,15 +741,15 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     Ps[["bayes.notrunc.bnb"]] <- PMF
   } # end bayes.notrunc.bnb
 
-  
+
   ######################################################################
   # Fully Bayes version with MCMC
   ######################################################################
-  
+
   if ("bayes.trunc.ddcp" %in% method) {
       #Allocate result
       PMF <- matrix( 0,ncol=(T+1),nrow=control$N.tInf.max+1)
-    
+
       #Fix seed value of JAGS RNG for each chain
       n.chains <- 3
       init <- lapply(1:n.chains,function(i) {
@@ -758,7 +758,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
 
       #Make design matrix for a quadratic TPS spline in time
       makeTPSDesign <- function(T,degree=2) {
-          nbeta=degree + 1 
+          nbeta=degree + 1
           X <- matrix(NA,ncol=nbeta, nrow=T+1)
           for (t in 0:T) {
           #Form a centered time covariate
@@ -787,7 +787,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
           return(list(X=X,Z=Z,knots=knots,nknots=nknots,nbeta=nbeta))
       }
       tps <- makeTPSDesign(T=T,degree=2)
-      
+
       #Design matrix for logistic discrete time hazard model containing
       #changepoints. Could be extended s.t. the user provides W.
       W <- array(NA,dim=c(T+1,length(ddChangepoint),D+1),dimnames=list(as.character(t02s),as.character(ddChangepoint),paste("delay",0:D,sep="")))
@@ -796,7 +796,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
               W[t+1,i,] <- as.numeric( (t02s[t+1] + 0:D) >= ddChangepoint[i])
           }
       }
-      
+
       #Priors. Uniform on the delays
       D.prime <- round( D/2-0.4)+1
       p.prior <- rep(1/(D.prime+1), D.prime+1)
@@ -818,13 +818,15 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
                        X=tps$X,Z=tps$Z,nknots=tps$nknots,beta.mu=rep(0,tps$nbeta),beta.prec=1e-6*diag(tps$nbeta)
                        )
 
-      
+
       #Select appropriate model (change this to be part of the options!!)
       logLambda.method <- control$ddcp$logLambda   #"tps" #"rw2" #"iid" #"rw2" #"rw2" #"iid" #"rw" #"tps"
-      
+
+###      browser()
+
       #Load the BUGS specification of the Bayesian hierarchical Poisson model
       bugsModel <- readLines(file.path(path.package('surveillance'),'jags',"bhpm.bugs"))
-      
+
       bugsModel <- gsub(paste("#<",logLambda.method,">",sep=""),"",bugsModel)
       #Problem when eta is scalar (TODO: Improve!!)
       if (length(ddChangepoint) == 1) {
@@ -848,18 +850,18 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       ##     list.samplers(model)
       ##     coda.samples(model,variable.names='logLambda',n.iter=100)
       ## }
-      
-     
+
+
       ######################################################################
       # runjags way -- ToDo: parametrize using control options!
       ######################################################################
-      
+
       runjagsMethod <-  'rjparallel' #'rjags'
       monitor <- c('gamma','eta','logLambda','NtInf')
       samples.rj <- runjags::run.jags(bugsFile,#bugsModel,
                              monitor = monitor, data=jagsData, n.chains=3,
                              inits = init,
-                             burnin =  control$ddcp$mcmc["burnin"],  
+                             burnin =  control$ddcp$mcmc["burnin"],
                              sample =  control$ddcp$mcmc["sample"],
                              thin =  control$ddcp$mcmc["thin"],
                              adapt=1000,
@@ -878,10 +880,10 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       eta <- matrix(post.median[grep("^eta",names(post.median))])
       #Map from reduced set to full set
       gamma <- gamma.red[round( (0:(D-1))/2 - 0.4) + 1]
-      
+
       #Compute the resulting PMF from the model. Possibly put this in separate function.
       pmf <- matrix(NA, nrow=nrow(W),ncol=D+1,dimnames=list(as.character(t02s),paste("delay",0:D,sep="")))
-      #Determine PMF 
+      #Determine PMF
       for (t in 1:length(t02s)) {
         if (as.character(t02s[t]) %in% rownames(W)) {
           lin.pred <- ( gamma + t(eta) %*% W[t,,0:D])
@@ -894,18 +896,18 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       #Store model as attribute
       if(control$ddcp$logLambda != "tps") tps <- NULL
       attr(delayCDF[["bayes.trunc.ddcp"]],"model") <- list(post.median=dt.surv.pm,W=W,lambda.post=lambda.post,tps=tps)
-      
+
       #Convert to coda compatible output.
       samples <- coda::as.mcmc.list(samples.rj)
 
-      
-      #Extract PMFs 
+
+      #Extract PMFs
       for (t in 0:T) {
           #Extract samples related to this time point
           vals <- as.matrix(samples[,paste("NtInf[",t+1,"]",sep="")])
           #PMF
           PMF[,t+1] <- prop.table(table(factor(vals,levels=0:control$N.tInf.max)))
-      }      
+      }
       Ps[["bayes.trunc.ddcp"]] <- PMF
   }
 
@@ -941,8 +943,8 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       sts@predPMF[[as.character(dateRange[i])]] <- res
     }
 
-    
-    #Evaluate scoring rules, if requested 
+
+    #Evaluate scoring rules, if requested
     if (control$score) {
       #Infer the true value
       ytinf <- observed(sts.truth)[i,]
@@ -954,14 +956,14 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
         }
       }
     } #end if control$score
-    
+
     #Add first nowcast & ci to stsBP slots
     sts@upperbound[i,] <- median(N.tInf.support[which.max( cumsum(Ps[[method[1]]][,i])>0.5)])
     sts@pi[i,,] <- N.tInf.support[c(which.max(cumsum(Ps[[method[1]]][,i]) > control$alpha/2),which.max(cumsum(Ps[[method[1]]][,i]) > 1-control$alpha/2))]
     dimnames(sts@pi) <- list(as.character(dateRange),NULL,paste( c(control$alpha/2*100,(1-control$alpha/2)*100),"%",sep=""))
   } #end of loop over time points
 
-  
+
   #Add scoring rule to output
   if (control$score) {
     dimnames(SR)    <- list(as.character(dateRange),method,scores)
@@ -979,14 +981,14 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   sts@control$now <- now
   sts@control$when <- when
   sts@control$timeDelay <- timeDelay
-  
-  #Store delayCDF object 
-  sts@delayCDF <- delayCDF 
-  
+
+  #Store delayCDF object
+  sts@delayCDF <- delayCDF
+
   #For backwards compatibility -- change this in the future TODODODODODO!
   sts@control$yt.support <-  sts@control$N.tInf.support
   sts@control$y.prior.max <- sts@control$N.tInf.max
-  
+
   #Done
   return(sts)
 }

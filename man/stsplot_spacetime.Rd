@@ -66,7 +66,7 @@ stsplot_spacetime(x, type, legend = NULL, opts.col = NULL, labels = TRUE,
 }
 
 \author{
-  Michael H\enc{Ã¶}{oe}hle
+  Michael H\enc{ö}{oe}hle
 }
 
 \note{

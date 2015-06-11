@@ -5,9 +5,9 @@
 ###
 ### Permutation test to compare the means of paired samples
 ###
-### Copyright (C) 2010-2012 Michaela Paul
-### $Revision: 1028 $
-### $Date: 2014-09-24 09:52:59 +0200 (Wed, 24 Sep 2014) $
+### Copyright (C) 2011-2012 Michaela Paul, 2013-2015 Sebastian Meyer
+### $Revision: 1347 $
+### $Date: 2015-05-29 11:45:51 +0200 (Fri, 29 May 2015) $
 ################################################################################
 
 permutationTest <- function(score1, score2, nPermutation = 9999,
@@ -26,10 +26,13 @@ permutationTest <- function(score1, score2, nPermutation = 9999,
         g2 <- (sum(score1[sel==1]) + sum(score2[sel==0]))/nTime
         g1 - g2
     })
-
-    if (plot) {
-        hist(diffMean, nclass=50, prob=TRUE,xlab="Difference between means",main="")
-        abline(v=diffObserved,col=4)
+    
+    if (isTRUE(plot)) plot <- list()
+    if (is.list(plot)) {
+        do.call("permtestplot", args = modifyList(
+            list(permstats = diffMean, xmarks = c("observed" = diffObserved),
+                 xlab = "Difference between means", ylab = "Density", main = ""),
+            plot))
     }
     
     pVal <- (1+sum(abs(diffMean)>=abs(diffObserved))) / (nPermutation+1)

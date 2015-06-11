@@ -4,13 +4,13 @@
 # based on the control options, the nowcasttrunc function removes
 # tags or inserts extra code - i.e. this file can not run with JAGS
 # without extra modification
-# 
+#
 # Author: Michael Höhle <http://www.math.su.se/~hoehle>
 ######################################################################
 
 model {
     ##################################################
-    #Prior for the TPS      
+    #Prior for the TPS
     ##################################################
 
     #<tps> #Priors for the regression coefficients. A joint distribution
@@ -20,71 +20,71 @@ model {
     #<tps> #Random effects with automatic smoothing
     #<tps> for (k in 1:nknots){
     #<tps>  	  b[k]~dnorm(0,tau.b)
-    #<tps> }	
+    #<tps> }
     #<tps> tau.b ~ dgamma(0.001, 0.001)
 
     #<rw> #1st order random walk prior for lambda[t]
-    #<rw> logLambda[1] ~ dnorm(-10, tau.logLambda) 
+    #<rw> logLambda[1] ~ dnorm(-10, tau.logLambda)
     #<rw> for (t in 2:T) {
     #<rw>	logLambda[t] ~ dnorm( logLambda[t-1], tau.logLambda)
-    #<rw>    }	
+    #<rw>    }
     #<rw> tau.logLambda ~ dgamma(0.001,0.001)
 
     #<rw2> #2nd order random walk prior for lambda[t]
-    #<rw2> logLambda[1] ~ dnorm(-10, tau.logLambda) 
-    #<rw2> logLambda[2] ~ dnorm(-10, tau.logLambda) 
+    #<rw2> logLambda[1] ~ dnorm(-10, tau.logLambda)
+    #<rw2> logLambda[2] ~ dnorm(-10, tau.logLambda)
     #<rw2> for (t in 3:T) {
     #<rw2>	logLambda[t] ~ dnorm( 2*logLambda[t-1] - logLambda[t-2], tau.logLambda)
-    #<rw2> }	
+    #<rw2> }
     #<rw2> tau.logLambda ~ dgamma(0.001,0.001)
 
-    #<iidLogGa> #iid lambda, which are Ga-distributed 
+    #<iidLogGa> #iid lambda, which are Ga-distributed
     #<iidLogGa> for (t in 1:T) {
     #<iidLogGa>	lambda[t] ~ dgamma( alpha.lambda, beta.lambda)
     #<iidLogGa>	logLambda[t] <- log(lambda[t])
-    #<iidLogGa> }	
+    #<iidLogGa> }
 
     ######################################
     #Priors for discrete time hazard model
     ######################################
-#    for (d in 1:(maxDelay)) { 
-    for (d in 1:(round( (maxDelay-1)/2-0.4)+1)) { 
+    #for (d in 1:(maxDelay)) { }
+    for (d in 1:(round( (maxDelay-1)/2-0.4)+1)) {
         #coefs for logit @ delay 0,..,maxDelay-1
-    	gamma[d] ~ dnorm( mu.gamma[d], tau.gamma[d]) 
-    } 
+    	gamma[d] ~ dnorm( mu.gamma[d], tau.gamma[d])
+    }
     # #Prior for change point effects (now as vector)
     eta ~ dmnorm( eta.mu, eta.prec)
 
     # #Alternative: Separate random walks for each baseline
     # for (d in 1:(maxDelay)) {
-    #     tau.gamma[d] ~ dgamma(0.001,0.001)	
+    #     tau.gamma[d] ~ dgamma(0.001,0.001)
     # 	gamma[1,d] ~ dnorm( ifelse(maxDelay < 3/4*maxDelay, -3,-0.1), tau.gamma[d])
     # }
     # for (t in 2:T) {
-    #     for (d in 1:(maxDelay)) { 	 
+    #     for (d in 1:(maxDelay)) {
     # 	    #coefs for logit @ delay 0,..,maxDelay-1
     # 	    gamma[t,d] ~ dnorm( gamma[t-1,d], tau.gamma[d])
-    # 	}	       	 	
-    # } 
+    # 	}
+    # }
 
-    ####################################################   
+    ####################################################
     #Loop over all time points in the reporting triangle
     ####################################################
     for (t in max(1,T-m):T) {
         #Time dependent delay distribution
-	logit(p[t,1]) <- gamma[1] + eta %*% W[t,,1] 
+	logit(p[t,1]) <- gamma[1] + eta %*% W[t,,1]
     	for (d in 1:(maxDelay-1)) {
-#	    logit(haz[t,d+1]) <- gamma[d+1] + eta %*% W[t,,d+1] 
-	    logit(haz[t,d+1]) <- gamma[ round(d/2-0.4)+1] + eta %*% W[t,,d+1] 
+#	    logit(haz[t,d+1]) <- gamma[d+1] + eta %*% W[t,,d+1]
+	    logit(haz[t,d+1]) <- gamma[ round(d/2-0.4)+1] + eta %*% W[t,,d+1]
 	    p[t,d+1] <- (1-sum(p[t,1:d]))*haz[t,d+1]
 	}
         p[t,maxDelay+1] <- (1-sum(p[t,1:maxDelay]))*1 #since haz[maxDelay+1]=1
 
-	#Observations -- loop over all delays. 
+	#Observations -- loop over all delays.
     	for (d in 0:maxDelay) {
 	    mu[t,d+1] <- exp(logLambda[t])*p[t,d+1]
 	    rT[t,d+1] ~ dpois(mu[t,d+1])
-	}	    
+	}
     }
 
     #Loop over entire triangle not just the moving window
@@ -94,7 +94,7 @@ model {
 	#<tps> logLambda[t] <- inprod(beta[],X[t,]) + inprod(b[],Z[t,])
         #count the total number of observations at time t.
 	NtInf[t] <- sum(rT[t,])
-    }   	
+    }
 }
 
 

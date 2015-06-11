@@ -6,8 +6,8 @@
 ### Auxiliary functions for operations on spatial data
 ###
 ### Copyright (C) 2009-2015 Sebastian Meyer
-### $Revision: 1154 $
-### $Date: 2015-01-05 13:25:31 +0100 (Mon, 05 Jan 2015) $
+### $Revision: 1323 $
+### $Date: 2015-04-29 12:00:30 +0200 (Wed, 29 Apr 2015) $
 ################################################################################
 
 
@@ -91,6 +91,26 @@ unionSpatialPolygons <- function (SpP,
 }
 
 
+### Compute distance from points to a polygonal boundary
+## nncross.ppp() is about 20 times faster than the previous bdist.points()
+## approach [-> distppl()], since it calls C-code [-> distppllmin()]
+## minor drawback: the polygonal boundary needs to be transformed to "psp"
+
+bdist <- function (xy, poly)
+{
+    if (nrow(xy) > 0L) {
+        nncross.ppp(
+            X = ppp(x = xy[,1L], y = xy[,2L], check = FALSE),
+            Y = if (is.polygonal(poly)) edges(poly, check = FALSE) else poly,
+            what = "dist"
+        )
+    } else {
+       ## spatstat 1.41-1 returns a 0-row _data.frame_ for the trivial case
+       numeric(0L)
+   }
+}
+
+
 ### sample n points uniformly on a disc with radius r
 
 runifdisc <- function (n, r = 1, buffer = 0)
@@ -138,9 +158,10 @@ polyAtBorder <- function (SpP,
 }
 
 
-### sp.layout item for spplot() to draw labels for Spatial* objects
+### sp.layout items for spplot()
 
-layout.labels <- function (obj, labels = TRUE)
+## draw labels for Spatial* objects
+layout.labels <- function (obj, labels = TRUE, plot = FALSE)
 {
     stopifnot(inherits(obj, "Spatial"))
 
@@ -170,6 +191,81 @@ layout.labels <- function (obj, labels = TRUE)
                               labels.args)
     labels.args$labels <- getLabels(labels.args$labels)
 
-    ## return layout item
-    c("panel.text", labels.args)
+    if (plot) {
+        ## plot labels in the traditional graphics system
+        do.call("text", labels.args)
+    } else {
+        ## return layout item for use by spplot()
+        c("panel.text", labels.args)
+    }
+}
+
+## draw a scalebar with labels
+layout.scalebar <- function (obj, corner = c(0.05, 0.95), scale = 1,
+                             labels = c(0, scale), height = 0.05, plot = FALSE)
+{
+    stopifnot(inherits(obj, "Spatial"))
+    BB <- bbox(obj)
+    force(labels)  # the default should use the original 'scale' value in km
+    if (identical(FALSE, is.projected(obj))) {
+        ## 'obj' has longlat coordinates, 'scale' is interpreted in kilometres
+        scale <- .scale2longlat(t(rowMeans(BB)), scale)
+    }
+    offset <- BB[, 1L] + corner * apply(BB, 1L, diff.default)
+    textfun <- if (plot) "text" else "panel.text"
+    lis <- list(
+        list("SpatialPolygonsRescale", layout.scale.bar(height = height),
+             offset = offset, scale = scale, fill = c(NA, 1),
+             plot.grid = !plot),
+        list(textfun, x = offset[1L], y = offset[2L],
+             labels = labels[1L], pos = 3),
+        list(textfun, x = offset[1L] + scale[1L], y = offset[2L],
+             labels = labels[2L], pos = 3)
+    )
+    if (plot) {
+        for (li in lis) eval(do.call("call", li))
+    } else {
+        lis
+    }
+}
+
+.scale2longlat <- function (focusLL, distKM)
+{
+    ## .destPoint() is copied from the "raster" package by Robert J. Hijmans
+    ## 'p' is a longlat coordinate matrix, 'd' is a vector of distances in metres
+    .destPoint <- function (p, d, b=90, r=6378137) {
+        toRad <- pi/180
+        lon1 <- p[, 1] * toRad
+        lat1 <- p[, 2] * toRad
+        b <- b * toRad
+        lat2 <- asin(sin(lat1) * cos(d/r) + cos(lat1) * sin(d/r) * cos(b))
+        lon2 <- lon1 + atan2(sin(b) * sin(d/r) * cos(lat1), cos(d/r) - sin(lat1) * sin(lat2))
+        lon2 <- (lon2 + pi)%%(2 * pi) - pi
+        cbind(lon2, lat2)/toRad
+    }
+    rightLL <- .destPoint(focusLL, distKM * 1000)
+    rightLL[,1L] - focusLL[,1L]
+}
+
+
+### determine the total area of a SpatialPolygons object
+## CAVE: sum(sapply(obj@polygons, slot, "area"))
+##       is not correct if the object contains holes
+
+areaSpatialPolygons <- function (obj, byid = FALSE)
+{
+    if (requireNamespace("rgeos", quietly = TRUE)) {
+        rgeos::gArea(obj, byid = byid)
+    } else {
+        areas <- vapply(
+            X = obj@polygons,
+            FUN = function (p) sum(
+                vapply(X = p@Polygons,
+                       FUN = function (x) (1-2*x@hole) * x@area,
+                       FUN.VALUE = 0, USE.NAMES = FALSE)
+            ),
+            FUN.VALUE = 0, USE.NAMES = FALSE
+        )
+        if (byid) setNames(areas, row.names(obj)) else sum(areas)
+    }
 }

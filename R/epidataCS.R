@@ -6,9 +6,9 @@
 ### Data structure for CONTINUOUS SPATIO-temporal infectious disease case data
 ### and a spatio-temporal grid of endemic covariates
 ###
-### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 1032 $
-### $Date: 2014-09-26 15:52:10 +0200 (Fri, 26 Sep 2014) $
+### Copyright (C) 2009-2015 Sebastian Meyer
+### $Revision: 1163 $
+### $Date: 2015-01-12 17:42:15 +0100 (Mon, 12 Jan 2015) $
 ################################################################################
 
 
@@ -63,11 +63,12 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
     tiles <- NULL                       # FIXME: add argument to as.epidataCS
     stgrid <- if (missing(stgrid) && inherits(tiles, "SpatialPolygons")) {
         if (verbose) cat("\t(missing, using time-constant 'tiles' grid)\n")
-        stgrid_template <- data.frame(start = min(events$time),
-                                      stop = max(events$time),
-                                      tile = row.names(tiles),
-                                      area = sapply(tiles@polygons, slot, "area"),
-                                      check.rows = FALSE, check.names = FALSE)
+        stgrid_template <- data.frame(
+            start = min(events$time),
+            stop = max(events$time),
+            tile = row.names(tiles),
+            area = areaSpatialPolygons(tiles, byid = TRUE),
+            check.rows = FALSE, check.names = FALSE)
         check_stgrid(stgrid_template, verbose = FALSE)
     } else {
         check_stgrid(stgrid, T, verbose = verbose)
@@ -132,7 +133,7 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
     removalTimes <- events$time + events$eps.t
 
     # Calculate distance matrix of events
-    if (verbose) cat("Calculating euclidean distance matrix of events ...\n")
+    if (verbose) cat("Calculating Euclidean distance matrix of events ...\n")
     eventDists <- as.matrix(dist(eventCoords, method = "euclidean"))
     #diag(eventDists) <- Inf   # infinite distance to oneself (no self-infection), not needed
 
@@ -215,6 +216,12 @@ check_events <- function (events, dropTypes = TRUE, verbose = TRUE)
     stopifnot(inherits(events, "SpatialPointsDataFrame"))
     if (ncol(events@coords) != 2L) {
         stop("only two spatial dimensions are supported")
+    }
+
+    # check suitability of Euclidean geometry
+    if (identical(FALSE, is.projected(events))) { # is.projected may return NA
+        warning("\"epidataCS\" expects planar coordinates; ",
+                "see 'spTransform' in package \"rgdal\"")
     }
 
     # Check existence of type column
@@ -400,8 +407,9 @@ check_W <- function (W, area.other = NULL, other, tolerance = 0.001)
 
 check_W_area <- function (W, area.other, other, tolerance = 0.001)
 {
-    area.W <- sum(sapply(W@polygons, slot, "area"))
-    if (!isTRUE(all.equal(area.other, area.W, tolerance = tolerance)))
+    area.W <- areaSpatialPolygons(W)
+    if (!isTRUE(all.equal.numeric(area.other, area.W, tolerance = tolerance,
+                                  check.attributes = FALSE)))
         warning("area of 'W' (", area.W, ") differs from ",
                 "total tile area in '", other, "' (", area.other, ")")
 }
@@ -435,7 +443,7 @@ check_tiles <- function (tiles, levels,
     }
 
     ## check areas
-    areas.tiles <- sapply(tiles[levels,]@polygons, slot, "area")
+    areas.tiles <- areaSpatialPolygons(tiles[levels,], byid = TRUE)
     if (!is.null(areas.stgrid)) {
         check_tiles_areas(areas.tiles, areas.stgrid, tolerance=tolerance)
     }
@@ -477,9 +485,9 @@ check_tiles_events <- function (tiles, events)
 
 check_tiles_areas <- function (areas.tiles, areas.stgrid, tolerance = 0.05)
 {
-    stopifnot(length(areas.tiles) == length(areas.stgrid))
-    areas_all_equal <- all.equal(areas.stgrid, areas.tiles,
-                                 tolerance = tolerance)
+    areas_all_equal <- all.equal.numeric(areas.stgrid, areas.tiles,
+                                         tolerance = tolerance,
+                                         check.attributes = FALSE)
     if (!isTRUE(areas_all_equal))
         warning("tile areas in 'stgrid' differ from areas of 'tiles': ",
                 areas_all_equal)

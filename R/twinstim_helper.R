@@ -5,9 +5,9 @@
 ###
 ### Some internal helper functions for "twinstim".
 ###
-### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 895 $
-### $Date: 2014-04-08 14:02:10 +0200 (Tue, 08 Apr 2014) $
+### Copyright (C) 2009-2015 Sebastian Meyer
+### $Revision: 1285 $
+### $Date: 2015-03-24 15:26:51 +0100 (Tue, 24 Mar 2015) $
 ################################################################################
 
 
@@ -21,32 +21,32 @@ determineSources <- function (i, eventTimes, removalTimes, distvec, eps.s,
     eventTypes = NULL, qmatrix)
 {
     tp <- eventTimes[i]
-    type <- eventTypes[i]   # NULL[i] -> NULL
     infectivity <- (eventTimes < tp) & (removalTimes >= tp)
     #<- eventTimes<tp, not "=" because CIF is left-continuous.
     #Also guarantees no self-infection
-    proximity <- as.vector(distvec <= eps.s, mode = "logical")
-    #<- as.vector to remove names
-    matchType <- if (is.null(eventTypes)) TRUE else {
+    proximity <- distvec <= eps.s
+    sources <- if (is.null(eventTypes)) {
+        which(infectivity & proximity)
+    } else {
+        type <- eventTypes[i]
         typeInfective <- qmatrix[,type] # indexed by integer code of factor
         #<- logical vector indicating for each type if it could infect type of i
-        as.vector(typeInfective, mode = "logical")[eventTypes]
-        #<- as.vector to remove names
+        matchType <- typeInfective[eventTypes]
+        which(infectivity & proximity & matchType)
     }
-    # return indexes of potential epidemic sources
-    which(infectivity & proximity & matchType)
+    unname(sources)
 }
 
 ## determine the .sources for an epidataCS object, i.e.
 ## lapply the previous function to all of object$events
 determineSources.epidataCS <- function (object)
 {
-    eventTimes <- object$events$time
-    removalTimes <- eventTimes + object$events$eps.t
+    eventTimes <- object$events@data$time
+    removalTimes <- eventTimes + object$events@data$eps.t
     eventDists <- as.matrix(dist(object$events@coords, method = "euclidean"))
     lapply(seq_along(eventTimes), function (i) {
         determineSources(i, eventTimes, removalTimes, eventDists[i,],
-                         object$events$eps.s, object$events$type,
+                         object$events@data$eps.s, object$events@data$type,
                          object$qmatrix) 
     })
 }
@@ -136,8 +136,8 @@ crudebeta0 <- function (nEvents, offset.mean, W.area, period, nTypes)
             function (siafpars) iRareas
         } else {
             function (siafpars)
-                sapply(influenceRegion, attr, "area",
-                       simplify=TRUE, USE.NAMES=FALSE)
+                vapply(X = influenceRegion, FUN = attr, which = "area",
+                       FUN.VALUE = 0, USE.NAMES = FALSE)
         }
     } else if (is.null(siaf$Fcircle) || # if siaf$Fcircle not available
                (is.null(siaf$effRange) && noCircularIR))
@@ -285,8 +285,7 @@ control2nlminb <- function (control, defaults)
         attr(ret, "knots") <- attr(iaf, "knots")
         attr(ret, "maxRange") <- attr(iaf, "maxRange")
         attr(ret, "Boundary.knots") <- attr(iaf, "Boundary.knots")
-        ## indicate if this is a constant iaf
-        attr(ret, "constant") <- isTRUE(attr(iaf, "constant"))
+        attr(ret, "constant") <- attr(iaf, "constant")
         ret
     } else if (is.vector(iaf, mode = "numeric")) {
         do.call(paste(type,"step",sep="."), args = list(knots = iaf))
@@ -295,6 +294,9 @@ control2nlminb <- function (control, defaults)
              "' must be NULL (or missing), a list (-> continuous ",
              "function), or numeric (-> knots of step function)")
     }
+    ## indicate if this is a constant iaf
+    attr(res, "constant") <- isTRUE(attr(res, "constant"))
+    ## attach unique interaction ranges
     if (!is.null(eps)) {         # in simEpidataCS() eps is not known beforehand
         attr(res, "eps") <- sort(unique(eps))
     }
@@ -344,9 +346,9 @@ check_twinstim_start <- function (start)
         names(start)[names(start) == "epidemic"] <- "e"
         names(start)[names(start) == "siaf"] <- "e.siaf"
         names(start)[names(start) == "tiaf"] <- "e.tiaf"
-        start <- unlist(start, use.names=TRUE)
+        start <- unlist(start, recursive=FALSE, use.names=TRUE)
     }
     if (!is.vector(start, mode="numeric") || is.null(names(start)))
-        stop("parameter 'start' values must be named and numeric")
+        stop("parameter values must be named and numeric")
     return(start)
 }

@@ -14,33 +14,7 @@
 }
 
 \description{
-  A package implementing statistical methods for the modelling and
-  change-point detection in time series of counts, proportions and
-  categorical data, as well as for the modeling of continuous-time
-  epidemic phenomena, e.g. discrete-space setups such as the spatially
-  enriched Susceptible-Exposed-Infectious-Recovered (SEIR) models for
-  surveillance data, or continuous-space point process data such as the
-  occurrence of disease or earthquakes. Main focus is on outbreak
-  detection in count data time series originating from public health
-  surveillance of infectious diseases, but applications could just as well
-  originate from environmetrics, reliability engineering, econometrics or
-  social sciences.
-  Currently the package contains implementations of typical outbreak
-  detection procedures such as Stroup et. al (1989), Farrington et al
-  (1996), Rossi et al (1999), Rogerson and Yamada (2001), a Bayesian
-  approach, negative binomial CUSUM methods and a detector based on
-  generalized likelihood ratios.
-  Furthermore, inference methods for the retrospective infectious disease
-  model in Held et al (2005), Held et al (2006), Paul et al (2008) and
-  Paul and Held (2011) are provided. A novel CUSUM approach combining
-  logistic and multinomial logistic modelling is also included.
-  Continuous self-exciting spatio-temporal point processes are modeled
-  through additive-multiplicative conditional intensities as described in
-  H\enc{ö}{oe}hle (2009) ("twinSIR", discrete space) and Meyer et al (2012)
-  ("twinstim", continuous space).
-  The package contains several real-world datasets, the ability to
-  simulate outbreak data, visualize the results of the monitoring in
-  temporal, spatial or spatio-temporal fashion.
+  \Sexpr[stage=build]{meta$Description}
 } 
 
 \details{

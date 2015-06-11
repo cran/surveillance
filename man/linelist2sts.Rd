@@ -14,15 +14,16 @@
 }
 
 \usage{
-linelist2sts(linelist,dateCol,aggregate.by=c("1 day", "1 week", "7 day",
-"1 week", "1 month", "3 month", "1 year"),
-            dRange=NULL,
-            epochInPeriodStr=switch(aggregate.by,
-            "1 day"="1","1 week"="\%u", "1 month"="\%d","3 month"="\%q","1 year"="\%j"),
-            startYearFormat=switch(aggregate.by,
-"1 day"="\%V","7 day"="\%V","1 week"="\%V","1 month"="\%Y","3 month"="\%Y","1 year"="\%Y"),
-           startEpochFormat=switch(aggregate.by,
-"1 day"="\%j","7 day"="\%V","1 week"="\%V","1 month"="\%m","3 month"="\%Q","1 year"="1")
+linelist2sts(linelist,dateCol,
+              aggregate.by=c("1 day", "1 week", "7 day", "1 week",
+"1 month",  "3 month", "1 year"),
+              dRange=NULL,
+              epochInPeriodStr=switch(aggregate.by, "1 day"="1",
+"1 week"="\%u", "1 month"="\%d","3 month"="\%q","1 year"="\%j"),
+              startYearFormat=switch(aggregate.by,"1 day"="\%Y",
+"7 day"="\%G", "1 week"="\%G","1 month"="\%Y","3 month"="\%Y","1 year"="\%Y"),
+              startEpochFormat=switch(aggregate.by,"1 day"="\%j",
+"7 day"="\%V", "1 week"="\%V", "1 month"="\%m", "3 month"="\%Q", "1 year"="1")
 )
 }
 \arguments{

@@ -73,19 +73,15 @@ isoWeekYear<-function(Y,M=NULL,D=NULL){
 #          processed on Windows. Otherwise the call is sent to format.Date
 ######################################################################
 
-#Small helper function - vectorized gsub. Taken from
-#http://r.789695.n4.nabble.com/vectorized-sub-gsub-grep-etc-td870526.html
+#Small helper function - vectorized gsub, but disregarding names of x
 gsub2 <- function(pattern, replacement, x) {
     len <- length(x)
-    if (length(pattern) == 1)
-        pattern <- rep(pattern, len)
-    if (length(replacement) == 1)
-        replacement <- rep(replacement, len)
-    FUN <- function(i, ...) {
-        gsub(pattern[i], replacement[i], x[i], fixed = TRUE)
-    }
-    idx <- 1:length(x)
-    sapply(idx, FUN)    
+    mapply(FUN = gsub,
+           pattern = rep_len(as.character(pattern), len),
+           replacement = rep_len(as.character(replacement), len),
+           x = x,
+           MoreArgs = list(fixed = TRUE),
+           SIMPLIFY = TRUE, USE.NAMES = FALSE)
 }
 
 #More general version also handling a mix of several formats
@@ -93,16 +89,14 @@ formatDate <- function(x, format) {
   ##Anything to do?
   if (!grepl( "%G|%V|%Q|%OQ|%q", format)) { #nope
     return(format(x,format))
-  } else { #yes, special formatting 
+  }
 
     #Replicate string.
-    formatStr <- rep(format,length(x))
+    formatStr <- rep_len(format,length(x))
         
     ##If days within quarter requested (this is kind of slow)
-    if (grepl("%Q|%OQ|%q",format)) {
+    if (grepl("%q",format)) {
       ##Loop over vectors of dates 
-      Q <- (as.numeric(format(x,"%m"))-1) %/% 3 + 1 #quarter
-
       dateOfQuarter <- sapply(x, function(date) {
         ##Month number in quarter
         modQ <- (as.numeric(format(date,"%m"))-1) %% 3 
@@ -112,22 +106,24 @@ formatDate <- function(x, format) {
       })
       dayInQuarter <- as.numeric(x - dateOfQuarter) + 1
       formatStr <- gsub2("%q",as.character(dayInQuarter),formatStr)
+    }
+    
+    if (grepl("%Q|%OQ",format)) {
+      Q <- (as.numeric(format(x,"%m"))-1) %/% 3 + 1 #quarter
       formatStr <- gsub2("%Q",as.character(Q),formatStr)
       formatStr <- gsub2("%OQ",as.roman(Q),formatStr)
     }
     
-    ##Year/week
-    isoYear <- isoWeekYear(x)$ISOYear
-    isoWeek <- sprintf("%.2d",isoWeekYear(x)$ISOWeek)
-    
-    if (sessionInfo()[[1]]$os == "mingw32") {
+    if (.Platform$OS.type == "windows") {
+      ##Year/week
+      isoYear <- isoWeekYear(x)$ISOYear
+      isoWeek <- sprintf("%.2d",isoWeekYear(x)$ISOWeek)
       formatStr <- gsub2("%G",isoYear,formatStr)
       formatStr <- gsub2("%V",isoWeek,formatStr)
     }
     
     ##The rest of the formatting - works normally as defined by strptime
-    res <- rep("",length(x))
+    res <- character(length(x))
     for (i in 1:length(x)) { res[i] <- format(x[i],formatStr[i])}
     return(res)
-  }
 }

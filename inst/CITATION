@@ -161,9 +161,9 @@ bibentry(
     author = c(authors["MH"],person("Matthias", "an der Heiden")),
     journal = "Biometrics",
     year = "2014",
-    volume = "??",
-    number = "?",
-    pages = "???--???",
+    volume = "70",
+    number = "4",
+    pages = "993--1002",
     doi = "10.1111/biom.12194"
 )
 

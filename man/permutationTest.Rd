@@ -27,9 +27,11 @@ permutationTest(score1, score2, nPermutation = 9999,
     number of random permutations to conduct
   }
   \item{plot}{
-    logical indicating if a histogram of the \code{nPermutation}
+    logical indicating if a \code{\link{truehist}} of the \code{nPermutation}
     permutation test statistics should be plotted with a vertical line
     marking the observed difference of the means.
+    To customize the histogram, \code{plot} can also be a list of
+    arguments for \code{truehist} replacing internal defaults.
   }
   \item{verbose}{
     logical indicating if the results should be printed in one line.
@@ -55,7 +57,7 @@ permutationTest(score1, score2, nPermutation = 9999,
 }
 
 \author{
-  Michaela Paul
+  Michaela Paul with contributions by Sebastian Meyer
 }
 
 \seealso{
@@ -65,6 +67,10 @@ permutationTest(score1, score2, nPermutation = 9999,
   Package \pkg{coin} for a comprehensive permutation test framework,
   specifically its function \code{\link[coin]{symmetry_test}} to compare
   paired samples.
+}
+
+\examples{
+permutationTest(rnorm(50, 1.5), rnorm(50, 1), plot = TRUE)
 }
 
 \keyword{htest}

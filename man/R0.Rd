@@ -3,14 +3,15 @@
 \alias{R0}
 \alias{R0.twinstim}
 \alias{R0.simEpidataCS}
+\alias{simpleR0}
 
-\title{Computes basic reproduction numbers from fitted models}
+\title{Computes reproduction numbers from fitted models}
 
 \description{
 The S3 generic function \code{R0} defined in package \pkg{surveillance} is intended to
-compute basic reproduction numbers from fitted epidemic models.
+compute reproduction numbers from fitted epidemic models.
 The package currently defines a method for the \code{"\link{twinstim}"} class, which
-computes mean numbers of infections caused by infected individuals depending on the event type
+computes expected numbers of infections caused by infected individuals depending on the event type
 and marks attached to the individual, which contribute to the infection pressure
 in the epidemic predictor of that class.
 There is also a method for simulated \code{"epidataCS"}
@@ -22,12 +23,15 @@ R0(object, ...)
 
 \method{R0}{twinstim}(object, newevents, trimmed = TRUE, newcoef = NULL, ...)
 \method{R0}{simEpidataCS}(object, trimmed = TRUE, ...)
+
+simpleR0(object, eta = coef(object)[["e.(Intercept)"]],
+         eps.s = NULL, eps.t = NULL, newcoef = NULL)
 }
 
 \arguments{
   \item{object}{A fitted epidemic model object for which an \code{R0} method exists.}
   \item{newevents}{
-    an optional \code{data.frame} of events for which the basic reproduction
+    an optional \code{data.frame} of events for which the reproduction
     numbers should be calculated.  If omitted, it is calculated for the
     original events from the fit.  In this case, if
     \code{trimmed = TRUE} (the default), the result is just
@@ -69,21 +73,32 @@ R0(object, ...)
   }
   \item{\dots}{additional arguments passed to methods.
     Currently unused for the \code{twinstim} method.}
+
+  \item{eta}{a value for the epidemic linear predictor, see details.}
+  \item{eps.s,eps.t}{the spatial/temporal radius of interaction.
+    If \code{NULL} (the default), the original value from the data is
+    used if this is unique and an error is thrown otherwise.}
 }
 
 \details{
-For the \code{"\link{twinstim}"} class, the individual-specific mean
+For the \code{"\link{twinstim}"} class, the individual-specific expected
 number \eqn{\mu_j} of infections caused by individual (event) \eqn{j}
 inside its theoretical (untrimmed) spatio-temporal range of interaction
 given by its \code{eps.t} (\eqn{\epsilon}) and \code{eps.s}
 (\eqn{\delta}) values is defined as follows (cf. Meyer et al, 2012):
-\deqn{\mu_j = e^{\eta_j} \cdot \int_0^\epsilon g(t) dt \cdot
-       \int_{b(\bold{0},\delta)} f(\bold{s}) d\bold{s} .}
+\deqn{\mu_j = e^{\eta_j} \cdot
+  \int_{b(\bold{0},\delta)} f(\bold{s}) d\bold{s} \cdot
+  \int_0^\epsilon g(t) dt .}
 Here, \eqn{b(\bold{0},\delta)} denotes the disc centred at (0,0)' with
 radius \eqn{\delta}, \eqn{\eta_j} is the epidemic linear predictor,
 \eqn{g(t)} is the temporal interaction function, and \eqn{f(\bold{s})}
-is the spatial interaction function.
-Alternatively, the \code{trimmed} (observed) mean reproduction numbers
+is the spatial interaction function. For a type-specific
+\code{twinstim}, there is an additional factor for the number of event
+types which can be infected by the type of event \eqn{j} and the
+interaction functions may be type-specific as well.
+
+Alternatively to the equation above,
+the \code{trimmed} (observed) reproduction numbers
 are obtain by integrating over the observed infectious domains of the
 individuals, i.e. integrate \eqn{f} over the intersection of the
 influence region with the observation region \code{W}
@@ -92,15 +107,29 @@ and \eqn{g} over the intersection of the observed infectious period with
 the observation period \eqn{(t_0;T]} (i.e. over
 \eqn{(0; \min(T-t_j,\epsilon)]}).
 
+The function \code{simpleR0} computes
+\deqn{\exp(\eta) \cdot
+  \int_{b(\bold{0},\delta)} f(\bold{s}) d\bold{s} \cdot 
+  \int_0^{\epsilon} g(t) dt ,}
+where \eqn{\eta} defaults to \eqn{\gamma_0} disregarding any epidemic
+effects of types and marks. It is thus only
+suitable for simple epidemic \code{\link{twinstim}} models with
+\code{epidemic = ~1}, a diagonal (or secondary diagonal) \code{qmatrix},
+and type-invariant interaction functions.
+\code{simpleR0} mainly exists for use by \code{\link{epitest}}.
+
 (Numerical) Integration is performed exactly as during the fitting of
 \code{object}, for instance \code{object$control.siaf} is queried if
 necessary.
 }
 
 \value{
-numeric vector of estimated basic reproduction numbers from the fitted
-model \code{object} corresponding to the rows of \code{newevents} (if
-supplied) or the original fitted events including events of the prehistory.
+  For the \code{R0} methods,
+  a numeric vector of estimated reproduction numbers from the fitted
+  model \code{object} corresponding to the rows of \code{newevents} (if
+  supplied) or the original fitted events including events of the prehistory.
+
+  For \code{simpleR0}, a single number (see details).
 }
 
 \references{
@@ -128,14 +157,14 @@ R0(imdepifit, newevents=marks(imdepi)[1,], trimmed=FALSE)
 ### compute a Monte Carlo confidence interval
 
 ## use a simpler model with constant 'siaf' for speed
-simplefit <- update(imdepifit, epidemic=~type, siaf=NULL)
+simplefit <- update(imdepifit, epidemic=~type, siaf=NULL, subset = NULL)
 
 ## we'd like to compute the mean R0's by event type
 meanR0ByType <- function (newcoef) {
     R0events <- R0(simplefit, newcoef=newcoef)
     tapply(R0events, imdepi$events@data[names(R0events),"type"], mean)
 }
-meansMLE <- meanR0ByType(newcoef=NULL)
+(meansMLE <- meanR0ByType(newcoef=NULL))
 
 ## sample B times from asymptotic multivariate normal of the MLE
 B <- 5  # CAVE: toy example! In practice this has to be much larger
@@ -148,6 +177,17 @@ meansMC <- apply(parsamples, 1, meanR0ByType)
 ## get the quantiles and print the result
 cisMC <- apply(cbind(meansMLE, meansMC), 1, quantile, probs=c(0.025,0.975))
 print(rbind(MLE=meansMLE, cisMC))
+
+
+### R0 for a simple epidemic model (homogeneous individuals)
+
+mepi1 <- update(simplefit, epidemic = ~1, data = imdepi,
+                subset = type == "B", model = TRUE, verbose = FALSE)
+## using the default spatial and temporal ranges of interaction
+(R0B <- simpleR0(mepi1))  # eps.s=200, eps.t=30
+stopifnot(identical(R0B, R0(mepi1, trimmed = FALSE)[[1]]))
+## assuming less interaction
+simpleR0(mepi1, eps.s = 50, eps.t = 15)
 }
 
 \keyword{methods}

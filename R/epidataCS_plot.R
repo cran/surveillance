@@ -5,43 +5,67 @@
 ###
 ### plot-method for "epidataCS" objects
 ###
-### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 1033 $
-### $Date: 2014-09-26 17:06:42 +0200 (Fri, 26 Sep 2014) $
+### Copyright (C) 2009-2015 Sebastian Meyer
+### $Revision: 1282 $
+### $Date: 2015-03-24 10:27:55 +0100 (Tue, 24 Mar 2015) $
 ################################################################################
 
 
-plot.epidataCS <- function (x, aggregate = c("time", "space"), subset, ...)
+plot.epidataCS <- function (x, aggregate = c("time", "space"), subset,
+                            by = type, ...)
 {
     aggregate <- match.arg(aggregate)
-    FUN <- paste("epidataCSplot", aggregate, sep="_")
-    do.call(FUN, args=list(x=quote(x), subset=substitute(subset), ...))
+    FUN <- paste("epidataCSplot", aggregate, sep = "_")
+    do.call(FUN, args = list(x = quote(x), subset = substitute(subset),
+                             by = substitute(by), ...))
 }
 
 
 ### plot.epidataCS(x, aggregate = "time") -> number of cases over time
 ## in case t0.Date is specified, hist.Date() is used and breaks must set in ... (e.g. "months")
 
-epidataCSplot_time <- function (x, subset, t0.Date = NULL, freq = TRUE,
+epidataCSplot_time <- function (x, subset, by = type,
+    t0.Date = NULL, breaks = "stgrid", freq = TRUE,
     col = rainbow(nTypes), cumulative = list(), add = FALSE, mar = NULL,
     xlim = NULL, ylim = NULL, xlab = "Time", ylab = NULL, main = NULL,
     panel.first = abline(h=axTicks(2), lty=2, col="grey"),
     legend.types = list(), ...)
 {
     timeRange <- with(x$stgrid, c(start[1L], stop[length(stop)]))
-    eventTimesTypes <- if (missing(subset)) {
-        x$events@data[c("time", "type")]
+    ## subset event marks
+    eventMarks <- if (missing(subset)) {
+        marks.epidataCS(x, coords = FALSE)
     } else {
-        do.call(base::subset, list(x = quote(marks.epidataCS(x)),
-                                   subset = substitute(subset),
-                                   select = c("time", "type")))
+        do.call(base::subset, list(
+            x = quote(marks.epidataCS(x, coords = FALSE)),
+            subset = substitute(subset)
+        ))
     }
-    if (nrow(eventTimesTypes) == 0L) stop("no events left after 'subset'")
+    if (nrow(eventMarks) == 0L) stop("no events left after 'subset'")
+    ## extract the data to plot
+    by <- substitute(by)
+    eventTimesTypes <- eventMarks[c("time", "type")]
+    eventTimesTypes$type <- if (is.null(by)) { # disregard event types
+        factor("all")
+    } else { # stratification of counts (default is to stack bars by event type)
+        as.factor(eval(by, envir = eventMarks))
+    }
     typeNames <- levels(eventTimesTypes$type)
     nTypes <- length(typeNames)
     if (!freq && nTypes > 1L)
         warning("a stacked barplot of multiple event types only makes sense for 'freq=TRUE'")
 
+    ## default breaks at stop times of stgrid
+    if (identical(breaks, "stgrid")) {
+        breaks <- c(timeRange[1L], unique.default(x$stgrid$stop))
+        if (any(eventTimesTypes$time < timeRange[1L])) {
+            message("Note: ignoring events of the pre-history (before \"stgrid\")")
+            eventTimesTypes <- base::subset(eventTimesTypes, time >= timeRange[1L])
+            if (nrow(eventTimesTypes) == 0L) stop("no events left to plot")
+        }
+    }
+
+    ## calculate cumulative numbers if requested
     if (is.list(cumulative)) {
         csums <- tapply(eventTimesTypes$time, eventTimesTypes["type"],
                         function (t) cumsum(table(t)), simplify=FALSE)
@@ -55,32 +79,45 @@ epidataCSplot_time <- function (x, subset, t0.Date = NULL, freq = TRUE,
     }
     
     eventTimesTypes$type <- as.integer(eventTimesTypes$type)
+    typesEffective <- sort(unique(eventTimesTypes$type))
     col <- rep_len(col, nTypes)
     
     if (!is.null(t0.Date)) {
         stopifnot(length(t0.Date) == 1L)
         t0.Date <- as.Date(t0.Date)
         t0 <- timeRange[1L]
-        if (is.null(xlim)) xlim <- t0.Date + (timeRange - t0)
-        if (missing(xlab)) xlab <- paste0("Time (", list(...)[["breaks"]], ")")
+        if (is.numeric(breaks) && length(breaks) > 1L)  # transform to Date
+            breaks <- t0.Date + (breaks - t0)
+        if (is.null(xlim))
+            xlim <- t0.Date + (timeRange - t0)
+        if (missing(xlab) && is.character(breaks))
+            xlab <- paste0("Time (", breaks, ")")
         eventTimesTypes$time <- t0.Date + as.integer(eventTimesTypes$time - t0)
         ## we need integer dates here because otherwise, if the last event
         ## occurs on the last day of a month, year, etc. (depending on
         ## 'breaks') with a fractional date (e.g. as.Date("2009-12-31") + 0.5),
         ## then the automatic 'breaks' (e.g., breaks = "months") will not cover
         ## the data (in the example, it will only reach until
-        ## as.Date("2009-12-31")).
+        ## as.Date("2009-12-31")). The following would fail:
+        ## data("imdepi"); plot(imdepi, t0.Date = "2002-01-15", breaks = "months")
     }
-    gethistdata <- function (types = seq_len(nTypes)) {
+    
+    gethistdata <- function (breaks, types = seq_len(nTypes)) {
         times <- eventTimesTypes$time[eventTimesTypes$type %in% types]
         if (is.null(t0.Date)) {
-            hist(times, plot=FALSE, warn.unused=FALSE, ...)
+            hist(times, breaks=breaks, plot=FALSE, warn.unused=FALSE, ...)
         } else {
-            hist(times, plot=FALSE, ...)
+            hist(times, breaks=breaks, plot=FALSE, ...)
             ## warn.unused=FALSE is hard-coded in hist.Date
         }
     }
-    histdata <- gethistdata()
+    histdata <- gethistdata(breaks=breaks)
+    if (!is.null(t0.Date)) {
+        ## hist.Date() drops the Date class, but we need it for later re-use
+        class(histdata$breaks) <- "Date"
+    }
+    
+    ## establish the basic plot window
     if (!add) {
         if (is.null(xlim)) xlim <- timeRange
         if (is.null(ylim)) {
@@ -100,26 +137,34 @@ epidataCSplot_time <- function (x, subset, t0.Date = NULL, freq = TRUE,
     }
 
     ## plot histogram (over all types)
-    plot(histdata, freq = freq, add = TRUE, col = col[1L], ...)
+    suppressWarnings( # about wrong AREAS if breaks are non-equidistant
+        plot(histdata, freq = freq, add = TRUE, col = col[typesEffective[1L]], ...)
+    )
     if (!add)  # doesn't work as expected when adding to plot with cumulative axis
         box()  # because white filling of bars might overdraw the inital box
 
     ## add type-specific sub-histograms
-    typesEffective <- sort(unique(eventTimesTypes$type))
     for (typeIdx in seq_along(typesEffective)[-1L]) {
-        plot(gethistdata(typesEffective[typeIdx:length(typesEffective)]),
-             freq = freq, add = TRUE, col = col[typesEffective[typeIdx]], ...)
+        .histdata <- gethistdata(
+            breaks = histdata$breaks, # have to use same breaks
+            types = typesEffective[typeIdx:length(typesEffective)]
+        )
+        suppressWarnings( # about wrong AREAS if breaks are non-equidistant
+            plot(.histdata, freq = freq, add = TRUE,
+                 col = col[typesEffective[typeIdx]], ...)
+        )
     }
 
     ## optionally add cumulative number of cases
     if (is.list(cumulative)) {
         aT2 <- axTicks(2)
         div <- length(aT2) - 1L
+        darken <- function (col, f = 0.6)
+            apply(col2rgb(col)/255*f, 2L, function (x) rgb(x[1L], x[2L], x[3L]))
         cumulative <- modifyList(
             list(maxat = ceiling(max(unlist(csums))/div)*div,
-                 col = apply(col2rgb(col)/255*0.6, 2, function (x)
-                             rgb(x[1L], x[2L], x[3L])),
-                 lwd = 3, axis = TRUE, lab = "Cumulative number of cases"),
+                 col = darken(col), lwd = 3, axis = TRUE,
+                 lab = "Cumulative number of cases"),
             cumulative)
         csum2y <- function (x) x / cumulative$maxat * aT2[length(aT2)]
         for (typeIdx in typesEffective) {
@@ -138,7 +183,7 @@ epidataCSplot_time <- function (x, subset, t0.Date = NULL, freq = TRUE,
     if (is.list(legend.types) && length(typesEffective) > 1) {
         legend.types <- modifyList(
             list(x="topleft", legend=typeNames[typesEffective],
-                 title="Type", fill=col[typesEffective]),
+                 title=deparse(by, nlines = 1), fill=col[typesEffective]),
             legend.types)
         do.call("legend", legend.types)
     }
@@ -149,21 +194,43 @@ epidataCSplot_time <- function (x, subset, t0.Date = NULL, freq = TRUE,
 
 ### plot.epidataCS(x, aggregate = "space") -> spatial point pattern
 
-epidataCSplot_space <- function (x, subset,
+epidataCSplot_space <- function (x, subset, by = type, tiles = x$W, pop = NULL,
     cex.fun = sqrt, points.args = list(), add = FALSE,
-    legend.types = list(), legend.counts = list(), ...)
+    legend.types = list(), legend.counts = list(), sp.layout = NULL, ...)
 {
-    events <- if (missing(subset)) x$events else {
+    ## extract the points to plot
+    events <- if (missing(subset)) {
+        x$events
+    } else { # calls sp:::subset.Spatial
         eval(substitute(base::subset(x$events, subset=.subset),
                         list(.subset=substitute(subset))))
     }
-    eventCoordsTypesCounts <- countunique(
-        cbind(coordinates(events), type = as.integer(events$type))
-        )
-    pointCounts <- eventCoordsTypesCounts[,"COUNT"]
+    ## should the plot distinguish between different event types?
+    by <- substitute(by)
+    events@data$type <- if (is.null(by)) { # disregard event types
+        factor("all")
+    } else { # default is to distinguish points by event type
+        as.factor(eval(by, envir = events@data))
+    }
     typeNames <- levels(events$type)
     nTypes <- length(typeNames)
-    typesEffective <- sort(unique(eventCoordsTypesCounts[,"type"]))
+    eventCoordsTypes <- data.frame(
+        coordinates(events), type = as.integer(events$type),
+        row.names = NULL, check.rows = FALSE, check.names = FALSE)
+
+    ## count events by location and type
+    eventCoordsTypesCounts <- if (is.null(pop)) {
+        countunique(eventCoordsTypes)
+    } else {
+        ## work with "SpatialPolygons" -> spplot()
+        events$COUNT <- multiplicity(eventCoordsTypes)
+        events[!duplicated(eventCoordsTypes), c("type", "COUNT")]
+    }
+    pointCounts <- eventCoordsTypesCounts$COUNT
+    countsLegend <- unique(round(10^(do.call("seq", c(
+        as.list(log10(range(pointCounts))), list(length.out=5)
+    )))))
+    typesEffective <- sort(unique(eventCoordsTypesCounts$type))
 
     ## point style
     colTypes <- list(...)[["colTypes"]]  # backwards compatibility for < 1.8
@@ -181,44 +248,92 @@ epidataCSplot_space <- function (x, subset,
     points.args_pointwise <- points.args
     points.args_pointwise[styleArgs] <- lapply(
         points.args_pointwise[styleArgs], "[",
-        eventCoordsTypesCounts[,"type"])
+        eventCoordsTypesCounts$type)
     points.args_pointwise$cex <- points.args_pointwise$cex * cex.fun(pointCounts)
     
     ## plot
-    if (!add) plot(x$W, ...)
-    do.call("points", c(alist(x=eventCoordsTypesCounts[,1:2,drop=FALSE]),
-                        points.args_pointwise))
-
-    ## optionally add legends
-    if (is.list(legend.types) && length(typesEffective) > 1) {
-        legend.types <- modifyList(
-            list(x="topright", legend=typeNames[typesEffective],
-                 title="Type",
-                 #pt.cex=points.args$cex, # better use par("cex")
-                 pch=points.args$pch[typesEffective],
-                 col=points.args$col[typesEffective],
-                 pt.lwd=points.args$lwd[typesEffective]),
-            legend.types)
-        do.call("legend", legend.types)
-    }
-    if (is.list(legend.counts) && any(pointCounts > 1)) {
-        if (is.null(legend.counts[["counts"]])) {
-            counts <- unique(round(10^(do.call("seq", c(
-                as.list(log10(range(pointCounts))), list(length.out=5)
-                )))))
-        } else {
-            counts <- as.vector(legend.counts[["counts"]], mode="integer")
-            legend.counts[["counts"]] <- NULL
+    if (is.null(pop)) {
+        ## classical plotting system
+        if (!add) plot(tiles, ...)
+        do.call("points", c(alist(x=eventCoordsTypesCounts[,1:2,drop=FALSE]),
+                            points.args_pointwise))
+        ## optionally add legends
+        if (is.list(legend.types) && length(typesEffective) > 1) {
+            legend.types <- modifyList(
+                list(x="topright", legend=typeNames[typesEffective],
+                     title=deparse(by, nlines = 1),
+                     #pt.cex=points.args$cex, # better use par("cex")
+                     pch=points.args$pch[typesEffective],
+                     col=points.args$col[typesEffective],
+                     pt.lwd=points.args$lwd[typesEffective]),
+                legend.types)
+            do.call("legend", legend.types)
         }
-        legend.counts <- modifyList(
-            list(x="bottomright", bty="n", legend=counts,
-                 pt.cex=points.args$cex * cex.fun(counts),
-                 pch=points.args$pch[1L],
-                 col=if(length(unique(points.args$col)) == 1L)
-                 points.args$col[1L] else 1,
-                 pt.lwd=points.args$lwd[1L]),
-            legend.counts)
-        do.call("legend", legend.counts)
+        if (is.list(legend.counts) && any(pointCounts > 1)) {
+            if (!is.null(legend.counts[["counts"]])) {
+                countsLegend <- as.vector(legend.counts[["counts"]], mode="integer")
+                legend.counts[["counts"]] <- NULL
+            }
+            legend.counts <- modifyList(
+                list(x="bottomright", bty="n", legend=countsLegend,
+                     pt.cex=points.args$cex * cex.fun(countsLegend),
+                     pch=points.args$pch[1L],
+                     col=if(length(unique(points.args$col)) == 1L)
+                             points.args$col[1L] else 1,
+                     pt.lwd=points.args$lwd[1L]),
+                legend.counts)
+            do.call("legend", legend.counts)
+        }
+        invisible()
+    } else {
+        if (!is(tiles, "SpatialPolygonsDataFrame")) {
+            stop("'pop' requires 'tiles' to be a \"SpatialPolygonsDataFrame\"")
+        }
+        ## grid plotting system -> spplot()
+        layout.points <- c(list("sp.points", eventCoordsTypesCounts),
+                           points.args_pointwise)
+        ## optional legend definitions
+        legend.types <- if (is.list(legend.types) && length(typesEffective) > 1) {
+            legend.types <- modifyList(
+                list(corner = c(1, 1), # "topright"
+                     title = deparse(by, nlines = 1), cex.title = 1, border = TRUE,
+                     points = list(
+                         pch = points.args$pch[typesEffective],
+                         col = points.args$col[typesEffective],
+                         lwd = points.args$lwd[typesEffective]
+                     ),
+                     text = list(typeNames[typesEffective])),
+                legend.types
+            )
+            corner.types <- legend.types$corner
+            legend.types$corner <- NULL
+            list(inside = list(fun = lattice::draw.key(legend.types), corner = corner.types))
+        }
+        legend.counts <- if (is.list(legend.counts) && any(pointCounts > 1)) {
+            if (!is.null(legend.counts[["counts"]])) {
+                countsLegend <- as.vector(legend.counts[["counts"]], mode="integer")
+                legend.counts[["counts"]] <- NULL
+            }
+            legend.counts <- modifyList(
+                list(corner = c(1,0), # "bottomright"
+                     points = list(
+                         cex = points.args$cex * cex.fun(countsLegend),
+                         pch = points.args$pch[1L],
+                         col = if(length(unique(points.args$col)) == 1L)
+                             points.args$col[1L] else 1,
+                         lwd = points.args$lwd[1L]
+                     ),
+                     text = list(as.character(countsLegend)),
+                     padding.text=2, between=0),
+                legend.counts
+            )
+            corner.counts <- legend.counts$corner
+            legend.counts$corner <- NULL
+            list(inside = list(fun = lattice::draw.key(legend.counts), corner = corner.counts))
+        }
+        ## create the plot
+        spplot(obj = tiles, zcol = pop,
+               sp.layout = c(list(layout.points), sp.layout),
+               legend = c(legend.types, legend.counts), ...)
     }
-    invisible()
 }

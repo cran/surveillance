@@ -6,9 +6,9 @@
 ### Standard S3-methods for "epidataCS" objects, which represent
 ### CONTINUOUS SPATIO-temporal infectious disease case data
 ###
-### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 1031 $
-### $Date: 2014-09-26 15:36:26 +0200 (Fri, 26 Sep 2014) $
+### Copyright (C) 2009-2015 Sebastian Meyer
+### $Revision: 1285 $
+### $Date: 2015-03-24 15:26:51 +0100 (Tue, 24 Mar 2015) $
 ################################################################################
 
 
@@ -52,8 +52,12 @@ update.epidataCS <- function (object, eps.t, eps.s, qmatrix, nCircle2Poly, ...)
 
     # Update influenceRegions of events
     if (any(ir2update)) {
+        clipper <- attr(object$events$.influenceRegion, "clipper")
+        if (is.null(clipper))  # epidataCS < 1.8-1
+            clipper <- "polyclip"
         object$events$.influenceRegion[ir2update] <-
-            .influenceRegions(object$events[ir2update,], object$W, nCircle2Poly)
+            .influenceRegions(object$events[ir2update,], object$W, nCircle2Poly,
+                              clipper = clipper)
         attr(object$events$.influenceRegion, "nCircle2Poly") <- nCircle2Poly
     }
 
@@ -84,10 +88,9 @@ update.epidataCS <- function (object, eps.t, eps.s, qmatrix, nCircle2Poly, ...)
 
 "[.epidataCS" <- function (x, i, j, ..., drop = TRUE)
 {
-    ## Store nCircle2Poly attribute of x$events$.influenceRegion since this will
-    ## be dropped when subsetting
-    nCircle2Poly <- attr(x$events$.influenceRegion, "nCircle2Poly")
-
+    ## rescue attributes of .influenceRegion (dropped when indexing)
+    iRattr <- attributes(x$events$.influenceRegion)
+    
     ## apply [,SpatialPointsDataFrame-method (where "drop" is ignored)
     cl <- sys.call()
     cl[[1]] <- as.name("[")
@@ -119,10 +122,10 @@ update.epidataCS <- function (object, eps.t, eps.s, qmatrix, nCircle2Poly, ...)
         }
     }
     
-    ## restore nCircle2Poly attribute
-    attr(x$events$.influenceRegion, "nCircle2Poly") <- nCircle2Poly
-
-    ## Done
+    ## restore attributes of .influenceRegion
+    attributes(x$events$.influenceRegion) <- iRattr
+    
+    ## done
     return(x)
 }
 
@@ -174,17 +177,81 @@ tail.epidataCS <- function (x, n = 6L, ...)
 
 ### extract marks of the events (actually also including time and tile)
 
-marks.epidataCS <- function (x, coords = TRUE, ...)
+idxNonMarks <- function (x)
 {
     endemicCovars <- setdiff(names(x$stgrid), c(
         reservedColsNames_stgrid, obligColsNames_stgrid))
-    idxnonmarks <- match(c(reservedColsNames_events, endemicCovars),
-                         names(x$events@data))
+    match(c(reservedColsNames_events, endemicCovars), names(x$events@data))
+}
+
+marks.epidataCS <- function (x, coords = TRUE, ...)
+{
     if (coords) { # append coords (cp. as.data.frame.SpatialPointsDataFrame)
-        data.frame(x$events@data[-idxnonmarks], x$events@coords)
-    } else {                            # return marks without coordinates
-        x$events@data[-idxnonmarks]
+        data.frame(x$events@data[-idxNonMarks(x)], x$events@coords)
+    } else { # return marks without coordinates
+        x$events@data[-idxNonMarks(x)]
     }
+}
+
+
+
+### permute event times and/or locations holding remaining columns fixed
+
+permute.epidataCS <- function (x, what = c("time", "space"), keep)
+{
+    stopifnot(inherits(x, "epidataCS"))
+    what <- match.arg(what)
+    
+    ## permutation index
+    perm <- if (missing(keep)) {
+        sample.int(nobs.epidataCS(x))
+    } else { # some events should not be relabeled
+        keep <- eval(substitute(keep), envir = x$events@data,
+                     enclos = parent.frame())
+        stopifnot(is.logical(keep), !is.na(keep))
+        which2permute <- which(!keep)
+        howmany2permute <- length(which2permute)
+        if (howmany2permute < 2L) {
+            message("Note: data unchanged ('keep' all)")
+            return(x)
+        }
+        perm <- seq_len(nobs.epidataCS(x))
+        perm[which2permute] <- which2permute[sample.int(howmany2permute)]
+        perm
+    }
+    
+    ## rescue attributes of .influenceRegion (dropped when indexing)
+    iRattr <- attributes(x$events@data$.influenceRegion)
+    
+    ## permute time points and/or locations
+    PERMVARS <- if (what == "time") {
+        c("time", "BLOCK", "start", ".obsInfLength")
+    } else {
+        x$events@coords <- x$events@coords[perm,,drop=FALSE]
+        c("tile", ".bdist", ".influenceRegion")
+    }
+    x$events@data[PERMVARS] <- x$events@data[perm, PERMVARS]
+    
+    ## re-sort on time if necessary
+    if (what == "time") {
+        x$events <- x$events[order(x$events@data$time), ]
+    }
+    
+    ## .sources and endemic variables need an update
+    x$events@data$.sources <- determineSources.epidataCS(x)
+    ENDVARS <- setdiff(names(x$stgrid),
+                       c(reservedColsNames_stgrid, obligColsNames_stgrid))
+    gridcellsOfEvents <- match(
+        do.call("paste", c(x$events@data[c("BLOCK", "tile")], sep = "\r")),
+        do.call("paste", c(x$stgrid[c("BLOCK", "tile")], sep = "\r"))
+    )
+    x$events@data[ENDVARS] <- x$stgrid[gridcellsOfEvents, ENDVARS]
+    
+    ## restore attributes of .influenceRegion
+    attributes(x$events@data$.influenceRegion) <- iRattr
+    
+    ## done
+    x
 }
 
 

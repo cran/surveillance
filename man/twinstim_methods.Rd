@@ -2,6 +2,7 @@
 \name{twinstim_methods}
 \alias{print.twinstim}
 \alias{summary.twinstim}
+\alias{coeflist.twinstim}
 \alias{vcov.twinstim}
 \alias{logLik.twinstim}
 \alias{nobs.twinstim}
@@ -30,6 +31,7 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
 \method{summary}{twinstim}(object, test.iaf = FALSE,
         correlation = FALSE, symbolic.cor = FALSE, ...)
 
+\method{coeflist}{twinstim}(x, ...)
 \method{vcov}{twinstim}(object, ...)
 \method{logLik}{twinstim}(object, ...)
 \method{nobs}{twinstim}(object, ...)
@@ -94,6 +96,8 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
   The estimated coefficients and standard Wald-type confidence intervals
   can be extracted using the default \code{\link{coef}} and
   \code{\link{confint}} methods from package \pkg{stats}.
+  Note, however, that there is the useful \code{\link{coeflist}} method to
+  list the coefficients by model component.
 
   The \code{print} and \code{summary} methods allow the compact or comprehensive
   representation of the fitting results, respectively.  The former only prints
@@ -156,8 +160,9 @@ data("imdepifit")
 # print method
 imdepifit
 
-# extract point estimates
+# extract point estimates (in a single vector or listed by model component)
 coef(imdepifit)
+coeflist(imdepifit)
 
 # variance-covariance matrix of endemic parameters
 # (inverse of expected Fisher information)

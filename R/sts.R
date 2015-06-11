@@ -495,26 +495,7 @@ toLatex.sts <- function(object, caption = "",label=" ", columnLabels = NULL,
   tableCaption <- caption
   tableLabel <- label
   
-  epochAsDate <- object@epochAsDate
-  epochStr <- switch( as.character(object@freq), 
-                      "12" = "month",
-                      "52" =  "week",
-                      "365" = "day")
-  noDataPoints <- nrow(object@observed)
-      
-  if (epochAsDate) {
-    vectorOfDates <- as.Date(object@epoch, origin="1970-01-01")
-  } else { 
-    firstMonday <- as.POSIXlt(
-                              paste(object@start[1],
-                                    object@start[2],"1",sep=" ")
-                             ,format = "%Y %W %u") 
-    dateInc <- switch(as.character(object@freq), 
-                          "12" = 30, 
-                          "365" = 1, 
-                          "52" = 7)
-    vectorOfDates <- as.Date(firstMonday) + dateInc * (0:(noDataPoints - 1))
-  }
+  vectorOfDates <- epoch(object, as.Date = TRUE)
   
   yearColumn <- Map(function(d)isoWeekYear(d)$ISOYear, vectorOfDates)
   

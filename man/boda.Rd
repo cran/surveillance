@@ -19,7 +19,8 @@
 \usage{
 boda(sts, control=list(range=NULL, X=NULL, trend=FALSE,
      season=FALSE, prior=c('iid','rw1','rw2'), alpha=0.05,
-     mc.munu=100, mc.y=10, verbose=FALSE,multicore=TRUE))
+     mc.munu=100, mc.y=10, verbose=FALSE,multicore=TRUE,
+     samplingMethod=c('joint','marginals')))
 }
 \arguments{
   \item{sts}{object of class sts (including the \code{observed} and the
@@ -45,6 +46,7 @@ boda(sts, control=list(range=NULL, X=NULL, trend=FALSE,
 	it might be necessary to force verbose mode for INLA to work.}
       \item{\code{multicore}}{Detect using \code{parallel::detectCores}
 	how many logical cores are available and set INLA to use this number.}
+      \item{\code{samplingMethod}}{Should one sample from the parameters joint distribution (joint) or from their respective marginal posterior distribution (marginals)?}
     }
   }
 }
@@ -74,23 +76,19 @@ boda(sts, control=list(range=NULL, X=NULL, trend=FALSE,
                    state=campyDE$state, epochAsDate=TRUE)
 
   \dontrun{
-  #Trial run code. To be made an actual working example.
-  #source("../R/boda.R")
-
-  # define monitoring period
+  #Define monitoring period
 #  range <- which(epoch(cam.sts)>=as.Date("2007-01-01"))
 #  range <- which(epoch(cam.sts)>=as.Date("2011-12-10"))
   range <- tail(1:nrow(cam.sts),n=2)
 
   control <- list(range=range, X=NULL, trend=TRUE, season=TRUE,
-                  prior='iid', alpha=0.025, mc.munu=100, mc.y=10)
+                  prior='iid', alpha=0.025, mc.munu=100, mc.y=10, samplingMethod = "joint")
 
   #Apply the boda algorithm in its simples form, i.e. spline is
   #described by iid random effects and no extra covariates
-  #(NOTE: requires the INLA package to be installed)
+  library("INLA")  # needs to be attached
   cam.boda1 <- boda(cam.sts, control=control)
 
-  #In case INLA is not installed, boda throws an error
   if(!inherits(cam.boda1,'try-error')){
     plot(cam.boda1,xlab='time [weeks]', ylab='No. reported',dx.upperbound=0)
   }
@@ -98,11 +96,11 @@ boda(sts, control=list(range=NULL, X=NULL, trend=FALSE,
   } 
 }
 
-\author{J. Manitz and M. \enc{Höhle}{Hoehle}}
+\author{J. Manitz, M. \enc{Höhle}{Hoehle}, M. Salmon}
 
 \references{
   Bayesian model algorithm for monitoring reported cases of
-  campylobacteriosis in Germany (2013), Manitz J and Höhle M,
+  campylobacteriosis in Germany (2013), Manitz J and \enc{Höhle}{Hoehle} M,
   Biometrical Journal, 55(4), pp. 509 526.
 }
 

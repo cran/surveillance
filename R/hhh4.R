@@ -6,9 +6,9 @@
 ### hhh4 is an extended version of algo.hhh for the sts-class
 ### The function allows the incorporation of random effects and covariates.
 ###
-### Copyright (C) 2010-2014 Michaela Paul and Sebastian Meyer
-### $Revision: 1143 $
-### $Date: 2014-12-16 14:05:03 +0100 (Tue, 16 Dec 2014) $
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2015 Sebastian Meyer
+### $Revision: 1356 $
+### $Date: 2015-06-04 11:26:52 +0200 (Thu, 04 Jun 2015) $
 ################################################################################
 
 ## Error message issued in loglik, score and fisher functions upon NA parameters
@@ -20,12 +20,13 @@ ADVICEONERROR <- "\n  Try different starting values, more iterations, or another
 hhh4 <- function (stsObj, control = list(
     ar = list(f = ~ -1,        # a formula "exp(x'lamba)*y_t-lag" (ToDo: matrix)
               offset = 1,      # multiplicative offset
-              lag = 1,         # autoregression on y_i,t-lag
-              weights = NULL), # for a contact matrix model (currently unused)
+              lag = 1),        # autoregression on y_i,t-lag
     ne = list(f = ~ -1,        # a formula "exp(x'phi) * sum_j w_ji * y_j,t-lag"
               offset = 1,      # multiplicative offset
               lag = 1,         # regression on y_j,t-lag
-              weights = neighbourhood(stsObj) == 1),  # weights w_ji
+              weights = neighbourhood(stsObj) == 1,  # weights w_ji
+              scale = NULL,    # such that w_ji = scale * weights
+              normalize = FALSE), # w_ji -> w_ji / rowSums(w_ji), after scaling
     end = list(f = ~ 1,        # a formula "exp(x'nu) * n_it"
                offset = 1),    # optional multiplicative offset e_it
     family = c("Poisson", "NegBin1", "NegBinM"),
@@ -190,10 +191,15 @@ setControl <- function (control, stsObj)
   ### check AutoRegressive component
 
   if (control$ar$isMatrix <- is.matrix(control$ar$f)) {
+      ## this form is not implemented -> will stop() in interpretControl()
       if (any(dim(control$ar$f) != nUnit))
           stop("'control$ar$f' must be a square matrix of size ", nUnit)
-      # use identity matrix if weight matrix is missing
-      if (is.null(control$ar$weights)) control$ar$weights <- diag(nrow=nUnit)
+      if (is.null(control$ar$weights)) { # use identity matrix
+          control$ar$weights <- diag(nrow=nUnit)
+      } else if (!is.matrix(control$ar$weights) ||
+                 any(dim(control$ar$weights) != nUnit)) {
+          stop("'control$ar$weights' must be a square matrix of size ", nUnit)
+      }
       control$ar$inModel <- TRUE
   } else if (inherits(control$ar$f, "formula")) {
       if (!is.null(control$ar$weights)) {
@@ -204,11 +210,6 @@ setControl <- function (control, stsObj)
       control$ar$inModel <- isInModel(control$ar$f)
   } else {
       stop("'control$ar$f' must be either a formula or a matrix")
-  }
-
-  if (is.matrix(control$ar$weights)) {
-      if (any(dim(control$ar$weights) != nUnit))
-          stop("'control$ar$weights' must be a square matrix of size ", nUnit)
   }
   
   
@@ -227,8 +228,22 @@ setControl <- function (control, stsObj)
                "if 'control$ar$f' is a matrix")
       ## check ne$weights specification
       checkWeights(control$ne$weights, nUnit, nTime,
-                   neighbourhood(stsObj), control$data)
-  } else control$ne$weights <- NULL
+                   neighbourhood(stsObj), control$data,
+                   check0diag = control$ar$inModel)
+      ## check optional scaling of weights
+      if (!is.null(control$ne$scale)) {
+          stopifnot(is.numeric(control$ne$scale))
+          if (is.vector(control$ne$scale)) {
+              stopifnot(length(control$ne$scale) == 1L ||
+                            length(control$ne$scale) %% nUnit == 0,
+                        !is.na(control$ne$scale))
+          } else {
+              checkWeightsArray(control$ne$scale, nUnit, nTime)
+          }
+      }
+  } else {
+      control$ne[c("weights", "scale", "normalize")] <- list(NULL, NULL, FALSE)
+  }
 
   
   ### check ENDemic component
@@ -256,7 +271,7 @@ setControl <- function (control, stsObj)
 
   ### stop if no component is included in the model
   
-  if (length(componentsHHH4(list(control=control))) == 0L)
+  if (length(comps <- componentsHHH4(list(control=control))) == 0L)
       stop("none of the components 'ar', 'ne', 'end' is included in the model")
   
 
@@ -267,6 +282,11 @@ setControl <- function (control, stsObj)
   if (!is.vector(control$subset, mode="numeric") ||
       !all(control$subset %in% seq_len(nTime)))
       stop("'control$subset' must be %in% 1:", nTime)
+  lags <- c(ar = control$ar$lag, ne = control$ne$lag)
+  maxlag <- suppressWarnings(max(lags[names(lags) %in% comps])) # could be -Inf
+  if (control$subset[1L] <= maxlag) {
+      warning("'control$subset' should be > ", maxlag, " due to epidemic lags")
+  }
 
   if (!is.list(control$optimizer) ||
       any(! sapply(c("stop", "regression", "variance"),
@@ -303,8 +323,9 @@ isInModel <- function(formula, name=deparse(substitute(formula)))
 }
 
 # used to incorporate covariates and unit-specific effects
-fe <- function(x,          # covariate 
-               which=NULL, # Null= overall, vector with booleans = unit-specific
+fe <- function(x,          # covariate
+               unitSpecific = FALSE, # TRUE means which = rep.int(TRUE, nUnits)
+               which=NULL, # NULL = overall, vector with booleans = unit-specific
                initial=NULL) # vector of inital values for parameters
 {
   stsObj <- get("stsObj", envir=parent.frame(1), inherits=TRUE) #checkFormula()
@@ -338,19 +359,19 @@ fe <- function(x,          # covariate
   intercept <- all(terms==1)
   
   # overall or unit-specific effect?
-  unitSpecific <- !is.null(which)
-  
-  # check argument which
-  if(unitSpecific && (!is.vector(which) | (length(which) != nUnits) | !is.logical(which))){
-    stop("argument which = \'",deparse(substitute(which)), "\' is not correct\n")
-  }
-  
-  if(unitSpecific){
-    terms[,!which] <- 0
+  unitSpecific <- unitSpecific || !is.null(which)
+  if (unitSpecific) {
+      if (is.null(which)) {
+          which <- rep.int(TRUE, nUnits)
+      } else {
+          stopifnot(is.vector(which, mode="logical"), length(which) == nUnits)
+      }
+      
+      terms[,!which] <- 0
   }
   
   # get dimension of parameter
-  dim.fe <- ifelse(unitSpecific, sum(which), 1)
+  dim.fe <- if (unitSpecific) sum(which) else 1
   
   # check length of initial values + set default values
   if (is.null(initial)) {
@@ -359,10 +380,11 @@ fe <- function(x,          # covariate
     stop("initial values for '",deparse(substitute(x)),"' must be of length ",dim.fe)
   }
   
-  summ <- ifelse(unitSpecific,"colSums","sum")
+  summ <- if (unitSpecific) "colSums" else "sum"
     
   name <- deparse(substitute(x))
-  if(unitSpecific) name <- paste(name, colnames(stsObj)[which], sep=".")
+  if (unitSpecific)
+      name <- paste(name, colnames(stsObj)[which], sep=".")
     
   result <- list(terms=terms,
                 name=name,
@@ -526,7 +548,9 @@ checkFormula <- function(f, component, data, stsObj)
 ## length(pars)*(length(pars)+1)/2 for the hessian.
 ## If neweights=NULL (i.e. no NE component in model), the result is always 0.
 ## offset is a multiplicative offset for \phi_{it}, e.g., the population.
-neOffsetFUN <- function (Y, neweights, nbmat, data, lag = 1, offset = 1)
+## scale is a nUnit-vector or a nUnit x nUnit matrix scaling neweights.
+neOffsetFUN <- function (Y, neweights, scale, normalize,
+                         nbmat, data, lag = 1, offset = 1)
 {
     if (is.null(neweights)) { # no neighbourhood component
         as.function(alist(...=, 0), envir=.GlobalEnv)
@@ -535,19 +559,21 @@ neOffsetFUN <- function (Y, neweights, nbmat, data, lag = 1, offset = 1)
         ##               substitute(matrix(0, r, c), list(r=dimY[1], c=dimY[2]))),
         ##             envir=.GlobalEnv)
     } else if (is.list(neweights)) { # parametric weights
+        wFUN <- scaleNEweights.list(neweights, scale, normalize)
         function (pars, type = "response") {
             name <- switch(type, response="w", gradient="dw", hessian="d2w")
-            weights <- neweights[[name]](pars, nbmat, data)
+            weights <- wFUN[[name]](pars, nbmat, data)
             ## gradient and hessian are lists if length(pars$d) > 1L
-            ## and single matrices/arrays if == 1 => _c_onditional lapply
+            ## but can be single matrices/arrays if == 1 => _c_onditional lapply
             res <- clapply(weights, function (W)
                            offset * weightedSumNE(Y, W, lag))
             ##<- clapply always returns a list (possibly of length 1)
             if (type=="response") res[[1L]] else res
         }
     } else { # fixed (known) weight structure (0-length pars)
+        weights <- scaleNEweights.default(neweights, scale, normalize)
         env <- new.env(hash = FALSE, parent = emptyenv())  # small -> no hash
-        env$initoffset <- offset * weightedSumNE(Y, neweights, lag)
+        env$initoffset <- offset * weightedSumNE(Y, weights, lag)
         as.function(c(alist(pars=, type = "response"), quote(initoffset)),
                     envir=env)     # it will not be called for other types
     }
@@ -575,10 +601,12 @@ interpretControl <- function (control, stsObj)
   ## components of the control object did not have an offset
   if (is.null(ar$offset)) ar$offset <- 1
   if (is.null(ne$offset)) ne$offset <- 1
+  ## for backward compatibility with surveillance < 1.9-0
+  if (is.null(ne$normalize)) ne$normalize <- FALSE
   
   ## create list of offsets of the three components
   Ym1 <- rbind(matrix(NA_integer_, ar$lag, nUnits), head(Y, nTime-ar$lag))
-  Ym1.ne <- neOffsetFUN(Y, ne$weights,
+  Ym1.ne <- neOffsetFUN(Y, ne$weights, ne$scale, ne$normalize,
                         neighbourhood(stsObj), control$data, ne$lag, ne$offset)
   offsets <- list(ar=ar$offset*Ym1, ne=Ym1.ne, end=end$offset)
   ## -> offset$ne is a function of the parameter vector 'd', which returns a
@@ -603,7 +631,7 @@ interpretControl <- function (control, stsObj)
 
   ## get terms for all components
   all.term <- NULL
-  if(ar$isMatrix) stop("matrix-form of 'control$ar$f is not yet implemented")
+  if(ar$isMatrix) stop("matrix-form of 'control$ar$f' is not implemented")
   if(ar$inModel) # ar$f is a formula
       all.term <- cbind(all.term, checkFormula(ar$f, 1, control$data, stsObj))
   if(ne$inModel)
@@ -1113,7 +1141,7 @@ penFisher <- function(theta, sd.corr, model, attributes=FALSE)
         dmudd <- lapply(dneOffset, phi.doff)
         d2neOffset <- model$offset[[2L]](pars$d, type="hessian")
         d2mudddd <- lapply(d2neOffset, phi.doff)
-        ## d l(theta,x) /dd dd (fill only upper triangle)
+        ## d l(theta,x) /dd dd (fill only upper triangle, BY ROW)
         ij <- 0L
         for (i in seq_len(dimd)) {
             for (j in i:dimd) {
@@ -2073,35 +2101,6 @@ fitHHH <- function(theta, sd.corr, model,
        convergence=convergence, dim=c(fixed=dimFE.d.O,random=dimRE))
 }
 
-
-
-##############
-addSeason2formula <- function(f=~1,       # formula to start with
-                              S=1,         # number of sine/cosine pairs
-                              period=52,
-                              timevar="t"
-                              ){
-  # return formula as is if S = 0
-  if(max(S) == 0) return(f)
-  
-  f <- paste(deparse(f), collapse="")
-  # create formula
-  if(length(S)==1 && S>0){
-    for(i in seq_len(S)){
-      f <- paste0(f,
-                  " + sin(",2*i,"*pi*",timevar,"/",period,")",
-                  " + cos(",2*i,"*pi*",timevar,"/",period,")")
-    }
-  } else {
-    for(i in seq_len(max(S))){
-      which <- paste(i <= S,collapse=",")
-      f <- paste0(f,
-                  " + fe( sin(",2*i,"*pi*",timevar,"/",period,"), which=c(",which,"))",
-                  " + fe( cos(",2*i,"*pi*",timevar,"/",period,"), which=c(",which,"))")
-    }
-  }
-  return(as.formula(f, env=.GlobalEnv))
-}
 
 
 ## check analytical score functions and Fisher informations for

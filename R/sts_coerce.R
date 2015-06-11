@@ -23,10 +23,24 @@ setAs(from="ts", to="sts", def = function (from)  {
 
 ### Convert an "sts" object to a simple "ts" object
 
-setAs(from="sts", to="ts", def = function (from)  {
-    ts(data=from@observed, start=from@start, frequency=from@freq)
-})
-  
+as.ts.sts <- function (x, ...)
+{
+    ts(data = x@observed, start = x@start, frequency = x@freq)
+}
+setAs(from = "sts", to = "ts", def = function (from) as.ts.sts(from))
+
+
+### Convert an "sts" object to an eXtensible Time Series "xts"
+
+as.xts.sts <- function (x, order.by = epoch(x, as.Date = TRUE), ...)
+{
+    if (!missing(order.by) || x@freq %in% c(52, 365)) {
+        xts::xts(x = x@observed, order.by = order.by, ...)
+    } else {
+        ## frequencies 4 and 12 are nicely handled by the as.xts.ts method
+        xts::as.xts(as.ts.sts(x), ...)
+    }
+}
 
 
 ######################################################################

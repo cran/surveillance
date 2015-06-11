@@ -34,33 +34,24 @@
 }
 
 \usage{
-hhh4(stsObj, 
+hhh4(stsObj,
      control = list(
-               ar = list(f = ~ -1,
-                         offset = 1,
-                         lag = 1,
-                         weights = NULL
-                         ),
-               ne = list(f = ~ -1,
-                         offset = 1,
-                         lag = 1,
-                         weights = neighbourhood(stsObj) == 1
-                         ),
-               end = list(f = ~ 1,
-                          offset = 1
-                          ),
-               family = c("Poisson","NegBin1","NegBinM"),
-               subset = 2:nrow(stsObj),
-               optimizer = list(stop = list(tol=1e-5, niter=100),
-                                regression = list(method="nlminb"),
-                                variance = list(method="nlminb")),
-               verbose = FALSE,
-               start = list(fixed=NULL, random=NULL, sd.corr=NULL),
-               data = list(t = epoch(stsObj)-1),
-               keep.terms = FALSE
-               ),
-     check.analyticals = FALSE
-   )
+         ar = list(f = ~ -1, offset = 1, lag = 1),
+         ne = list(f = ~ -1, offset = 1, lag = 1,
+                   weights = neighbourhood(stsObj) == 1,
+                   scale = NULL, normalize = FALSE),
+         end = list(f = ~ 1, offset = 1),
+         family = c("Poisson", "NegBin1", "NegBinM"),
+         subset = 2:nrow(stsObj),
+         optimizer = list(stop = list(tol=1e-5, niter=100),
+                          regression = list(method="nlminb"),
+                          variance = list(method="nlminb")),
+         verbose = FALSE,
+         start = list(fixed=NULL, random=NULL, sd.corr=NULL),
+         data = list(t = epoch(stsObj)-1),
+         keep.terms = FALSE
+     ),
+     check.analyticals = FALSE)
 }
 
 \arguments{
@@ -68,16 +59,14 @@ hhh4(stsObj,
     count data time series.}
   \item{control}{a list containing the model specification and control arguments:
     \describe{
-      \item{\code{ar}}{ Model for the autoregressive component given as
-          list with the following components: 
-          \describe{
+      \item{\code{ar}}{Model for the autoregressive component given as
+        list with the following components: 
+        \describe{
 	  \item{f = ~ -1}{a formula specifying \eqn{\log(\lambda_{it})}{log(\lambda_it)}}
 	  \item{offset = 1}{optional multiplicative offset, either 1 or
 	    a matrix of the same dimension as \code{observed(stsObj)}}
 	  \item{lag = 1}{a positive integer meaning autoregression on
 	    \eqn{y_{i,t-lag}}}
-	  \item{weights = NULL}{optional weights, only used if model is
-	    a contact matrix (currently not implemented)}
 	}
       }
       \item{\code{ne}}{Model for the neighbor-driven component given as
@@ -99,6 +88,15 @@ hhh4(stsObj,
 	    Time-varying weights are possible by specifying an
 	    array of \code{dim()} \code{c(nUnits, nUnits, nTime)}, where
 	    \code{nUnits=ncol(stsObj)} and \code{nTime=nrow(stsObj)}.}
+	  \item{scale = NULL}{
+	    optional matrix of the same dimensions as \code{weights} (or
+	    a vector of length \code{ncol(stsObj)}) to scale the
+	    \code{weights} to \code{scale * weights}.
+	  }
+	  \item{normalize = FALSE}{
+	    logical indicating if the (scaled) \code{weights} should be
+	    normalized such that each row sums to 1.
+	  }
 	}
       }
       \item{\code{end}}{Model for the endemic component given as list
@@ -249,7 +247,7 @@ measles <- disProg2sts(measles.weser)
 summary(hhh4(measles, control=model1))
 
 # now use region-specific intercepts in endemic component
-f.end2 <- addSeason2formula(f = ~ -1 + fe(1, which=rep(TRUE, ncol(measles))) + t,
+f.end2 <- addSeason2formula(f = ~ -1 + fe(1, unitSpecific = TRUE) + t,
                             S = 1, period = 52)
 model2 <- list(ar = list(f = ~ 1), 
                end = list(f = f.end2, offset = population(measles)),
@@ -259,11 +257,11 @@ summary(hhh4(measles, control=model2), idx2Exp=1, amplitudeShift=TRUE)
 
 # include autoregressive parameter phi for adjacent "Kreise"
 # no linear trend in endemic component
-f.end3 <- addSeason2formula(f = ~ -1 + fe(1, which=rep(TRUE, ncol(measles))), 
+f.end3 <- addSeason2formula(f = ~ -1 + fe(1, unitSpecific = TRUE), 
                             S = 1, period = 52)
 model3 <- list(ar = list(f = ~ 1),
-               ne = list(f = ~1),
-               end = list(f = f.end3, offset= population(measles)),
+               ne = list(f = ~ 1),
+               end = list(f = f.end3, offset = population(measles)),
                family = "NegBin1")
 # run model
 res3 <- hhh4(measles, control=model3)

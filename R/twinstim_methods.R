@@ -6,11 +6,25 @@
 ### Methods for objects of class "twinstim", specifically:
 ### vcov, logLik, print, summary, plot (intensity, iaf), R0, residuals, update
 ###
-### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 1147 $
-### $Date: 2014-12-19 11:20:48 +0100 (Fri, 19 Dec 2014) $
+### Copyright (C) 2009-2015 Sebastian Meyer
+### $Revision: 1334 $
+### $Date: 2015-05-12 11:05:33 +0200 (Tue, 12 May 2015) $
 ################################################################################
 
+## extract the link function used for the epidemic predictor (default: log-link)
+.epilink <- function (x)
+{
+    link <- attr(x$formula$epidemic, "link")
+    if (is.null(link)) "log" else link
+}
+
+## ## compare two "twinstim" fits
+## all.equal.twinstim <- function (target, current, ...,
+##                                 ignore = c("runtime", "call"))
+## {
+##     target[ignore] <- current[ignore] <- NULL
+##     NextMethod("all.equal")
+## }
 
 ### don't need a specific coef-method (identical to stats:::coef.default)
 ## coef.twinstim <- function (object, ...)
@@ -18,30 +32,15 @@
 ##     object$coefficients
 ## }
 
-### but a method to extract the coefficients in a list might be useful
-## "npars" is a named vector or list, where each element states the number of
-## coefficients in a group of coefficients.
-coeflist <- function (coefs, npars)
+## list coefficients by component
+coeflist.twinstim <- coeflist.simEpidataCS <- function (x, ...)
 {
-    coeflist <- vector("list", length(npars))
-    names(coeflist) <- names(npars)
-    csum <- c(0L,cumsum(npars))
-    for (i in seq_along(coeflist)) {
-        coeflist[[i]] <- coefs[seq.int(from=csum[i]+1L, length.out=npars[[i]])]
-    }
-    coeflist
-}
-
-## extended and twinstim-specific version,
-## which renames elements and unions nbeta0 and p as "endemic"
-mycoeflist <- function (coefs, npars)
-{
-    coeflist <- coeflist(coefs, npars)
-    coeflist <- c(list(c(coeflist[[1]], coeflist[[2]])), coeflist[-(1:2)])
+    coeflist <- coeflist.default(x$coefficients, x$npars)
+    ## rename elements and union "nbeta0" and "p" as "endemic"
+    coeflist <- c(list(c(coeflist[[1L]], coeflist[[2L]])), coeflist[-(1:2)])
     names(coeflist) <- c("endemic", "epidemic", "siaf", "tiaf")
     coeflist
 }
-
 
 ## asymptotic variance-covariance matrix (inverse of expected fisher information)
 vcov.twinstim <- function (object, ...)
@@ -97,14 +96,16 @@ summary.twinstim <- function (object, test.iaf = FALSE,
     correlation = FALSE, symbolic.cor = FALSE, ...)
 {
     ans <- unclass(object)[c("call", "converged", "counts")]
-    ans$cov <- vcov(object)
     npars <- object$npars
-    coefs <- coef(object)
     nbeta0 <- npars[1]; p <- npars[2]; nbeta <- nbeta0 + p
     q <- npars[3]
     nNotIaf <- nbeta + q
     niafpars <- npars[4] + npars[5]
-    est <- coefs
+    est <- coef(object)
+    ans$cov <- tryCatch(vcov(object), error = function (e) {
+        warning(e)
+        matrix(NA_real_, length(est), length(est))
+    })
     se <- sqrt(diag(ans$cov))
     zval <- est/se
     pval <- 2 * pnorm(abs(zval), lower.tail = FALSE)
@@ -112,7 +113,10 @@ summary.twinstim <- function (object, test.iaf = FALSE,
     dimnames(coefficients) <- list(names(est),
         c("Estimate", "Std. Error", "z value", "Pr(>|z|)"))
     ans$coefficients.beta <- coefficients[seq_len(nbeta),,drop=FALSE]
-    ans$coefficients.gamma <- coefficients[nbeta+seq_len(q),,drop=FALSE]
+    ans$coefficients.gamma <- structure(
+        coefficients[nbeta+seq_len(q),,drop=FALSE],
+        link = .epilink(object)
+    )
     ans$coefficients.iaf <- coefficients[nNotIaf+seq_len(niafpars),,drop=FALSE]
     if (!test.iaf) {
         ## usually, siaf and tiaf parameters are strictly positive,
@@ -155,13 +159,13 @@ print.summary.twinstim <- function (x,
             signif.stars = signif.stars, signif.legend = (q==0L) && signif.stars, ...)
     } else cat("\nNo coefficients in the endemic component.\n")
     if (q + niafpars > 0L) {
-        cat("\nCoefficients of the epidemic component:\n")
+        cat("\nCoefficients of the epidemic component",
+            if (attr(x$coefficients.gamma, "link") != "log")
+                paste0(" (LINK FUNCTION: ",
+                       attr(x$coefficients.gamma, "link"), ")"),
+            ":\n", sep = "")
         printCoefmat(rbind(x$coefficients.gamma, x$coefficients.iaf), digits = digits,
             signif.stars = signif.stars, ...)
-#         if (niafpars > 0L) {
-#             #cat("Coefficients of interaction functions:\n")
-#             printCoefmat(x$coefficients.iaf, digits = digits, signif.stars = signif.stars, ...)
-#         }
     } else cat("\nNo epidemic component.\n")
     cat("\nAIC: ", format(x$aic, digits=max(4, digits+1)))
     cat("\nLog-likelihood:", format(x$loglik, digits = digits))
@@ -270,6 +274,8 @@ xtable.summary.twinstim <- function (x, caption = NULL, label = NULL,
     cis <- confint(x, level=ci.level)
     tabh <- x$coefficients.beta
     tabe <- x$coefficients.gamma
+    if (attr(tabe, "link") != "log" && any(rownames(tabe) != "e.(Intercept)"))
+        stop("only implemented for the standard log-link models")
     tab <- rbind(tabh, tabe)
     tab <- tab[grep("^([he]\\.\\(Intercept\\)|h.type)", rownames(tab),
                     invert=TRUE),,drop=FALSE]
@@ -403,7 +409,9 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE, newcoef = NULL, ...)
             stop("epidemic model matrix has the wrong number of columns ",
                  "(check the variable types in 'newevents' (factors, etc))")
         }
-        gammapred <- drop(exp(mme %*% gamma))
+        gammapred <- drop(mme %*% gamma)  # identity link
+        if (.epilink(object) == "log")
+            gammapred <- exp(gammapred)
         names(gammapred) <- rownames(newevents)
 
         ## now, convert types of newevents to integer codes
@@ -454,19 +462,14 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE, newcoef = NULL, ...)
         typeTcombis$gInt <-
             with(typeTcombis, tiaf$G(eps.t, tiafpars, type)) -
                 tiaf$G(rep.int(0,nTypes), tiafpars, types)[typeTcombis$type]
-        
+
+        Fcircle <- getFcircle(siaf, object$control.siaf$F)
         typeScombis <- expand.grid(type=types, eps.s=unique(eps.s),
                                    KEEP.OUT.ATTRS=FALSE)
         typeScombis$fInt <- apply(typeScombis, MARGIN=1, FUN=function (type_eps.s) {
-            type <- type_eps.s[1]
-            eps.s <- type_eps.s[2]
-            if (is.null(siaf$Fcircle)) {
-                do.call(siaf$F, c(list(discpoly(c(0,0), eps.s, class="owin"),
-                                       siaf$f, siafpars, type),
-                                  object$control.siaf$F))
-            } else {
-                siaf$Fcircle(eps.s, siafpars, type)
-            }
+            type <- type_eps.s[1L]
+            eps.s <- type_eps.s[2L]
+            Fcircle(eps.s, siafpars, type)
         })
         
         ## match combinations to rows of original events or 'newevents'
@@ -490,6 +493,45 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE, newcoef = NULL, ...)
     R0s <- qSum * gammapred * siafInt * tiafInt
     R0s
 }
+
+## calculate simple R0 (over circular domain, without epidemic covariates,
+## for type-invariant siaf/tiaf)
+simpleR0 <- function (object, eta = coef(object)[["e.(Intercept)"]],
+                      eps.s = NULL, eps.t = NULL, newcoef = NULL)
+{
+    stopifnot(inherits(object, c("twinstim", "simEpidataCS")))
+    if (object$npars[["q"]] == 0L)
+        return(0)
+    if (any(rowSums(object$qmatrix) != 1))
+        warning("'simpleR0' is not correct for type-specific epidemic models")
+
+    if (!is.null(newcoef)) { # use alternative coefficients
+        object$coefficients <- newcoef
+    }
+    coeflist <- coeflist(object)
+    siaf <- object$formula$siaf
+    tiaf <- object$formula$tiaf
+
+    ## default radii of interaction
+    if (is.null(eps.s)) {
+        eps.s <- attr(siaf, "eps")
+        if (length(eps.s) > 1L) stop("found non-unique 'eps.s'; please set one")
+    } else stopifnot(isScalar(eps.s))
+    if (is.null(eps.t)) {
+        eps.t <- attr(tiaf, "eps")
+        if (length(eps.t) > 1L) stop("found non-unique 'eps.t'; please set one")
+    } else stopifnot(isScalar(eps.t))
+
+    ## integral of siaf over a disc of radius eps.s
+    Fcircle <- getFcircle(siaf, object$control.siaf$F)
+    siafInt <- Fcircle(eps.s, coeflist$siaf)
+
+    ## integral of tiaf over a period of length eps.t
+    tiafInt <- tiaf$G(eps.t, coeflist$tiaf) - tiaf$G(0, coeflist$tiaf)
+
+    ## calculate basic R0
+    (if (.epilink(object) == "log") exp(eta) else eta) * siafInt * tiafInt
+}            
 
 
 

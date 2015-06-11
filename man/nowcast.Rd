@@ -10,7 +10,7 @@
 
 \title{
   Adjust a univariate time series of counts for observed
-  but-not-yet-reported events 
+  but-not-yet-reported events
 }
 
 \description{
@@ -30,8 +30,8 @@ nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
         aggregate.by="1 day",
         D=15, m=NULL,
         control=list(
-            dRange=NULL,alpha=0.05,nSamples=1e3, 
-            N.tInf.prior=c("poisgamma","pois","unif"),  
+            dRange=NULL,alpha=0.05,nSamples=1e3,
+            N.tInf.prior=c("poisgamma","pois","unif"),
             N.tInf.max=300, gd.prior.kappa=0.1,
             ddcp=list(ddChangepoint=NULL,
                 logLambda=c("iidLogGa","tps","rw1","rw2"),
@@ -63,7 +63,7 @@ nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   }
   \item{method}{A vector of strings denoting the different methods for doing
     the nowcasting. Note that results of the first name in this list are
-    officially 
+    officially
     returned by the function. However, it is possible to specify several
     methods here, e.g., in order to compare score evaluations. Details of
     the methods are described in \enc{Höhle}{Hoehle} and an der Heiden (2014).
@@ -89,11 +89,11 @@ nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     }
   }
   \item{aggregate.by}{Time scale used for the temporal aggregation of
-    the records in the data \code{data}. See 
+    the records in the data \code{data}. See
     \code{\link{linelist2sts}} and \code{\link{seq.Date}} for further
-  information.} 
+  information.}
   \item{D}{Maximum possible or maximum relevant delay (unit:
-    \code{aggregate.by}). Default: 15.} 
+    \code{aggregate.by}). Default: 15.}
   \item{m}{Moving window for the estimation of the delay
     distribution. Default: \code{NULL}, i.e. take all values at all times.}
   \item{control}{A list with named arguments controlling the
@@ -126,9 +126,9 @@ nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
 	follows:
 	\describe{
 	  \item{\code{ddChangepoint}}{Vector of Date objects corresponding
-	    to the changepoints} 
+	    to the changepoints}
 	  \item{\code{logLambda}}{Prior on the spline. One of
-	    \code{c("iidLogGa","tps","rw1","rw2")}.} 
+	    \code{c("iidLogGa","tps","rw1","rw2")}.}
 	  \item{\code{tau.gamma}}{}
 	  \item{\code{eta.mu}}{}
 	  \item{\code{eta.prec}}{}
@@ -146,7 +146,7 @@ nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     }
   }
 }
-    
+
 \details{
   The methodological details of the nowcasting procedures are described in
   \enc{Höhle}{Hoehle} M and an der Heiden M (2014).
@@ -201,7 +201,7 @@ nc <- nowcast(now=t.repTriangle,when=t.repTriangle,
               dEventCol="dHosp",dReportCol="dReport",data=husO104Hosp,
               D=15,method="unif")
 
-#Show reporting triangle 
+#Show reporting triangle
 reportingTriangle(nc)
 
 #Perform Bayesian nowcasting assuming the delay distribution is stable over time
@@ -219,6 +219,33 @@ nc <- nowcast(now=t.repTriangle,when=when,
 plot(nc,xaxis.tickFreq=list("\%d"=atChange,"\%m"=atChange),
      xaxis.labelFreq=list("\%d"=at2ndChange),xaxis.labelFormat="\%d-\%b",
      xlab="Time (days)",lty=c(1,1,1,1),lwd=c(1,1,2))
+
+\dontrun{
+nc.control.ddcp <- modifyList(nc.control,
+                    list(gd.prior.kappa=0.1,
+                         ddcp=list(ddChangepoint=as.Date(c("2011-05-23")),
+                             logLambda="tps",
+                             tau.gamma=1,
+                             mcmc=c(burnin=1000,sample=1000,thin=1))))
+
+###Using runjags to do Bayesian model with changepoint(s) -- this might take
+###a while.
+nc.ddcp <- nowcast(now=t.repTriangle,when=when,
+               dEventCol="dHosp",dReportCol="dReport",
+               data=husO104Hosp, aggregate.by="1 day",
+               method="bayes.trunc.ddcp", D=15,
+                   control=nc.control.ddcp)
+
+plot(nc.ddcp,legend.opts=NULL,,
+     xaxis.tickFreq=list("\%d"=atChange,"\%m"=atChange),
+     xaxis.labelFreq=list("\%d"=at2ndChange),xaxis.labelFormat="\%d-\%b",
+     xlab="Time (days)",lty=c(1,1,1,1),lwd=c(1,1,2))
+
+lambda <- attr(delayCDF(nc.ddcp)[["bayes.trunc.ddcp"]],"model")$lambda
+showIdx <- seq(which( max(when) == epoch(nc.ddcp))) #seq(ncol(lambda))
+matlines( showIdx,t(lambda)[showIdx,],col="gray",lwd=c(1,2,1),lty=c(2,1,2))
+legend(x="topright",c(expression(lambda(t)),"95% CI"),col="gray",lwd=c(2,1),lty=c(1,2))
+}
 }
 
 \keyword{models}

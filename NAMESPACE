@@ -74,9 +74,9 @@ importMethodsFrom(Matrix, coerce, diag, forceSymmetric, solve)
 ### twinstim-specific
 
 importFrom(spatstat, area.owin, as.im.function, coords.ppp, diameter,
-                     diameter.owin, disc, inside.owin, intersect.owin,
-                     is.polygonal, runifpoint, shift.owin,
-                     spatstat.options, vertices)
+                     diameter.owin, disc, edges, inside.owin, intersect.owin,
+                     is.polygonal, as.polygonal, nncross.ppp, ppp, runifpoint,
+                     shift.owin, spatstat.options, vertices)
 importFrom(spatstat, marks)
 export(marks)                           # we define an epidataCS-method
 importFrom(spatstat, multiplicity)
@@ -113,6 +113,7 @@ export(refvalIdxByDate)
 export(ks.plot.unif)
 export(checkResidualProcess)       # for twinstim and twinSIR
 export(qlomax)                     # quantile function of the Lomax distribution
+export(plapply)
 
 # spatial utilities
 export(discpoly)
@@ -125,6 +126,7 @@ export(nbOrder)
 export(poly2adjmat)
 export(polyAtBorder)
 export(layout.labels)
+export(layout.scalebar)
 
 # randomly break tied event times or coordinates
 export(untie)                           # new S3-generic
@@ -142,14 +144,33 @@ S3method(intersectPolyCircle, gpc.poly)
 # little helper: multiplicity of points
 S3method(multiplicity, Spatial)
 
+# list coefficients by model component
+export(coeflist)
+S3method(coeflist, default)
+S3method(coeflist, twinstim)
+S3method(coeflist, simEpidataCS)
+
 # Spatio-temporal cluster detection
 export(stcd)
+
+# tests for space-time interaction
+export(knox)
+S3method(print, knox)
+S3method(plot, knox)
+S3method(xtable, knox)
+S3method(toLatex, knox)
+export(stKtest)
+S3method(plot, stKtest)
 
 
 ### sts(BP)-specific
 
 exportClasses(sts, stsBP)
 export(linelist2sts)
+
+# conversion of "sts" objects
+S3method(as.ts, sts)
+export(as.xts.sts)  # no registered S3-method since we only suggest "xts"
 
 # generics for sts class defined in sts.R
 exportMethods("[", plot)
@@ -177,7 +198,12 @@ export(earsC)
 export(farringtonFlexible)
 export(categoricalCUSUM, pairedbinCUSUM, pairedbinCUSUM.runlength)
 export(nowcast, backprojNP)
+export(bodaDelay)
 
+
+# sts creation functions
+export(sts_creation)
+export(sts_observation)
 
 ### disProg-specific
 
@@ -287,11 +313,16 @@ export(tiaf,
        tiaf.constant, tiaf.step,
        tiaf.exponential)
 export(epidataCS2sts)
+export(epitest)
+S3method(coef, epitest)
+S3method(plot, epitest)
+
 
 S3method(nobs, epidataCS)
 S3method("[", epidataCS)
 S3method(update, epidataCS)
 export(update.epidataCS)                # for convenience
+export(permute.epidataCS)
 S3method(head, epidataCS)
 S3method(tail, epidataCS)
 S3method(print, epidataCS)
@@ -331,6 +362,7 @@ S3method(nobs, twinstim)
 S3method(simulate, twinstim)
 export(simulate.twinstim)               # for convenience
 S3method(R0, twinstim)
+export(simpleR0)
 S3method(residuals, twinstim)
 S3method(update, twinstim)
 export(update.twinstim)                 # for convenience

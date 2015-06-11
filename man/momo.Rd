@@ -8,15 +8,14 @@
   of the six age groups <1, 1-4, 5-14, 15-44, 45-64, 65-74,
   75-84 and 85 years. 
 }
-\usage{data(momo)
-}
+\usage{data(momo)}
 \details{
-  The object of class \code{sts} contains the number of all cause
+  The object of class \code{"\linkS4class{sts}"} contains the number of all cause
   mortality from 1994-2008 in Denmark for each
   of the six age groups <1, 1-4, 5-14, 15-44, 45-64, 65-74,
   75-84 and 85 years. A special feature of such EuroMOMO data is that
   weeks are handled as defined by the ISO 8601 standard, which can be
-  handled by the \code{sts} class.
+  handled by the \code{"sts"} class.
 
   The \code{population} slot of the \code{momo} object contains the
   population size in each of the six age groups.
@@ -36,10 +35,10 @@
 }
 \examples{
 data("momo")
-plot(momo,legend.opts=NULL)
+plot(momo, legend.opts=NULL)
 }
 \references{
-  Höhle, M. and A. Mazick, A. (2009) Aberration detection in R
+  H\enc{ö}{oe}hle, M. and A. Mazick, A. (2009) Aberration detection in R
   illustrated by Danish mortality monitoring,  Book chapter to appear in
   T. Kass-Hout and X. Zhang (Eds.) Biosurveillance: A Health Protection
   Priority, CRC Press.

@@ -1,6 +1,7 @@
 \name{residualsCT}
 \alias{residuals.twinSIR}
 \alias{residuals.twinstim}
+\alias{residuals.simEpidataCS}
 
 \title{
 Extract Cox-Snell-like Residuals of a Fitted Point Process
@@ -10,7 +11,7 @@ Extract Cox-Snell-like Residuals of a Fitted Point Process
 Extract the \dQuote{residual process} (cf. Ogata, 1988) of a fitted
 point process modell specified through the conditional intensity
 function, for instance a model of class \code{"\link{twinSIR}"} or
-\code{"\link{twinstim}"}.
+\code{"\link{twinstim}"} (and also \code{"\link{simEpidataCS}"}).
 The residuals are defined as the fitted cumulative intensities at the
 event times, and are generalized residuals similar to those discussed in
 Cox and Snell (1968).
@@ -19,11 +20,12 @@ Cox and Snell (1968).
 \usage{
 \method{residuals}{twinSIR}(object, ...)
 \method{residuals}{twinstim}(object, ...)
+\method{residuals}{simEpidataCS}(object, ...)
 }
 
 \arguments{
   \item{object}{
-    an object of class \code{"\link{twinSIR}"} or \code{"\link{twinstim}"}.
+    an object of one of the aforementioned model classes.
   }
   \item{\dots}{unused (argument of the generic).}
 }
@@ -31,7 +33,8 @@ Cox and Snell (1968).
 \details{
   For objects of class \code{twinstim}, the residuals may already be
   stored in the object as component \code{object$tau} if the model was
-  fitted with \code{cumCIF = TRUE}. In this case, the \code{residuals}
+  fitted with \code{cumCIF = TRUE} (and they always are for
+  \code{"simEpidataCS"}). In this case, the \code{residuals}
   method just extracts these values.  Otherwise, the residuals have to
   be calculated, which is only possible with access to the model
   environment, i.e. \code{object} must have been fitted with

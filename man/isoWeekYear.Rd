@@ -12,7 +12,7 @@
 
   A small internal wrapper for \code{format.Date} (called
   \code{formatDate}) thus directs all calls having one of these format
-  strings to this function, if the \code{sessionInfo()[[1]]$os}
+  strings to this function, if the \code{.Platform$OS.type}
   information reveals a Windows system. The function also provides three
   additional \code{strptime} formatting strings: "\%Q" (the quarter of a
   date as a numeric), "%OQ" (the quarter of a date in roman) and "%q"

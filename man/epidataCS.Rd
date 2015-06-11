@@ -329,12 +329,11 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
 ## load "imdepi" example data (which is an object of class "epidataCS")
 data("imdepi")
 
-## take a look at the data object
+## print and summary
 print(imdepi, n=5, digits=2)
-s <- summary(imdepi)
-s
-plot(s$counter, xlab = "Time [days]",
-     ylab="Number of infectious individuals",
+print(s <- summary(imdepi))
+plot(s$counter,  # same as 'as.stepfun(imdepi)'
+     xlab = "Time [days]", ylab="Number of infectious individuals",
      main=paste("Time course of the number of infectious individuals",
                 "assuming an infectious period of 30 days", sep="\n"))
 plot(table(s$nSources), xlab="Number of \"close\" infective individuals",
@@ -345,17 +344,23 @@ plot(table(s$nSources), xlab="Number of \"close\" infective individuals",
 ## the summary object contains further information
 str(s)
 
-## see the help page on the 'imdepi' dataset for more insight
+## internal structure of an "epidataCS"-object
+str(imdepi, max.level=4)
+## see help("imdepi") for more info on the data set
 
 ## extraction methods subset the 'events' component
 ## (thereby taking care of the validity of the epidataCS object,
-## for instance the hidden auxiliary column .sources and qmatrix)
-imdepi[101:200, -match("sex", names(imdepi$events))]
+## for instance the hidden auxiliary column .sources)
+imdepi[101:200,]
 tail(imdepi, n=4)           # reduce the epidemic to the last 4 events
 subset(imdepi, type=="B")   # only consider event type B
 
+## see help("plot.epidataCS") for convenient plot-methods for "epidataCS"
 
-### now reconstruct the object from its components
+
+###
+### reconstruct the "imdepi" object from its components
+###
 
 ## events
 events <- marks(imdepi)
@@ -374,24 +379,14 @@ load(system.file("shapes", "districtsD.RData", package="surveillance"),
 plot(stateD, axes=TRUE); title(xlab="x [km]", ylab="y [km]")
 points(events, pch=unclass(events$type), cex=0.5, col=unclass(events$type))
 legend("topright", legend=levels(events$type), title="Type", pch=1:2, col=1:2)
-\dontrun{
-    # similar to using the convenient plot-method for "epidataCS"
-    plot(imdepi, "space")
-}
 
 ## reconstruct the "imdepi" object from its components
 myimdepi <- as.epidataCS(events = events, stgrid = stgrid,
                          W = stateD, qmatrix = diag(2), nCircle2Poly = 16)
-\dontshow{
-## should be equal as long as the internal structures of "epidataCS",
-## of the embedded classes ("owin", "SpatialPolygons", ...), and the
-## calculation of the influence regions by "polyclip" do not change
-if (!isTRUE(all.equal(imdepi, myimdepi, tolerance=1E-6)))
-    warning("@Sebastian: maybe update data(imdepi)")
-}
-
-## internal structure of an "epidataCS"-object
-str(imdepi, max.level=4)
+## -> equal to 'imdepi' as long as the internal structures of the embedded
+##    classes ("owin", "SpatialPolygons", ...), and the calculation of the
+##    influence regions by "polyclip" do not change:
+##all.equal(imdepi, myimdepi, tolerance=1E-6)
 }
 
 \keyword{spatial}

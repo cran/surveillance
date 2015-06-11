@@ -7,9 +7,9 @@
 ### class "twinstim". The function basically uses Ogata's modified thinning
 ### algorithm (cf. Daley & Vere-Jones, 2003, Algorithm 7.5.V.).
 ###
-### Copyright (C) 2010-2014 Sebastian Meyer
-### $Revision: 1035 $
-### $Date: 2014-09-26 17:59:14 +0200 (Fri, 26 Sep 2014) $
+### Copyright (C) 2010-2015 Sebastian Meyer
+### $Revision: 1339 $
+### $Date: 2015-05-22 10:05:15 +0200 (Fri, 22 May 2015) $
 ################################################################################
 
 ### CAVE:
@@ -21,7 +21,7 @@
 utils::globalVariables(c("BLOCK", "tile", "area"))
 
 simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
-    events, stgrid, tiles, beta0, beta, gamma, siafpars, tiafpars,
+    events, stgrid, tiles, beta0, beta, gamma, siafpars, tiafpars, epilink = "log",
     t0 = stgrid$start[1], T = tail(stgrid$stop,1), nEvents = 1e5,
     control.siaf = list(F=list(), Deriv=list()),
     W = NULL, trace = 5, nCircle2Poly = 32, gmax = NULL, .allocate = 500,
@@ -98,6 +98,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     
     ## Transform W to class "owin"
     Wowin <- as(W, "owin")
+    Wedges <- edges(Wowin, check = FALSE)
     maxExtentOfW <- diameter.owin(Wowin)
 
     
@@ -141,7 +142,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     ### Subset stgrid to include actual time range only
 
     # BLOCK in stgrid such that start time is equal to or just before t0
-    block_t0 <- stgrid$BLOCK[match(TRUE, stgrid$start > t0) - 1L]
+    block_t0 <- stgrid$BLOCK[match(TRUE, c(stgrid$start,Inf) > t0) - 1L]
     # BLOCK in stgrid such that stop time is equal to or just after T
     block_T <- stgrid$BLOCK[match(TRUE, stgrid$stop >= T)]
     stgrid <- stgrid[stgrid$BLOCK>=block_t0 & stgrid$BLOCK<=block_T,,drop=FALSE]
@@ -149,7 +150,8 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     stgrid$stop[stgrid$BLOCK == block_T] <- T
     # matrix of BLOCKS and start times (used later)
     blockstarts <- with(stgrid,
-        cbind(block_t0:block_T, start[match(block_t0:block_T, BLOCK)])
+        cbind(block_t0:block_T, start[match(block_t0:block_T, BLOCK)],
+              deparse.level = 0L)
     )
 
 
@@ -229,6 +231,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     ## helper function to attach covariates from 'stgrid' to events
     attachstgridvars <- function (eventData, stgridvars)
     {
+        if (length(stgridvars) == 0L) return(eventData)
         gridcellsOfEvents <- integer(nrow(eventData))
         for (i in seq_along(gridcellsOfEvents)) {
             gridcellsOfEvents[i] <- gridcellOfEvent(eventData[i,"time"],
@@ -265,6 +268,10 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
              ") does not match the 'epidemic' specification (",
              ncol(mme), ")")
     }
+
+    ## (inverse) link function for the epidemic linear predictor of event marks
+    epilink <- match.arg(epilink, choices = c("log", "identity"))
+    epilinkinv <- switch(epilink, "log" = exp, "identity" = identity)
 
 
     ### Build endemic model matrix
@@ -429,7 +436,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
 
     hIntWK <- if (hash) {
         dsexpeta <- local({
-            eta <- drop(mmhGrid %*% beta)
+            eta <- drop(mmhGrid %*% beta)  # =0 if p = 0
             if (!is.null(offsetGrid)) eta <- offsetGrid + eta
             ds * exp(unname(eta))
         })
@@ -448,7 +455,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
         eventTypes <- as.integer(eventData$type)
         eps.s <- eventData$eps.s
         # distance to the border (required for siafInt below, and for epidataCS)
-        bdist <- bdist(eventCoords, Wowin)
+        bdist <- bdist(eventCoords, Wedges)
         # spatial influence regions of the events
         influenceRegion <- if (nrow(eventCoords) > 0L) .influenceRegions(
             events = SpatialPointsDataFrame(
@@ -474,7 +481,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
         # Matrix of terms in the epidemic component
         eTerms <- cbind(
             qSum = qSumTypes[eventTypes],
-            expeta = exp(drop(mme %*% gamma)),
+            expeta = epilinkinv(drop(mme %*% gamma)),
             siafInt = siafInts
         )
         # Return
@@ -546,7 +553,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     eTerms <- tmp[[1]]; rownames(eTerms) <- NULL
     bdists <- tmp[[2]]
     influenceRegions <- tmp[[3]]
-    sources <- lapply(seq_len(Nout), function(x) integer(0L))
+    sources <- rep.int(list(integer(0L)), Nout)
 
     # Transform eventData into a matrix, which is faster with rbind
     # (factors will be recreated at the end of simulation)
@@ -599,7 +606,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     pointRejected <- FALSE
 
     # did we have numerical problems simulating from Exp(lambdagUpper) in the current loop?
-    hadNumericalProblemsInf <- hadNumericalProblems0 <- FALSE
+    hadNumericalProblems0 <- FALSE
 
     # index of the current loop
     loopCounter <- 0L
@@ -648,26 +655,32 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
         pointRejected <- FALSE
 
         ## Simulate waiting time for the subsequent infection
-        Delta <- tryCatch(rexp(1, rate = lambdagUpper),
-            warning = function (w) {
-                if (lambdagUpper < 1) {   # rate was to small for rexp
-                    if (lambdagUpper > 0) assign("hadNumericalProblems0", TRUE, inherits = TRUE)
-                    if (nextChangePoint == Inf) NULL else Inf
-                } else {   # rate was to big for rexp
-                    0   # since R-2.7.0 rexp(1, Inf) returns 0 with no warning!
-                }
+        if (is.na(lambdagUpper)) {
+            warning("simulation stopped due to undefined intensity")
+            break
+        }
+        if (lambdagUpper < 0) {
+            warning("simulation stopped due to negative overall intensity")
+            break
+        }
+        Delta <- if (lambdagUpper == 0) Inf else tryCatch(
+            rexp(1, rate = lambdagUpper),
+            warning = function (w) { # rate was too small (for R >= 2.7.0,
+                                     # rexp(1, Inf) returns 0 without warning)
+                assign("hadNumericalProblems0", TRUE, inherits = TRUE)
+                Inf
             })
 
-        # Stop if lambdaStarMax too small AND no more changes in rate
-        if (is.null(Delta)) break
         # Stop if lambdaStarMax too big meaning Delta == 0 (=> concurrent events)
         if (Delta == 0) {
-            hadNumericalProblemsInf <- TRUE
+            warning("simulation stopped due to infinite overall intensity")
             break
         }
         # Stop at all costs if end of simulation time [t0; T) has been reached
-        if (isTRUE(min(ct+Delta, nextChangePoint) >= T)) break
-        # ">=" because we don't want an event at "end"
+        if (isTRUE(min(ct+Delta, nextChangePoint) >= T)) {
+            # ">=" because we don't want an event at "end"
+            break
+        }
 
         oldct <- ct
         if (ct + Delta > nextChangePoint) {
@@ -866,11 +879,8 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     ##############
 
 
-    ### Throw warnings in case of numerical difficulties
+    ### Throw warning in case of numerical difficulties
 
-    if (hadNumericalProblemsInf) {
-        warning("simulation ended due to an infinite overall infection rate")
-    }
     if (hadNumericalProblems0) {
         warning("occasionally, the overall infection rate was numerically equal to 0")
     }
@@ -887,9 +897,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     
     ### transform eventMatrix back into a data.frame with original factor variables
 
-    if (trace > 0L) {
-      cat("\nConverting simulated events into an object of class \"epidataCS\"...\n")
-    }
+    cat("\nPreparing simulated events for \"epidataCS\" ...\n")
     preEventData <- eventData
 
     # drop unused entries (due to large pre-allocation) from objects
@@ -917,7 +925,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     stgridIgnoreCols <- match(c("BLOCK",
                                 setdiff(obligColsNames_stgrid, "start")),
                               names(stgrid))
-    eventData <- cbind(eventData, stgrid[stgrididx, -stgridIgnoreCols])
+    eventData <- cbind(eventData, stgrid[stgrididx, -stgridIgnoreCols, drop = FALSE])
     rownames(eventData) <- seqAlongEvents
 
     # add hidden columns
@@ -926,6 +934,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     eventData$.bdist <- bdists[seqAlongEvents]
     eventData$.influenceRegion <- influenceRegions[seqAlongEvents]
     attr(eventData$.influenceRegion, "nCircle2Poly") <- nCircle2Poly
+    attr(eventData$.influenceRegion, "clipper") <- "polyclip"
 
 
     ### Construct "epidataCS" object
@@ -962,6 +971,8 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
                    epidemic = formula(epidemic),
                    siaf = siaf, tiaf = tiaf
                    )
+    if (epilink != "log") # set as attribute only if non-standard link function
+        attr(epi$formula$epidemic, "link") <- epilink
     # coefficients as a numeric vector to be compatible with twinstim-methods
     epi$coefficients <- coefs  #list(beta0=beta0, beta=beta, gamma=gamma,
                                #     siafpars=siafpars, tiafpars=tiafpars)
@@ -973,6 +984,97 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     return(epi)
 }
 
+
+
+#############################################################################
+### much more efficient simulation for endemic-only models
+### where intensities are piecewise constant and independent from the history
+#############################################################################
+
+## auxiliary function to calculate the endemic intensity by spatio-temporal cell
+## from the model environment of a "twinstim" fit
+.hGrid <- function (modelenv)
+{
+    .beta0 <- rep_len(if (modelenv$nbeta0==0L) 0 else modelenv$beta0,
+                      modelenv$nTypes)
+    hGrid <- sum(exp(.beta0)) * eval(modelenv$hGridExpr, envir = modelenv)
+    blockstartstop <- modelenv$histIntervals[
+        match(modelenv$gridBlocks, modelenv$histIntervals$BLOCK), ]
+    data.frame(blockstartstop, tile = modelenv$gridTiles, hGrid = hGrid,
+               hInt = hGrid * modelenv$ds * modelenv$dt,
+               row.names = NULL, check.rows = FALSE, check.names = FALSE)
+}
+
+## simulate events from the endemic component of a "twinstim" fit
+## this simulates pure (s,t,k) data with the only extra column being "tile"
+simEndemicEvents <- function (object, tiles)
+{
+    ## check arguments
+    if (is.null(modelenv <- environment(object)))
+        stop("no model environment -- re-fit or update() with 'model=TRUE'")
+    tileLevels <- levels(modelenv$gridTiles)
+    tiles <- check_tiles(tiles, levels = tileLevels,
+                         areas.stgrid = modelenv$ds[seq_along(tileLevels)],
+                         keep.data = FALSE)
+    
+    ## calculate endemic intensity by spatio-temporal cell
+    lambdaGrid <- .hGrid(modelenv)
+    
+    ## simulate number of events by cell
+    nGrid <- rpois(n = nrow(lambdaGrid), lambda = lambdaGrid[["hInt"]])
+    nTotal <- sum(nGrid)
+    
+    ## sample time points
+    tps <- mapply(
+        FUN = runif,
+        n = nGrid, min = lambdaGrid[["start"]], max = lambdaGrid[["stop"]],
+        SIMPLIFY = FALSE, USE.NAMES = FALSE
+    )
+    
+    ## sample types
+    beta0 <- coeflist.default(coef(object), object$npars)[["nbeta0"]]
+    nTypes <- nrow(object$qmatrix)
+    types <- if (nTypes == 1L) {
+        rep.int(1L, nTotal)
+    } else {
+        sample.int(n = nTypes, size = nTotal, replace = TRUE,
+                   prob = if (length(beta0) > 1L) exp(beta0))
+    }
+    
+    ## put event times, tiles, and types in a data frame
+    events <- data.frame(
+        ##lambdaGrid[rep.int(seq_len(nrow(lambdaGrid)), nGrid), c("tile", "BLOCK")],
+        time = unlist(tps, recursive = FALSE, use.names = FALSE),
+        tile = rep.int(lambdaGrid[["tile"]], nGrid),
+        type = factor(types, levels = seq_len(nTypes), labels = rownames(object$qmatrix)),
+        row.names = NULL, check.rows = FALSE, check.names = FALSE
+    )
+    
+    ## sample coordinates from tiles
+    nByTile <- tapply(X = nGrid, INDEX = lambdaGrid["tile"], FUN = sum)
+    xyByTile <- sapply(
+        X = names(nByTile),
+        FUN = function (tile) {
+            n <- nByTile[tile]
+            if (n > 0L)
+                coordinates(spsample(x = tiles[tile,], n = n, type = "random", iter = 10))
+            ## else NULL
+        },
+        simplify = FALSE, USE.NAMES = TRUE
+    )
+    
+    ## set coordinates of events
+    events <- SpatialPointsDataFrame(
+        coords = do.call("rbind", xyByTile),
+        data = events[order(events$tile),],
+        proj4string = tiles@proj4string,
+        match.ID = FALSE)
+
+    ## order by time
+    events <- events[order(events$time),]
+    row.names(events) <- seq_along(events)
+    events
+}
 
 
 ####################################################
@@ -1037,8 +1139,26 @@ residuals.simEpidataCS <- function (object, ...)
 ### FIXME: actually stgrid's of simulations might have different time ranges
 ###        when nEvents is active -> atm, simplify ignores this
 
+.rmarks <- function (data, t0, T)
+{
+    observedMarks <- subset(marks.epidataCS(data, coords = FALSE),
+                            subset = time > t0 & time <= T)
+    if (nrow(observedMarks) == 0L) {
+        message("Note: 'data' does not contain any events during ('t0';'T'],\n",
+                "      'rmarks' thus samples marks from all of 'data$events'")
+        observedMarks <- marks.epidataCS(data, coords = FALSE)
+    }
+    observedMarks <- observedMarks[match("eps.t", names(observedMarks)):ncol(observedMarks)]
+    rm(list = "data", inherits = FALSE)  # to save memory (environment is kept)
+    function (t, s, n = 1L) {
+        as.data.frame(lapply(observedMarks, function (x)
+            sample(na.omit(x), size = n, replace = TRUE)),
+                      optional = TRUE)
+    }
+}
+
 simulate.twinstim <- function (object, nsim = 1, seed = NULL, data, tiles,
-    rmarks = NULL, t0 = NULL, T = NULL, nEvents = 1e5,
+    newcoef = NULL, rmarks = NULL, t0 = NULL, T = NULL, nEvents = 1e5,
     control.siaf = object$control.siaf,
     W = data$W, trace = FALSE, nCircle2Poly = NULL, gmax = NULL,
     .allocate = 500, simplify = TRUE, ...)
@@ -1079,30 +1199,15 @@ simulate.twinstim <- function (object, nsim = 1, seed = NULL, data, tiles,
     epidemic <- formula(object)$epidemic
     # we don't need any reference to the original formula environment
     environment(endemic) <- environment(epidemic) <- .GlobalEnv
-    if (is.null(rmarks)) {
-        observedMarks <- subset(marks.epidataCS(data, coords=FALSE),
-                                subset = time > t0 & time <= T)
-        if (nrow(observedMarks) == 0) {
-            message("Note: 'data' does not contain events in the simulation window ('t0';'T'],\n",
-                    "      'rmarks' thus samples marks from all of 'data$events'")
-            observedMarks <- marks.epidataCS(data, coords=FALSE)
-        }
-        observedMarks <- observedMarks[match("eps.t", names(observedMarks)):ncol(observedMarks)]
-        rmarks <- function (t, s) {
-            as.data.frame(lapply(observedMarks, function (x)
-                                 sample(na.omit(x), size=1L)),
-                          optional=TRUE)
-        }
-    }
+    if (is.null(rmarks))
+        rmarks <- .rmarks(data, t0 = t0, T = T)
     theta <- coef(object)
-    beta0 <- beta <- gamma <- siafpars <- tiafpars <- NULL
-    with(as.list(object$npars), {
-        beta0    <<- theta[seq_len(nbeta0)]
-        beta     <<- theta[nbeta0+seq_len(p)]
-        gamma    <<- theta[nbeta0+p+seq_len(q)]
-        siafpars <<- theta[nbeta0+p+q+seq_len(nsiafpars)]
-        tiafpars <<- theta[nbeta0+p+q+nsiafpars+seq_len(ntiafpars)]
-    })
+    if (!is.null(newcoef)) {
+        newcoef <- check_twinstim_start(newcoef)
+        newcoef <- newcoef[names(newcoef) %in% names(theta)]
+        theta[names(newcoef)] <- newcoef
+    }
+    thetalist <- coeflist.default(theta, object$npars)
 
 
     ### Run the simulation(s)
@@ -1113,9 +1218,11 @@ simulate.twinstim <- function (object, nsim = 1, seed = NULL, data, tiles,
                     tiaf=quote(formula(object)$tiaf),
                     qmatrix=quote(object$qmatrix),
                     rmarks=quote(rmarks), events=quote(data$events),
-                    stgrid=quote(data$stgrid), tiles=quote(tiles), beta0=beta0,
-                    beta=beta, gamma=gamma, siafpars=siafpars,
-                    tiafpars=tiafpars, t0=t0, T=T, nEvents=nEvents,
+                    stgrid=quote(data$stgrid), tiles=quote(tiles),
+                    beta0=thetalist[[1L]], beta=thetalist[[2L]],
+                    gamma=thetalist[[3L]], siafpars=thetalist[[4L]],
+                    tiafpars=thetalist[[5L]], epilink = .epilink(object),
+                    t0=t0, T=T, nEvents=nEvents,
                     control.siaf=control.siaf,
                     W=quote(W), trace=trace, nCircle2Poly=nCircle2Poly,
                     gmax=gmax, .allocate=.allocate,
@@ -1144,7 +1251,7 @@ simulate.twinstim <- function (object, nsim = 1, seed = NULL, data, tiles,
                 c(list(res), vector(nsim-1L, mode="list"))
             }
         # force garbage collection
-        capture.output(gc())
+        gc()
         # run the remaining simulations
         simcall$.onlyEvents <- simplify
         for (i in 2:nsim) {

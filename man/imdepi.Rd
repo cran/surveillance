@@ -121,8 +121,7 @@ data(imdepifit)
   Julius-Maximilians-Universit\enc{ä}{ae}t W\enc{ü}{ue}rzburg, Germany.
   Thanks to Dr. Johannes Elias and Prof. Dr. Ulrich Vogel for providing
   the data. See \url{http://www.meningococcus.de/} and
-  \url{http://episcangis.hygiene.uni-wuerzburg.de/} for further
-  details.
+  \url{http://www.episcangis.org/} for further details.
 
   Shapefile of Germany's districts as at 2009-01-01:
   Bundesamt f\enc{ü}{ue}r Kartographie und Geod\enc{ä}{ae}sie, Frankfurt

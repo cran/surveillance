@@ -37,7 +37,9 @@ W_np(maxlag, to0 = TRUE, normalize = TRUE,
     \code{to0=FALSE} requests that the weight at order \code{maxlag}
     should be carried forward to higher orders.}
   \item{normalize}{logical indicating if the weights should be normalized
-    such that the rows of the weight matrix sum to 1 (default).}
+    such that the rows of the weight matrix sum to 1 (default).
+    Note that normalization does not work with islands, i.e., regions
+    without neighbours.}
   \item{log}{logical indicating if the decay parameter \eqn{d} should be
     estimated on the log-scale to ensure positivity.}
   \item{initial}{initial value of the parameter vector.}

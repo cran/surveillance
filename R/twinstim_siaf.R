@@ -6,9 +6,9 @@
 ### Spatial interaction functions for twinstim's epidemic component.
 ### Specific implementations are in seperate files (e.g.: Gaussian, power law).
 ###
-### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 997 $
-### $Date: 2014-09-03 14:21:22 +0200 (Wed, 03 Sep 2014) $
+### Copyright (C) 2009-2015 Sebastian Meyer
+### $Revision: 1217 $
+### $Date: 2015-03-07 02:30:09 +0100 (Sat, 07 Mar 2015) $
 ################################################################################
 
 
@@ -117,6 +117,18 @@ siaf.fallback.F <- function(polydomain, f, pars, type, method = "SV", ...)
         polyCub.SV(polydomain, f, pars, type, alpha=0, ...) # since max at origin
     else 
         polyCub(polydomain, f, method, pars, type, ...)
+}
+
+## numerical integration of f over a circular domain
+getFcircle <- function (siaf, control.F = list()) {
+    if (is.null(siaf$Fcircle)) {
+        function (r, pars, type) {
+            disc <- discpoly(c(0,0), r, npoly = 64, class = "owin")
+            do.call(siaf$F, c(alist(disc, siaf$f, pars, type), control.F))
+        }
+    } else {
+        siaf$Fcircle
+    }
 }
 
 ## numerical integration of deriv over a polygonal domain

@@ -22,13 +22,13 @@
 \usage{
 simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     events, stgrid, tiles, beta0, beta, gamma, siafpars, tiafpars,
-    t0 = stgrid$start[1], T = tail(stgrid$stop,1), nEvents = 1e5,
-    control.siaf = list(F=list(), Deriv=list()),
+    epilink = "log", t0 = stgrid$start[1], T = tail(stgrid$stop,1),
+    nEvents = 1e5, control.siaf = list(F=list(), Deriv=list()),
     W = NULL, trace = 5, nCircle2Poly = 32, gmax = NULL, .allocate = 500,
     .skipChecks = FALSE, .onlyEvents = FALSE)
 
 \method{simulate}{twinstim}(object, nsim = 1, seed = NULL, data, tiles,
-    rmarks = NULL, t0 = NULL, T = NULL, nEvents = 1e5,
+    newcoef = NULL, rmarks = NULL, t0 = NULL, T = NULL, nEvents = 1e5,
     control.siaf = object$control.siaf,
     W = data$W, trace = FALSE, nCircle2Poly = NULL, gmax = NULL,
     .allocate = 500, simplify = TRUE, ...)
@@ -120,6 +120,15 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     vector of type-specific endemic intercepts in the same order as in
     \code{qmatrix}.
   }
+  \item{epilink}{
+    a character string determining the link function to be used for the
+    \code{epidemic} linear predictor of event marks. By default, the
+    log-link is used. The experimental alternative is
+    \code{epilink = "identity"}. Note that the identity link does not
+    guarantee the force of infection to be positive. If this leads to a
+    negative total intensity (endemic + epidemic), the point process is
+    not well defined and simulation cannot proceed.
+  }
   \item{t0}{
     \code{events} having occured during (-Inf;\code{t0}] are regarded as part of the
     prehistory \eqn{H_0} of the process. The time point \code{t0} must be an element
@@ -198,6 +207,14 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     \code{events} for use as the prehistory, and defaults for
     \code{rmarks} and \code{nCircle2Poly}.
   }
+  \item{newcoef}{
+    an optional named numeric vector of (a subset of) parameters to
+    replace the original point estimates in \code{coef(object)}.
+    Elements which do not match any model parameter by name are silently
+    ignored. The \code{newcoef}s may also be supplied in a list
+    following the same conventions as for the \code{start} argument in
+    \code{\link{twinstim}}.
+  }
   \item{simplify}{
     logical. It is strongly recommended to set \code{simplify = TRUE}
     (default) if \code{nsim} is large. This saves space and computation time,
@@ -227,6 +244,10 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
   objects of class \code{"\link{twinstim}"}:
   \code{timeRange}, \code{formula}, \code{coefficients}, \code{npars},
   \code{call}, \code{runtime}.
+  It has corresponding \code{\link{coeflist}},
+  \code{\link[=residuals.simEpidataCS]{residuals}},
+  \code{\link[=R0.simEpidataCS]{R0}}, and
+  \code{\link[=intensityplot.simEpidataCS]{intensityplot}} methods.
 
   The \code{simulate.twinstim} method has some additional
   \emph{attributes} set on its result:
@@ -320,16 +341,16 @@ plot(stateD, add=TRUE, border=2, lwd=2)
 ## simulate 2 realizations (during a VERY short period -- for speed)
 ## considering events from data(imdepi) before t=31 as pre-history
 mysims <- simulate(imdepifit, nsim=2, seed=1, data=imdepi,
-                   tiles=districtsD, t0=31, T=61, trace=FALSE,
-                   nCircle2Poly=16, simplify=TRUE)
+                   tiles=districtsD, newcoef=c("e.typeC"=-1),
+                   t0=31, T=61, simplify=TRUE)
 
 ## extract the first realization -> object of class simEpidataCS
-mysim1 <- mysims[[2]]
-summary(mysim1)
-plot(mysim1, aggregate="space")
+mysim2 <- mysims[[2]]
+summary(mysim2)
+plot(mysim2, aggregate="space")
 
 ## plot both epidemics using the plot-method for simEpidataCSlist's
-plot(mysims, aggregate="time", subset=type=="B")
+plot(mysims, aggregate="time", by=NULL)
 
 
 if (surveillance.options("allExamples")) {

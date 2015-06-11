@@ -5,9 +5,9 @@
 ###
 ### Plot-method(s) for fitted hhh4() models
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2012-2014 Sebastian Meyer
-### $Revision: 1121 $
-### $Date: 2014-11-21 11:39:14 +0100 (Fri, 21 Nov 2014) $
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2015 Sebastian Meyer
+### $Revision: 1309 $
+### $Date: 2015-03-31 14:47:34 +0200 (Tue, 31 Mar 2015) $
 ################################################################################
 
 
@@ -15,10 +15,16 @@ plot.hhh4 <- function (x,
                        type = c("fitted", "season", "maxEV", "ri", "neweights"),
                        ...)
 {
-    cl <- sys.call()
-    cl$type <- NULL
+    stopifnot(x$convergence)
+    cl <- sys.call()  # not match.call() because plotHHH4_season() has no 'x'
+    ## remove the type argument from the call
+    if (is.null(names(cl)) && nargs() > 1L) { # unnamed call plot(x, type)
+        cl[[3L]] <- NULL  # remove the second argument
+    } else {
+        cl$type <- NULL
+    }
     cl[[1L]] <- as.name(paste("plotHHH4", match.arg(type), sep="_"))
-    eval(cl, envir=parent.frame())
+    eval(cl, envir = parent.frame())
 }
 
 
@@ -114,6 +120,11 @@ plotHHH4_fitted1 <- function(x, unit=1, main=NULL,
     stopifnot(is.matrix(meanHHHunit), !is.null(colnames(meanHHHunit)),
               nrow(meanHHHunit) == length(x$control$subset))
     meanHHHunit <- meanHHHunit[x$control$subset %in% tpInRange,,drop=FALSE]
+    if (any(is.na(meanHHHunit[,"mean"]))) { # -> polygon() will be wrong
+        ## could be due to wrong x$control$subset wrt the epidemic lags
+        ## a workaround is then to set 'start' to a later time point
+        stop("predicted mean contains missing values")
+    }
     
     ## establish basic plot window
     if (is.null(ylim)) ylim <- c(0, max(obs[tpInRange],na.rm=TRUE))
@@ -230,14 +241,11 @@ getMaxEV <- function (x)
     if (identical(type <- attr(Lambda, "type"), "zero")) {
         rep.int(0, nrow(x$stsObj))
     } else {
-        sapply(seq_len(nrow(x$stsObj)),
-               if (identical(type, "diagonal")) {
-                   function (t) max(Lambda(t))  # or max(diag(Lambda(t)))
-               } else { # type is NULL
-                   function (t)
-                       eigen(Lambda(t), symmetric=FALSE,
-                             only.values=TRUE)$values[1L]
-               }, simplify=TRUE, USE.NAMES=FALSE)
+        diagonal <- identical(type, "diagonal")
+        vapply(X = seq_len(nrow(x$stsObj)),
+               FUN = function (t)
+                   maxEV(Lambda(t), symmetric = FALSE, diagonal = diagonal),
+               FUN.VALUE = 0, USE.NAMES = FALSE)
     }
 }
 
@@ -283,6 +291,31 @@ createLambda <- function (object)
     attr(Lambda, "type") <- type
     Lambda
 }
+
+## determine the dominant eigenvalue of the Lambda matrix
+maxEV <- function (Lambda,
+                   symmetric = isSymmetric.matrix(Lambda),
+                   diagonal = FALSE)
+{
+    maxEV <- if (diagonal) {
+        max(Lambda)  # faster than max(diag(Lambda))
+    } else {
+        eigen(Lambda, symmetric = symmetric, only.values = TRUE)$values[1L]
+    }
+    
+    ## dominant eigenvalue may be complex
+    if (is.complex(maxEV)) {
+        if (Im(maxEV) == 0) { # if other eigenvalues are complex
+            Re(maxEV)
+        } else {
+            warning("dominant eigenvalue is complex, using its absolute value")
+            abs(maxEV)
+        }
+    } else {
+        maxEV
+    }
+}
+
 
 
 ###
@@ -525,23 +558,16 @@ getMaxEV_season <- function (x)
         Lambda
     }
 
-    ## calculate the maximum eigenvalue of Lambda_t
-    maxEV <- function(t)
-    {
-        ev <- eigen(createLambda(t), only.values=TRUE)$values
-        if (is.complex(ev)) {
-            warning("Lambda_",t," has complex eigenvalues")
-            ev <- abs(ev)   # if complex, use abs EVs
-        }
-        max(ev)
-    }
-
     ## do this for t in 0:freq
-    maxEV.const <- maxEV(0)
+    diagonal <- !("ne" %in% components)
+    .maxEV <- function (t) {
+        maxEV(createLambda(t), symmetric = FALSE, diagonal = diagonal)
+    }
+    maxEV.const <- .maxEV(0)
     maxEV.season <- if (all(c(s2.phi$season, s2.lambda$season) %in% c(-Inf, 0))) {
         rep.int(maxEV.const, freq)
     } else {
-        vapply(seq_len(freq), FUN = maxEV, FUN.VALUE = 0, USE.NAMES = FALSE)
+        vapply(X = seq_len(freq), FUN = .maxEV, FUN.VALUE = 0, USE.NAMES = FALSE)
     }
 
     ## Done

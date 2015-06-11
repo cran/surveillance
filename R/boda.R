@@ -11,11 +11,15 @@
 # Author:
 # The initial code was written by J. Manitz, which was then later
 # adapted and modified for integration into the package by M. Hoehle.
+# Contributions by M. Salmon.
 #
 # Date:
 #  Code continuously developed during 2010-2014
 #
 # Changes:
+#  MS@2015-02-18
+#   fixed problem that the posterior was drawn from the respective marginals
+#   instead of the joint distribution.
 #  MH@2014-02-05
 #   changed tcltk progress bar to text based one and modified code,
 #   use S4 sts object (no wrapping wanted) and changed to new INLA
@@ -23,7 +27,10 @@
 ######################################################################
 
 
-boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE, prior=c('iid','rw1','rw2'), alpha=0.05, mc.munu=100, mc.y=10, verbose=FALSE,multicore=TRUE)) {
+boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE,
+                                   prior=c('iid','rw1','rw2'), alpha=0.05, mc.munu=100, 
+                                   mc.y=10, verbose=FALSE,multicore=TRUE,
+                                   samplingMethod=c('joint','marginals'))) {
 
   #Check if the INLA package is available.
   if (!requireNamespace("INLA", quietly = TRUE)) {
@@ -82,6 +89,8 @@ boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE
   if(is.vector(control$X)){
     control$X <- as.matrix(control$X,ncol=1)
   }
+ # sampling method for the parameters
+ samplingMethod <- match.arg(control$samplingMethod, c('joint','marginals'))
 
   # setting for threshold calcuation
   if(is.null(control[["alpha",exact=TRUE]])){ control$alpha <- 0.05 }
@@ -148,7 +157,7 @@ boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE
 
     # fit model and calculate quantile using INLA & MC sampling
 #    browser()
-    xi[i] <- bodaFit(dat=dati, modelformula=modelformula, prior=prior, alpha=control$alpha, mc.munu=control$mc.munu, mc.y=control$mc.y)
+    xi[i] <- bodaFit(dat=dati, samplingMethod=samplingMethod, modelformula=modelformula, prior=prior, alpha=control$alpha, mc.munu=control$mc.munu, mc.y=control$mc.y)
 
     # update progress bar
     if (useProgressBar) setTxtProgressBar(pb, i)
@@ -183,52 +192,70 @@ boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE
 #  (1-alpha)*100% quantile for the posterior predictive of y[T1]
 ######################################################################
 
-bodaFit <- function(dat=dat, modelformula=modelformula,prior=prior,alpha=alpha, mc.munu=mc.munu, mc.y=mc.y,...) {
+bodaFit <- function(dat=dat, modelformula=modelformula,prior=prior,alpha=alpha, mc.munu=mc.munu, mc.y=mc.y,
+                    samplingMethod=samplingMethod,...) {
   
   # set time point
   T1 <- nrow(dat)
 
   ### fit model
+  link <- 1
   E <- mean(dat$observed, na.rm=TRUE)
-  model <- INLA::inla(modelformula,data=dat,family='nbinomial',E=E,control.predictor=list(compute=TRUE))#,verbose=TRUE)
+  model <- INLA::inla(modelformula,
+                      data=dat,
+                      family='nbinomial',E=E,
+                      control.predictor=list(compute=TRUE,link=link),
+                      control.compute=list(cpo=FALSE,config=TRUE),
+                      control.inla = list(int.strategy = "grid",dz=1,diff.logdens = 10))
   if(is.null(model)){
     return(qi=NA)
   }
   
+  if(samplingMethod=='marginals'){
+    # draw sample from marginal posteriori of muT1 & etaT1 to determine predictive
+    # quantile by sampling. hoehle: inla.marginal.transform does not exist anymore!  
+    # Since the observation corresponding to T1 is NA we manually need to transform
+    # the fitted values (had there been an observation this is not necessary!!)
+    marg <- try(INLA::inla.tmarginal(function(x) x,model$marginals.fitted.values[[T1]]), silent=TRUE)
+   
+    if(inherits(marg,'try-error')){
+        return(qi=NA)
+    }
+    mT1 <- try(INLA::inla.rmarginal(n=mc.munu,marg), silent=TRUE)
+    if(inherits(mT1,'try-error')){
+        return(qi=NA)
+    }
+    # take variation in size hyperprior into account by also sampling from it
+    mtheta <- model$internal.marginals.hyperpar[[1]]
+    theta <- exp(INLA::inla.rmarginal(n=mc.munu,mtheta))
+    if(inherits(theta,'try-error')){
+        return(qi=NA)
+    }
+
+    #Draw (mc.munu \times mc.y) responses. Would be nice, if we could
+    #determine the quantile of the predictive posterior in more direct form
+    yT1 <- numeric(mc.munu*mc.y) #NULL
+    idx <- seq(mc.y)
+    for(j in seq(mc.munu)) {
+        idx <- idx + mc.y 
+        yT1[idx] <- rnbinom(n=mc.y,size=theta[j],mu=E*mT1[j])
+    }
+    
+
+  }
   
-  # draw sample from marginal posteriori of muT1 & etaT1 to determine predictive
-  # quantile by sampling. hoehle: inla.marginal.transform does not exist anymore!  
-  # Since the observation corresponding to T1 is NA we manually need to transform
-  # the fitted values (had there been an observation this is not necessary!!)
-  marg <- try(INLA::inla.tmarginal(function(x) exp(x),model$marginals.fitted.values[[T1]]), silent=TRUE)
-  #browser()
- 
-  if(inherits(marg,'try-error')){
-      return(qi=NA)
-  }
-  mT1 <- try(INLA::inla.rmarginal(n=mc.munu,marg), silent=TRUE)
-  if(inherits(mT1,'try-error')){
-      return(qi=NA)
-  }
-  # take variation in size hyperprior into account by also sampling from it
-  mtheta <- model$internal.marginals.hyperpar[[1]]
-  theta <- INLA::inla.rmarginal(n=mc.munu,mtheta)
-  if(inherits(theta,'try-error')){
-      return(qi=NA)
+  if (samplingMethod=='joint'){
+    # Sample from the posterior
+    jointSample <- INLA::inla.posterior.sample(mc.munu,model,hyper.user.scale = FALSE)
+    # take variation in size hyperprior into account by also sampling from it
+    theta <- exp(t(sapply(jointSample, function(x) x$hyperpar[[1]])))
+    mT1 <- exp(t(sapply(jointSample, function(x) x$latent[[T1]])))
+    yT1 <- rnbinom(n=mc.y*mc.munu,size=theta,mu=E*mT1) 
   }
   
-  #Draw (mc.munu \times mc.y) responses. Would be nice, if we could
-  #determine the quantile of the predictive posterior in more direct form
-  yT1 <- numeric(mc.munu*mc.y) #NULL
-  idx <- seq(mc.y)
-  for(j in seq(mc.munu)) {
-      idx <- idx + mc.y 
-      yT1[idx] <- rnbinom(n=mc.y,size=exp(theta[j]),mu=E*mT1[j])
-  }
-  
-  #Determine the upper (1-alpha)*100% quantile of the predictive posterior
   qi <- quantile(yT1, probs=(1-alpha), type=3, na.rm=TRUE) 
-  
+
+  #Determine the upper (1-alpha)*100% quantile of the predictive posterior
   return(qi)
 } 
 

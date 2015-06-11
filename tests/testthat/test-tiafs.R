@@ -12,7 +12,7 @@ test_that("Step kernel of a single type agrees with numerical approximations",
          }), tolerance=1e-8)
 
          ## check deriv
-         if (requireNamespace("maxLik")) {
+         if (requireNamespace("maxLik", quietly = TRUE)) {
              expect_that(maxLik::compareDerivatives(
                  f = function(pars, x) steptiaf$g(x, pars),
                  grad = function(pars, x) steptiaf$deriv(x, pars),

@@ -8,18 +8,21 @@ Pretty p-Value Formatting
 \description{
   Just \acronym{yapf} -- yet another p-value formatter...
   
-  It is implemented as
-  \code{sapply(pv,
-    function(p) format.pval(p, digits = if (p<10*eps) 1 else 2, eps = eps)}.
+  It is a wrapper around \code{\link{format.pval}},
+  such that by default \code{eps = 1e-4}, \code{scientific = FALSE},
+  and \code{digits = if (p<10*eps) 1 else 2}.
 }
 
 \usage{
-formatPval(pv, eps = 1e-4)
+formatPval(pv, eps = 1e-4, scientific = FALSE, ...)
 }
 
 \arguments{
   \item{pv}{a numeric vector (of p-values).}
   \item{eps}{a numerical tolerance, see \code{\link{format.pval}}.}
+  \item{scientific}{see \code{\link{format}}.}
+  \item{\dots}{further arguments passed to \code{\link{format.pval}}
+    (but \code{digits} is hard-coded internally).}
 }
 
 \value{

@@ -85,9 +85,9 @@ data("measlesWeserEms")
   shapefile using a 30\% reduction via the Douglas-Peucker reduction method
   as implemented at \url{MapShaper.org}.
 
-  Population numbers are obtained from the Federal Statistical Office of
-  Lower Saxony (\acronym{NLS}):
-  \url{http://www.lskn.niedersachsen.de/portal/live.php?navigation_id=25688&article_id=87679&_psmand=40}
+  Population numbers were obtained from the Federal Statistical Office of
+  Lower Saxony (\acronym{LSN}):
+  \url{http://www.statistik.niedersachsen.de/portal/live.php?navigation_id=25688&article_id=87679&_psmand=40}
 
   Vaccination coverage was obtained from the public health department of
   Lower Saxony:

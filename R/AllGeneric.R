@@ -14,6 +14,17 @@ intersectPolyCircle <- function (object, center, radius, ...)
 ## internal function with methods for "twinSIR" and "simEpidata"
 getModel <- function (object, ...) UseMethod("getModel")
 
+## list coefficients by component
+coeflist <- function (x, ...) UseMethod("coeflist")
+coeflist.default <- function (x, npars, ...)
+{
+    if (is.null(groupnames <- names(npars))) {
+        stop("'npars' must be named")
+    }
+    f <- factor(rep.int(groupnames, npars), levels = groupnames)
+    split.default(x = x, f = f, drop = FALSE)
+}
+
 
 ### Declare some existing R functions (which we import) to be S4-generic.
 ### This is not strictly necessary, but considered better programming style, and
@@ -43,10 +54,20 @@ setGeneric("as.data.frame")
 #epoch slot
 setGeneric("epoch", function(x, as.Date=x@epochAsDate) standardGeneric("epoch"))
 setMethod("epoch", "sts", function(x, as.Date=x@epochAsDate) {
-  if (!as.Date) {
-    return(x@epoch)
-  } else {
-    return(as.Date(x@epoch, origin="1970-01-01"))
+  if (!as.Date) { # return numeric vector
+    x@epoch
+  } else { # convert to Date format
+    if (x@epochAsDate) {
+      as.Date(x@epoch, origin = "1970-01-01")
+    } else {
+      firstMonday <- strptime(x = paste0(x@start[1L], "-W", x@start[2L], "-1"),
+                              format = "%Y-W%W-%u")
+      dateInc <- switch(as.character(x@freq),
+                        "365" = 1, "52" = 7, "12" = 30,
+                        stop("date conversion only implemented for daily, ",
+                             "weekly and monthly data"))
+      seq(from = as.Date(firstMonday), by = dateInc, length.out = nrow(x))
+    }
   }
 })
 setGeneric("epoch<-", function(x, value) standardGeneric("epoch<-"))

@@ -13,8 +13,8 @@
 
 \usage{
 iafplot(object, which = c("siaf", "tiaf"), types = NULL,
-        scaled = TRUE, truncated = FALSE, log="",
-        conf.type = if (length(pars) > 1) "MC" else "parbounds",
+        scaled = c("intercept", "standardized", "no"), truncated = FALSE,
+        log = "", conf.type = if (length(pars) > 1) "MC" else "parbounds",
         conf.level = 0.95, conf.B = 999, xgrid = 101,
         col.estimate = rainbow(length(types)), col.conf = col.estimate,
         alpha.B = 0.15, lwd = c(3,1), lty = c(1,2),
@@ -30,7 +30,8 @@ iafplot(object, which = c("siaf", "tiaf"), types = NULL,
   \item{which}{
     argument indicating which of the two interaction functions to plot.
     Possible values are \code{"siaf"} (default) for the spatial interaction
-    function and \code{"tiaf"} for the temporal interaction function.
+    \eqn{f(x)} as a funtion of the distance \eqn{x}, and \code{"tiaf"}
+    for the temporal interaction function \eqn{g(t)}.
   }
   \item{types}{
     integer vector indicating for which event \code{types} 
@@ -40,10 +41,19 @@ iafplot(object, which = c("siaf", "tiaf"), types = NULL,
     is used, otherwise \code{types=1}.
   }
   \item{scaled}{
-    logical indicating if the interaction function should be multiplied
-    by the epidemic intercept \eqn{exp(\gamma_0)}. This is the default
-    and required for the comparison of estimated interaction functions
-    from different models.
+    character string determining if/how the the interaction function
+    should be scaled. Possible choices are:
+    \describe{
+      \item{"intercept":}{multiplication by the epidemic intercept.}
+      \item{"standardized":}{division by the value at 0 distance such
+        that the function starts at 1.}
+      \item{"no":}{no scaling.}
+    }
+    The first one is the default and required for the comparison of
+    estimated interaction functions from different models.
+    For backward compatibility, \code{scaled} can also be a boolean,
+    where \code{TRUE} refers to \code{"intercept"} scaling and
+    \code{FALSE} to \code{"no"} scaling.
   }
   \item{truncated}{
     logical indicating if the plotted interaction function should
@@ -126,8 +136,8 @@ iafplot(object, which = c("siaf", "tiaf"), types = NULL,
   }
   \item{xlim, ylim}{
     vectors of length two containing the x- and y-axis limit of the
-    plot. The default y-axis range (\code{ylim=NULL}) is from 0 to 1 (or to
-    \eqn{exp(\gamma_0)}, if \code{scaled}).
+    plot. The default y-axis range (\code{ylim=NULL}) is from 0 to the
+    value of the (scaled) interaction function at \eqn{x = 0}.
     The default x-axis (\code{xlim=NULL}) starts at 0, and the upper
     limit is determined as follows (in decreasing order of precedence):
     \itemize{

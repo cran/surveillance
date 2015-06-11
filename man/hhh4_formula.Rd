@@ -14,7 +14,7 @@ respectively, in formulae used in the function \code{\link{hhh4}}.
 }
 
 \usage{
-  fe(x, which = NULL, initial = NULL)
+  fe(x, unitSpecific = FALSE, which = NULL, initial = NULL)
 
   ri(type = c("iid","car"), corr = c("none", "all"),
      initial.fe = 0, initial.var = -.5, initial.re = NULL)
@@ -26,6 +26,10 @@ respectively, in formulae used in the function \code{\link{hhh4}}.
     In general this covariate expression might use any variables
     contained in the \code{control$data} argument of the parent
     \code{\link{hhh4}} call.}
+  \item{unitSpecific}{logical indicating if the effect of \code{x}
+    should be unit-specific. This is a convenient shortcut for
+    \code{which = rep(TRUE, nUnits)}, where \code{nUnits} is the number
+    of units (i.e., columns of the \code{"sts"} object).}
   \item{which}{vector of logicals indicating which unit(s)
     should get an unit-specific parameter.
     For units with a \code{FALSE}
@@ -66,14 +70,13 @@ This function should only be used in formula objects for \code{\link{hhh4}},
 and is not intended for direct calling.
 
 If unit-specific or random intercepts are specified, an overall
-intercept must be excluded with \code{-1}.
+intercept must be excluded (by \code{-1}) in the component formula.
 }
 
 \keyword{regression}
 
 
 \examples{
-\dontrun{
 # some calls of the fitting function 'hhh4': 
 # see vignette("hhh4") for further details
 
@@ -87,29 +90,33 @@ meningo <- fluMen[, "meningococcus"]
 # autoregressive component: Intercept
 
 f.S1 <- addSeason2formula(f = ~ 1, S = 1, period = 52)
-hhh4(meningo, control = list(ar = list(f = ~ 1),
-                             end = list(f = f.S1), 
-                             family = "NegBin1")) 
+hhh4(meningo, list(
+    ar = list(f = ~ 1),
+    end = list(f = f.S1), 
+    family = "NegBin1"
+))
 
 
 ## Ex: disease-specific intercept in influenza/meningococcal time series
 # Negative binomial model with
 # autoregressive component: disease-specific intercepts
-# neighbour-driven component: only intercept for flu -> men
+# neighbour-driven component: only transmission from flu to men
 # endemic component: S=3 and S=1 sine/cosine pairs for flu and men, respectively
 
-neighbourhood(fluMen)["meningococcus","influenza"] <- 0
-f.end <- addSeason2formula(f = ~ -1 + fe(1, which = c(TRUE, TRUE)), 
-                           S = c(3, 1),   
-                           period = 52)
-m <- list(ar = list(f = ~ -1 + fe(1, which = c(TRUE, TRUE))), 
-          ne = list(f = ~ -1 + fe(1, which = c(FALSE, TRUE))), 
+Wflumen <- neighbourhood(fluMen)
+Wflumen["meningococcus","influenza"] <- 0
+Wflumen
+f.end <- addSeason2formula(f = ~ -1 + fe(1, which = c(TRUE,TRUE)), 
+                           S = c(3, 1), period = 52)
+f.end
+m <- list(ar = list(f = ~ -1 + fe(1, unitSpecific = TRUE)),
+          ne = list(f = ~ 1, weights = Wflumen),
           end = list(f = f.end),
-          family = "NegBinM"
-          )
+          family = "NegBinM")
 hhh4(fluMen, control = m)
 
 
+\dontrun{
 ## Ex: (correlated) random intercepts for influenza in Southern Germany
 # Negative binomial model with
 # autoregressive component: Intercept
@@ -124,18 +131,7 @@ model.B2 <- list(ar = list(f = ~ 1),
                  ne = list(f = ~ -1 + ri(type = "iid", corr="all"), 
                            weights = wji),
                  end = list(f = f.end, offset = population(fluBYBW)),
-                 family = "NegBin1")
+                 family = "NegBin1", verbose = TRUE)
 hhh4(fluBYBW, model.B2)
-
-
-## Ex: measles in Germany (see vignette("hhh4"))
-# Poisson model with
-# autoregressive component: Intercept + vaccination coverage info
-# endemic component: Intercept + S = 1 sine/cosine pair
-
-f.end <- addSeason2formula(f = ~ 1, S = 1, period = 26)
-model.A0 <- list(ar = list(f = ~ 1 + logVac0),
-                 end = list(f = f.end, offset = population(measles2w)),
-                 data = list(logVac0 = log(vac0)))
 }
 }

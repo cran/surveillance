@@ -87,22 +87,13 @@
   time series plots and maps.
 }
 
-\note{
-  The optional \code{timeplot} is arranged below the map using the
-  function \code{\link[gridExtra]{grid.arrange}} from package
-  \pkg{gridExtra}. With \pkg{gridExtra} version 0.9.1, this only works
-  if the package is attached. Thus, if the produced plots are empty
-  when a \code{timeplot} is requested (default), try attaching
-  \code{library("gridExtra")} beforehand.
-}
-
 \examples{
 data("measlesWeserEms")
 
 ## sequential plot of the counts by region in weeks 12-16 only (for speed)
 if (require("animation")) {
     oldwd <- setwd(tempdir())  # to not clutter up the current working dir
-    saveHTML(animate(measlesWeserEms, tps=12:16, timeplot=FALSE),
+    saveHTML(animate(measlesWeserEms, tps=12:16, cumulative=FALSE),
              title="Evolution of the measles epidemic in the Weser-Ems region",
              ani.width=500, ani.height=600)
     setwd(oldwd)

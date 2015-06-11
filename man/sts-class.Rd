@@ -32,6 +32,7 @@
 \alias{as.data.frame,sts-method}
 \alias{coerce,sts,ts-method}
 \alias{coerce,ts,sts-method}
+\alias{as.xts.sts}
 
 \encoding{latin1}
 
@@ -124,9 +125,6 @@
       \code{\link{aggregate,sts-method}}}
     \item{year}{\code{signature(x = "sts")}:
       extracts the corresponding year of each observation of \code{x}}
-    \item{obsinyear}{\code{signature(x = "sts")}:
-      extracts the corresponding week number within the year of each
-      observation of \code{x}}
     \item{as.data.frame}{\code{signature(x = "sts")}:
       converts the \code{observed}, \code{epoch}, \code{state} and
       \code{alarm} slots of \code{x} into a data frame with column names
@@ -156,13 +154,19 @@ if (requireNamespace("maptools")) {
 }
 
 ha.sts
-plot(ha.sts, type=observed ~ 1 | unit)
+plot(ha.sts, type = observed ~ 1 | unit)
 
-#Convert ts/mts object to sts
+## convert ts/mts object to sts
 z <- ts(matrix(rpois(300,10), 100, 3), start = c(1961, 1), frequency = 12)
-sts.z <- as(z,"sts")
-plot(sts.z)
+z.sts <- as(z, "sts")
+plot(z.sts)
 
+## conversion to the quasi-standard "xts" class is also possible
+## -> enables interactive time series plots using package "dygraphs"
+if (require("xts")) {
+    z.xts <- as.xts(z.sts)
+    plot(z.xts)
+}
 }
 
 \keyword{classes}

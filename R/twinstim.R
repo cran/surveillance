@@ -6,9 +6,9 @@
 ### Maximum Likelihood inference for the two-component spatio-temporal intensity
 ### model described in Meyer et al (2012), DOI: 10.1111/j.1541-0420.2011.01684.x
 ###
-### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 986 $
-### $Date: 2014-08-28 15:09:26 +0200 (Thu, 28 Aug 2014) $
+### Copyright (C) 2009-2015 Sebastian Meyer
+### $Revision: 1321 $
+### $Date: 2015-04-27 23:19:13 +0200 (Mon, 27 Apr 2015) $
 ################################################################################
 
 
@@ -20,7 +20,7 @@ twinstim <- function (
     endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix,
     data, subset, t0 = data$stgrid$start[1], T = tail(data$stgrid$stop,1),
     na.action = na.fail, start = NULL, partial = FALSE,
-    control.siaf = list(F=list(), Deriv=list()),
+    epilink = "log", control.siaf = list(F=list(), Deriv=list()),
     optim.args = list(), finetune = FALSE,
     model = FALSE, cumCIF = FALSE, cumCIF.pb = interactive(),
     cores = 1, verbose = TRUE
@@ -36,17 +36,10 @@ twinstim <- function (
     partial <- as.logical(partial)
     finetune <- if (partial) FALSE else as.logical(finetune)
 
-    ## # Collect polyCub.midpoint warnings (and apply unique on them at the end)
-    ## .POLYCUB.WARNINGS <- NULL
-    ## .polyCub <- function (...) {
-    ##     int <- withCallingHandlers(
-    ##            polyCub.midpoint(...),
-    ##            warning = function (w) {
-    ##                .POLYCUB.WARNINGS <<- c(.POLYCUB.WARNINGS, list(w))
-    ##                invokeRestart("muffleWarning")
-    ##            })
-    ## }
-    
+    ## (inverse) link function for the epidemic linear predictor of event marks
+    epilink <- match.arg(epilink, choices = c("log", "identity"))
+    epilinkinv <- switch(epilink, "log" = exp, "identity" = identity)
+
     ## Clean the model environment when exiting the function
     on.exit(suppressWarnings(rm(cl, cumCIF, cumCIF.pb, data, doHessian,
         eventDists, eventsData, finetune, neghess, fisherinfo, fit, fixed,
@@ -212,25 +205,32 @@ twinstim <- function (
         gIntUpper <- mfe[["(obsInfLength)"]]
         gIntLower <- pmax(0, t0-eventTimes)
         eventCoords <- coordinates(data$events)[inmfe,,drop=FALSE]
+        ## if (verbose && N > 6000)
+        ##     cat("calculating distance matrix of", N, "events ...\n")
         eventDists <- as.matrix(dist(eventCoords, method = "euclidean"))
         influenceRegion <- data$events@data$.influenceRegion[inmfe]
-        iRareas <- sapply(influenceRegion, attr, "area",
-                          simplify=TRUE, USE.NAMES=FALSE)
-        # determine possible event sources (need to re-do this because
-        # subsetting has crashed old row indexes from the epidataCS object)
-        # actually only eventSources of includes are needed
-        eventSources <- lapply(seq_len(N), function (i)
-                               determineSources(i, eventTimes, removalTimes,
-                                                eventDists[i,],
-                                                eps.s, eventTypes, qmatrix))
-        # calculate sum_{k=1}^K q_{kappa_j,k} for all j = 1:N
+        iRareas <- vapply(X = influenceRegion, FUN = attr, which = "area",
+                          FUN.VALUE = 0, USE.NAMES = FALSE)
+        eventSources <- if (N == nobs(data) && identical(qmatrix, data$qmatrix)) {
+            data$events@data$.sources
+        } else { # re-determine because subsetting has invalidated row indexes
+            if (verbose) cat("updating list of potential sources ...\n")
+            lapply(seq_len(N), function (i)
+                determineSources(i, eventTimes, removalTimes, eventDists[i,],
+                                 eps.s, eventTypes, qmatrix))
+        }
+        ## calculate sum_{k=1}^K q_{kappa_j,k} for all j = 1:N
         qSum <- unname(rowSums(qmatrix)[eventTypes])   # N-vector
-    } else if (verbose) message("no epidemic component in model")
+    } else if (verbose) {
+        message("no epidemic component in model")
+    }
 
 
     ### Drop "terms" and restore original formula environment
     
     epidemic <- formula(epidemic)
+    if (epilink != "log") # set as attribute only if non-standard link function
+        attr(epidemic, "link") <- epilink
     environment(epidemic) <- origenv.epidemic
     ## We keep the original formula environment since it will be used to
     ## evaluate the modified twinstim-call in drop1/add1 (with default
@@ -303,7 +303,9 @@ twinstim <- function (
                                # 'tile' is redundant here for fitting but useful
                                # for debugging & necessary for intensityplots
         gridBlocks <- mfhGrid[["(BLOCK)"]]
-        histIntervals <- unique(data$stgrid[c("BLOCK", "start", "stop")]) # sorted
+        histIntervals <- data$stgrid[!duplicated.default(
+            data$stgrid$BLOCK, nmax = gridBlocks[length(gridBlocks)]
+        ), c("BLOCK", "start", "stop")] # sorted
         row.names(histIntervals) <- NULL
         histIntervals <- histIntervals[histIntervals$start >= t0 &
                                        histIntervals$stop <= T,]
@@ -384,9 +386,13 @@ twinstim <- function (
         ntiafpars <- tiaf$npars
 
         ## Check control.siaf
-        if (constantsiaf) control.siaf <- NULL else {
-            stopifnot(is.null(control.siaf) || is.list(control.siaf))
-            if (is.list(control.siaf)) stopifnot(sapply(control.siaf, is.list))
+        if (constantsiaf) {
+            control.siaf <- NULL
+        } else if (is.list(control.siaf)) {
+            if (!is.null(control.siaf$F)) stopifnot(is.list(control.siaf$F))
+            if (!is.null(control.siaf$Deriv)) stopifnot(is.list(control.siaf$Deriv))
+        } else if (!is.null(control.siaf)) {
+            stop("'control.siaf' must be a list or NULL")
         }
 
         ## should we compute siafInt in parallel?
@@ -404,22 +410,31 @@ twinstim <- function (
 
         ## Define function that integrates the two-dimensional 'siaf' function
         ## over the influence regions of the events
-        .siafInt <- .siafIntFUN(siaf = siaf, noCircularIR = all(eps.s > bdist),
-                                parallel = useParallel)
-        .siafInt.args <- c(alist(siafpars), control.siaf$F)
-
-        ## Memoisation of .siafInt
-        ..siafInt <- if (!constantsiaf && requireNamespace("memoise")) {
-            memoise::memoise(.siafInt)
-            ## => speed-up optimization since 'nlminb' evaluates the loglik and
-            ## score for the same set of parameters at the end of each iteration
+        ..siafInt <- if (is.null(control.siaf[["siafInt"]])) {
+            .siafInt <- .siafIntFUN(siaf = siaf, noCircularIR = all(eps.s > bdist),
+                                    parallel = useParallel)
+            ## Memoisation of .siafInt
+            if (!constantsiaf && requireNamespace("memoise")) {
+                memoise::memoise(.siafInt)
+                ## => speed-up optimization since 'nlminb' evaluates the loglik and
+                ## score for the same set of parameters at the end of each iteration
+            } else {
+                if (!constantsiaf && verbose)
+                    message("Continuing without memoisation of 'siaf$f' cubature ...")
+                .siafInt
+            }
         } else {
-            if (!constantsiaf && verbose)
-                message("Continuing without memoisation of 'siaf$f' cubature ...")
-            ## However, trivial caching is used manually in case of fixed
-            ## "siafpars" and in LambdagEvents()
-            .siafInt
+            ## predefined cubature results in epitest(..., fixed = TRUE),
+            ## where siafInt is identical during all permutations (only permuted)
+            stopifnot(is.vector(control.siaf[["siafInt"]], mode = "numeric"),
+                      length(control.siaf[["siafInt"]]) == N)
+            local({
+                env <- new.env(hash = FALSE, parent = .GlobalEnv)
+                env$siafInt <- control.siaf[["siafInt"]]
+                as.function(alist(siafpars=, ...=, siafInt), envir = env)
+            })
         }
+        .siafInt.args <- c(alist(siafpars), control.siaf$F)
 
     } else {
         
@@ -473,7 +488,7 @@ twinstim <- function (
     #  theta - parameter vector c(beta0, beta, gamma, siafpars, tiafpars), where
     #    beta0   - endemic intercept (maybe type-specific)
     #    beta    - other parameters of the endemic component exp(offset + eta_h(t,s))
-    #    gamma   - parameters of the epidemic term exp(eta_e(t,s))
+    #    gamma   - coefficients of the epidemic predictor
     #    siafpars- parameters of the epidemic spatial interaction function
     #    tiafpars- parameters of the epidemic temporal interaction function
     #  mmh[Events/Grid] - model matrix related to beta, i.e the endemic component,
@@ -534,10 +549,10 @@ twinstim <- function (
             ncolsRes = 1L, score = matrix(1,N,ncolsRes), f = siaf$f, g = tiaf$g)
             # second line arguments are for score functions with defaults for loglik
         {
-            e <- sapply(includes, function (i) {
+            e <- vapply(X = includes, FUN = function (i) {
                 sources <- eventSources[[i]]
                 nsources <- length(sources)
-                if (nsources == 0L) rep.int(0, ncolsRes) else {
+                if (nsources == 0L) numeric(ncolsRes) else {
                     scoresources <- score[sources,,drop=FALSE]
                     predsources <- gammapred[sources]
                     repi <- rep.int(i, nsources)
@@ -549,8 +564,9 @@ twinstim <- function (
                     .colSums(scoresources * predsources * fsources * gsources,
                              nsources, ncolsRes)
                 }
-            }, simplify=TRUE, USE.NAMES=FALSE) # a vector if ncolsRes=1
-            if (ncolsRes == 1L) e else t(e)    # otherwise of dim Nin x ncolsRes
+            }, FUN.VALUE = numeric(ncolsRes), USE.NAMES = FALSE)
+            ## return a vector if ncolsRes=1, otherwise a matrix (Nin x ncolsRes)
+            if (ncolsRes == 1L) e else t(e)
         }
     }
 
@@ -614,12 +630,16 @@ twinstim <- function (
         # dN part of the log-likelihood
         hEvents <- if (hash) .hEvents(beta0, beta) else 0
         eEvents <- if (hase) {
-                gammapred <- drop(exp(mme %*% gamma)) # N-vector
+                gammapred <- drop(epilinkinv(mme %*% gamma)) # N-vector
                 .eEvents(gammapred, siafpars, tiafpars) # Nin-vector! (only 'includes' here)
             } else 0
         lambdaEvents <- hEvents + eEvents  # Nin-vector
         llEvents <- sum(log(lambdaEvents))
-        # here one might have got -Inf values in case of 0-intensity at an event time
+        # * llEvents is -Inf in case of 0-intensity at any event time
+        # * If epilinkinv is 'identity', lambdaEvents < 0 if eEvents < -hEvents,
+        #   and llEvents is NaN with a warning (intensity must be positive)
+        if (is.nan(llEvents))  # nlminb() does not like NA function values
+            llEvents <- -Inf
 
         # lambda integral of the log-likelihood
         heInt <- heIntTWK(beta0, beta, gammapred, siafpars, tiafpars)   # !hase => missing(gammapred), but lazy evaluation omits an error in this case because heIntTWK doesn't ask for gammapred
@@ -643,7 +663,7 @@ twinstim <- function (
         tiafpars <- theta[nbeta0+p+q+nsiafpars+seq_len(ntiafpars)]
 
         if (hase) {
-            gammapred <- drop(exp(mme %*% gamma))  # N-vector
+            gammapred <- drop(epilinkinv(mme %*% gamma))  # N-vector
             hEvents <- if (hash) .hEvents(beta0, beta) else 0
             eEvents <- .eEvents(gammapred, siafpars, tiafpars) # Nin-vector! (only 'includes' here)
             lambdaEvents <- hEvents + eEvents  # Nin-vector
@@ -690,11 +710,13 @@ twinstim <- function (
         eScore <- if (hase)
         {
             score_gamma <- local({
-                nom <- .eEvents(gammapred, siafpars, tiafpars,
+                nom <- .eEvents(switch(epilink, "log" = gammapred, "identity" = rep.int(1, N)),
+                                siafpars, tiafpars,
                                 ncolsRes=q, score=mme) # Nin-vector if q=1
                 sEventsSum <- .colSums(nom / lambdaEvents, Nin, q)
                             # |-> dotted version also works for vector-arguments
-                sInt <- .colSums(mme * (qSum * gammapred * siafInt * tiafInt), N, q)
+                dgammapred <- switch(epilink, "log" = mme * gammapred, "identity" = mme)
+                sInt <- .colSums(dgammapred * (qSum * siafInt * tiafInt), N, q)
                 sEventsSum - sInt
             })
 
@@ -753,7 +775,7 @@ twinstim <- function (
         zeromatrix <- matrix(0, Nin, 0)
 
         if (hase) {
-            gammapred <- drop(exp(mme %*% gamma))  # N-vector
+            gammapred <- drop(epilinkinv(mme %*% gamma))  # N-vector
             hEvents <- if (hash) .hEvents(beta0, beta) else 0
             eEvents <- .eEvents(gammapred, siafpars, tiafpars) # Nin-vector! (only 'includes' here)
             lambdaEvents <- hEvents + eEvents  # Nin-vector
@@ -787,7 +809,8 @@ twinstim <- function (
         eScoreEvents <- if (hase)
         {
             scoreEvents_gamma_nom <-
-                .eEvents(gammapred, siafpars, tiafpars, ncolsRes = q, score = mme)  # Ninxq matrix
+                .eEvents(switch(epilink, "log" = gammapred, "identity" = rep.int(1, N)),
+                         siafpars, tiafpars, ncolsRes = q, score = mme)  # Ninxq matrix
 
             scoreEvents_siafpars_nom <- if (hassiafpars) {
                 .eEvents(gammapred, siafpars, tiafpars, ncolsRes = nsiafpars, f = siaf$deriv)  # Ninxnsiafpars matrix
@@ -830,7 +853,7 @@ twinstim <- function (
         # calculcate the observed intensities
         hEvents <- if (hash) .hEvents(beta0, beta) else 0
         eEvents <- if (hase) {
-                gammapred <- drop(exp(mme %*% gamma))  # N-vector
+                gammapred <- drop(epilinkinv(mme %*% gamma))  # N-vector
                 .eEvents(gammapred, siafpars, tiafpars)  # Nin-vector! (only 'includes' here)
             } else 0
         lambdaEvents <- hEvents + eEvents  # Nin-vector
@@ -987,10 +1010,8 @@ twinstim <- function (
             stopifnot(fixed %in% seq_len(npars))
             fixed
         } else if (is.character(fixed)) {
-            if (any(!fixed %in% names(initpars)))
-                stop("'optim.args$fixed' must be a subset of: ",
-                     paste0("\"",names(initpars), "\"", collapse=", "))
-            fixed
+            ## we silently ignore names of non-existent parameters
+            intersect(fixed, names(initpars))
         } else if (is.logical(fixed)) {
             stopifnot(length(fixed) == npars)
             which(fixed)
@@ -1086,10 +1107,11 @@ twinstim <- function (
         ## Configure the optim procedure (check optim.args)
 
         # default arguments
-        optimArgs <- alist(par =, fn = negll, gr = negsc,
-                           method = if (partial) "Nelder-Mead" else "nlminb",
-                           lower = -Inf, upper = Inf,
-                           control = list(), hessian = TRUE)
+        optimArgs <- list(par = NULL, # replaced by optim.args$par below
+                          fn = quote(negll), gr = quote(negsc),
+                          method = if (partial) "Nelder-Mead" else "nlminb",
+                          lower = -Inf, upper = Inf,
+                          control = list(), hessian = TRUE)
         # user arguments
         namesOptimArgs <- names(optimArgs)
         namesOptimUser <- names(optim.args)
@@ -1100,8 +1122,8 @@ twinstim <- function (
                     paste(namesOptimUser[!optimValid], collapse = ", "),
                     immediate. = TRUE)
         }
-        doHessian <- eval(optimArgs$hessian)
-        optimMethod <- eval(optimArgs$method)
+        doHessian <- optimArgs$hessian
+        optimMethod <- optimArgs$method
 
 
         ## Call 'optim', 'nlminb', or 'nlm' with the above arguments
@@ -1182,7 +1204,7 @@ twinstim <- function (
                 cat("\nMLE from first optimization:\n")
                 print(optimRes1$par)
                 cat("loglik(MLE) =", optimRes1$value, "\n")
-                cat("\nfine-tuning MLE using Nelder-Mead optimization...\n")
+                cat("\nfine-tuning MLE using Nelder-Mead optimization ...\n")
             }
             optimArgs$par <- optimRes1$par
             optimArgs$method <- "Nelder-Mead"
@@ -1211,7 +1233,7 @@ twinstim <- function (
                     !is.null(optimRes$message) && nzchar(optimRes$message)) {
                     cat("MESSAGE: \"", optimRes$message, "\"\n", sep="")
                 }
-                if (useScore && !constantsiaf &&
+                if (hase && useScore && !constantsiaf &&
                     grepl("false", msgNotConverged)) {
                     cat("SOLUTION: increase the precision of 'siaf$Deriv' (and 'siaf$F')\n")
                     if (optimMethod == "nlminb") {
@@ -1237,11 +1259,6 @@ twinstim <- function (
     ##############
     ### Return ###
     ##############
-
-
-    ## ### Issue collected polyCub.midpoint warnings
-    
-    ## sapply(unique(.POLYCUB.WARNINGS), warning)
 
 
     ### Set up list object to be returned
@@ -1291,7 +1308,7 @@ twinstim <- function (
     # final siaf and tiaf integrals over influence regions / periods
     # and final gammapred (also used by intensity.twinstim)
     if (hase) {
-        gammapred <- drop(exp(mme %*% gamma)) # N-vector
+        gammapred <- drop(epilinkinv(mme %*% gamma)) # N-vector
         if (!fixedsiafpars) siafInt <- do.call("..siafInt", .siafInt.args)
         if (!fixedtiafpars) tiafInt <- .tiafInt(tiafpars)
     }
@@ -1319,7 +1336,7 @@ twinstim <- function (
             }, simplify=TRUE, USE.NAMES=FALSE)
         } else {                        # cannot use progress bar
             simplify2array(parallel::mclapply(
-                eventTimes[includes], heIntTWK,
+                X=eventTimes[includes], FUN=heIntTWK,
                 beta0=beta0, beta=beta,
                 gammapred=gammapred, siafpars=siafpars,tiafpars=tiafpars,
                 mc.preschedule=TRUE, mc.cores=cores
@@ -1331,7 +1348,7 @@ twinstim <- function (
     fit["tau"] <- list(
         if (cumCIF) {
             if (verbose)
-                cat("\nCalculating fitted cumulative intensities at events...\n")
+                cat("\nCalculating fitted cumulative intensities at events ...\n")
             LambdagEvents(cores, cumCIF.pb)
         })
 
