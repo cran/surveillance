@@ -119,20 +119,24 @@ test_that("the factor variable has the right number of levels",{
 
 ##################################################################
 context("Fit glm function")
-if (surveillance.options("allExamples") && require("INLA")) {
-  argumentsGLM <- list(dataGLM=dataGLM,reportingTriangle=reportingTriangle,
-                       timeTrend=timeTrend,alpha=alpha,
-                       populationOffset=populationOffset,
-                       factorsBool=TRUE,pastAberrations=FALSE,
-                       glmWarnings=glmWarnings,
-                       verbose=verbose,delay=delay,k=k,control=controlDelay,
-                       inferenceMethod="INLA")
-  
-  model <- do.call(bodaDelay.fitGLM, args=argumentsGLM)
-  test_that("The fit glm function gives the right class of output?",{
-    expect_equal(class(model),"inla")
-  })
-}
+# if (interactive() && require("INLA")) { # do not test INLA-related code on CRAN
+#   ## CAVE: _R_CHECK_TIMINGS_ as queried by surveillance.options("allExamples")
+#   ## is no reliable condition to skip the test on CRAN (see
+#   ## https://stat.ethz.ch/pipermail/r-devel/2012-September/064812.html
+#   ## ), and especially seems not to be set by the daily Windows checks.
+#   argumentsGLM <- list(dataGLM=dataGLM,reportingTriangle=reportingTriangle,
+#                        timeTrend=timeTrend,alpha=alpha,
+#                        populationOffset=populationOffset,
+#                        factorsBool=TRUE,pastAberrations=FALSE,
+#                        glmWarnings=glmWarnings,
+#                        verbose=verbose,delay=delay,k=k,control=controlDelay,
+#                        inferenceMethod="INLA")
+#   
+#   model <- do.call(bodaDelay.fitGLM, args=argumentsGLM)
+#   test_that("The fit glm function gives the right class of output?",{
+#     expect_equal(class(model),"inla")
+#   })
+# }
 
 
 argumentsGLM <- list(dataGLM=dataGLM,reportingTriangle=reportingTriangle,

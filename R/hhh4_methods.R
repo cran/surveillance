@@ -6,8 +6,8 @@
 ### Standard methods for hhh4-fits
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2015 Sebastian Meyer
-### $Revision: 1369 $
-### $Date: 2015-06-09 17:51:04 +0200 (Tue, 09 Jun 2015) $
+### $Revision: 1372 $
+### $Date: 2015-06-09 23:50:37 +0200 (Tue, 09 Jun 2015) $
 ################################################################################
 
 
@@ -508,16 +508,21 @@ neOffsetArray <- function (object, pars = coefW(object),
     if ("ne" %in% componentsHHH4(object)) {
         W <- getNEweights(object, pars = pars)
         Y <- observed(object$stsObj)
-        nelag <- object$control$ne$lag
-        res[] <- apply(W, 2L, function (wi) {
-            tm1 <- subset - nelag
-            is.na(tm1) <- tm1 <= 0
-            t(Y[tm1,,drop=FALSE]) * wi
-        })
-        ## consistency check
-        stopifnot(all.equal(colSums(res),  # sum over j
-                            terms(object)$offset$ne(pars)[subset,,drop=FALSE],
-                            check.attributes = FALSE))
+        tm1 <- subset - object$control$ne$lag
+        is.na(tm1) <- tm1 <= 0
+        tYtm1 <- t(Y[tm1,,drop=FALSE])
+        res[] <- apply(W, 2L, function (wi) tYtm1 * wi)
+        offset <- object$control$ne$offset
+        res <- if (length(offset) > 1L) {
+            offset <- offset[subset,,drop=FALSE]
+            res * rep(offset, each = object$nUnit)
+        } else {
+            res * offset
+        }
+        ## stopifnot(all.equal(
+        ##     colSums(res),  # sum over j
+        ##     terms.hhh4(object)$offset$ne(pars)[subset,,drop=FALSE],
+        ##     check.attributes = FALSE))
     }
     
     ## permute dimensions as (t, i, j)

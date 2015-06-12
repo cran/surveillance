@@ -26,7 +26,9 @@ test_that("estimates and standard errors are reproducible", {
             "end.t", "end.sin(2 * pi * t/52)", "end.cos(2 * pi * t/52)", 
             "neweights.d", "overdisp"), c("Estimate", "Std. Error"))
     )
-    expect_equal(coef(measlesFit, se = TRUE), orig)
+    expect_equal(coef(measlesFit, se = TRUE), orig,
+                 tolerance = 1e-6) # increased for Solaris Sparc
+    ## tolerance determined empirically by an R build with --disable-long-double
 })
 
 test_that("score vector and Fisher info agree with numerical approximations", {

@@ -7,8 +7,8 @@
 ### The function allows the incorporation of random effects and covariates.
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2015 Sebastian Meyer
-### $Revision: 1356 $
-### $Date: 2015-06-04 11:26:52 +0200 (Thu, 04 Jun 2015) $
+### $Revision: 1373 $
+### $Date: 2015-06-09 23:58:58 +0200 (Tue, 09 Jun 2015) $
 ################################################################################
 
 ## Error message issued in loglik, score and fisher functions upon NA parameters
@@ -574,8 +574,7 @@ neOffsetFUN <- function (Y, neweights, scale, normalize,
         weights <- scaleNEweights.default(neweights, scale, normalize)
         env <- new.env(hash = FALSE, parent = emptyenv())  # small -> no hash
         env$initoffset <- offset * weightedSumNE(Y, weights, lag)
-        as.function(c(alist(pars=, type = "response"), quote(initoffset)),
-                    envir=env)     # it will not be called for other types
+        as.function(c(alist(...=), quote(initoffset)), envir=env)
     }
 }
 

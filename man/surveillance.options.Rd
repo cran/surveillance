@@ -61,11 +61,13 @@ reset.surveillance.options()
       }
       
       \item{allExamples:}{
-	Logical flag mainly for CRAN-compatibility, i.e. to prevent
-	cumbersome computations in help file examples from being run by
-	CRAN servers. This option defaults to \code{TRUE} unless the
-	environment variable \env{_R_CHECK_TIMINGS_} is set when
-	attaching the \pkg{surveillance} package.
+        Logical flag queried before running cumbersome computations in
+        help file examples. For \code{interactive()} sessions,
+        this option defaults to \code{TRUE}. Otherwise, long examples
+        will only be run if the environment variable
+        \env{_R_SURVEILLANCE_ALL_EXAMPLES_} is set (to any value different
+        from \code{""}) when attaching the \pkg{surveillance} package.
+        This is to avoid long computations during (daily) CRAN checks.
       }
     }
   }

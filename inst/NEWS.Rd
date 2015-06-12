@@ -6,6 +6,21 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.9-1 (2015-06-12)}{
+
+  \itemize{
+    \item This is a quick patch release to make the test suite run
+    smoothly on CRAN's Windows and Solaris Sparc systems.
+    
+    \item The new \code{hhh4()} option to scale neighbourhood weights
+    did not work for parametric weights with more than one parameter
+    if \code{normalize=FALSE}.
+  }
+
+}
+
+
+
 \section{Changes in surveillance version 1.9-0 (2015-06-09)}{
 
 \subsection{NEW FEATURES}{

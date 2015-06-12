@@ -6,8 +6,8 @@
 ### Helper functions for neighbourhood weight matrices in hhh4()
 ###
 ### Copyright (C) 2012-2015 Sebastian Meyer
-### $Revision: 1367 $
-### $Date: 2015-06-09 14:59:24 +0200 (Tue, 09 Jun 2015) $
+### $Revision: 1374 $
+### $Date: 2015-06-10 14:31:52 +0200 (Wed, 10 Jun 2015) $
 ################################################################################
 
 
@@ -73,12 +73,12 @@ scaleNEweights.default <- function (weights, scale = NULL, normalize = FALSE)
     weights
 }
 
+## update parametric weights functions w, dw, d2w
 scaleNEweights.list <- function (weights, scale = NULL, normalize = FALSE)
 {
     if (is.null(scale) && !normalize)
         return(weights)
     
-    ## update parametric weights functions w, dw, d2w
     if (normalize) {
         dprod <- function (u, v, du, dv) du * v + u * dv
         dfrac <- function (u, v, du, dv) (du * v - u * dv) / v^2
@@ -121,12 +121,16 @@ scaleNEweights.list <- function (weights, scale = NULL, normalize = FALSE)
         w <- function (...)
             scaleNEweights.default(weights$w(...), scale)
         dw <- function (...)
-            scaleNEweights.default(weights$dw(...), scale)
+            clapply(X = weights$dw(...),
+                    FUN = scaleNEweights.default,
+                    scale = scale)
         d2w <- function (...)
-            scaleNEweights.default(weights$d2w(...), scale)
+            clapply(X = weights$d2w(...),
+                    FUN = scaleNEweights.default,
+                    scale = scale)
     }
     
-    ## return list of functions
+    ## return list with updated functions
     list(w = w, dw = dw, d2w = d2w, initial = weights$initial)
 }
 

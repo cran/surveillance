@@ -229,35 +229,47 @@ bodaDelay <- function(sts, control = list(range = NULL, b = 3, w = 3,
                          inferenceMethod=control$inferenceMethod)
     
     model <- do.call(bodaDelay.fitGLM, args=argumentsGLM)
-
-    ######################################################################
-    # Calculate the threshold 
-    ###################################################################### 
     
-    argumentsThreshold <- list(model,alpha=alpha,dataGLM=dataGLM,reportingTriangle,
-                               delay=delay,k=k,control=control,mc.munu=mc.munu,mc.y=mc.y,
-                               inferenceMethod=control$inferenceMethod)
-    predisons <-do.call(bodaDelay.threshold,argumentsThreshold)
-    threshold <- predisons$quantile
-    expected <- predisons$expected
-    ######################################################################
-    # Output results if enough cases 
-    ###################################################################### 
-    sts@upperbound[k] <- threshold
-    sts@control$expected[k] <- expected
-    sts@control$pvalues[k] <- NA
-    enoughCases <- (sum(observed[(k-control$limit54[2]+1):k])
-                    >=control$limit54[1])
-    sts@alarm[k] <- FALSE
-    if (is.na(threshold)){sts@alarm[k] <- NA}
-    else {
-      if (sts@observed[k]>sts@upperbound[k]) {sts@alarm[k] <- TRUE}
-    }
-    if(!enoughCases){
+    if (identical(model, NA)){
       sts@upperbound[k] <- NA
+      sts@control$expected[k] <- NA
       sts@alarm[k] <- NA
+      sts@control$pvalues[k] <- NA
     }
-  } #done looping over all time points
+    else{
+
+      ######################################################################
+      # Calculate the threshold 
+      ###################################################################### 
+      
+      argumentsThreshold <- list(model,alpha=alpha,dataGLM=dataGLM,reportingTriangle,
+                                 delay=delay,k=k,control=control,mc.munu=mc.munu,mc.y=mc.y,
+                                 inferenceMethod=control$inferenceMethod)
+      predisons <-do.call(bodaDelay.threshold,argumentsThreshold)
+
+      threshold <- predisons$quantile
+      expected <- predisons$expected
+      ######################################################################
+      # Output results if enough cases 
+      ###################################################################### 
+      sts@upperbound[k] <- threshold
+      sts@control$expected[k] <- expected
+      sts@control$pvalues[k] <- NA
+      enoughCases <- (sum(observed[(k-control$limit54[2]+1):k])
+                      >=control$limit54[1])
+      sts@alarm[k] <- FALSE
+      if (is.na(threshold)){sts@alarm[k] <- NA}
+      else {
+        if (sts@observed[k]>sts@upperbound[k]) {sts@alarm[k] <- TRUE}
+      }
+      if(!enoughCases){
+        sts@upperbound[k] <- NA
+        sts@alarm[k] <- NA
+      }
+    } 
+
+  }
+#done looping over all time points
 sts@control$expected <- sts@control$expected[control$range]
 sts@control$pvalues <- sts@control$pvalues[control$range]
 return(sts[control$range,]) 
@@ -276,18 +288,24 @@ bodaDelay.fitGLM <- function(dataGLM,reportingTriangle,alpha,
   # Model formula depends on whether to include a time trend or not.
   
   theModel <- formulaGLMDelay(timeBool=timeTrend,factorsBool,delay,outbreak=FALSE)
-  
+
   if(inferenceMethod=="INLA"){
 
     E <- max(0,mean(dataGLM$response, na.rm=TRUE))
     link=1
-    model <- INLA::inla(as.formula(theModel),data=dataGLM,
+    model <- try(INLA::inla(as.formula(theModel),data=dataGLM,
                   family='nbinomial',E=E,
                   control.predictor=list(compute=TRUE,link=link),
                   control.compute=list(cpo=TRUE,config=TRUE),
-                  control.inla = list(int.strategy = "grid",dz=1,diff.logdens = 10),
-                  control.family = list(hyper = list(theta = list(prior = "normal", param = c(0, 0.01)))))
-    
+                control.inla = list(int.strategy = "eb"),
+                 # control.inla = list(int.strategy = "grid",dz=1,
+                                    #  diff.logdens = 10),
+                  control.family = list(hyper = list(theta = list(prior = "normal", param = c(0, 0.01))))), 
+                 silent=TRUE)
+
+    if(inherits(model,'try-error')){
+      return(model=NA)
+    }
     if (pastAberrations){
       # if we have failures => recompute those manually
       #if (sum(model$cpo$failure,na.rm=TRUE)!=0){
@@ -312,13 +330,17 @@ bodaDelay.fitGLM <- function(dataGLM,reportingTriangle,alpha,
         dataGLM <- cbind(dataGLM,outbreakOrNot)
         theModel <- formulaGLMDelay(timeBool=timeTrend,factorsBool,delay,outbreak=TRUE)
         
-        model <- INLA::inla(as.formula(theModel),data=dataGLM,
+        model <- try(INLA::inla(as.formula(theModel),data=dataGLM,
                       family='nbinomial',E=E,
                       control.predictor=list(compute=TRUE,link=link),
                       control.compute=list(cpo=FALSE,config=TRUE),
                       control.inla = list(int.strategy = "grid",dz=1,diff.logdens = 10),
-                      control.family = list(hyper = list(theta = list(prior = "normal", param = c(0, 0.001)))))
-        
+                      control.family = list(hyper = list(theta = list(prior = "normal", 
+                                                                      param = c(0, 0.001))))), 
+                     silent=TRUE)
+        if(inherits(model,'try-error')){
+          return(model=NA)
+        }
         # if we have failures => recompute those manually
         #  if (sum(model$cpo$failure,na.rm=TRUE)!=0){model <- inla.cpo(model)}
         vpit <- model$cpo$pit
@@ -329,7 +351,13 @@ bodaDelay.fitGLM <- function(dataGLM,reportingTriangle,alpha,
   
   }
   if (inferenceMethod=="asym"){
-    model <- MASS::glm.nb(as.formula(theModel),data=dataGLM)
+    
+    model <- try(MASS::glm.nb(as.formula(theModel),data=dataGLM), 
+                 silent=TRUE)
+    if(inherits(model,'try-error')){
+      return(model=NA)
+    }
+    
     }
   return(model)
 }
@@ -368,7 +396,7 @@ bodaDelay.threshold <- function(model, mc.munu,mc.y,alpha,
         }
   
       }
-  
+
       N_Tt <- rnbinom(size=theta,mu=E*mu_Tt,n=mc.munu*mc.y)
       N_Tt <- N_Tt[is.na(N_Tt)==FALSE]
       qi <- quantile(N_Tt, probs=(1-alpha), type=3, na.rm=TRUE)
@@ -391,16 +419,18 @@ bodaDelay.threshold <- function(model, mc.munu,mc.y,alpha,
     
     # take variation in size hyperprior into account by also sampling from it
     theta <- rnorm(n=mc.munu,mean=summary(model)$theta,sd=summary(model)$SE.theta)
-    
+   
     if (delay){
       # Maximal delay + 1
       Dmax0 <- ncol(as.matrix(reportingTriangle$n))
       mu_Tt <- numeric(mc.munu)
       newData <- tail(dataGLM,n=Dmax0)
-      
-      P=predict(model,type="link",se.fit=TRUE,
-                newdata=newData)
-      
+
+      P <- try(predict(model,type="link",se.fit=TRUE,
+                newdata=newData),silent=TRUE)
+     if(inherits(P,'try-error')){
+       return(list(quantile=NA,expected=NA))
+     }
       # The sum has to be up to min(D,T-t). This is how we find the right indices.
       loopLimit <- min(Dmax0,which(is.na(as.matrix(reportingTriangle$n)[k,]))-1,na.rm=TRUE)
       
@@ -532,7 +562,7 @@ bodaDelay.data.glm <- function(dayToConsider, b, freq,
     
     # All vectors of data will be this long: each entry will correspond to one t and one d
     lengthGLM <- dim(reportingTriangleGLM)[2]*dim(reportingTriangleGLM)[1]
-    
+
     # Create the vectors for storing data
     responseGLM <- numeric(lengthGLM)
     wtimeGLM <- numeric(lengthGLM)
@@ -558,12 +588,12 @@ bodaDelay.data.glm <- function(dayToConsider, b, freq,
     
     dataGLM <- data.frame(response=responseGLM,wtime=wtimeGLM,population=popGLM,
                           seasgroups=as.factor(seasgroupsGLM),vectorOfDates=as.Date(vectorOfDatesGLM,origin="1970-01-01"),delay=delaysGLM)
-    
+
   }
   
   
-  
-  
+
+
   
   return(as.data.frame(dataGLM))
   

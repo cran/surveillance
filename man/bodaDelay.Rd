@@ -83,78 +83,7 @@ salm.Normal <- bodaDelay(salmAllOnset, controlNormal)
 salm.delay <- bodaDelay(salmAllOnset, controlDelay)
 plot(salm.Normal)
 plot(salm.delay)
-\dontrun{
-library(INLA)
-# Reproduction of results
-# for Figure 11 of Salmon et al.
-dateObservation <- as.Date("2011-10-24",origin="1970-01-01")
-data(salmNewportTruncated)
-stsC <- salmNewportTruncated[[46]]
-inWeeks <- which(formatDate(epoch(stsC), "\%G") == 2011 & 
-isoWeekYear(as.Date(epoch(stsC)))$ISOWeek>=40 &
-isoWeekYear(as.Date(epoch(stsC)))$ISOWeek<=48)
-ylim <- c(0,max(stsC@observed))
-  salm.Normal <- list()
-  
-  salmDelayAsym <- list()
- salmDelayINLA <- list()
- for (week in 44:46){
- stsC <- salmNewportTruncated[[week]]
-inWeeks <- which(formatDate(epoch(stsC), "\%G") == 2011 & 
-                 isoWeekYear(as.Date(epoch(stsC)))$ISOWeek>=40 & 
-                 isoWeekYear(as.Date(epoch(stsC)))$ISOWeek<=48)
-  
- stsD <- sts_observation(stsC,
-         dateObservation=as.Date(stsC@epoch[inWeeks],origin="1970-01-01")[9-(49-week)],
-         cut=TRUE)
-  inWeeks <- which(formatDate(epoch(stsD), "\%G") == 2011 &
-                   isoWeekYear(as.Date(epoch(stsD)))$ISOWeek>=40 & 
-                   isoWeekYear(as.Date(epoch(stsD)))$ISOWeek<=48)
-  rangeTest <- inWeeks
-  alpha <- 0.07
 
-  # Control slot for Noufaily method          
-  controlNoufaily <- list(range=rangeTest,noPeriods=10,
-                          b=4,w=3,weightsThreshold=2.58,pastWeeksNotIncluded=26,
-                          pThresholdTrend=1,thresholdMethod="nbPlugin",alpha=alpha*2,
-                          limit54=c(0,50))
-  # Control slot for the Proposed algorithm with D=0 correction
-  controlNormal <- list(range = rangeTest, b = 4, w = 3,
-                        reweight = TRUE, mc.munu=10000, mc.y=100,
-                        verbose = FALSE,
-                        alpha = alpha, trend = TRUE,
-                        limit54=c(0,50), 
-                        noPeriods = 10, pastWeeksNotIncluded = 26,
-                        delay=FALSE)
-  # Control slot for the Proposed algorithm with D=10 correction
-  controlDelay <-  list(range = rangeTest, b = 4, w = 3,
-                        reweight = FALSE, mc.munu=10000, mc.y=100,
-                        verbose = FALSE,pastAberrations=FALSE,
-                        alpha = alpha, trend = TRUE,
-                        limit54=c(0,50), 
-                        noPeriods = 10, pastWeeksNotIncluded = 26,
-                        delay=TRUE,inferenceMethod="INLA")
- controlDelayNorm <-  list(range = rangeTest, b = 4, w = 3,
-                        reweight = FALSE, mc.munu=10000, mc.y=100,
-                        verbose = FALSE,
-                        alpha = alpha, trend = TRUE,
-                        limit54=c(0,50), 
-                        noPeriods = 10, pastWeeksNotIncluded = 26,
-                        delay=TRUE,inferenceMethod="asym")
-  set.seed(1)
-
-  salm.Normal[[week]] <- farringtonFlexible(stsD, controlNoufaily)
-  
-  salmDelayAsym[[week]] <- bodaDelay(stsD, controlDelayNorm)
- salmDelayINLA[[week]] <- bodaDelay(stsD,controlDelay)
-}
-par(mfrow=c(3,3))
-for (week in 44:46){
-plot(salm.Normal[[week]],ylim=c(0,15),legend=NULL)
-plot(salmDelayAsym[[week]],ylim=c(0,15),legend=NULL)
-plot(salmDelayINLA[[week]],ylim=c(0,15),legend=NULL)
-}
-}
 }
 \references{
 A statistical algorithm for the early detection of outbreaks of infectious disease, Farrington, C.P., Andrews, N.J, Beale A.D. and Catchpole, M.A. (1996), J. R. Statist. Soc. A, 159, 547-563.
