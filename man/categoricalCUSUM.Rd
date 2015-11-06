@@ -132,7 +132,7 @@ if (require("gamlss")) {
 			   sigma=exp(m.bbin$sigma.coef))
 
   #Show results
-  plot(surv[,1],legend.opts=NULL,dx.upperbound=0)
+  plot(surv[,1],dx.upperbound=0)
   lines(pi0,col="green")
   lines(pi1,col="red")
 

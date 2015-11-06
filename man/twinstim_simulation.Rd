@@ -419,15 +419,14 @@ simsext <- simulate(imdepifit, nsim=nsim, seed=1, t0=origT, T=newT,
 ## this mismatch is due to polygon simplification
 
 ## plot the observed and simulated event numbers over time
-## and ignore the warnings of plot.histogram on wrong area-representation
 plot(imdepiext, breaks=c(unique(imdepi$stgrid$start),origT),
-     cumulative=list(maxat=330), col=c(2,4))
+     cumulative=list(maxat=330))
 for (i in seq_along(simsext$eventsList))
     plot(simsext[[i]], add=TRUE, legend.types=FALSE,
          breaks=c(unique(simsext$stgrid$start),newT),
          subset=!is.na(source),  # have to exclude the events of the prehistory
          cumulative=list(offset=c(table(imdepi$events$type)), maxat=330, axis=FALSE),
-         col=scales::alpha(c(2,4), alpha=0.5))
+         border=NA, density=0)  # no histogram
 abline(v=origT, lty=2, lwd=2)
 }
 }

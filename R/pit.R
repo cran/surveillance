@@ -8,9 +8,9 @@
 ### Czado, C., Gneiting, T. & Held, L. (2009)
 ### Biometrics 65:1254-1261
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2013-2014 Sebastian Meyer
-### $Revision: 1056 $
-### $Date: 2014-10-07 12:10:13 +0200 (Tue, 07 Oct 2014) $
+### Copyright (C) 2010-2012 Michaela Paul, 2013-2015 Sebastian Meyer
+### $Revision: 1495 $
+### $Date: 2015-10-16 16:31:03 +0200 (Fre, 16. Okt 2015) $
 ################################################################################
 
 
@@ -20,9 +20,9 @@
 ## J - number of bins 
 ## ... - additional arguments for pdistr(), recycled to the length of x.
 ##       Ignored if pdistr is a list.
-## plot - NULL (no plot) or a list of arguments for plot.histogram
+## plot - a list of arguments for plot.histogram (otherwise no plot is produced)
 
-pit <- function (x, pdistr, J=10, relative=TRUE, ..., plot = list())
+pit.default <- function (x, pdistr, J=10, relative=TRUE, ..., plot = list())
 {
     PxPxm1 <- pitPxPxm1(x, pdistr, ...)
     breaks <- (0:J)/J
@@ -31,12 +31,11 @@ pit <- function (x, pdistr, J=10, relative=TRUE, ..., plot = list())
     scale <- if (relative) J else 1
     f_j <- scale * diff.default(Fbar_seq)
     
-    res <- structure(list(breaks=breaks, counts=f_j, density=f_j,
-                          mids=breaks[-(J+1)] + 1/J/2,
-                          xname="PIT", equidist=TRUE),
-                     class="histogram")
+    res <- list(breaks = breaks, counts = f_j, density = f_j,
+                mids = breaks[-(J+1)] + 1/J/2, xname = "PIT", equidist = TRUE)
+    class(res) <- c("pit", "histogram")
 
-    if (is.null(plot)) res else pitplot(res, plot)
+    if (is.list(plot)) do.call("plot", c(list(x = res), plot)) else res
 }
 
 pitPxPxm1 <- function (x, pdistr, ...)
@@ -86,17 +85,46 @@ pit1 <- function (u, Px, Pxm1)
     mean(F_u)
 }
 
+
 ## plot the PIT histogram
-pitplot <- function (pit, args)
+
+plot.pit <- function (x, main = "", ylab = NULL, ...)
 {
-    relative <- !isTRUE(all.equal(1, sum(pit$density)))
-    defaultArgs <- list(x = pit, main = "",
-                        ylab = if(relative) "Relative Frequency" else "Density")
-    args <- if (is.list(args)) {
-        args[["x"]] <- NULL             # manual x is ignored
-        args <- modifyList(defaultArgs, args)
-    } else defaultArgs
-    do.call("plot", args)
-    abline(h=if (relative) 1 else 1/length(pit$mids), lty=2, col="grey")
-    invisible(pit)
+    relative <- !isTRUE(all.equal(1, sum(x$density)))
+    if (is.null(ylab))
+        ylab <- if (relative) "Relative Frequency" else "Density"
+    ## call plot.histogram
+    NextMethod("plot", main = main, ylab = ylab, ...)
+    ## add reference line
+    abline(h = if (relative) 1 else 1/length(x$mids), lty = 2, col = "grey")
+    invisible(x)
+}
+
+
+## a convenient wrapper for Poisson and NegBin predictions
+
+.pit <- function (x, mu, size = NULL, ...)
+{
+    if (is.null(size)) {
+        pit.default(x = x, pdistr = "ppois", lambda = mu, ...)
+    } else {
+        pit.default(x = x, pdistr = "pnbinom", mu = mu, size = size, ...)
+    }
+}
+
+
+## pit-methods for oneStepAhead() predictions and "hhh4" fits
+## (similar to the scores-methods)
+
+pit.oneStepAhead <- function (x, ...)
+{
+    .pit(x = x$observed, mu = x$pred, size = psi2size.oneStepAhead(x), ...)
+}
+
+pit.hhh4 <- function (x, subset = x$control$subset, units = seq_len(x$nUnit), ...)
+{
+    .pit(x = x$stsObj@observed[subset, units, drop = FALSE],
+         mu = x$fitted.values[match(subset, x$control$subset), units, drop = FALSE],
+         size = psi2size.hhh4(x, subset, units),
+         ...)
 }

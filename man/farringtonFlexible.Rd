@@ -73,7 +73,7 @@ farringtonFlexible(sts, control = list(range = NULL, b = 3, w = 3,
     equal to 1 no factor variable is created, the set of reference values is defined as in
     Farrington et al (1996).}
      \item{\code{pastWeeksNotIncluded}}{Number of past weeks to ignore in the calculation.}
-    \item{\code{thresholdMethod}}{Number of past weeks to ignore in the calculation.
+    \item{\code{thresholdMethod}}{Method to be used to derive the upperbound.
     Options are "delta" for the method described in Farrington et al. (1996),
     "Noufaily" for the method described in Noufaily et al. (2012),
     and "muan" for the method extended from Noufaily et al. (2012).}
@@ -177,7 +177,7 @@ legend(c(0,10),c('Alarm','Upperbound with old options','Upperbound with new opti
       pch=c(24,NA,NA),lty=c(NA,1,1),
         bg="white",lwd=c(2,2,2),col=c('red','tomato4',"blueviolet"))
 }
-\author{M. Salmon, M. \enc{Höhle}{Hoehle}}
+\author{M. Salmon, M. \enc{H?hle}{Hoehle}}
 \seealso{\code{\link{algo.farrington.fitGLM}},\code{\link{algo.farrington.threshold}}}
 \keyword{classif}
 \references{A statistical algorithm for the early detection of outbreaks of infectious disease, Farrington, C.P., Andrews, N.J, Beale A.D. and Catchpole, M.A. (1996), J. R. Statist. Soc. A, 159, 547-563.

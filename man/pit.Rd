@@ -1,5 +1,6 @@
 \name{pit}
 \alias{pit}
+\alias{pit.default}
 
 \title{
 Non-Randomized Version of the PIT Histogram (for Count Data)
@@ -10,7 +11,8 @@ Non-Randomized Version of the PIT Histogram (for Count Data)
 }
 
 \usage{
-pit(x, pdistr, J = 10, relative = TRUE, ..., plot = list())
+pit(x, ...)
+\method{pit}{default}(x, pdistr, J = 10, relative = TRUE, ..., plot = list())
 }
 
 \arguments{
@@ -42,13 +44,14 @@ pit(x, pdistr, J = 10, relative = TRUE, ..., plot = list())
     \code{\link{mapply}(pdistr, x, ...)}.
   }
   \item{plot}{
-    a list of arguments for \code{\link{plot.histogram}} or \code{NULL}
-    in which case no plot will be produced.
+    a list of arguments for \code{\link{plot.histogram}}.
+    Otherwise, no plot will be produced.
   }
 }
 
 \value{
-  an object of class \code{"histogram"} (see \code{\link{hist}}).
+  an object of class \code{"pit"}, which inherits from class
+  \code{"histogram"} (see \code{\link{hist}}).
   It is returned invisibly if a plot is produced.
 }
 
@@ -79,8 +82,8 @@ for (i in seq_along(pdistrs)) {
 par(op)
 
 ## Alternative call using ... arguments for pdistr (less efficient)
-stopifnot(identical(pit(x, "pnbinom", mu = 5, size = 2, plot = NULL),
-                    pit(x, pdistrs[[2]], plot = NULL)))
+stopifnot(identical(pit(x, "pnbinom", mu = 5, size = 2, plot = FALSE),
+                    pit(x, pdistrs[[2]], plot = FALSE)))
 }
 
 \keyword{dplot}

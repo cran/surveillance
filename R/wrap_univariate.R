@@ -12,7 +12,7 @@
 
 #Wrapper function to call algo.farrington for each time series in an sts object
 wrap.algo <- function(sts, algo, control,
-                      control.hook=function(k) return(control),
+                      control.hook=function(k, control) return(control),
                       verbose=TRUE,...) {
   #Number of time series
   nAreas <- ncol(sts@observed)
@@ -28,14 +28,14 @@ wrap.algo <- function(sts, algo, control,
     if (verbose) {
       cat("Running ",algo," on area ",k," out of ",nAreas,"\n")
     }
-    
+
     ##Create an old S3 disProg object
     disProg.k <- sts2disProg(sts[,k])
 
     #Use the univariate algorithm (possibly preprocess control object)
-    kcontrol <- control.hook(k)
+    kcontrol <- control.hook(k, control)
     survRes.k <- do.call(algo,args = list(disProg.k, control=kcontrol))
-    
+
     #Transfer results to the S4 object
     if (!is.null(survRes.k)) {
       sts@alarm[control$range,k] <- survRes.k$alarm
@@ -53,21 +53,21 @@ wrap.algo <- function(sts, algo, control,
   sts@alarm <- sts@alarm[control$range,,drop=FALSE]
   sts@upperbound <- sts@upperbound[control$range,,drop=FALSE]
 
-  #Set correct theta0t matrix for all 
+  #Set correct theta0t matrix for all
   sts@control$theta0t <- control$theta0t
 
   #Fix the corresponding start entry
   start <- sts@start
   new.sampleNo <- start[2] + min(control$range) - 1
-  start.year <- start[1] + (new.sampleNo - 1) %/% sts@freq 
+  start.year <- start[1] + (new.sampleNo - 1) %/% sts@freq
   start.sampleNo <- (new.sampleNo - 1) %% sts@freq + 1
   sts@start <- c(start.year,start.sampleNo)
   sts@epoch <- sts@epoch[control$range]
   sts@epochAsDate <- sts@epochAsDate
-  
+
   #Ensure dimnames in the new object
   sts <- fix.dimnames(sts)
-  
+
   return(sts)
 }
 
@@ -144,7 +144,7 @@ rogerson <- function(sts, control = list(range=range, theta0t=NULL,
     warning("algo.rogerson currently can't handle Date entries. Computing reference values based on freq")
   }
   #Hook function to find right theta0t vector
-  control.hook = function(k) {
+  control.hook = function(k,control) {
     #Extract values relevant for the k'th component
     control$theta0t <- control$theta0t[,k]
     if (is.null(control[["nt",exact=TRUE]])) {
@@ -158,7 +158,7 @@ rogerson <- function(sts, control = list(range=range, theta0t=NULL,
     }
     #If no hValues given then compute them
     if (is.null(control[["hValues",exact=TRUE]])) {
-#This code does not appear to work once n is big.      
+#This code does not appear to work once n is big.
 #      control$hValues <- hValues(theta0 = unique(control$theta0t), ARL0=control$ARL0, s=control$s , distr = control$distribution, n=mean(control$nt))$hValues
             control$hValues <- hValues(theta0 = unique(control$theta0t), ARL0=control$ARL0, s=control$s , distr = control$distribution)$hValues
     }

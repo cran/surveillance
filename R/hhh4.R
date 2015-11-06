@@ -7,8 +7,8 @@
 ### The function allows the incorporation of random effects and covariates.
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2015 Sebastian Meyer
-### $Revision: 1373 $
-### $Date: 2015-06-09 23:58:58 +0200 (Tue, 09 Jun 2015) $
+### $Revision: 1475 $
+### $Date: 2015-09-14 22:38:55 +0200 (Mon, 14. Sep 2015) $
 ################################################################################
 
 ## Error message issued in loglik, score and fisher functions upon NA parameters
@@ -29,7 +29,7 @@ hhh4 <- function (stsObj, control = list(
               normalize = FALSE), # w_ji -> w_ji / rowSums(w_ji), after scaling
     end = list(f = ~ 1,        # a formula "exp(x'nu) * n_it"
                offset = 1),    # optional multiplicative offset e_it
-    family = c("Poisson", "NegBin1", "NegBinM"),
+    family = c("Poisson", "NegBin1", "NegBinM"), # or a factor of length nUnit
     subset = 2:nrow(stsObj),   # epidemic components require Y_{t-lag}
     optimizer = list(stop = list(tol = 1e-5, niter = 100), # control arguments
                      regression = list(method = "nlminb"), # for optimization 
@@ -38,7 +38,7 @@ hhh4 <- function (stsObj, control = list(
     start = list(fixed = NULL, # list of start values, replacing initial
                  random = NULL,  # values from fe() and ri() in 'f'ormulae
                  sd.corr = NULL), 
-    data = list(t = epoch(stsObj) - 1), # named list of covariates
+    data = list(t = stsObj@epoch - min(stsObj@epoch)), # named list of covariates
     keep.terms = FALSE  # whether to keep interpretControl(control, stsObj)
     ), check.analyticals = FALSE)
 {
@@ -276,8 +276,14 @@ setControl <- function (control, stsObj)
   
 
   ### check remaining components of the control list
-  
-  control$family <- match.arg(control$family, defaultControl$family)  
+
+  if (is.factor(control$family)) {
+      stopifnot(length(control$family) == nUnit)
+      control$family <- droplevels(control$family)
+      names(control$family) <- colnames(stsObj)
+  } else {
+      control$family <- match.arg(control$family, defaultControl$family)
+  }
 
   if (!is.vector(control$subset, mode="numeric") ||
       !all(control$subset %in% seq_len(nTime)))
@@ -672,13 +678,13 @@ interpretControl <- function (control, stsObj)
   index.re <- rep(1:ncol(all.term), times=unlist(all.term["dim.re",])) 
   
   # poisson or negbin model
-  fam <- match.arg(control$family, c("Poisson","NegBin1","NegBinM"))
-  if(fam=="Poisson"){
+  if(identical(control$family, "Poisson")){
     ddistr <- function(y,mu,size){
         dpois(y, lambda=mu, log=TRUE)
     }
     dim.overdisp <- 0L
-  } else {
+    index.overdisp <- names.overdisp <- NULL
+  } else { # NegBin
     ddistr <- function(y,mu,size){
         dnbinom(y, mu=mu, size=size, log=TRUE)
     }
@@ -691,15 +697,23 @@ interpretControl <- function (control, stsObj)
     ##                              size=size[!poisidx], log=TRUE)
     ##     res
     ## }
-    dim.overdisp <- if (fam=="NegBin1") 1L else nUnits
+    index.overdisp <- if (is.factor(control$family)) {
+        control$family
+    } else if (control$family == "NegBinM") {
+        factor(colnames(stsObj), levels = colnames(stsObj))
+        ## do not sort levels (for consistency with unitSpecific effects)
+    } else { # "NegBin1"
+        factor(character(nUnits))
+    }
+    names(index.overdisp) <- colnames(stsObj)
+    dim.overdisp <- nlevels(index.overdisp)
+    names.overdisp <- if (dim.overdisp == 1L) {
+        "-log(overdisp)"
+    } else {
+        paste0("-log(", paste("overdisp", levels(index.overdisp), sep = "."), ")")
+    }
   }
-  environment(ddistr) <- .GlobalEnv     # function is self-contained
-
-  names.overdisp <- if(dim.overdisp > 1L){
-    paste0(paste("-log(overdisp", colnames(stsObj), sep="."), ")")
-  } else {
-    rep("-log(overdisp)", dim.overdisp)  # dim.overdisp may be 0
-  }
+  environment(ddistr) <- getNamespace("stats")  # function is self-contained
 
   # parameter start values from fe() and ri() calls via checkFormula()
   initial <- list(
@@ -759,6 +773,7 @@ interpretControl <- function (control, stsObj)
                  initialSigma = initial$sd.corr,
                  offset = offsets,
                  family = ddistr,
+                 indexPsi = index.overdisp,
                  subset = control$subset,
                  isNA = isNA
                  )
@@ -853,6 +868,49 @@ meanHHH <- function(theta, model, subset=model$subset, total.only=FALSE)
 }
 
 
+### compute dispersion in dnbinom (mu, size) parametrization
+
+sizeHHH <- function (theta, model, subset = model$subset)
+{
+    if (model$nOverdisp == 0L) # Poisson case
+        return(NULL)
+
+    ## extract dispersion in dnbinom() parametrization
+    pars <- splitParams(theta, model)
+    size <- exp(pars$overdisp)             # = 1/psi, pars$overdisp = -log(psi)
+
+    ## return either a vector or a time x unit matrix of dispersion parameters
+    if (is.null(subset)) {
+        unname(size)  # no longer is "-log(overdisp)"
+    } else {
+        matrix(data = size[model$indexPsi],
+               nrow = length(subset), ncol = model$nUnits, byrow = TRUE,
+               dimnames = list(NULL, names(model$indexPsi)))
+    }
+}
+
+## auxiliary function used in penScore and penFisher
+## it sums colSums(x) within the groups defined by f (of length ncol(x))
+.colSumsGrouped <- function (x, f, na.rm = TRUE)
+{
+    nlev <- nlevels(f)
+    if (nlev == 1L) { # all columns belong to the same group
+        sum(x, na.rm = na.rm)
+    } else {
+        dimx <- dim(x)
+        colsums <- .colSums(x, dimx[1L], dimx[2L], na.rm = na.rm)
+        if (nlev == dimx[2L]) { # each column is its own group
+            colsums[order(f)]
+        } else { # sum colsums within groups
+            unlist(lapply(
+                X = split.default(colsums, f, drop = FALSE),
+                FUN = sum
+                ), recursive = FALSE, use.names = FALSE)
+        }
+    }
+}
+
+
 ############################################
 
 
@@ -861,21 +919,15 @@ penLogLik <- function(theta, sd.corr, model, attributes=FALSE)
   if(any(is.na(theta))) stop("NAs in regression parameters.", ADVICEONERROR)
 
   ## unpack model
-  nTime <- model$nTime
-  nUnits <- model$nUnits
   subset <- model$subset
   Y <- model$response[subset,,drop=FALSE]
   #isNA <- model$isNA[subset,,drop=FALSE]
   dimPsi <- model$nOverdisp
   dimRE <- model$nRE
-
-  ## unpack parameters
-  pars <- splitParams(theta, model)
-  psi <- exp(pars$overdisp)             # = 1/psi, pars$overdisp = -log(psi)
-  if(dimPsi > 1L) {
-      psi <- matrix(psi, nTime, nUnits, byrow=TRUE)[subset,,drop=FALSE]
-  }
+  
+  ## unpack random effects
   if (dimRE > 0) {
+      pars <- splitParams(theta, model)
       randomEffects <- pars$random
       sd   <- head(sd.corr, model$nVar)
       corr <- tail(sd.corr, model$nCorr)
@@ -884,7 +936,11 @@ penLogLik <- function(theta, sd.corr, model, attributes=FALSE)
   }
   
   ############################################################
-  
+
+  ## evaluate dispersion
+  psi <- sizeHHH(theta, model,
+                 subset = if (dimPsi > 1L) subset) # else scalar or NULL
+
   #psi might be numerically equal to 0 or Inf in which cases dnbinom (in meanHHH)
   #would return NaN (with a warning). The case size=Inf rarely happens and
   #corresponds to a Poisson distribution. Currently this case is not handled
@@ -911,7 +967,7 @@ penLogLik <- function(theta, sd.corr, model, attributes=FALSE)
   
   ## log-likelihood
   ll.units <- .colSums(model$family(Y,mu,psi),
-                       length(subset), nUnits, na.rm=TRUE)
+                       length(subset), model$nUnits, na.rm=TRUE)
 
   ## penalized log-likelihood
   ll <- sum(ll.units) + lpen
@@ -935,14 +991,12 @@ penScore <- function(theta, sd.corr, model)
   isNA <- model$isNA[subset,,drop=FALSE]
   dimPsi <- model$nOverdisp
   dimRE <- model$nRE
+  term <- model$terms
+  nGroups <- model$nGroups
+  dimd <- model$nd
 
   ## unpack parameters
   pars <- splitParams(theta, model)
-  psi <- exp(pars$overdisp)             # = 1/psi, pars$overdisp = -log(psi)
-  if(dimPsi > 1L) {
-      psi <- matrix(psi, ncol=model$nUnits, nrow=model$nTime,
-                    byrow=TRUE)[subset,,drop=FALSE]
-  }
   if (dimRE > 0) {
       randomEffects <- pars$random
       sd   <- head(sd.corr, model$nVar)
@@ -951,10 +1005,9 @@ penScore <- function(theta, sd.corr, model)
       Sigma.inv <- getSigmaInv(sd, corr, model$nVar, dimBlock)
   }
 
-  ## further model unpacking
-  term <- model$terms
-  nGroups <- model$nGroups
-  dimd <- model$nd
+  ## evaluate dispersion
+  psi <- sizeHHH(theta, model,
+                 subset = if (dimPsi > 1L) subset) # else scalar or NULL
 
   ## evaluate mean
   mu <- meanHHH(theta, model)
@@ -996,7 +1049,7 @@ penScore <- function(theta, sd.corr, model)
       } else if(term["random",i][[1]]){
         Z <- term["Z.intercept",i][[1]]  
         "%m%" <- get(term["mult",i][[1]])
-        dRTheta <- colSums(dTheta %m% Z)
+        dRTheta <- .colSums(dTheta %m% Z, length(subset), term["dim.re",i][[1]])
         grad.re <- c(grad.re, dRTheta)
         grad.fe <- c(grad.fe, sum(dTheta))
       } else{
@@ -1004,7 +1057,7 @@ penScore <- function(theta, sd.corr, model)
       }
     }
     
-    list(fe=grad.fe, re=unname(grad.re))
+    list(fe=grad.fe, re=grad.re)
   }
   
   gradients <- computeGrad(mu[c("epi.own","epi.neighbours","endemic")])
@@ -1023,15 +1076,10 @@ penScore <- function(theta, sd.corr, model)
   
   ## gradient for overdispersion parameter psi
   grPsi <- if(dimPsi > 0L){
-      dPsi <- psi * (digamma(Y+psi) - digamma(psi) + log(psi) + 1
-                     - log(psiPlusMu) - psiYpsiMu)
-      # multiple psi_i's or single psi?
-      if(dimPsi>1L) colSums(dPsi, na.rm=TRUE) else sum(dPsi, na.rm=TRUE)
+      dPsiMat <- psi * (digamma(Y+psi) - digamma(psi) + log(psi) + 1
+                        - log(psiPlusMu) - psiYpsiMu)
+      .colSumsGrouped(dPsiMat, model$indexPsi)
   } else numeric(0L)
-  
-  if(any(is.na(grPsi))){
-      stop("derivatives for overdispersion parameter psi not computable")
-  }
   
   ## add penalty to random effects gradient
   s.pen <- if(dimRE > 0) c(Sigma.inv %*% randomEffects) else numeric(0L)
@@ -1055,14 +1103,16 @@ penFisher <- function(theta, sd.corr, model, attributes=FALSE)
   isNA <- model$isNA[subset,,drop=FALSE]
   dimPsi <- model$nOverdisp
   dimRE <- model$nRE
+  term <- model$terms
+  nGroups <- model$nGroups
+  dimd  <- model$nd
+  dimFE <- model$nFE
+  idxFE <- model$indexFE
+  idxRE <- model$indexRE
+  indexPsi <- model$indexPsi
 
   ## unpack parameters
   pars <- splitParams(theta, model)
-  psi <- exp(pars$overdisp)             # = 1/psi, pars$overdisp = -log(psi)
-  if(dimPsi > 1L) {
-      psi <- matrix(psi, ncol=model$nUnits, nrow=model$nTime,
-                    byrow=TRUE)[subset,,drop=FALSE]
-  }
   if (dimRE > 0) {
       randomEffects <- pars$random
       sd   <- head(sd.corr, model$nVar)
@@ -1071,13 +1121,9 @@ penFisher <- function(theta, sd.corr, model, attributes=FALSE)
       Sigma.inv <- getSigmaInv(sd, corr, model$nVar, dimBlock)
   }
 
-  ## further model unpacking
-  term <- model$terms
-  nGroups <- model$nGroups
-  dimd  <- model$nd
-  dimFE <- model$nFE
-  idxFE <- model$indexFE
-  idxRE <- model$indexRE
+  ## evaluate dispersion
+  psi <- sizeHHH(theta, model,
+                 subset = if (dimPsi > 1L) subset) # else scalar or NULL
 
   ## evaluate mean
   mu <- meanHHH(theta, model)
@@ -1099,12 +1145,11 @@ penFisher <- function(theta, sd.corr, model, attributes=FALSE)
     dThetadPsi <- function(dTheta){
         dThetadPsi.fac * dTheta
     }
-    dPsidPsi <- function(){
-        dPsi <- psi * (digamma(psiPlusY)-digamma(psi) +log(psi)+1 -
-                       log(psiPlusMu) - psiYpsiMu)
-        psi^2 * (trigamma(psiPlusY) - trigamma(psi) + 1/psi - 1/psiPlusMu -
-                 (meanTotal-Y)/psiPlusMu2) + dPsi
-    }
+    dPsiMat <- psi * (digamma(psiPlusY) - digamma(psi) + log(psi) + 1
+                      - log(psiPlusMu) - psiYpsiMu)  # as in penScore()
+    dPsidPsiMat <- psi^2 * (
+        trigamma(psiPlusY) - trigamma(psi) + 1/psi - 1/psiPlusMu -
+            (meanTotal-Y)/psiPlusMu2) + dPsiMat
   } else { # poisson
     deriv2HHH.fac1 <- -Y / (meanTotal^2)
     deriv2HHH.fac2 <- Y / meanTotal - 1
@@ -1154,14 +1199,17 @@ penFisher <- function(theta, sd.corr, model, attributes=FALSE)
 
     if (dimPsi > 0L) {
         ## d l(theta,x) /dpsi dpsi
+        dPsidPsi <- .colSumsGrouped(dPsidPsiMat, indexPsi)
         hessian.Psi.RE[,seq_len(dimPsi)] <- if (dimPsi == 1L) {
-            sum(dPsidPsi(), na.rm=TRUE)
-        } else diag(colSums(dPsidPsi(), na.rm=TRUE))
+            dPsidPsi
+        } else {
+            diag(dPsidPsi)
+        }
         ## d l(theta) / dd dpsi
         for (i in seq_len(dimd)) {      # will not be run if dimd==0
-            dPsi.i <- colSums(dThetadPsi(dmudd[[i]]),na.rm=TRUE)
-            if(dimPsi==1L) dPsi.i <- sum(dPsi.i)
-            hessian.d.Psi[i,] <- dPsi.i
+            ## dPsi.i <- colSums(dThetadPsi(dmudd[[i]]),na.rm=TRUE)
+            ## hessian.d.Psi[i,] <- if(dimPsi==1L) sum(dPsi.i) else dPsi.i[order(indexPsi)]
+            hessian.d.Psi[i,] <- .colSumsGrouped(dThetadPsi(dmudd[[i]]), indexPsi)
         }
     }
     
@@ -1186,7 +1234,7 @@ penFisher <- function(theta, sd.corr, model, attributes=FALSE)
         Z.j <- term["Z.intercept",j][[1]] 
         "%mj%" <- get(term["mult",j][[1]]) 
         dIJ <- colSums(didj %mj% Z.j)   # didj must not contain NA's (all NA's set to 0)
-        hessian.FE.RE[idxFE==i,idxRE==j] <<- diag(dIJ)[ which.i, ]
+        hessian.FE.RE[idxFE==i,idxRE==j] <<- diag(dIJ)[ which.i, ] # FIXME: does not work if type="car"
         dIJ <- dIJ[ which.i ]           # added which.i subsetting in r432
       } else if(unitSpecific.j){
         dIJ <- diag(colSums(didj))[ which.i, which.j ] 
@@ -1245,46 +1293,45 @@ penFisher <- function(theta, sd.corr, model, attributes=FALSE)
       if(is.matrix(Xit)){
         Xit <- Xit[subset,,drop=FALSE]
       }
-      m.Xit <- mean.comp[[comp.i]]*Xit
+      m.Xit <- mean.comp[[comp.i]] * Xit
       
       random.i <- term["random",i][[1]]
       unitSpecific.i <- term["unitSpecific",i][[1]]
 
       ## fill psi-related entries and select fillHess function
-      if(random.i){
+      if (random.i) {
         Z.i <- term["Z.intercept",i][[1]]   # Z.i and %m% (of i) determined here
         "%m%" <- get(term["mult",i][[1]])   # will also be used in j's for loop
         fillHess <- i.random
-        if(dimPsi==1L){
-          dPsi<- dThetadPsi(m.Xit)
-          dPsi[isNA] <- 0
-          hessian.FE.Psi[idxFE==i,]<- sum(dPsi)
-          hessian.Psi.RE[,c(FALSE,idxRE==i)] <- colSums( dPsi%m%Z.i)
-        } else if(dimPsi>1L){
-          dPsi<- dThetadPsi(m.Xit)
-          dPsi[isNA] <- 0
-          hessian.FE.Psi[idxFE==i,]<- colSums( dPsi)
-          hessian.Psi.RE[,c(rep.int(FALSE, dimPsi),idxRE==i)] <- diag(colSums( dPsi%m%Z.i))
-        }
-        
-      } else if(unitSpecific.i){
-        which.i <- term["which",i][[1]]
-        fillHess <- i.unit
-        if(dimPsi>0L){
-          dPsi <- colSums(dThetadPsi(m.Xit),na.rm=TRUE)
-          hessian.FE.Psi[idxFE==i,] <- if(dimPsi==1L) {
-              dPsi[which.i]
+        if (dimPsi > 0L) {
+          dThetadPsiMat <- dThetadPsi(m.Xit)
+          hessian.FE.Psi[idxFE==i,] <- .colSumsGrouped(dThetadPsiMat, indexPsi)
+          dThetadPsi.i <- .colSums(dThetadPsiMat %m% Z.i, length(subset), term["dim.re",i][[1]], na.rm=TRUE)
+          if (dimPsi==1L) {
+              hessian.Psi.RE[,dimPsi + which(idxRE==i)] <- dThetadPsi.i
           } else {
-              diag(dPsi)[which.i,]
+              hessian.Psi.RE[cbind(indexPsi,dimPsi + which(idxRE==i))] <- dThetadPsi.i
+              ## FIXME: does not work with type="car"
           }
         }
-        
+      } else if (unitSpecific.i) {
+        which.i <- term["which",i][[1]]
+        fillHess <- i.unit
+        if (dimPsi > 0L) {
+          dThetadPsi.i <- .colSums(dThetadPsi(m.Xit), length(subset), model$nUnits, na.rm=TRUE)
+          if (dimPsi==1L) {
+              hessian.FE.Psi[idxFE==i,] <- dThetadPsi.i[which.i]
+          } else {
+              hessian.FE.Psi[cbind(which(idxFE==i),indexPsi[which.i])] <-
+                  dThetadPsi.i[which.i]
+          }
+        }
       } else {
         fillHess <- i.fixed
-        if(dimPsi>0L){
-          dPsi<- colSums(dThetadPsi(m.Xit),na.rm=TRUE)
-          if(dimPsi==1L){ dPsi <- sum(dPsi) }
-          hessian.FE.Psi[idxFE==i,] <-dPsi
+        if (dimPsi > 0L) {
+          ## dPsi <- colSums(dThetadPsi(m.Xit),na.rm=TRUE)
+          ## hessian.FE.Psi[idxFE==i,] <- if (dimPsi==1L) sum(dPsi) else dPsi[order(indexPsi)]
+          hessian.FE.Psi[idxFE==i,] <- .colSumsGrouped(dThetadPsi(m.Xit), indexPsi)
         }
       }
 

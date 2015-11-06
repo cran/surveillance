@@ -15,11 +15,11 @@
 \title{Multivariate Surveillance through independent univariate algorithms}
 \description{
   This function takes an \code{sts} object and applies an univariate
-  surveillance algorithm to the time series of each observational unit. 
+  surveillance algorithm to the time series of each observational unit.
 }
 \usage{
 %This is the main function
-wrap.algo(sts, algo, control,control.hook=function(k)
+wrap.algo(sts, algo, control,control.hook=function(k, control)
          return(control),verbose=TRUE,...)
 %Derived functions fixing the control object and the "algo" argument
 farrington(sts, control=list(range=NULL, b=3, w=3,reweight=TRUE,
@@ -43,19 +43,20 @@ outbreakP(sts, control=list(range = range, k=100,
   \item{sts}{Object of class \code{sts}}
   \item{algo}{Character string giving the function name of the algorithm
     to call, e.g. \code{"algo.farrington"}. Calling is done using
-    \code{do.call}.} 
+    \code{do.call}.}
   \item{control}{Control object as list. Depends on each algorithm.}
   \item{control.hook}{This is a function for handling multivariate
-    objects. This argument is a function function of integer k, which
-    returns the appropriate control object for region k}
+    objects. This argument is a function function of integer k and the
+    current control object and which
+    returns the appropriate control object for region k.}
   \item{verbose}{Boolean, if \code{TRUE} then textual information about the
     process is given}
   \item{...}{Additional arguments sent to the \code{algo} function.}
 }
 \value{
   An \code{sts} object with the \code{alarm}, \code{upperbound},
-  etc. slots filled with the results of independent and univariate 
-  surveillance algorithm. 
+  etc. slots filled with the results of independent and univariate
+  surveillance algorithm.
 }
 \seealso{
   \code{\link{algo.rki}}, \code{\link{algo.farrington}},

@@ -6,10 +6,9 @@
 ### Standard methods for hhh4-fits
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2015 Sebastian Meyer
-### $Revision: 1372 $
-### $Date: 2015-06-09 23:50:37 +0200 (Tue, 09 Jun 2015) $
+### $Revision: 1490 $
+### $Date: 2015-10-15 12:24:11 +0200 (Don, 15. Okt 2015) $
 ################################################################################
-
 
 ## NOTE: we also apply print.hhh4 in print.summary.hhh4()
 print.hhh4 <- function (x, digits = max(3, getOption("digits")-3), ...)
@@ -92,7 +91,7 @@ print.summary.hhh4 <- function (x, digits = max(3, getOption("digits")-3), ...)
 
     if (!is.null(x$maxEV_range))
         cat("Epidemic dominant eigenvalue: ",
-            paste(round(x$maxEV_range,2), collapse = " -- "), "\n\n")
+            paste(sprintf("%.2f", x$maxEV_range), collapse = " -- "), "\n\n")
     if(x$dim["random"]==0){
         cat('Log-likelihood:  ',round(x$loglikelihood,digits=digits-2),'\n')  
         cat('AIC:             ',round(x$AIC,digits=digits-2),'\n')
@@ -139,7 +138,7 @@ logLik.hhh4 <- function(object, ...)
 coef.hhh4 <- function(object, se=FALSE,
                       reparamPsi=TRUE, idx2Exp=NULL, amplitudeShift=FALSE, ...)
 {
-    if (object$control$family == "Poisson") reparamPsi <- FALSE
+    if (identical(object$control$family, "Poisson")) reparamPsi <- FALSE
     coefs <- object$coefficients
     coefnames <- names(coefs)
     idx <- getCoefIdxRenamed(coefnames, reparamPsi, idx2Exp, amplitudeShift,
@@ -171,7 +170,7 @@ coef.hhh4 <- function(object, se=FALSE,
 vcov.hhh4 <- function (object,
                        reparamPsi=TRUE, idx2Exp=NULL, amplitudeShift=FALSE, ...)
 {
-    if (object$control$family == "Poisson") reparamPsi <- FALSE
+    if (identical(object$control$family, "Poisson")) reparamPsi <- FALSE
     idx <- getCoefIdxRenamed(names(object$coefficients),
                              reparamPsi, idx2Exp, amplitudeShift, warn=FALSE)
     newcoefs <- coef.hhh4(object, se=FALSE, reparamPsi=reparamPsi,
@@ -223,17 +222,21 @@ getCoefIdxRenamed <- function (coefnames, reparamPsi=TRUE, idx2Exp=NULL,
     } else NULL
 
     ## indexes of coefficients to exp()-transform
-    idx2Exp <- if (length(idx2Exp)) { # index sets must be disjoint
+    if (isTRUE(idx2Exp)) {
+        idxLogCovar <- grep(".log(", coefnames, fixed = TRUE)
+        idx2Exp <- setdiff(seq_along(coefnames), c(idxLogCovar, idxPsi, idxAS))
+    } else if (length(idx2Exp)) {
+        stopifnot(is.vector(idx2Exp, mode = "numeric"))
+        ## index sets must be disjoint
         if (length(idxOverlap <- intersect(c(idxPsi, idxAS), idx2Exp))) {
             if (warn)
                 warning("following 'idx2Exp' were ignored due to overlap: ",
                         paste(idxOverlap, collapse=", "))
             idx2Exp <- setdiff(idx2Exp, idxOverlap)
         }
-        if (length(idx2Exp))
-            names(idx2Exp) <- paste0("exp(", coefnames[idx2Exp], ")")
-        idx2Exp
-    } else NULL
+    }
+    if (length(idx2Exp))
+        names(idx2Exp) <- paste0("exp(", coefnames[idx2Exp], ")")
 
     ## done
     list(Psi=idxPsi, AS=idxAS, toExp=idx2Exp)
@@ -416,6 +419,51 @@ hhh4coef2start <- function (fit)
     res
 }
 
+## extract coefficients in a list
+coeflist.hhh4 <- function (x, ...)
+{
+    ## determine number of parameters by parameter group
+    model <- terms.hhh4(x)
+    dim.fe.group <- unlist(model$terms["dim.fe",], recursive = FALSE, use.names = FALSE)
+    dim.re.group <- unlist(model$terms["dim.re",], recursive = FALSE, use.names = FALSE)
+    nFERE <- lapply(X = list(fe = dim.fe.group, re = dim.re.group),
+           FUN = function (dims) {
+               nParByComp <- tapply(
+                   X = dims,
+                   INDEX = factor(
+                       unlist(model$terms["offsetComp",],
+                              recursive = FALSE, use.names = FALSE),
+                       levels = 1:3, labels = c("ar", "ne", "end")),
+                   FUN = sum, simplify = TRUE)
+               nParByComp[is.na(nParByComp)] <- 0 # component not in model 
+               nParByComp
+           })
+
+    ## extract coefficients in a list (by parameter group)
+    coefs <- coef.hhh4(x, se = FALSE, ...)
+    list(fixed = coeflist.default(coefs[seq_len(x$dim[1L])],
+             c(nFERE$fe, "neweights" = model$nd, "overdisp" = model$nOverdisp)),
+         random = coeflist.default(coefs[x$dim[1L] + seq_len(x$dim[2L])],
+             nFERE$re),
+         sd.corr = x$Sigma.orig)
+}
+
+## extract estimated overdispersion in dnbinom() parametrization (and as matrix)
+psi2size.hhh4 <- function (object, subset = object$control$subset, units = NULL)
+{
+    size <- sizeHHH(object$coefficients, terms.hhh4(object), subset = subset)
+    if (!is.null(size) && !is.null(units)) {
+        if (is.null(subset)) {
+            warning("ignoring 'units' (not compatible with 'subset = NULL')")
+            size
+        } else {
+            size[, units, drop = FALSE]
+        }
+    } else {
+        size
+    }
+}
+
 ## character vector of model components that are "inModel"
 componentsHHH4 <- function (object)
     names(which(sapply(object$control[c("ar", "ne", "end")], "[[", "inModel")))
@@ -433,21 +481,16 @@ residuals.hhh4 <- function (object, type = c("deviance", "response"), ...)
     ## Cf. residuals.ah, it calculates:
     ## deviance = sign(y - mean) * sqrt(2 * (distr(y) - distr(mean)))
     ## pearson = (y - mean)/sqrt(variance)
-    dev.resids <- switch(object$control$family,
-        "Poisson" = poisson()$dev.resids,
-        "NegBin1" = {
-            psi <- exp(object$coefficients[object$dim[1L]])
-            negative.binomial(psi)$dev.resids
-        },
-        "NegBinM" = {
-            psicoefidx <- seq.int(to=object$dim[1L],
-                                  length.out=object$nUnit)
-            psi <- matrix(
-                exp(object$coefficients[psicoefidx]),
-                object$nTime, object$nUnit, byrow=TRUE)
-            negative.binomial(psi)$dev.resids # CAVE: non-standard use
-        },
-        stop("not implemeted for \"", object$control$family, "\"-models"))
+    dev.resids <- if (identical(object$control$family, "Poisson")) {
+        poisson()$dev.resids
+    } else {
+        size <- if (identical(object$control$family, "NegBin1")) {
+            psi2size.hhh4(object, subset = NULL)
+        } else {
+            psi2size.hhh4(object) # CAVE: a matrix -> non-standard "size"
+        }
+        negative.binomial(size)$dev.resids
+    }
 
     di2 <- dev.resids(y=obs, mu=fit, wt=1)
     sign(obs-fit) * sqrt(pmax.int(di2, 0))
@@ -527,4 +570,14 @@ neOffsetArray <- function (object, pars = coefW(object),
     
     ## permute dimensions as (t, i, j)
     aperm(res, perm = c(2L, 3L, 1L), resize = TRUE)
+}
+
+
+## compare two hhh4 fits ignoring at least the "runtime" and "call" elements
+all.equal.hhh4 <- function (target, current, ..., ignore = NULL)
+{
+    ignore <- unique.default(c(ignore, "runtime", "call"))
+    for (comp in ignore)
+        target[[comp]] <- current[[comp]] <- NULL
+    NextMethod("all.equal")
 }

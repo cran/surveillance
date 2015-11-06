@@ -6,8 +6,8 @@
 ### Auxiliary functions for operations on spatial data
 ###
 ### Copyright (C) 2009-2015 Sebastian Meyer
-### $Revision: 1323 $
-### $Date: 2015-04-29 12:00:30 +0200 (Wed, 29 Apr 2015) $
+### $Revision: 1463 $
+### $Date: 2015-09-07 21:06:12 +0200 (Mon, 07. Sep 2015) $
 ################################################################################
 
 
@@ -202,7 +202,8 @@ layout.labels <- function (obj, labels = TRUE, plot = FALSE)
 
 ## draw a scalebar with labels
 layout.scalebar <- function (obj, corner = c(0.05, 0.95), scale = 1,
-                             labels = c(0, scale), height = 0.05, plot = FALSE)
+                             labels = c(0, scale), height = 0.05,
+                             pos = 3, ..., plot = FALSE)
 {
     stopifnot(inherits(obj, "Spatial"))
     BB <- bbox(obj)
@@ -218,9 +219,9 @@ layout.scalebar <- function (obj, corner = c(0.05, 0.95), scale = 1,
              offset = offset, scale = scale, fill = c(NA, 1),
              plot.grid = !plot),
         list(textfun, x = offset[1L], y = offset[2L],
-             labels = labels[1L], pos = 3),
+             labels = labels[1L], pos = pos, ...),
         list(textfun, x = offset[1L] + scale[1L], y = offset[2L],
-             labels = labels[2L], pos = 3)
+             labels = labels[2L], pos = pos, ...)
     )
     if (plot) {
         for (li in lis) eval(do.call("call", li))

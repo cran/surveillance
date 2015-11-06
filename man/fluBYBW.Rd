@@ -39,7 +39,7 @@
 \examples{
 data("fluBYBW")
 # Count time series plot
-plot(fluBYBW, type = observed ~ time, legend.opts = NULL)
+plot(fluBYBW, type = observed ~ time)
 # Map of disease incidence (per 100000 inhabitants) for the year 2001
 plot(fluBYBW, type = observed ~ unit, tps = 1:52, total.args = list(),
      population = fluBYBW@map$X31_12_01 / 100000)

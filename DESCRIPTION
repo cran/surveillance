@@ -1,14 +1,14 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.9-1
-Date: 2015-06-12
+Version: 1.10-0
+Date: 2015-11-04
 Authors@R: c(MH = person("Michael", "Höhle",
                   email = "hoehle@math.su.se",
-                  role = c("aut", "cre", "ths")),
+                  role = c("aut", "ths")),
              SM = person("Sebastian", "Meyer",
                   email = "Sebastian.Meyer@ifspm.uzh.ch",
-                  role = "aut"),
+                  role = c("aut", "cre")),
              MP = person("Michaela", "Paul", role = "aut"),
              LH = person("Leonhard", "Held",
                   email = "Leonhard.Held@uzh.ch",
@@ -23,26 +23,27 @@ Authors@R: c(MH = person("Michael", "Höhle",
              person("Dirk", "Schumacher", role = "ctb"),
              person("Stefan", "Steiner", role = "ctb"),
              person("Mikko", "Virtanen", role = "ctb"),
+             person("Wei", "Wei", role = "ctb"),
              person("Valentin", "Wimmer", role = "ctb"),
              person("R Core Team", role = "ctb",
                     comment = "A few code segments are modified versions of
                                code from base R"))
-Author: Michael Höhle [aut, cre, ths], Sebastian Meyer [aut],
+Author: Michael Höhle [aut, ths], Sebastian Meyer [aut, cre],
         Michaela Paul [aut], Leonhard Held [ctb, ths],
         Thais Correa [ctb], Mathias Hofmann [ctb], Christian Lang [ctb],
         Juliane Manitz [ctb], Andrea Riebler [ctb], Daniel Sabanés Bové [ctb],
         Maëlle Salmon [ctb], Dirk Schumacher [ctb], Stefan Steiner [ctb],
-        Mikko Virtanen [ctb], Valentin Wimmer [ctb], R Core Team [ctb]
+        Mikko Virtanen [ctb], Wei Wei [ctb], Valentin Wimmer [ctb], R Core Team [ctb]
         (A few code segments are modified versions of code from base R)
-Maintainer: Michael Höhle <hoehle@math.su.se>
+Maintainer: Sebastian Meyer <Sebastian.Meyer@ifspm.uzh.ch>
 Depends: R (>= 3.0.2), methods, grDevices, graphics, stats, utils, sp
         (>= 1.0-15), xtable, polyCub (>= 0.4-3)
 Imports: Rcpp (>= 0.11.0), MASS, Matrix, spatstat (>= 1.36-0)
 LinkingTo: Rcpp
 Suggests: parallel, grid, xts, gridExtra, lattice, colorspace, scales,
         animation, msm, spc, quadprog, memoise, polyclip, rgeos,
-        gpclib, maptools, intervals, spdep, numDeriv, maxLik, testthat,
-        coda, splancs, gamlss, INLA, runjags
+        gpclib, maptools, intervals, spdep, numDeriv, maxLik, gsl,
+        testthat, coda, splancs, gamlss, INLA, runjags
 Description: Implementation of statistical methods for the modeling and
         change-point detection in time series of counts, proportions and
         categorical data, as well as for the modeling of continuous-time
@@ -82,6 +83,6 @@ Additional_repositories: http://www.math.ntnu.no/inla/R/stable
 BugReports: https://r-forge.r-project.org/tracker/?group_id=45
 Encoding: latin1
 NeedsCompilation: yes
-Packaged: 2015-06-12 19:12:44 UTC; hoehle
+Packaged: 2015-11-06 09:11:33 UTC; sebastian
 Repository: CRAN
-Date/Publication: 2015-06-12 23:34:28
+Date/Publication: 2015-11-06 11:51:39

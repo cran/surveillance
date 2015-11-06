@@ -8,14 +8,17 @@
 ### Czado, C., Gneiting, T. & Held, L. (2009)
 ### Biometrics 65:1254-1261
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2014 Sebastian Meyer
-### $Revision: 1043 $
-### $Date: 2014-10-03 09:46:12 +0200 (Fri, 03 Oct 2014) $
+### Copyright (C) 2010-2012 Michaela Paul, 2014-2015 Sebastian Meyer
+### $Revision: 1474 $
+### $Date: 2015-09-14 21:55:38 +0200 (Mon, 14. Sep 2015) $
 ################################################################################
 
 
 ## logarithmic score
 ## logs(P,x) = -log(P(X=x))
+
+.logs <- function (px)
+    -log(px)
 
 logs <- function (x, mu, size=NULL) {
     if (is.null(size)) {
@@ -46,108 +49,149 @@ nses <- function (x, mu, size=NULL) {
 ## Dawid-Sebastiani score
 ## dss(P,x) = ((x-mu_p)/sigma_p)^2 + 2*log(sigma_p)
 
-dss <- function (x, mu, size=NULL) {
-    sigma2 <- if (is.null(size)) mu else mu * (1 + mu/size)
-    ((x-mu)^2)/sigma2 + log(sigma2)
-}
+.dss <- function (meanP, varP, x)
+    (x-meanP)^2 / varP + log(varP)
+
+dss <- function (x, mu, size=NULL)
+    .dss(meanP = mu,
+         varP = if (is.null(size)) mu else mu * (1 + mu/size),
+         x = x)
 
 
 ## ranked probability score
 ## rps(P,x) = sum_0^Kmax {P(X<=k) - 1(x<=k)}^2
 
-rps.one <- function (x, mu, size=NULL, k=40, tolerance=sqrt(.Machine$double.eps)) {
-    ## return NA for non-convergent fits (where mu=NA)
-    if (is.na(mu)) return(NA_real_)
-
-    ## determine variance of distribution
-    sigma2 <- if (is.null(size)) mu else mu * (1 + mu/size)
-    
-    ## determine the maximum number of summands as Kmax=mean+k*sd
-    kmax <- ceiling(mu + k*sqrt(sigma2))
-    
-    ## compute 1(x<=k)
-    ind <- 1*(x < seq_len(kmax+1))
-	
+## for a single prediction (general formulation)
+.rps <- function (P, ..., x, kmax, tolerance = sqrt(.Machine$double.eps))
+{
     ## compute P(X<=k)
-    Px <- if (is.null(size)) {
-        ppois(0:kmax, lambda=mu)
-    } else {
-        pnbinom(0:kmax, mu=mu, size=size)
-    }
-	
+    k <- 0:kmax
+    Pk <- P(k, ...)
+    
     ## check precision
-    if ((1-tail(Px,1))^2 > tolerance)
-        warning("precision of finite sum not smaller than tolerance=", tolerance)
-	
-    ## compute rps
-    sum((Px-ind)^2)
+    if ((1 - Pk[length(Pk)])^2 > tolerance)
+        warning("finite sum approximation error larger than tolerance=",
+                format(tolerance))
+
+    ## compute the RPS
+    sum((Pk - (x <= k))^2)
 }
 
+## for a single Poisson prediction
+rps_1P <- function (x, mu, k=40, tolerance=sqrt(.Machine$double.eps)) {
+    ## return NA for non-convergent fits (where mu=NA)
+    if (is.na(mu)) return(NA_real_)
+    ## determine the maximum number of summands as Kmax=mean+k*sd
+    kmax <- ceiling(mu + k*sqrt(mu))
+    ## compute the RPS
+    .rps(P = ppois, lambda = mu, x = x,
+         kmax = kmax, tolerance = tolerance)
+}
+
+## for a single NegBin prediction
+rps_1NB <- function (x, mu, size, k=40, tolerance=sqrt(.Machine$double.eps)) {
+    ## return NA for non-convergent fits (where mu=NA)
+    if (is.na(mu)) return(NA_real_)
+    ## determine the maximum number of summands as Kmax=mean+k*sd
+    sigma2 <- mu * (1 + mu/size)
+    kmax <- ceiling(mu + k*sqrt(sigma2))
+    ## compute the RPS
+    .rps(P = pnbinom, mu = mu, size = size, x = x,
+         kmax = kmax, tolerance = tolerance)
+}
+
+## vectorized version
 rps <- function (x, mu, size=NULL, k=40, tolerance=sqrt(.Machine$double.eps)) {
     res <- if (is.null(size)) {
-        mapply(rps.one, x=x, mu=mu,
-               MoreArgs=list(k=k, tolerance=tolerance), SIMPLIFY=TRUE, USE.NAMES=FALSE)
+        mapply(rps_1P, x=x, mu=mu,
+               MoreArgs=list(k=k, tolerance=tolerance),
+               SIMPLIFY=TRUE, USE.NAMES=FALSE)
     } else {
-        mapply(rps.one, x=x, mu=mu, size=size,
-               MoreArgs=list(k=k, tolerance=tolerance), SIMPLIFY=TRUE, USE.NAMES=FALSE)
+        mapply(rps_1NB, x=x, mu=mu, size=size,
+               MoreArgs=list(k=k, tolerance=tolerance),
+               SIMPLIFY=TRUE, USE.NAMES=FALSE)
     }
     attributes(res) <- attributes(x)  # set dim and dimnames
     res
 }
 
 
-## returns scores in reversed (!) order, i.e. for time points n, n-1, n-2, ...
+### apply a set of scoring rules at once
 
-scores <- function (object, which = c("logs","rps","dss","ses"), units = NULL,
-                    sign = FALSE, individual = FALSE)
+scores.default <- function(x, mu, size,
+                           which = c("logs", "rps", "dss", "ses"),
+                           sign = FALSE, ...)
 {
-    mu <- object$pred     # predicted counts
-    x <- object$observed  # observed counts
-    size <- object$psi    # estimated -log(overdispersion), 1 or ncol(x) columns
-    ntps <- nrow(x)       # the number of predicted time points
-    
-    if (!is.null(size)) { # => NegBin
-        size <- exp(size) # transform to parameterization suitable for dnbinom()
-        if (ncol(size) != ncol(x)) { # => ncol(size)=1, unit-independent psi
-            ## replicate to obtain a ntps x ncol(x) matrix
-            size <- matrix(size, nrow=ntps, ncol=ncol(x), byrow=FALSE)
-        }
-        colnames(size) <- colnames(x)  # such that we can select by unit name
-    }
-    ## At this point, mu, x and size all are ntps x ncol(x) matrices
-
-    ## select units
-    if (!is.null(units)) {
-        x <- x[,units,drop=FALSE]
-        mu <- mu[,units,drop=FALSE]
-        size <- size[,units,drop=FALSE]
-    }
-    nUnits <- ncol(x)
-    if (nUnits == 1L)
-        individual <- TRUE  # no need to apply rowMeans() below
-
     ## compute sign of x-mu
-    signXmMu <- if(sign) sign(x-mu) else NULL
+    signXmMu <- if (sign) sign(x-mu) else NULL
     
-    ## compute individual scores (these are ntps x nUnits matrices)
+    ## compute individual scores (these are dim(x) matrices)
     scorelist <- lapply(which, do.call, args = alist(x=x, mu=mu, size=size),
                         envir = environment())
     
     ## gather individual scores in an array
-    result <- array(c(unlist(scorelist, recursive=FALSE, use.names=FALSE),
-                      signXmMu),
-                    dim = c(ntps, nUnits, length(which) + sign),
-                    dimnames = c(dimnames(x),
-                                 list(c(which, if (sign) "sign"))))
+    array(c(unlist(scorelist, recursive=FALSE, use.names=FALSE),
+            signXmMu),
+          dim = c(dim(x), length(which) + sign),
+          dimnames = c(dimnames(x),
+              list(c(which, if (sign) "sign"))))
+}
 
+### apply scoring rules to a set of oneStepAhead() forecasts
+## CAVE: returns scores in reversed order, i.e. for time points n, n-1, n-2, ...
+
+scores.oneStepAhead <- function (x, which = c("logs","rps","dss","ses"),
+                                 units = NULL, sign = FALSE, individual = FALSE,
+                                 reverse = TRUE, ...)
+{
+    y <- x$observed  # observed counts during the prediction window
+    mu <- x$pred     # predicted counts (same dim as y)
+    ## transform overdispersion to dnbinom() parameterization
+    size <- psi2size.oneStepAhead(x) # -> NULL or full dim(y) matrix
+
+    ## select units
+    if (!is.null(units)) {
+        y <- y[,units,drop=FALSE]
+        mu <- mu[,units,drop=FALSE]
+        size <- size[,units,drop=FALSE] # works with size = NULL
+    }
+    nUnits <- ncol(y)
+    if (nUnits == 1L)
+        individual <- TRUE  # no need to apply rowMeans() below
+
+    result <- scores.default(x = y, mu = mu, size = size,
+                             which = which, sign = sign)
+    
     ## reverse order of the time points (historically)
-    result <- result[ntps:1L,,,drop=FALSE]
+    if (reverse)
+        result <- result[nrow(result):1L,,,drop=FALSE]
 
     ## average over units if requested
     if (individual) {
         drop(result)
     } else {
         apply(X=result, MARGIN=3L, FUN=rowMeans)
-        ## this gives a ntps x (5L+sign) matrix (or a vector in case ntps=1)
+        ## this gives a nrow(y) x (5L+sign) matrix (or a vector in case nrow(y)=1)
     }
+}
+
+
+## calculate scores with respect to fitted values
+
+scores.hhh4 <- function (x, which = c("logs","rps","dss","ses"),
+                         subset = x$control$subset, units = seq_len(x$nUnit),
+                         sign = FALSE, ...)
+{
+    ## slow implementation via "fake" oneStepAhead():
+    ##fitted <- oneStepAhead(x, tp = subset[1L] - 1L, type = "final",
+    ##                       keep.estimates = FALSE, verbose = FALSE)
+    ##scores.oneStepAhead(fitted, which = which, units = units, sign = sign,
+    ##                    individual = TRUE, reverse = FALSE)
+
+    result <- scores.default(
+        x = x$stsObj@observed[subset, units, drop = FALSE],
+        mu = x$fitted.values[match(subset, x$control$subset), units, drop = FALSE],
+        size = psi2size.hhh4(x, subset, units),
+        which = which, sign = sign)
+    drop(result)
 }

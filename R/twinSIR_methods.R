@@ -12,7 +12,7 @@
 ###
 ### Copyright (C) 2009-2014 Sebastian Meyer, contributions by Michael Hoehle
 ### $Revision: 1088 $
-### $Date: 2014-10-24 09:29:43 +0200 (Fri, 24 Oct 2014) $
+### $Date: 2014-10-24 09:29:43 +0200 (Fre, 24. Okt 2014) $
 ################################################################################
 
 ### don't need a specific coef-method (identical to stats:::coef.default)

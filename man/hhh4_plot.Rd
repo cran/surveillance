@@ -6,22 +6,24 @@
 \alias{getMaxEV_season}
 \alias{plotHHH4_maxEV}
 \alias{getMaxEV}
+\alias{plotHHH4_maps}
 \alias{plotHHH4_ri}
 \alias{plotHHH4_neweights}
 
 \title{Plots for Fitted \code{hhh4}-models}
 
 \description{
-  There are five \code{type}s of plots for fitted \code{\link{hhh4}} models:
+  There are six \code{type}s of plots for fitted \code{\link{hhh4}} models:
   \itemize{
     \item Plot the \code{"fitted"} component means (of selected units)
     along time along with the observed counts.
     \item Plot the estimated \code{"season"}ality of the three components.
     \item Plot the time-course of the dominant eigenvalue \code{"maxEV"}.
     \item If the units of the corresponding multivariate
-    \code{"\linkS4class{sts}"} object represent different regions, a map
-    of estimated region-specific intercepts (\code{"ri"}) of a selected
-    model component can be produced.
+    \code{"\linkS4class{sts}"} object represent different regions,
+    maps of the fitted mean components averaged over time (\code{"maps"}),
+    or a map of estimated region-specific intercepts (\code{"ri"}) of a
+    selected model component can be produced.
     \item Plot the (estimated) neighbourhood weights
     (\code{"neweights"}) as a function of neighbourhood order
     (shortest-path distance between regions), i.e., \code{w_ji ~ o_ji}.
@@ -29,21 +31,22 @@
 }
 
 \usage{
-\method{plot}{hhh4}(x, type=c("fitted", "season", "maxEV", "ri", "neweights"), ...)
+\method{plot}{hhh4}(x, type=c("fitted", "season", "maxEV", "maps", "ri", "neweights"), ...)
 
 plotHHH4_fitted(x, units = 1, names = NULL,
-                col = c("orange", "blue", "grey85", "black"),
-                pch = 19, pt.cex = 0.6,
+                col = c("grey85", "blue", "orange"),
+                pch = 19, pt.cex = 0.6, pt.col = 1,
                 par.settings = list(),
                 legend = TRUE, legend.args = list(),
-                legend.observed = FALSE, ...)
+                legend.observed = FALSE,
+                decompose = NULL, meanHHH = NULL, ...)
 
 plotHHH4_fitted1(x, unit = 1, main = NULL,
-                 col = c("grey30", "grey60", "grey85", "grey0"),
-                 pch = 19, pt.cex = 0.6, border = col, 
-                 start = x$stsObj@start, end = NULL,
+                 col = c("grey85", "blue", "orange"),
+                 pch = 19, pt.cex = 0.6, pt.col = 1, border = col, 
+                 start = x$stsObj@start, end = NULL, xaxis = NULL,
                  xlim = NULL, ylim = NULL, xlab = "", ylab = "No. infected",
-                 hide0s = FALSE, meanHHH = NULL)
+                 hide0s = FALSE, decompose = NULL, meanHHH = NULL)
 
 plotHHH4_season(..., components = NULL, intercept = FALSE,
                 xlim = NULL, ylim = NULL,
@@ -57,6 +60,12 @@ plotHHH4_maxEV(...,
                matplot.args = list(), refline.args = list(),
                legend.args = list())
 getMaxEV(x)
+
+plotHHH4_maps(x, which = c("mean", "endemic", "epi.own", "epi.neighbours"),
+              prop = FALSE, main = which, zmax = NULL,
+              col.regions = hcl.colors(10),
+              labels = FALSE, sp.layout = NULL, ...,
+              map = x$stsObj@map, meanHHH = NULL)
 
 plotHHH4_ri(x, component, labels = FALSE, sp.layout = NULL,
             gpar.missing = list(col = "darkgrey", lty = 2, lwd = 2),
@@ -74,10 +83,10 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     dominant eigenvalue (which may also be plotted along overall time by
     \code{type="maxEV"}, especially if the model contains time-varying
     neighbourhood weights or unit-specific epidemic effects),
+    or \code{"maps"} of the fitted mean components averaged over time,
     or a map of estimated region-specific random
     intercepts (\code{"ri"}) of a specific model \code{component}.
-    The latter requires the model \code{x} to contain the selected
-    random intercepts, and \code{x$stsObj} to contain a map.}
+    The latter two require \code{x$stsObj} to contain a map.}
   \item{\dots}{For \code{plotHHH4_season} and \code{plotHHH4_maxEV},
     one or more \code{\link{hhh4}}-fits, or a single list of these.
     Otherwise further arguments passed on to other functions.\cr
@@ -85,7 +94,7 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     \code{type} function.\cr
     \code{plotHHH4_fitted} passes them to \code{plotHHH4_fitted1}, which is called
     sequentially for every unit in \code{units}.\cr
-    \code{plotHHH4_ri} passes additional arguments to
+    \code{plotHHH4_maps} and \code{plotHHH4_ri} pass additional arguments to
     \code{\link{spplot}}, and \code{plotHHH4_neweights} to the
     \code{plotter}.}
   \item{units,unit}{integer or character vector specifying a single
@@ -100,12 +109,10 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     \code{plotHHH4_fitted1} will use the appropriate element of
     \code{colnames(x$stsObj)}, whereas \code{plotHHH4_season} uses
     default titles.}
-  \item{col,border}{length 4 vector specifying the colors for the
-    spatio-temporal, autoregressive, endemic, and observed elements in
-    this order. For \code{plotHHH4_fitted}, a length 3 vector also
-    works, in which case the default \code{"black"} will be used for the
-    dots of observed counts.}
-  \item{pch,pt.cex}{style specifications for the dots drawn to represent
+  \item{col,border}{length 3 vectors specifying the fill and border colors for the
+    endemic, autoregressive, and spatio-temporal component polygons (in
+    this order).}
+  \item{pch,pt.cex,pt.col}{style specifications for the dots drawn to represent
     the observed counts. \code{pch=NA} can be used to disable these dots.}
   \item{par.settings}{list of graphical parameters for
     \code{\link{par}}. Sensible defaults for \code{mfrow}, \code{mar} and
@@ -122,8 +129,18 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     \code{list(x="topright", inset=0.02)}.}
   \item{legend.observed}{logical indicating if the legend should contain
     a line for the dots corresponding to observed counts.}
+  \item{decompose}{if \code{TRUE} or (a permutation of)
+    \code{colnames(x$stsObj)}, the fitted mean will be decomposed
+    into the contributions from each single unit and the endemic part
+    instead of the default endemic + AR + neighbours decomposition.}
   \item{start,end}{time range to plot specified by vectors of length two
     in the form \code{c(year,number)}, see \code{"\linkS4class{sts}"}.}
+  \item{xaxis}{if this is a list (of arguments for
+    \code{\link{addFormattedXAxis}}, the time axis is nicely labelled
+    similar to \code{\link{stsplot_time}}.
+    Note that in this case, the time indexes \code{1:nrow(x$stsObj)}
+    will be used as x-values in the plot, which is different from the
+    long-standing default (\code{xaxis = NULL}) with a real time scale.}
   \item{xlim}{numeric vector of length 2 specifying the x-axis range.
     The default (\code{NULL}) is to plot the complete time range.}
   \item{ylim}{y-axis range.
@@ -162,6 +179,19 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
   \item{refline.args}{list of line style specifications passed to
     \code{\link{abline}} to draw the reference line in the plot of
     the dominant eigenvalue, e.g., \code{lty} and \code{col}.}
+  \item{which}{a character vector specifying the components of the mean
+    for which to produce maps. By default, the overall mean and all
+    three components are shown.}
+  \item{prop}{a logical indicating whether the component maps should
+    display proportions of the total mean instead of absolute numbers.}
+  \item{zmax}{a numeric vector of length \code{length(which)} (recycled
+    as necessary) specifying upper limits for the color keys of the
+    maps. The default is to use the same scale for the component maps
+    and a separate scale for the map showing the overall mean.}
+  \item{col.regions}{a vector of colors used to encode the fitted
+    component means (see \code{\link{levelplot}}).}
+  \item{map}{an object inheriting from \code{"\linkS4class{SpatialPolygons}"}
+    with \code{row.names} covering \code{colnames(x)}.}
   \item{component}{component for which to plot the estimated
     region-specific random intercepts. Must partially match one of
     \code{colnames(ranef(x, tomatrix=TRUE))}.}
@@ -206,9 +236,13 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
   \code{plotHHH4_maxEV} (invisibly) and \code{getMaxEV} return the
   dominant eigenvalue of the \eqn{\Lambda_t} matrix for all time points
   \eqn{t} of \code{x$stsObj}.\cr
-  \code{plotHHH4_ri} returns the generated \code{\link{spplot}}, which
-  is a \pkg{lattice} plot of class
-  \code{"\link[=trellis.object]{trellis}"}.\cr
+  \code{plotHHH4_maps} returns a \code{\link{trellis.object}} if
+  \code{length(which) == 1} (a single \code{\link{spplot}}), and
+  otherwise uses \code{\link[gridExtra]{grid.arrange}} from the
+  \pkg{gridExtra} package to arrange all \code{length(which)}
+  \code{\link{spplot}}s on a single page.
+  \code{plotHHH4_ri} returns the generated \code{\link{spplot}}, i.e.,
+  a \code{\link{trellis.object}}.\cr
   \code{plotHHH4_neweights} eventually calls \code{plotter} and
   thus returns whatever is returned by that function.
 }
@@ -243,12 +277,27 @@ measlesFit <- hhh4(measlesWeserEms, measlesModel)
 ## fitted values for a single unit
 plot(measlesFit, units=2)
 
+## 'xaxis' option for a nicely formatted time axis
+## default tick locations and labels:
+plot(measlesFit, units=2, xaxis=list(epochsAsDate=TRUE, line=1))
+## an alternative with monthly ticks:
+oopts <- surveillance.options(stsTickFactors = c("\%m"=0.75, "\%Y" = 1.5))
+plot(measlesFit, units=2, xaxis=list(epochsAsDate=TRUE,
+    xaxis.tickFreq=list("\%m"=atChange, "\%Y"=atChange),
+    xaxis.labelFreq=list("\%Y"=atMedian), xaxis.labelFormat="\%Y"))
+surveillance.options(oopts)
+
 ## plot the multiplicative effect of seasonality
 plot(measlesFit, type="season")
 
 ## dominant eigenvalue of the Lambda matrix (cf. Held and Paul, 2012)
 getMaxEV(measlesFit)  # here simply constant and equal to exp(ar.1)
 plot(measlesFit, type="maxEV")  # not very exciting
+
+## fitted mean components by district averaged over time
+if (requireNamespace("gridExtra"))
+    plot(measlesFit, type="maps", labels=list(cex=0.6),
+         main=c("Total","Endemic","Within district","From other districts"))
 
 ## random intercepts of the endemic component
 plot(measlesFit, type="ri", component="end", labels=list(font=3, labels="GEN"))
@@ -263,6 +312,9 @@ plot(measlesFit, units=bigunits,
      legend=5, legend.args=list(x="top"), xlab="Time (weekly)",
      hide0s=TRUE, ylim=c(0,max(observed(measlesWeserEms)[,bigunits])),
      start=c(2002,1), end=c(2002,26), par.settings=list(xaxs="i"))
+
+## plot completely decomposed mean structure (useless without 'ne' component)
+plot(measlesFit, units=bigunits, col=rainbow(measlesFit$nUnit), decompose=TRUE)
 }
 
 \keyword{hplot}

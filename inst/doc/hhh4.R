@@ -117,9 +117,7 @@ data("measlesDE")
 measles2w <- aggregate(measlesDE, nfreq = 26)
 
 plot(measles2w, type = observed ~ time,   # plot aggregated over all units i
-                   main = "Bi-weekly number of measles cases in Germany", 
-                   legend.opts = NULL        # suppress default legend
-                   )
+     main = "Bi-weekly number of measles cases in Germany")
 
 
 ###################################################
@@ -280,7 +278,7 @@ if(compute){
 
 
 ###################################################
-### code chunk number 21: hhh4.Rnw:629-630
+### code chunk number 21: hhh4.Rnw:627-628
 ###################################################
 s.B2
 
@@ -298,7 +296,7 @@ s.B2
 
 
 ###################################################
-### code chunk number 24: hhh4.Rnw:651-652
+### code chunk number 24: hhh4.Rnw:649-650
 ###################################################
 meanSc.B2[ c("logs", "rps")]
 
@@ -320,7 +318,7 @@ colnames(vac0) <- colnames(measles2w)
 
 
 ###################################################
-### code chunk number 26: hhh4.Rnw:684-685
+### code chunk number 26: hhh4.Rnw:682-683
 ###################################################
 vac0[1:2, 1:5]
 

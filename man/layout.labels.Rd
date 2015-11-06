@@ -17,7 +17,8 @@ spatial object, and \code{layout.scalebar} returns a labeled scale bar.
 layout.labels(obj, labels = TRUE, plot = FALSE)
 
 layout.scalebar(obj, corner = c(0.05, 0.95), scale = 1,
-                labels = c(0, scale), height = 0.05, plot = FALSE)
+                labels = c(0, scale), height = 0.05,
+                pos = 3, ..., plot = FALSE)
 }
 
 \arguments{
@@ -53,6 +54,16 @@ layout.scalebar(obj, corner = c(0.05, 0.95), scale = 1,
   }
   \item{height}{
     the height of the scale bar, see \code{\link{layout.scale.bar}}.
+  }
+  \item{pos}{
+    a position specifier for the labels (see \code{\link{text}}).
+    By default, the labels are plotted above the scale bar.
+  }
+  \item{\dots}{
+    further arguments for \code{\link[lattice]{panel.text}} (if
+    \code{plot = FALSE}) or \code{\link{text}} (if \code{plot = TRUE})
+    to change the style of the labels, e.g., \code{cex}, \code{col},
+    and \code{font}.
   }
   \item{plot}{
     logical indicating if the layout item should be plotted using the
@@ -93,7 +104,7 @@ spplot(mapWE, zcol = "AREA", sp.layout = c(list(li1), li2),
 load(system.file("shapes", "districtsD.RData", package = "surveillance"))
 bavaria <- districtsD[substr(row.names(districtsD), 1, 2) == "09", ]
 sb <- layout.scalebar(bavaria, corner = c(0.75,0.9), scale = 50,
-                      labels = c("0", "50 km"))
+                      labels = c("0", "50 km"), cex = 0.8)
 spplot(bavaria, zcol = "POPULATION", sp.layout = sb,
        xlab = "x [km]", ylab = "y [km]", scales = list(draw = TRUE),
        col.regions = rev(heat.colors(100)))

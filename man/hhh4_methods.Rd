@@ -11,6 +11,7 @@
 \alias{fixef}
 \alias{fixef.hhh4}
 \alias{ranef.hhh4}
+\alias{coeflist.hhh4}
 \alias{confint.hhh4}
 % FIXME: functions without documentation atm
 %% \alias{print.summary.hhh4}
@@ -35,6 +36,7 @@ from a call to \code{\link{hhh4}}.
      idx2Exp = NULL, amplitudeShift = FALSE, ...)
 \method{fixef}{hhh4}(object, ...)
 \method{ranef}{hhh4}(object, tomatrix = FALSE, ...)
+\method{coeflist}{hhh4}(x, ...)
 
 \method{formula}{hhh4}(x, ...)
 \method{nobs}{hhh4}(object, ...)
@@ -56,8 +58,8 @@ from a call to \code{\link{hhh4}}.
     this may take some seconds depending on the number of time points
     and units in \code{object$stsObj}.}
   \item{\dots}{
-    For the \code{print}, \code{summary}, \code{fixef} and \code{ranef}
-    methods: arguments passed to \code{coef}.\cr
+    For the \code{print}, \code{summary}, \code{fixef}, \code{ranef},
+    and \code{coeflist} methods: arguments passed to \code{coef}.\cr
     For the remaining methods: unused (argument of the generic).
   }
   \item{reparamPsi}{
@@ -66,8 +68,11 @@ from a call to \code{\link{hhh4}}.
     to standard scale, where zero corresponds to a Poisson distribution. 
   }
   \item{se}{logical switch indicating if standard errors are required}
-  \item{idx2Exp}{vector with integers idicating the parameters
-    which should be returned on exp-scale.}
+  \item{idx2Exp}{integer vector selecting the parameters
+    which should be returned on exp-scale.
+    Alternatively, \code{idx2Exp = TRUE} will exp-transform all
+    parameters except for those associated with \code{log()} covariates
+    or already affected by \code{reparamPsi} or \code{amplitudeShift}.}
   \item{amplitudeShift}{logical switch indicating whether the parameters
    for sine/cosine terms modelling seasonal patterns 
    (see \code{\link{addSeason2formula}}) should be transformed
@@ -93,6 +98,8 @@ from a call to \code{\link{hhh4}}.
   Held (2011). 
   If the model includes random effects, those can be extracted with
   \code{ranef}, whereas \code{fixef} returns the fixed parameters.
+  The \code{coeflist}-method extracts the model coefficients in a list
+  (by parameter group).
 
   The \code{\link{formula}}-method returns the formulae used for the
   three log-linear predictors in a list with elements \code{"ar"},

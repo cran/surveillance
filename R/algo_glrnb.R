@@ -1,5 +1,5 @@
 ###################################################
-### chunk number 1: 
+### chunk number 1:
 ###################################################
 
 ######################################################################
@@ -20,7 +20,7 @@ algo.glrnb <- function(disProgObj,
 
   #Small helper function
   either <- function(cond, whenTrue, whenFalse) { if (cond) return(whenTrue) else return(whenFalse) }
-  
+
   # Set the default values if not yet set
   if(is.null(control[["c.ARL",exact=TRUE]]))
     control$c.ARL <- 5
@@ -57,8 +57,8 @@ algo.glrnb <- function(disProgObj,
   control$ret <- match.arg(control$ret, c("value","cases"))
   ret <- pmatch(control$ret,c("value","cases"))
   mod <- list()
-  
- 
+
+
 
   # Estimate m (the expected number of cases), i.e. parameter lambda of a
   # poisson distribution based on time points 1:t-1
@@ -72,21 +72,21 @@ algo.glrnb <- function(disProgObj,
 
     #Estimate using a hook function (lazy evaluation)
     control$mu0 <- estimateGLRNbHook()$pred
-    
+
     mod[[1]] <- estimateGLRNbHook()$mod
-    
+
     # if it is necessary to estimate alpha. Note: glm.nb uses a different
     # parametrization of the negative binomial distribution, i.e. the
     # variance is 'mu + mu^2/size' (?dnbinom).
     # Hence the correct alpha is 1/theta
     if(is.null(control[["alpha",exact=TRUE]])) control$alpha <- 1/mod[[1]]$theta
   }
-  
+
    #Postprocess
   if ((control$alpha>0) & (control$ret == "cases") & (is.null(control[["theta",exact=TRUE]]))) {
     stop("Return of cases is currently not implemented for the GLR detector based on the negative binomial distribution!")
   }
-	
+
   #The counts
   x <- observed[control$range]
   mu0 <- control$mu0
@@ -95,8 +95,8 @@ algo.glrnb <- function(disProgObj,
   # start with cusum[timePoint -1] = 0, i.e. set cusum[1] = 0
   alarm <- matrix(data = 0, nrow = length(t), ncol = 1)
   upperbound <- matrix(data = 0, nrow = length(t), ncol = 1)
-  
-  
+
+
   #Setup counters for the progress
   doneidx <- 0
   N <- 1
@@ -112,11 +112,11 @@ algo.glrnb <- function(disProgObj,
         if (control$alpha == 0) { #poisson
 
           if (control$M > 0 ){ # window limited
-          
+
           	res <- .C("glr_cusum_window",as.integer(x),as.double(mu0),length(x),as.integer(control$M),as.integer(control$Mtilde),as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(dir),as.integer(ret),PACKAGE="surveillance")
-        } 
+        }
         	else { # standard
-        
+
         	res <- .C("glr_cusum",as.integer(x),as.double(mu0),length(x),as.integer(control$Mtilde),as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(dir),as.integer(ret),PACKAGE="surveillance")
 
         	}
@@ -142,9 +142,9 @@ algo.glrnb <- function(disProgObj,
         }
       }
     }
-    
-     #In case an alarm found log this and reset the chart at res$N+1
-    if (res$N < length(x)) {
+
+    ##In case an alarm found log this and reset the chart at res$N+1
+    if (res$N <= length(x)) {
       #Put appropriate value in upperbound
       upperbound[1:res$N + doneidx]  <- either(ret == 1, res$val[1:res$N] ,res$cases[1:res$N])
       alarm[res$N + doneidx] <- TRUE
@@ -159,9 +159,9 @@ algo.glrnb <- function(disProgObj,
         #Update the range (how to change back??)
         range <- range[-(1:res$N)]
         mu0 <- estimateGLRNbHook()$pred
-        mod[[noofalarms+2]] <-  estimateGLRNbHook()$mod 
+        mod[[noofalarms+2]] <-  estimateGLRNbHook()$mod
         control$mu0[(doneidx + res$N + 1):length(control$mu0)] <- mu0
-        #Note: No updating of alpha is currently done. 
+        #Note: No updating of alpha is currently done.
       }
 
       noofalarms <- noofalarms + 1
@@ -172,11 +172,11 @@ algo.glrnb <- function(disProgObj,
 
 
 
-  # fix of the problem that no upperbound-statistic is returned after 
+  #fix of the problem that no upperbound-statistic is returned after
   #last alarm
   upperbound[(doneidx-res$N+1):nrow(upperbound)] <- either(ret == 1, res$val, res$cases)
-  
-  #fix of the problem that no upperbound-statistic is returned 
+
+  #fix of the problem that no upperbound-statistic is returned
   #in case of no alarm
   if (noofalarms == 0) {
     upperbound <- either(ret==1, res$val, res$cases)
@@ -185,8 +185,8 @@ algo.glrnb <- function(disProgObj,
   # ensure upper bound is positive and not NaN
   upperbound[is.na(upperbound)] <- 0
   upperbound[upperbound < 0] <- 0
-  
- 
+
+
   # Add name and data name to control object
   algoName <- either(control$alpha == 0, "glrpois:", "glrnb:")
   control$name <- paste(algoName, control$change)
@@ -195,7 +195,7 @@ algo.glrnb <- function(disProgObj,
   control$mu0Model$fitted <- mod
 
   # return alarm and upperbound vectors
-  result <- list(alarm = alarm, upperbound = upperbound, 
+  result <- list(alarm = alarm, upperbound = upperbound,
                  disProgObj=disProgObj,control=control)
 
   class(result) = "survRes" # for surveillance system result
@@ -204,7 +204,7 @@ algo.glrnb <- function(disProgObj,
 
 
 ###################################################
-### chunk number 2: 
+### chunk number 2:
 ###################################################
 estimateGLRNbHook <- function() {
   #Fetch control object from parent
@@ -217,7 +217,7 @@ estimateGLRNbHook <- function() {
   #Define training & test data set (the rest)
   train <- 1:(range[1]-1)
   test <- range
-  
+
   #Perform an estimation based on all observations before timePoint
   #Event better - don't do this at all in the algorithm - force
   #user to do it himself - coz its a model selection problem

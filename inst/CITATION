@@ -70,6 +70,20 @@ bibentry(
     doi = "10.1191/1471082X05st098oa"
 )
 
+bibentry(
+    bibtype = "Article",
+    header = "If calibrationTest() is used, cite:",
+    author = c(person("Wei", "Wei"), authors["LH"]),
+    title = "Calibration tests for count data",
+    journal = "Test",
+    issn = "1133-0686",
+    year = "2014",
+    volume = "23",
+    number = "4",
+    pages = "787--805",
+    doi = "10.1007/s11749-014-0380-8"
+)
+
 
 ################
 ### twinstim ###

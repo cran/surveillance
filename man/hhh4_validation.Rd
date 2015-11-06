@@ -2,6 +2,11 @@
 \name{hhh4_validation}
 \alias{oneStepAhead}
 \alias{scores}
+\alias{scores.oneStepAhead}
+\alias{scores.hhh4}
+\alias{calibrationTest.oneStepAhead}
+\alias{pit.oneStepAhead}
+\alias{pit.hhh4}
 
 \title{Predictive Model Assessment for \code{hhh4} Models}
 \description{
@@ -9,9 +14,13 @@
   predictions for a (random effects) HHH model fitted by \code{\link{hhh4}}. 
 
   The function \code{scores} computes a number of (strictly) proper
-  scoring rules based on such one-step-ahead predictions.
+  scoring rules based on such one-step-ahead predictions
+  (or, for the \code{hhh4}-method, directly based on the fitted values).
 
   See Paul and Held (2011) for further details.
+
+  There are also \code{\link{calibrationTest}} and \code{\link{pit}}
+  methods for \code{oneStepAhead} predictions.
 }
 
 \usage{
@@ -19,8 +28,16 @@ oneStepAhead(result, tp, type = c("rolling", "first", "final"),
              which.start = c("current", "final"),
              keep.estimates = FALSE, verbose = TRUE, cores = 1)
 
-scores(object, which = c("logs", "rps", "dss", "ses"), units = NULL,
-       sign = FALSE, individual = FALSE)
+scores(x, ...)
+\method{scores}{oneStepAhead}(x, which = c("logs", "rps", "dss", "ses"),
+       units = NULL, sign = FALSE, individual = FALSE, reverse = TRUE, ...)
+\method{scores}{hhh4}(x, which = c("logs", "rps", "dss", "ses"),
+       subset = x$control$subset, units = seq_len(x$nUnit), sign = FALSE, ...)
+
+\method{calibrationTest}{oneStepAhead}(x, ...)
+
+\method{pit}{oneStepAhead}(x, ...)
+\method{pit}{hhh4}(x, subset = x$control$subset, units = seq_len(x$nUnit), ...)
 }
 
 \arguments{
@@ -45,13 +62,16 @@ scores(object, which = c("logs", "rps", "dss", "ses"), units = NULL,
     \code{result$fitted.values}, if the \code{tp}'s are part of the
     fitted subset \code{result$control$subset}.}
   \item{which.start}{
-    Which initial values should be used when successively
-    refitting the model for subsets of the data (up to time point
+    Which initial parameter values should be used when successively
+    refitting the model to subsets of the data (up to time point
     \code{tp[1]}, up to \code{tp[1]+1}, ...) if \code{type="rolling"}?
-    Default (\code{"current"}) is to use the fitted parameters from the
-    previous time point. Alternatively, \code{"final"} means to always
-    use the fitted values from \code{result} as initial values for the
-    model update. \code{which.start} is ignored for other \code{type}s.
+    Default (\code{"current"}) is to use the parameter estimates from the
+    previous time point, and \code{"final"} means to always
+    use the estimates from \code{result} as initial values.
+    Alternatively, \code{which.start} can be a list of \code{start}
+    values as expected by \code{\link{hhh4}}, which then replace
+    the corresponding estimates from \code{result} as initial values.
+    This argument is ignored for \dQuote{non-rolling} \code{type}s.
   }
   \item{keep.estimates}{
     logical indicating if parameter estimates and log-likelihoods from
@@ -71,7 +91,7 @@ scores(object, which = c("logs", "rps", "dss", "ses"), units = NULL,
     \code{type="rolling"} and \code{which.start="current"} (use
     \code{which.start="final"} for this to work).}
   
-  \item{object}{result of \code{oneStepAhead}.}
+  \item{x}{an object of class \code{"oneStepAhead"} or \code{"hhh4"}.}
   \item{which}{character vector determining which scores to compute.
     The package \pkg{surveillance} implements the following proper
     scoring rules: logarithmic score (\code{"logs"}), ranked probability
@@ -80,14 +100,18 @@ scores(object, which = c("logs", "rps", "dss", "ses"), units = NULL,
     (\code{"nses"}) is also available but it is improper and not
     computed by default.\cr
     It is possible to name own scoring rules in \code{which}. These
-    must be functions of \code{(x, mu, size)}, where all arguments are
-    time x unit matrices, except that \code{size} is \code{NULL}
+    must be functions of \code{(x, mu, size)}, vectorized in all arguments
+    (time x unit matrices) except that \code{size} is \code{NULL}
     in case of a Poisson model.
-    See the package-internal scoring rules for guidance, e.g.,
-    \code{surveillance:::logs} or \code{surveillance:::dss}.}
+    See the supplied scoring rules for guidance, e.g.,
+    \code{\link{logs}} or \code{\link{dss}}.}
+  \item{subset}{
+    subset of time points for which to calculate the scores
+    (or the PIT histogram).
+    Defaults to the subset used for fitting the model.}
   \item{units}{integer or character vector indexing the units for which
-    the scores should be computed. By default (\code{NULL}) all units
-    are considered.}
+    the scores (or the PIT histogram) should be computed.
+    By default (\code{NULL}) all units are considered.}
   \item{sign}{logical indicating if the function should also return
     \code{sign(x-mu)}, i.e., the sign of the difference between
     the observed counts and corresponding predictions.
@@ -96,10 +120,20 @@ scores(object, which = c("logs", "rps", "dss", "ses"), units = NULL,
   \item{individual}{logical indicating if the individual scores of the
     \code{units} should be returned. By default (\code{FALSE}), the
     individual scores are averaged over all \code{units}.}
+  \item{reverse}{logical indicating if the rows (time points) should be
+    reversed in the result (historical default for the
+    \code{oneStepAhead}-method).}
+  \item{\dots}{Unused by the \code{scores}-methods.\cr
+    For the \code{calibrationTest}-method, further arguments are passed
+    to \code{\link{calibrationTest.default}}, e.g., \code{which} to
+    select a scoring rule.\cr
+    For the \code{pit}-methods, further arguments are passed to
+    \code{\link{pit.default}}.}
 }
 
 \value{
-\code{oneStepAhead} returns a list with the following components:
+\code{oneStepAhead} returns a list (of class \code{"oneStepAhead"})
+with the following components:
 \item{pred}{one-step-ahead predictions in a matrix, where each row
   corresponds to one of the time points requested via the argument
   \code{tp}, and which has \code{ncol(result$stsObj)}
@@ -110,8 +144,8 @@ scores(object, which = c("logs", "rps", "dss", "ses"), units = NULL,
 \item{psi}{in case of a negative-binomial model, a matrix of the
   estimated overdispersion parameter(s) at each time point on 
   the internal -log-scale (1 column if \code{"NegBin1"},
-  \code{ncol(observed)} columns if \code{"NegBinM"}). For a
-  \code{"Poisson"} model, this component is \code{NULL}.}
+  \code{ncol(observed)} columns if \code{"NegBinM"} or shared overdispersion). 
+  For a \code{"Poisson"} model, this component is \code{NULL}.}
 \item{allConverged}{logical indicating if all successive fits
   converged.}
 
@@ -131,7 +165,14 @@ result is an array of dimensions
 Otherwise, the result is a matrix with \code{nrow(pred)} rows and
 \code{5+sign} columns. If there is only one predicted time point, the
 first dimension is dropped in both cases.
-CAVE: The order of the rows (time points) is reversed!
+CAVE: For historical reasons, \code{scores.oneStepAhead} by default
+\code{reverse}s the order of the rows (time points)!
+The \code{hhh4}-method of \code{scores} does not reverse rows.
+
+
+The \code{\link{calibrationTest}}- and \code{\link{pit}}-methods are
+just convenient wrappers around the respective default methods.
+See also \code{\link{calibrationTest.hhh4}}.
 }
 
 \references{
@@ -183,10 +224,19 @@ stopifnot(identical(
     unname(tail(fitted(result), 5))))
 
 ## compute scores
-(sc <- scores(pred))
+(sc <- scores(pred, reverse = FALSE))
 
-## compute mean scores
-colMeans(sc)
+## scores with respect to the fitted values are similar
+(scFitted <- scores(result, subset = nrow(salmonella)-c(4:0)))
+
+\dontshow{
+## test that scFitted is equivalent to scores(oneStepAhead(..., type = "final"))
+stopifnot(all.equal(
+    scFitted,
+    scores(oneStepAhead(result, nrow(salmonella)-5, type="final", verbose=FALSE),
+           reverse = FALSE),
+    check.attributes = FALSE))
+}
 
 ## plot a (non-randomized) PIT histogram for the predictions
 with(pred, pit(x = observed, pdistr = "pnbinom", mu = pred, size = exp(psi)))

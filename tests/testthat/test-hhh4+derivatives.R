@@ -74,7 +74,6 @@ test_that("automatic and manual normalization are equivalent", {
                 normalize = TRUE # -> use scaleNEweights.list()
                 )))
         )
-    .ignore <- c("call", "control", "runtime")
-    measlesFit[.ignore] <- measlesFit2[.ignore] <- NULL
-    expect_equal(measlesFit, measlesFit2)
+    expect_equal(measlesFit, measlesFit2, ignore = "control",
+                 tolerance = 1e-6) # increased to pass on 32-bit Windows
 })

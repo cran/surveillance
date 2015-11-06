@@ -22,7 +22,8 @@
 \usage{
 \method{animate}{sts}(object, tps = NULL, cumulative = FALSE,
         population = NULL, at = 10, ...,
-        timeplot = list(height = 0.3), sleep = 0.5, verbose = interactive())
+        timeplot = list(height = 0.3),
+        sleep = 0.5, verbose = interactive(), draw = TRUE)
 }
 
 \arguments{
@@ -63,10 +64,21 @@
     during generation of the animation -- which may take a while.
     Default is to do so in \code{\link{interactive}} sessions.
   }
+  \item{draw}{
+    logical indicating if the produced plots at each time point should
+    be drawn directly (the default) or not.
+    The setting \code{draw = FALSE} is useful if one would like to
+    manually arrange the plots, which are always returned invisibly in a
+    list of length \code{length(tps)}.
+  }
 }
 
 \value{
-  \code{NULL} (invisibly)
+  (invisibly) a list of the \code{length(tps)} sequential plot objects
+  of class \code{"\code{\link[gtable]{gtable}}"}
+  (if the the \code{timeplot} is active) or of class
+  \code{"\code{\link[=trellis.object]{trellis}"}
+  (otherwise).
 }
 
 \references{

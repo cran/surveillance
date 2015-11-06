@@ -29,7 +29,7 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
 \usage{
 \method{print}{twinstim}(x, digits = max(3, getOption("digits") - 3), ...)
 \method{summary}{twinstim}(object, test.iaf = FALSE,
-        correlation = FALSE, symbolic.cor = FALSE, ...)
+        correlation = FALSE, symbolic.cor = FALSE, runtime = FALSE, ...)
 
 \method{coeflist}{twinstim}(x, ...)
 \method{vcov}{twinstim}(object, ...)
@@ -71,6 +71,11 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
   \item{symbolic.cor}{
     logical. If \code{TRUE}, print the correlations in a symbolic form (see
     \code{symnum}) rather than as numbers.
+  }
+  \item{runtime}{
+    logical. If \code{TRUE}, the summary additionally includes the time
+    elapsed and the number of log-likelihood and score function evaluations
+    during model fittting.
   }
   \item{signif.stars}{logical. If \code{TRUE}, \dQuote{significance
       stars} are printed for each coefficient.}
@@ -176,14 +181,14 @@ logLik(imdepifit)
 AIC(imdepifit)
 nobs(imdepifit)
 
-# summary method
-summary(imdepifit, test.iaf=FALSE, correlation=TRUE, symbolic.cor=TRUE)
+# produce a summary with parameter correlations and runtime information
+(s <- summary(imdepifit, correlation=TRUE, symbolic.cor=TRUE, runtime=TRUE))
 
 # create LaTeX code of coefficient table
-toLatex(summary(imdepifit), withAIC=FALSE)
+toLatex(s, withAIC=FALSE)
 
 # or using the xtable-method (which produces rate ratios)
-xtable(summary(imdepifit))
+xtable(s)
 }
 
 \keyword{methods}

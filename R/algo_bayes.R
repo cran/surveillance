@@ -1,5 +1,5 @@
 ###################################################
-### chunk number 1: 
+### chunk number 1:
 ###################################################
 
 
@@ -21,7 +21,7 @@ algo.bayesLatestTimepoint <- function(disProgObj, timePoint = NULL, control = li
   }
 
   #If no level specified.
-  
+
   # check if the vector observed includes all necessary data.
   if((timePoint-(control$b*freq)-control$w) < 1){
         stop("The vector of observed is too short!")
@@ -46,13 +46,13 @@ algo.bayesLatestTimepoint <- function(disProgObj, timePoint = NULL, control = li
   sumBasevec <- sum(basevec, na.rm=TRUE)
   lengthBasevec <- sum(!is.na(basevec))
 
-  # compute the upper limit of a one sided (1-alpha)*100% CI.
-  upCi <- qnbinom(1-control$alpha, sumBasevec + 1/2, (lengthBasevec)/(lengthBasevec + 1))
+  # compute the upper limit of a one sided (1-alpha)*100% prediction interval.
+  upPI <- qnbinom(1-control$alpha, sumBasevec + 1/2, (lengthBasevec)/(lengthBasevec + 1))
 
   # give alarm if the actual value is larger than the upper limit.
-  alarm <- observed[timePoint] >= upCi
+  alarm <- observed[timePoint] > upPI
 
-  result <- list(alarm=alarm, upperbound=upCi, disProgObj=disProgObj)
+  result <- list(alarm=alarm, upperbound=upPI, disProgObj=disProgObj)
   class(result) = "survRes" # for surveillance system result
 
   return(result)

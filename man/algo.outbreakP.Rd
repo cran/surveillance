@@ -7,7 +7,7 @@
   Frisen and Andersson (2009) method for semiparametric surveillance of outbreaks
 }
 \usage{
-    algo.outbreakP(disProgObj, control = list(range = range, k=100, 
+    algo.outbreakP(disProgObj, control = list(range = range, k=100,
                    ret=c("cases","value"),maxUpperboundCases=1e5))
 }
 \arguments{
@@ -36,7 +36,7 @@
     \code{algo.outbreakP} gives a list of class \code{survRes} which
     includes the vector of alarm values for every time-point in
     \code{range}, the vector of threshold values for every time-point
-    in \code{range}.  
+    in \code{range}.
   }
 }
 \details{
@@ -65,7 +65,7 @@
  observation by one for each time point in \code{control$range} and
  then calling the workhorse function of the algorithm again. The argument
  \code{control$maxUpperboundCases} controls the upper limit of this
- search (default is 1e5). 
+ search (default is 1e5).
  Currently, even though the statistic has passed the threshold, the NNBA
  is still computed. After a few time instances what typically happens is
  that no matter the observed value we would have an alarm at this time point. In this case the value of NNBA is set to \code{NA}. Furthermore, the first time
@@ -80,15 +80,17 @@
  project. A manual on how to use an Excel implementation of the method
  is available at \url{http://economics.handels.gu.se/english/Units+and+Centra/statistical_research_unit/software}.
 
- The R code contains e.g. the search for NNBA (see details).
+ An additional feature of the R code is that it contains a search for
+ NNBA (see details).
 }
-\author{M. \enc{Höhle}{Hoehle} -- based on Java code by Frisen and \enc{Schiöler}{Schioeler}}
+\author{M. \enc{Höhle}{Hoehle} -- based on Java code by M. Frisen and
+  L. \enc{Schiöler}{Schioeler}}
 \references{
-\enc{Frisén}{Frisen}, Andersson and \enc{Schiöler}{Schioeler} (2009), Robust
+\enc{Frisén}{Frisen}, M., Andersson and \enc{Schiöler}{Schioeler}, L., (2009), Robust
 outbreak surveillance of epidemics in Sweden, Statistics in
 Medicine, 28(3):476-493.
 
-\enc{Frisén}{Frisen} and Andersson (2009) Semiparametric
+\enc{Frisén}{Frisen}, M. and Andersson, E., (2009) Semiparametric
 Surveillance of Monotonic Changes, Sequential Analysis 28(4):434-454.
 }
 \examples{
@@ -101,11 +103,11 @@ mysts <- new("sts", observed=y, epoch=1:length(y), alarm=y*0,
 
 #Run the algorithm and present results
 #Only the value of outbreakP statistic
-upperbound(outbreakP(mysts, control=list(range=1:length(y),k=100, 
+upperbound(outbreakP(mysts, control=list(range=1:length(y),k=100,
            ret="value")))
 
 #Graphical illustration with number-needed-before-alarm (NNBA) upperbound.
-res <- outbreakP(mysts, control=list(range=1:length(y),k=100, 
+res <- outbreakP(mysts, control=list(range=1:length(y),k=100,
            ret="cases"))
 plot(res,dx.upperbound=0,lwd=c(1,1,3),legend.opts=list(legend=c("Infected",
       "NNBA","Outbreak","Alarm"),horiz=TRUE))

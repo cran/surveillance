@@ -9,8 +9,6 @@ setAs(from="ts", to="sts", def = function (from)  {
   #Extract core data of the object
   theData <- unclass(from)
   attr(theData, "tsp") <- NULL
-  #Get length
-  length <- if (is.vector(theData)) length(theData) else nrow(theData)
   
   #Check that the elemtns are actually counts
   if (!is.integer(as.vector(from))) {
@@ -18,7 +16,9 @@ setAs(from="ts", to="sts", def = function (from)  {
   }
   
   #Create the sts object
-  new("sts", observed=theData, epoch=1:length,alarm=NULL, start = c(trunc(fromtsp[1]),abs(fromtsp[1]-trunc(fromtsp[1]))*fromtsp[3]), freq = fromtsp[3])
+  sts(observed = theData,
+      start = c(trunc(fromtsp[1]), abs(fromtsp[1]-trunc(fromtsp[1]))*fromtsp[3]),
+      freq = fromtsp[3])
 })
 
 ### Convert an "sts" object to a simple "ts" object

@@ -35,10 +35,10 @@ reset.surveillance.options()
       }
       
       \item{stsTickFactors:}{
-	A named list containing tick sizes of sts xaxis relative to
-	par()$tcl. Each entry contains the size at \code{strptime}
-	formatting strings. See the help of the plotting function for
-	further details.
+	A named vector containing tick sizes for the \code{"sts"} x-axis relative to
+	\code{\link{par}("tcl")}. Each entry contains the size at \code{\link{strptime}}
+	formatting strings. See the help on \code{\link{stsplot_time1}} for
+	details.
 	\describe{
 	  \item{"\%d"}{}
 	  \item{"\%W"}{}

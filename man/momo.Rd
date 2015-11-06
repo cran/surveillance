@@ -35,7 +35,7 @@
 }
 \examples{
 data("momo")
-plot(momo, legend.opts=NULL)
+plot(momo)
 }
 \references{
   H\enc{ö}{oe}hle, M. and A. Mazick, A. (2009) Aberration detection in R

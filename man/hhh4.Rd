@@ -48,7 +48,7 @@ hhh4(stsObj,
                           variance = list(method="nlminb")),
          verbose = FALSE,
          start = list(fixed=NULL, random=NULL, sd.corr=NULL),
-         data = list(t = epoch(stsObj)-1),
+         data = list(t = stsObj@epoch - min(stsObj@epoch)),
          keep.terms = FALSE
      ),
      check.analyticals = FALSE)
@@ -108,9 +108,14 @@ hhh4(stsObj,
 	}
       }
       \item{\code{family}}{Distributional family -- either \code{"Poisson"},
-	or the Negative Binomial distribution with one common
-	overdispersion parameter for all units (\code{"NegBin1"}) or an
-	overdispersion parameter for each unit (\code{"NegBinM"}).
+	or the Negative Binomial distribution. For the latter, the
+	overdispersion parameter can be assumed to be the same for all
+        units (\code{"NegBin1"}), to vary freely over all units
+	(\code{"NegBinM"}), or to be shared by some units (specified by
+        a factor of length \code{ncol(stsObj)} such that its number of
+        levels determines the number of overdispersion parameters).
+        Note that \code{"NegBinM"} is equivalent to
+        \code{factor(colnames(stsObj), levels = colnames(stsObj))}.
       }
       \item{\code{subset}}{Typically \code{2:nrow(obs)} if model contains
 	autoregression}
@@ -274,11 +279,7 @@ summary(res3, idx2Exp=1:2, amplitudeShift=TRUE)
                    dimnames = c(dimnames(neighbourhood(measles)), list(NULL)))
 res3_tv <- hhh4(measles, control = modifyList(model3,
                 list(ne=list(weights=.neweights))))
-.disregardComponents <- function(obj) {
-    obj$call <- obj$control$ne$weights <- obj$runtime <- NULL
-    obj
-}
-stopifnot(all.equal(.disregardComponents(res3), .disregardComponents(res3_tv)))
+stopifnot(all.equal(res3, res3_tv, ignore = "control"))
 }
 
 \dontrun{

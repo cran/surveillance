@@ -83,6 +83,11 @@ setMethod("initialize", "stsNC", init.stsNC)
 setMethod(f="plot", signature=signature(x="stsNC", y="missing"),
           function (x, type = observed ~ time | unit, ...) {
 
+              ## environment of hook function will be set to evaluation 
+              ## environment of stsplot_time1() and only then be called
+              legend.opts <- lty <- lwd <-
+                  "accommodate tools:::.check_code_usage_in_package()"
+              
               #Hook function specifically for nowcasting objects.
               nowcastPlotHook <- function() {
                   #Define some colors for the plotting as well as some plot symbols
@@ -117,7 +122,7 @@ setMethod(f="plot", signature=signature(x="stsNC", y="missing"),
                   return(invisible())
               }
 
-              invisible(callNextMethod(x=x,y=y,.hookFuncInheritance=nowcastPlotHook,...))
+              callNextMethod(x=x, type=type, ..., .hookFuncInheritance=nowcastPlotHook)
           })
 
 

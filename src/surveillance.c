@@ -1,5 +1,5 @@
 /**
-   
+
   C routines for the surveillance package
 
   Author: (C) Michael Höhle <http://www.stat.uni-muenchen.de/~hoehle>
@@ -9,12 +9,12 @@
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
- 
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program; if not, a copy is available at
   http://www.r-project.org/Licenses/
@@ -73,7 +73,7 @@ static R_INLINE double sqr(double x) {
   c_ARL- when to sound alarm threshold
   ret_N- here the return value is stored
   ret_lr- GLR value for each n to be returned
-  ret_cases - The number of cases to be returned 
+  ret_cases - The number of cases to be returned
   ret - what should be returned (value of lr-statistic, cases)?
 **********************************************************************/
 
@@ -83,9 +83,9 @@ void lr_cusum(int* x,double* mu0, int *lx_R, double *kappa_R, double *c_ARL_R,in
   double c_ARL = *c_ARL_R;
   double kappa = *kappa_R;
   int ret = *ret_R;
-  
+
   /* Loop variables */
-  register int n=0; 
+  register int n=0;
   int stop = 0;
   int N = lx;
 
@@ -94,17 +94,21 @@ void lr_cusum(int* x,double* mu0, int *lx_R, double *kappa_R, double *c_ARL_R,in
     /*Compute for one n*/
     /*printf("n=%d\n",n);*/
 
-    
+
     double zn = kappa * x[n] + (1-exp(kappa))*mu0[n];
+
+#ifdef DEBUG
+    printf("For kappa=%f and mu[%d]=%f:\tx[%d]=%f, LR=%f\n",kappa,n,mu0[n],n,x[n],zn);
+#endif
 
     /* Add up */
     if (n==0) {
       ret_lr[n] = fmax(0,zn);
-      /*5.11.2009 -- Bug fix. There was a small programming error for the 
+      /*5.11.2009 -- Bug fix. There was a small programming error for the
 	computing the cases for n==0.
 	if (ret==2) ret_cases[n] = (c_ARL + mu0[n]*(kappa-1))/kappa ; */
       if (ret==2) ret_cases[n] = (c_ARL + mu0[n]*(exp(kappa)-1))/kappa ;
-    } 
+    }
     else {
       ret_lr[n] = fmax(0,ret_lr[n-1] + zn);
       if (ret==2) ret_cases[n] = (c_ARL - ret_lr[n-1] + mu0[n]*(exp(kappa)-1))/kappa ;
@@ -116,7 +120,7 @@ void lr_cusum(int* x,double* mu0, int *lx_R, double *kappa_R, double *c_ARL_R,in
       stop = 1;
       break;
     }
-  
+
     /* Advance counter */
     n++;
   }
@@ -128,10 +132,10 @@ void lr_cusum(int* x,double* mu0, int *lx_R, double *kappa_R, double *c_ARL_R,in
 
 
 /***********************************************************************
- Function for the computation of the glr-statistic with time-varying 
- in-control value 
- 
- Params  
+ Function for the computation of the glr-statistic with time-varying
+ in-control value
+
+ Params
  n   - timepoint n where the glr-statistic should be computed
  x   - array with observations
  mu0 - array with estimated in-comtrol parameters
@@ -146,10 +150,10 @@ double glr (int n, int x[], double mu0[], int dir){
     /* For the recursive computation of kappa_ml */
     double sumx = 0;
     double summu0 = 0;
-    
+
     /* Define max of the GLR stats */
     double maxGLR = -1e99;
-    
+
     /* Loop variable */
     register int k;
 
@@ -163,14 +167,14 @@ double glr (int n, int x[], double mu0[], int dir){
 
       sumx += x[k];
       summu0 += mu0[k];
-       
+
       /* Calculate MLE of kappa */
       kappa_ml = dir*fmax(0,dir*log(sumx/summu0));
-      
+
       /* Recursive updating of the likelihood ratios -- See
 	 notes on the 21 september printout. This is fast! */
       sum = kappa_ml * sumx + (1-exp(kappa_ml))*summu0;
-      
+
       /* save max value */
       if (sum > maxGLR) { maxGLR = sum;}
     }
@@ -179,10 +183,10 @@ double glr (int n, int x[], double mu0[], int dir){
 
 
 /***********************************************************************
- Function for the computation of the window-limited glr-statistic with time-varying 
- in-control value 
- 
- Params  
+ Function for the computation of the window-limited glr-statistic with time-varying
+ in-control value
+
+ Params
  n   - timepoint n where the glr-statistic should be computed
  x   - array with observations
  mu0 - array with estimated in-comtrol parameters
@@ -198,7 +202,7 @@ double glr_window (int n, int x[], double mu0[], int dir, int M, int Mtilde){
 
 /* Define max of the GLR stats */
     double maxGLR = -1e99;
-    
+
     /* Loop variable */
     register int k,l;
 
@@ -236,10 +240,10 @@ double glr_window (int n, int x[], double mu0[], int dir, int M, int Mtilde){
 
 /**********************************************************************
   Fast C implementation of the sequential GLR test without windowing
-  for Poisson distributed variables, this function can test in both 
+  for Poisson distributed variables, this function can test in both
   directions (up/down) and there is the possibility ( in opposite to old function
   glr_cusum) to return the number of cases at timepoint n to produce an alarm at
-  any timepoint 1<=k<=n 
+  any timepoint 1<=k<=n
 
   Params:
    x   - array of observed values (pos 0 is first interesting value)
@@ -251,24 +255,24 @@ double glr_window (int n, int x[], double mu0[], int dir, int M, int Mtilde){
   ret_glr- GLR value for each n to be returned
   dir  - direction of testing
   ret - what should be returned (value of glr-statistic, cases)?
-  
+
 **********************************************************************/
 
 void glr_cusum(int* x,double* mu0, int *lx_R, int *n0_R, double *c_ARL_R,int *ret_N, double *ret_glr, double *ret_cases, int *dir_R, int *ret_R) {
-  
+
   /* Pointers to something useful */
   int lx = *lx_R;
   int n0 = *n0_R;
   int dir = *dir_R;
   int ret = *ret_R;
   double c_ARL = *c_ARL_R;
-   
+
   /* Loop variables */
   register int n; /*l,n0-1*/
-  
+
   for (n=0; n<n0-1; n++) { ret_glr[n] = 0; }
   for (n=0; n<n0-1; n++) { ret_cases[n] = 0; }
-  
+
   int stop = 0;
   int N = lx;
 
@@ -279,61 +283,61 @@ void glr_cusum(int* x,double* mu0, int *lx_R, int *n0_R, double *c_ARL_R,int *re
 
   /* Debug */
   /* for (l=0;l<lx;l++) {printf("logmu0[%d] = log(%f) = %f\n",l,mu0[l],logmu0[l]); } */
-  
+
   /* Loop over all n0 <= n <= length(x) */
   while ((n < lx)) {
     /* Compute for one n */
-    
-    
+
+
       /* to compute the glr-statistic with helper function (see above) */
      ret_glr[n] = glr(n,x,mu0,dir);
-      
-      
+
+
       /* to find the number of cases that are necassary to produce an alarm */
       /* optionally, if ret == 2*/
       if (ret == 2){
         /* change the value at timepoint n until an alarm is produced */
-        
+
         int xnnew = -1;
-            
+
         /* glr-statistic for the new x value, initialize it so, that the loop starts */
         double glrnew = c_ARL - dir;
-                
+
         /* save the old value of x */
         int xnold = x[n];
-        
-        /* increase/decrease xnnew until the glr-statistic with the new x is >= c_ARL */    
+
+        /* increase/decrease xnnew until the glr-statistic with the new x is >= c_ARL */
         while ((dir*glrnew < c_ARL*dir)){
-          
+
           /* increase/decrease xnnew */
           xnnew = xnnew + 1;
           /* put this value in vector x at timepoint n */
           x[n] = xnnew;
-          
+
           /* compute the glr-statistic */
-          glrnew = glr(n,x,mu0,dir);  
+          glrnew = glr(n,x,mu0,dir);
         }
-       
+
        /* save the value */
        ret_cases[n] = xnnew;
        /* set x[n] back to original value so that we can go to next n*/
        x[n] = xnold;
-        
-      } 
-    
-       
+
+      }
+
+
       /* Find the first time that the GLR increases c_ARL there we stop */
       if ((ret_glr[n] >= c_ARL) && !stop) {
         N = n;
         stop = 1;
         break;
       }
-      
-        
+
+
     /*Advance counter*/
     n++;
   }
-  
+
    /* Return value (add 1 for R/SPlus array compability */
   *ret_N = N+1;
 }
@@ -372,48 +376,48 @@ void glr_cusum_window(int* x,double* mu0, int *lx_R, int *M_R, int *Mtilde_R, do
   /* Debug */
   /* for (l=0;l<lx;l++) {printf("logmu0[%d] = log(%f) = %f\n",l,mu0[l],logmu0[l]); } */
 
-  
+
   /* Loop over all n0 <= n <= length(x) */
   while ((n < lx)) {
     /* Compute for one n */
-    
-    
+
+
       /* to compute the glr-statistic with helper function (see above) */
      ret_glr[n] = glr_window(n,x,mu0,dir,M,Mtilde);
-      
-      
+
+
       /* to find the number of cases that are necassary to produce an alarm */
       /* optionally, if ret == 2*/
       if (ret == 2){
         /* change the value at timepoint n as long as an alarm is produced */
-        
+
         int xnnew = -1;
-            
+
         /* glr-statistic for the new x value, initialize it so, that the loop starts */
         double glrnew = c_ARL - dir;
-        
+
         /* save the old value of x */
         int xnold = x[n];
-        
-  
-        /* increase/decrease xnnew as long the glr-statistic with the new x is >= c_ARL */    
+
+
+        /* increase/decrease xnnew as long the glr-statistic with the new x is >= c_ARL */
         while ((dir*glrnew < c_ARL*dir)){
-          
+
           /* increase/decrease xnnew */
           xnnew = xnnew + 1;
           /* put this value in vector x at timepoint n */
           x[n] = xnnew;
-          
+
           /* compute the glr-statistic */
-          glrnew = glr_window(n,x,mu0,dir,M,Mtilde);  
+          glrnew = glr_window(n,x,mu0,dir,M,Mtilde);
         }
-       
+
        /* save the value */
        ret_cases[n] = xnnew;
        /* set x[n] back to original value so that we can go to next n*/
        x[n] = xnold;
-        
-      } 
+
+      }
 
     /* Debug*/
     /* printf("For n=%d the best GLR value is %f\n",n,maxGLR);*/
@@ -424,7 +428,7 @@ void glr_cusum_window(int* x,double* mu0, int *lx_R, int *M_R, int *Mtilde_R, do
         stop = 1;
         break;
       }
-      
+
     /* Advance counter */
     n++;
   }
@@ -465,7 +469,7 @@ static R_INLINE double fisher(double phi,int *x,double *xm1, double *mu0, int k,
 }
 
 /**********************************************************************
- GLR detector for the epidemic Poisson model described in 
+ GLR detector for the epidemic Poisson model described in
  Held et. al (2005).
 
  Parameters:
@@ -545,7 +549,7 @@ void glr_epi_window(int* x,double* mu0, int *lx_R, int *Mtilde_R, int *M_R, doub
 	double scorephi = score(phi_old,x,xm1,mu0,k,n);
         phi_new = phi_old + scorephi/fisher(phi_old,x,xm1,mu0,k,n,scorephi);
 	/*printf("score(%f) =  = %f\n",phi_old,scorephi);
-	  printf("fisher(%f) =  = %f\n",phi_old,fisher(phi_old,x,xm1,mu0,k,n,scorephi)); 
+	  printf("fisher(%f) =  = %f\n",phi_old,fisher(phi_old,x,xm1,mu0,k,n,scorephi));
 	  printf("phi_new = %f\n",phi_new); */
       }
       /*Compute the MLE */
@@ -576,7 +580,7 @@ void glr_epi_window(int* x,double* mu0, int *lx_R, int *Mtilde_R, int *M_R, doub
       stop = 1;
       break;
     }
-  
+
     /*Advance counter */
     n++;
   }
@@ -591,7 +595,7 @@ void glr_epi_window(int* x,double* mu0, int *lx_R, int *Mtilde_R, int *M_R, doub
 
 /*
   ======================================================================
-                              Negative binomial chart 
+                              Negative binomial chart
 
 
   Comment/ToDo: move to seperate files?
@@ -613,14 +617,14 @@ void glr_epi_window(int* x,double* mu0, int *lx_R, int *Mtilde_R, int *M_R, doub
   c_ARL- when to sound alarm threshold
   ret_N- here the return value is stored
   ret_lr- GLR value for each n to be returned
-  ret_cases - The number of cases to be returned 
+  ret_cases - The number of cases to be returned
   ret - what should be returned (value of lr-statistic, cases)?
 **********************************************************************/
 
 void lr_cusum_nb(int* x, double* mu0, double* alpha_R, int *lx_R, double *kappa_R, double *c_ARL_R,int *ret_N, double *ret_lr, double *ret_cases, int *ret_R) {
 
 #ifdef DEBUG
-  printf("====> begin lr_cusum_nb\n"); 
+  printf("====> begin lr_cusum_nb\n");
 #endif
 
   /* Pointers to something useful */
@@ -629,14 +633,14 @@ void lr_cusum_nb(int* x, double* mu0, double* alpha_R, int *lx_R, double *kappa_
   double kappa = *kappa_R;
   double alpha = *alpha_R;
   int ret = *ret_R;
-  
+
 #ifdef DEBUG
   printf("lx = %d\n",lx);
   printf("alpha = %f\n",alpha);
 #endif
 
   /* Loop variables */
-  register int n=0; 
+  register int n=0;
   int stop = 0;
   int N = lx;
 
@@ -647,7 +651,7 @@ void lr_cusum_nb(int* x, double* mu0, double* alpha_R, int *lx_R, double *kappa_
     printf("n=%d\n",n);
 #endif
 
-    /* LR for one NB variable as given in the first equation of Sect 2.1 
+    /* LR for one NB variable as given in the first equation of Sect 2.1
        in the Hoehle and Paul (2008) paper
     */
     double zn = kappa * x[n] + (x[n]+1/alpha)*log( (1+alpha*mu0[n])/(1+alpha*mu0[n]*exp(kappa)) );
@@ -658,7 +662,7 @@ void lr_cusum_nb(int* x, double* mu0, double* alpha_R, int *lx_R, double *kappa_
       ret_lr[n] = fmax(0,zn);
       /* Number of cases it takes to sound an alarm - backcalc'ed by backcalc.mws*/
       if (ret==2) ret_cases[n] = -(log((1+alpha*mu0[n])/(1+alpha*mu0[n]*exp(kappa)))-c_ARL*alpha)/alpha/(kappa+log((1+alpha*mu0[n])/(1+alpha*mu0[n]*exp(kappa))));
-    } 
+    }
     else {
       /* Statistic */
       ret_lr[n] = fmax(0,ret_lr[n-1] + zn);
@@ -672,7 +676,7 @@ void lr_cusum_nb(int* x, double* mu0, double* alpha_R, int *lx_R, double *kappa_
       stop = 1;
       break;
     }
-  
+
     /* Advance counter */
     n++;
   }
@@ -683,9 +687,9 @@ void lr_cusum_nb(int* x, double* mu0, double* alpha_R, int *lx_R, double *kappa_
 
 
 /* ======================================================================
-   
+
                     Functions for the intercept chart
- 
+
    ======================================================================
 */
 
@@ -725,7 +729,7 @@ static R_INLINE double nblnk(double kappa,int *x, double *mu0, double alpha, int
 
 
 /**********************************************************************
- GLR detector for the negative binomial model described in 
+ GLR detector for the negative binomial model described in
  Hoehle and Paul (2007).
 
  Parameters:
@@ -742,7 +746,7 @@ static R_INLINE double nblnk(double kappa,int *x, double *mu0, double alpha, int
 
 void glr_nb_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *Mtilde_R, int *M_R, double *c_ARL_R,int *ret_N, double *ret_glr, int *dir_R) {
 #ifdef DEBUG
-  printf("====> begin glr_nb_window\n"); 
+  printf("====> begin glr_nb_window\n");
 #endif
   /* Pointers to something useful */
   int lx = *lx_R; /* length of x */
@@ -756,11 +760,11 @@ void glr_nb_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *Mtilde_R
   register int n, k,i;
 
   /*changepoint can happen at position one (ie. index zero in C*/
-  int n0 = fmax(Mtilde-1,0); 
+  int n0 = fmax(Mtilde-1,0);
 
 #ifdef DEBUG
-  printf("Length of the data = %d\n",lx); 
-  printf("starting at n0= %d\n",n0); 
+  printf("Length of the data = %d\n",lx);
+  printf("starting at n0= %d\n",n0);
 #endif
   /* Show the data */
   /*for (n=0; n<lx; n++) { printf("x[%d] = %d\n",n,x[n]); }*/
@@ -795,14 +799,14 @@ void glr_nb_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *Mtilde_R
 
     for (k=low; k<=up; k++) {
 #ifdef DEBUG
-      printf("n = %d, k = %d\n",n,k); 
+      printf("n = %d, k = %d\n",n,k);
 #endif
       /*Init kappa at the last MLE*/
       double kappa_old = 0.4;
       double kappa_new = kappa_ml;
       int iter = 0, maxIter = 1e3;
       /*Compute the MLE (move tuning parameters up as arguments)? */
-      /*printf("kappa_new = %f\n",kappa_new); 
+      /*printf("kappa_new = %f\n",kappa_new);
 	printf("diff = %f\n",fabs(exp(kappa_new) - exp(kappa_old))); */
 
       while ((kappa_new>-18) & (fabs(kappa_new - kappa_old) > 1e-6) & (iter<maxIter)) {
@@ -814,8 +818,8 @@ void glr_nb_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *Mtilde_R
 
 	/* Debug info */
 	/*printf("score(%f) =  = %f\n",kappa_old,nbScore(kappa_old,x,mu0,alpha,k,n));
-	printf("fisher(%f) =  = %f\n",kappa_old,nbFisher(kappa_old,x,mu0,alpha,k,n)); 
-	printf("kappa_new = %f\n",kappa_new); 
+	printf("fisher(%f) =  = %f\n",kappa_old,nbFisher(kappa_old,x,mu0,alpha,k,n));
+	printf("kappa_new = %f\n",kappa_new);
 	printf("diff = %f\n",fabs(exp(kappa_new) - exp(kappa_old))); */
       }
       /*Compute the MLE */
@@ -826,7 +830,7 @@ void glr_nb_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *Mtilde_R
 
       /*Debug */
 #ifdef DEBUG
-      printf("For n=%d, k=%d we have kappa_ml = %f and l_{n,k} = %f\n",n,k,kappa_ml,lnk); 
+      printf("For n=%d, k=%d we have kappa_ml = %f and l_{n,k} = %f\n",n,k,kappa_ml,lnk);
 #endif
       /*Save the max value */
       if (lnk > maxGLR) { maxGLR = lnk;}
@@ -834,7 +838,7 @@ void glr_nb_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *Mtilde_R
 
     /*Debug */
 #ifdef DEBUG
-    printf("For n=%d the highest GLR value is %f\n",n,maxGLR); 
+    printf("For n=%d the highest GLR value is %f\n",n,maxGLR);
 #endif
     /*Save the return value */
     ret_glr[n] = maxGLR;
@@ -860,15 +864,15 @@ void glr_nb_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *Mtilde_R
 
 
 /* ======================================================================
-   
+
               Functions for the general negative binomial chart
-    	      Current implementation: Epidemic chart 
+    	      Current implementation: Epidemic chart
 
    ======================================================================
 */
 
 /********** Epidemic Chart ***********/
-   
+
 /* alternative \mu_{1,t}(theta) */
 static R_INLINE double mu1(int i, double theta, double *mu0, double *xm1) {
   return( mu0[i] + exp(theta) * xm1[i]);
@@ -888,7 +892,7 @@ static R_INLINE double d2mu1(int i, double theta, double *mu0, double *xm1) {
 /************************************/
 
 /********** Intercept Chart (only upwards) ***********/
-   
+
 /* /\* alternative \mu_{1,t}(theta) *\/ */
 /* static R_INLINE double mu1(int i, double theta, double *mu0, double *xm1) { */
 /*   return( mu0[i] * exp(exp(theta))) ; */
@@ -903,7 +907,7 @@ static R_INLINE double d2mu1(int i, double theta, double *mu0, double *xm1) {
 /* } */
 
 /********** Intercept Chart (only upwards) regular parameterization requiring a fmax***********/
-   
+
 /* alternative \mu_{1,t}(theta) */
 /* static R_INLINE double mu1(int i, double theta, double *mu0, double *xm1) { */
 /*   return( mu0[i] * exp(theta)) ; */
@@ -922,7 +926,7 @@ static R_INLINE double d2mu1(int i, double theta, double *mu0, double *xm1) {
 
 
 /* Score function for the general negative binomial chart*/
-/* 
+/*
 static R_INLINE double nbGeneralScore(double theta, int *x, double *xm1, double *mu0, double alpha, int k, int n) {
   register int i;
   double sum = 0;
@@ -959,9 +963,9 @@ static R_INLINE double nbGeneralLnk(double theta,int *x, double *xm1,  double *m
   register int i;
   double lnk = 0, mu1i=0;
 
-  for (i=k;i<=n;i++) {   
+  for (i=k;i<=n;i++) {
     mu1i = mu1(i, theta, mu0, xm1);
-    lnk += x[i]*( log(mu1i)-log(mu0[i])+log(1+alpha*mu0[i])-log(1+alpha*mu1i)) + 
+    lnk += x[i]*( log(mu1i)-log(mu0[i])+log(1+alpha*mu0[i])-log(1+alpha*mu1i)) +
       1/alpha*(log(1+alpha*mu0[i])-log(1+alpha*mu1i));
   }
   return(lnk);
@@ -969,7 +973,7 @@ static R_INLINE double nbGeneralLnk(double theta,int *x, double *xm1,  double *m
 
 
 /**********************************************************************
- GLR detector for the general negative binomial model described in 
+ GLR detector for the general negative binomial model described in
  Hoehle and Paul (2007). Currently, the epidemic chart is implemented.
  To obtain other alternatives modify the mu1, d1mu1 and d2mu1 functions.
 
@@ -987,7 +991,7 @@ static R_INLINE double nbGeneralLnk(double theta,int *x, double *xm1,  double *m
 
 void glr_nbgeneral_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *Mtilde_R, int *M_R, double *xm10, double *c_ARL_R,int *ret_N, double *ret_glr, int *dir_R) {
 #ifdef DEBUG
-  printf("====> begin glr_nbgeneral_window \n"); 
+  printf("====> begin glr_nbgeneral_window \n");
 #endif
 
   /* Pointers to something useful */
@@ -1002,7 +1006,7 @@ void glr_nbgeneral_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *M
   register int n, k,i;
 
   /*changepoint can happen at position one (ie. index zero in C*/
-  int n0 = fmax(Mtilde-1,0); 
+  int n0 = fmax(Mtilde-1,0);
 
   /* Compute x_{t-1} */
   double xm1[lx];
@@ -1010,8 +1014,8 @@ void glr_nbgeneral_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *M
   for (i=1; i<lx; i++) { xm1[i] = x[i-1]; }
 
 #ifdef DEBUG
-  printf("Length of the data = %d\n",lx); 
-  printf("starting at n0= %d\n",n0); 
+  printf("Length of the data = %d\n",lx);
+  printf("starting at n0= %d\n",n0);
 #endif
   /* Show the data */
   /*for (n=0; n<lx; n++) { printf("x[%d] = %d\n",n,x[n]); }*/
@@ -1028,7 +1032,7 @@ void glr_nbgeneral_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *M
   while ((n < lx)) {
     /*Compute for one n */
 #ifdef DEBUG
-    printf("n=%d\n",n); 
+    printf("n=%d\n",n);
 #endif
 
     /*Define max of the GLR stats*/
@@ -1047,14 +1051,14 @@ void glr_nbgeneral_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *M
 
     for (k=low; k<=up; k++) {
 #ifdef DEBUG
-      printf("n = %d, k = %d\n",n,k); 
+      printf("n = %d, k = %d\n",n,k);
 #endif
       /*Init theta at the last MLE*/
       double theta_old = 0.4;
       double theta_new = theta_ml;
       int iter = 0, maxIter = 1e3;
       /*Compute the MLE (move tuning parameters up as arguments)? */
-      /*printf("theta_new = %f\n",theta_new); 
+      /*printf("theta_new = %f\n",theta_new);
 	printf("diff = %f\n",fabs(exp(theta_new) - exp(theta_old))); */
 
       while ((theta_new>-18) & (fabs(theta_new - theta_old) > 1e-6) & (iter<maxIter)) {
@@ -1066,8 +1070,8 @@ void glr_nbgeneral_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *M
 
 	/* Debug info */
 	/*printf("score(%f) =  = %f\n",theta_old,nbScore(theta_old,x,mu0,alpha,k,n));
-	printf("fisher(%f) =  = %f\n",theta_old,nbFisher(theta_old,x,mu0,alpha,k,n)); 
-	printf("theta_new = %f\n",theta_new); 
+	printf("fisher(%f) =  = %f\n",theta_old,nbFisher(theta_old,x,mu0,alpha,k,n));
+	printf("theta_new = %f\n",theta_new);
 	printf("diff = %f\n",fabs(exp(theta_new) - exp(theta_old)));*/
       }
       /*Compute the MLE */
@@ -1079,7 +1083,7 @@ void glr_nbgeneral_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *M
 
       /*Debug */
 #ifdef DEBUG
-      printf("For n=%d, k=%d we have theta_ml = %f and l_{n,k} = %f\n",n,k,theta_ml,lnk); 
+      printf("For n=%d, k=%d we have theta_ml = %f and l_{n,k} = %f\n",n,k,theta_ml,lnk);
 #endif
       /*Save the max value */
       if (lnk > maxGLR) { maxGLR = lnk;}
@@ -1087,7 +1091,7 @@ void glr_nbgeneral_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *M
 
     /*Debug */
 #ifdef DEBUG
-    printf("For n=%d the highest GLR value is %f\n",n,maxGLR); 
+    printf("For n=%d the highest GLR value is %f\n",n,maxGLR);
 #endif
     /*Save the return value */
     ret_glr[n] = maxGLR;
@@ -1118,7 +1122,7 @@ void glr_nbgeneral_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *M
 int main( int argc, char *argv[] ) {
   int x[] = { 5,10,10,11,11,8,12,8,13,8,7,7,7,6,4,2,4,7,5,7,6,1,3,2,2,2,1,3,1,1,6,3,2,2,1,2,1,2,3,2,2,4,1,3,5,5,3,6,6,9,5,11,12,4,8,3,8,10,14,12,10,5,8,10,12,7,4,6,4,8,4,3,2,6,1,5,1,1,1,2,1,0,1,3,0,2,1,1,1,1,1,1,2,0,4,1,8,2,3,13,15,8,13,21,12,11,12,10,15,16,20,23,14,15,14,13,9,8,20,10,8,8,6,4,3,6,4,2,6,3,5,3,4,2,2,4,2,3,1,2,3,3,4,1,8,1,7,6,5,9,10,17,6,13,13,12,11,10,12,12,8,8,6,14,7,5,4,7,5,8,4,4,3,5,2,0,1,1,1,2,3,1,2,2,3,2,0,4,3,1,4,2,3,9,4,3,3,7,12,7,10,9,14,12,10,10,8,8,10,19,9,4,9,11,8,6,6,5,5,9,6,5,3,3,2,4,4,3,2,5,1,2,3,2,0,2,1,1,6,2,2,6,3,2,9,4,6,8,6,8};
 
-  double mu0[] = { 
+  double mu0[] = {
     8.740325,9.264172,9.715987,10.07551,10.32563,
     10.45395,10.45395,10.32563,10.07551,9.715987,
     9.264172,8.740325,8.16617,7.563268,6.951627,
@@ -1170,7 +1174,7 @@ int main( int argc, char *argv[] ) {
     1.921334,1.945212,1.993501,2.067267,2.168088,
     2.298031,2.459603,2.655669,2.889329,3.163735
   };
-  
+
   int N;
   int n0 = 10;
   int lx = 150;
@@ -1195,4 +1199,4 @@ int main( int argc, char *argv[] ) {
 void foo(double *x) {
   *x = log(10);
 }
- 
+

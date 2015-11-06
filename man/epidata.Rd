@@ -27,14 +27,16 @@ Continuous-Time SIR Event History of a Fixed Population
 \usage{
 as.epidata(data, ...)
 
-\method{as.epidata}{data.frame}(data, t0, tE.col, tI.col, tR.col,
-           id.col, coords.cols, f = list(), w = list(), keep.cols = TRUE, ...)
-\method{as.epidata}{default}(data, id.col, start.col, stop.col, atRiskY.col,
-           event.col, Revent.col, coords.cols, f = list(), w = list(), ...)
+\method{as.epidata}{data.frame}(data, t0,
+           tE.col, tI.col, tR.col, id.col, coords.cols,
+           f = list(), w = list(), D = dist, keep.cols = TRUE, ...)
+\method{as.epidata}{default}(data, id.col, start.col, stop.col,
+           atRiskY.col, event.col, Revent.col, coords.cols,
+           f = list(), w = list(), D = dist, ...)
 
 \method{print}{epidata}(x, ...)
 \method{[}{epidata}(x, i, j, drop)
-\method{update}{epidata}(object, f = list(), w = list(), ...)
+\method{update}{epidata}(object, f = list(), w = list(), D = dist, ...)
 }
 
 \arguments{
@@ -130,34 +132,39 @@ as.epidata(data, ...)
   }
   \item{coords.cols}{
     index\emph{es} of the \code{coords} column\emph{s} in \code{data}. Can be
-    a numeric (by column number) vector, a character (by column name) vector
-    or \code{NULL} (in which case epidemic covariates are not calculateable).
-    These columns contain the coordinates of the individuals.
+    numeric (by column number), character (by column name), or \code{NULL}
+    (no coordinates, e.g., if \code{D} is a pre-specified distance matrix).
+    These columns contain the individuals' coordinates, which determine
+    the distance matrix for the distance-based components of the force
+    of infection (see argument \code{f}). By default, Euclidean distance
+    is used (see argument \code{D}).\cr
     Note that the functions related to \code{\link{twinSIR}} currently assume
     \emph{fixed positions} of the individuals during the whole epidemic.  Thus, an
     individual has the same coordinates in every block.  For simplicity, the
     coordinates are derived from the first time block only (normally the rows 
-    with \code{start == 0}).
-    The epidemic covariates are calculated based on the Euclidian distances
-    between the individuals, see \code{f}.
+    with \code{start == 0}).\cr
+    The \code{\link[=animate.epidata]{animate}}-method requires coordinates.
   }
   \item{f}{
     a \emph{named} list of \emph{vectorized} functions for a
     distance-based force of infection.
-    The functions must interact elementwise on a (distance) matrix so that
-    - for a matrix D - f[[m]](D) results in a matrix.  A simple example is
-    \code{function(u) {u <= 1}}, which indicates if the Euclidian distance
+    The functions must interact elementwise on a (distance) matrix \code{D} so that
+    \code{f[[m]](D)} results in a matrix.  A simple example is
+    \code{function(u) {u <= 1}}, which indicates if the Euclidean distance
     between the individuals is smaller than or equal to 1.
-    The names of the functions will be the names of the epidemic variables
+    The names of the functions determine the names of the epidemic variables
     in the resulting data frame.  So, the names should not coincide with
     names of other covariates.
     The distance-based weights are computed as follows:
-    \eqn{I(t)} denotes the set of infectious
-    individuals just before time \eqn{t} and \eqn{s_i} the coordinate vector of
-    individual \eqn{i}.  For individual \eqn{i} at time \eqn{t} the
+    Let \eqn{I(t)} denote the set of infectious
+    individuals just before time \eqn{t}.
+    Then, for individual \eqn{i} at time \eqn{t}, the
     \eqn{m}'th covariate has the value
-    \eqn{\sum_{j \in I(t)} f_m(||s_i - s_j||)}{%
-         \sum_{j in I(t)} f[[m]](||s_i - s_j||)}
+    \eqn{\sum_{j \in I(t)} f_m(d_{ij})}{%
+         \sum_{j in I(t)} f[[m]](d[i,j])},
+    where \eqn{d_{ij}}{d[i,j]} denotes entries of the distance matrix
+    (by default this is the Euclidean distance \eqn{||s_i - s_j||}
+    between the individuals' coordinates, but see argument \code{D}).
   }
   \item{w}{
     a \emph{named} list of \emph{vectorized} functions for extra 
@@ -174,6 +181,14 @@ as.epidata(data, ...)
     \eqn{\sum_{j \in I(t)} w_m(z^{(m)}_i, z^{(m)}_j)},
     where \eqn{z^{(m)}} denotes the variable in \code{data} associated
     with \code{w[[m]]}.
+  }
+  \item{D}{
+    either a function to calculate the distances between the individuals
+    with locations taken from \code{coord.cols} (the default is
+    Euclidean distance via the function \code{\link{dist}}) and
+    the result converted to a matrix via \code{\link{as.matrix}},
+    or a pre-computed distance matrix with \code{dimnames} containing
+    the individual ids.
   }
   \item{keep.cols}{
     logical indicating if all columns in \code{data}

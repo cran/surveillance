@@ -6,13 +6,13 @@
 ### Plot-method(s) for fitted hhh4() models
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2015 Sebastian Meyer
-### $Revision: 1309 $
-### $Date: 2015-03-31 14:47:34 +0200 (Tue, 31 Mar 2015) $
+### $Revision: 1504 $
+### $Date: 2015-10-23 16:52:26 +0200 (Fre, 23. Okt 2015) $
 ################################################################################
 
 
 plot.hhh4 <- function (x,
-                       type = c("fitted", "season", "maxEV", "ri", "neweights"),
+                       type = c("fitted", "season", "maxEV", "maps", "ri", "neweights"),
                        ...)
 {
     stopifnot(x$convergence)
@@ -33,17 +33,25 @@ plot.hhh4 <- function (x,
 ###
 
 plotHHH4_fitted <- function (x, units = 1, names = NULL,
-                             col = c("orange","blue","grey85","black"),
-                             pch = 19, pt.cex = 0.6,
+                             col = c("grey85", "blue", "orange"),
+                             pch = 19, pt.cex = 0.6, pt.col = 1,
                              par.settings = list(),
                              legend = TRUE, legend.args = list(),
-                             legend.observed = FALSE, ...)
+                             legend.observed = FALSE,
+                             decompose = NULL, meanHHH = NULL, ...)
 {
     if (is.null(units)) units <- seq_len(x$nUnit)
     if (!is.null(names)) stopifnot(length(units) == length(names))
-    if (length(col) == 3) col <- c(col, "black") else if (length(col) != 4)
-        stop("'col' must be of length 3 or 4") # for backwards compatibility
-
+    
+    col <- if (is.null(decompose) && length(col) == 4) {
+        ## compatibility with surveillance < 1.10-0
+        pt.col <- col[4L]
+        rev(col[-4L])
+    } else {
+        if (isTRUE(decompose)) decompose <- colnames(x$stsObj)
+        plotHHH4_fitted_check_col_decompose(col, decompose, colnames(x$stsObj))
+    }
+    
     if (is.list(par.settings)) {
         par.defaults <- list(mfrow = sort(n2mfrow(length(units))),
                              mar = c(4,4,2,0.5)+.1, las = 1)
@@ -60,44 +68,86 @@ plotHHH4_fitted <- function (x, units = 1, names = NULL,
         legend <- integer(0L)
     }
     if (length(legend) > 0) {
-        legendidx <- 1L + c(if (legend.observed && !is.na(pch)) 0L,
-                            which(c("ne","ar","end") %in% componentsHHH4(x)))
+        legendidx <- 1L + c(
+            if (legend.observed && !is.na(pch)) 0L,
+            if (is.null(decompose)) {
+                which(c("ne","ar","end") %in% componentsHHH4(x))
+            } else seq_along(col))
         default.args <- list(
-            x="topright", col=c(col[4],col[1:3])[legendidx], lwd=6,
-            lty=c(NA,1,1,1)[legendidx], pch=c(pch,NA,NA,NA)[legendidx],
+            x="topright", col=c(pt.col,rev(col))[legendidx], lwd=6,
+            lty=c(NA,rep.int(1,length(col)))[legendidx],
+            pch=c(pch,rep.int(NA,length(col)))[legendidx],
             pt.cex=pt.cex, pt.lwd=1, bty="n", inset=0.02,
-            legend=c("observed","spatiotemporal","autoregressive","endemic")[legendidx]
+            legend=if (is.null(decompose)) {
+                c("observed","spatiotemporal","autoregressive","endemic")[legendidx]
+            } else c("observed", rev(decompose), "endemic")[legendidx]
             )
         legend.args <- modifyList(default.args, legend.args)
     }
 
+    ## get decomposed mean
+    if (is.null(meanHHH)) {
+        meanHHH <- if (is.null(decompose)) {
+            meanHHH(x$coefficients, terms.hhh4(x))
+        } else {
+            decompose.hhh4(x)
+        }
+    }
+    
     ## plot fitted values region by region
     meanHHHunits <- vector(mode="list", length=length(units))
     names(meanHHHunits) <- if (is.character(units)) units else colnames(x$stsObj)[units]
     for(i in seq_along(units)) {
         meanHHHunits[[i]] <- plotHHH4_fitted1(x, units[i], main=names[i],
-                                              col=col, pch=pch, pt.cex=pt.cex,
-                                              ...)
+                                              col=col, pch=pch, pt.cex=pt.cex, pt.col=pt.col,
+                                              decompose=decompose, meanHHH=meanHHH, ...)
         if (i %in% legend) do.call("legend", args=legend.args)
     }
     invisible(meanHHHunits)
+}
+
+plotHHH4_fitted_check_col_decompose <- function (col, decompose, unitNames)
+{
+    if (is.null(decompose)) {
+        stopifnot(length(col) == 3)
+    } else {
+        nUnit <- length(unitNames)
+        stopifnot(length(decompose) == nUnit,
+                  setequal(decompose, unitNames))
+        if (length(col) == nUnit) {
+            col <- c("grey85", col)  # first color is for "endemic"
+        } else if (length(col) != 1L + nUnit) {
+            warning("'col' should be of length ", 1L + nUnit)
+            col <- c(col[1L], rep_len(col[-1L], nUnit))
+        }
+    }
+    col
 }
 
 
 ### plot estimated component means for a single region
 
 plotHHH4_fitted1 <- function(x, unit=1, main=NULL,
-                             col=c("grey30","grey60","grey85","grey0"),
-                             pch=19, pt.cex=0.6, border=col,
-                             start=x$stsObj@start, end=NULL,
+                             col=c("grey85", "blue", "orange"),
+                             pch=19, pt.cex=0.6, pt.col=1, border=col,
+                             start=x$stsObj@start, end=NULL, xaxis=NULL,
                              xlim=NULL, ylim=NULL, xlab="", ylab="No. infected",
-                             hide0s=FALSE, meanHHH=NULL)
+                             hide0s=FALSE, decompose=NULL, meanHHH=NULL)
 {
     stsObj <- x$stsObj
     if (is.character(unit) &&
         is.na(unit <- match(.unit <- unit, colnames(stsObj))))
         stop("region '", .unit, "' does not exist")
     if (is.null(main)) main <- colnames(stsObj)[unit]
+
+    col <- if (is.null(decompose) && length(col) == 4) {
+        ## compatibility with surveillance < 1.10-0
+        pt.col <- col[4L]
+        rev(col[-4L])
+    } else {
+        if (isTRUE(decompose)) decompose <- colnames(x$stsObj)
+        plotHHH4_fitted_check_col_decompose(col, decompose, colnames(x$stsObj))
+    }
 
     ## get observed counts
     obs <- observed(stsObj)[,unit]
@@ -111,16 +161,29 @@ plotHHH4_fitted1 <- function(x, unit=1, main=NULL,
     end <- if(is.null(end)) tp[length(tp)] else yearepoch2point(end,stsObj@freq)
     stopifnot(start < end)
     tpInRange <- which(tp >= start & tp <= end)            # plot only those
-    tpSubset <- tp[intersect(x$control$subset, tpInRange)] # fitted time points
+    tpInSubset <- intersect(x$control$subset, tpInRange)   # fitted time points
+
+    ## use time indexes as x-values for use of addFormattedXAxis()
+    if (is.list(xaxis)) {
+        tp <- seq_along(obs)
+        start <- tpInRange[1L]
+        end <- tpInRange[length(tpInRange)]
+    }
 
     ## get fitted component means
-    if (is.null(meanHHH))
-        meanHHH <- meanHHH(coef(x,reparamPsi=FALSE), terms(x))
-    meanHHHunit <- sapply(meanHHH, "[", i=TRUE, j=unit)
+    meanHHHunit <- if (is.null(decompose)) {
+        if (is.null(meanHHH))
+            meanHHH <- meanHHH(x$coefficients, terms.hhh4(x))
+        sapply(meanHHH, "[", i=TRUE, j=unit)
+    } else {
+        if (is.null(meanHHH))
+            meanHHH <- decompose.hhh4(x)
+        meanHHH[,unit,c("endemic",decompose)]
+    }
     stopifnot(is.matrix(meanHHHunit), !is.null(colnames(meanHHHunit)),
               nrow(meanHHHunit) == length(x$control$subset))
     meanHHHunit <- meanHHHunit[x$control$subset %in% tpInRange,,drop=FALSE]
-    if (any(is.na(meanHHHunit[,"mean"]))) { # -> polygon() will be wrong
+    if (any(is.na(meanHHHunit))) { # -> polygon() would be wrong
         ## could be due to wrong x$control$subset wrt the epidemic lags
         ## a workaround is then to set 'start' to a later time point
         stop("predicted mean contains missing values")
@@ -128,26 +191,134 @@ plotHHH4_fitted1 <- function(x, unit=1, main=NULL,
     
     ## establish basic plot window
     if (is.null(ylim)) ylim <- c(0, max(obs[tpInRange],na.rm=TRUE))
-    plot(c(start,end), ylim, xlim=xlim, xlab=xlab, ylab=ylab, type="n")
+    plot(c(start,end), ylim, xlim=xlim, xlab=xlab, ylab=ylab, type="n",
+         xaxt = if (is.list(xaxis)) "n" else "s")
+    if (is.list(xaxis)) do.call("addFormattedXAxis", c(list(x = stsObj), xaxis))
     title(main=main, line=0.5)
 
     ## draw polygons
-    xpoly <- c(tpSubset[1], tpSubset, tail(tpSubset,1))
-    polygon(xpoly, c(0,meanHHHunit[,"mean"],0),
-            col=col[1], border=border[1])
-    if (x$control$ar$inModel)
-        polygon(xpoly, c(0,rowSums(meanHHHunit[,c("endemic","epi.own")]),0),
-                col=col[2], border=border[2])
-    if (x$control$end$inModel)
-        polygon(xpoly, c(0,meanHHHunit[,"endemic"],0),
-                col=col[3], border=border[3])
-
+    if (is.null(decompose)) {
+        non0 <- which(c("end", "ar", "ne") %in% componentsHHH4(x))
+        plotComponentPolygons(
+            x = tp[tpInSubset],
+            y = meanHHHunit[,c("endemic", "epi.own", "epi.neighbours")[non0],drop=FALSE],
+            col = col[non0], border = border[non0], add = TRUE)
+    } else {
+        non0 <- apply(X = meanHHHunit > 0, MARGIN = 2L, FUN = any)
+        plotComponentPolygons(x = tp[tpInSubset], y = meanHHHunit[, non0, drop = FALSE],
+                              col = col[non0], border = border[non0], add = TRUE)
+    }
+    
     ## add observed counts within [start;end]
     ptidx <- if (hide0s) intersect(tpInRange, which(obs > 0)) else tpInRange
-    points(tp[ptidx], obs[ptidx], col=col[4], pch=pch, cex=pt.cex)
+    points(tp[ptidx], obs[ptidx], col=pt.col, pch=pch, cex=pt.cex)
 
     ## invisibly return the fitted component means for the selected region
     invisible(meanHHHunit)
+}
+
+
+### function which does the actual plotting of the polygons
+
+plotComponentPolygons <- function (x, y, col = 1:6, border = col, add = FALSE)
+{
+    if (!is.vector(x, mode = "numeric") || is.unsorted(x, strictly = TRUE))
+        stop("'x' must be a strictly increasing sequence of time points")
+    stopifnot(nrow(y <- as.matrix(y)) == (nTime <- length(x)))  # y >= 0
+    yc <- if ((nPoly <- ncol(y)) > 1L) {
+        apply(X = y, MARGIN = 1L, FUN = cumsum) # nPoly x nTime
+    } else t(y)
+    
+    if (!add) {
+        ## establish basic plot window
+        plot(range(x), range(yc[nPoly,]), type = "n")
+    }
+    
+    ## recycle graphical parameters
+    col <- rep_len(col, nPoly)
+    border <- rep_len(border, nPoly)
+    
+    ## draw polygons
+    xpoly <- c(x[1L], x, x[length(x)])
+    for (poly in nPoly:1) {
+        polygon(x = xpoly, y = c(0, yc[poly, ], 0),
+                col = col[poly], border = border[poly])
+    }
+}
+
+
+###
+### Maps of the fitted mean components averaged over time
+###
+
+plotHHH4_maps <- function (x,
+    which = c("mean", "endemic", "epi.own", "epi.neighbours"),
+    prop = FALSE, main = which, zmax = NULL,
+    col.regions = hcl.colors(10),
+    labels = FALSE, sp.layout = NULL, ...,
+    map = x$stsObj@map, meanHHH = NULL)
+{
+    which <- match.arg(which, several.ok = TRUE)
+    
+    ## extract district-specific mean components
+    if (is.null(meanHHH)) {
+        meanHHH <- meanHHH(x$coefficients, terms.hhh4(x))
+    }
+    
+    ## select relevant components and convert to an array
+    meanHHH <- simplify2array(
+        meanHHH[c("mean", "endemic", "epi.own", "epi.neighbours")],
+        higher = TRUE)
+    
+    ## convert to proportions
+    if (prop) {
+        meanHHH[,,-1L] <- meanHHH[,,-1L,drop=FALSE] / c(meanHHH[,,1L])
+    }
+    
+    ## select only 'which' components
+    meanHHH <- meanHHH[,,which,drop=FALSE]
+    
+    ## check map
+    map <- as(map, "SpatialPolygonsDataFrame")
+    if (!all(dimnames(meanHHH)[[2L]] %in% row.names(map))) {
+        stop("'row.names(map)' do not cover all fitted districts")
+    }
+    
+    ## average over time
+    comps <- as.data.frame(colMeans(meanHHH, dims = 1))
+    
+    ## attach to map data
+    map@data <- cbind(map@data, comps[row.names(map),,drop=FALSE])
+
+    ## color key range
+    if (is.null(zmax)) {
+        zmax <- if (prop) {
+            ceiling(10*sapply(comps, max))/10
+        } else ceiling(sapply(comps, max))
+        ## sub-components should have the same color range
+        .idxsub <- setdiff(seq_along(zmax), match("mean", names(zmax)))
+        zmax[.idxsub] <- suppressWarnings(max(zmax[.idxsub]))
+    }
+
+    ## add sp.layout item for district labels
+    if (!is.null(layout.labels <- layout.labels(map, labels))) {
+        sp.layout <- c(sp.layout, list(layout.labels))
+    }
+    
+    ## produce maps
+    grobs <- mapply(
+        FUN = function (zcol, main, zmax)
+            spplot(map, zcol = zcol, main = main,
+                   at = seq(0, zmax, length.out = length(col.regions) + 1L),
+                   col.regions = col.regions, sp.layout = sp.layout, ...),
+        zcol = names(comps), main = main, zmax = zmax,
+        SIMPLIFY = FALSE, USE.NAMES = FALSE)
+    if (length(grobs) == 1L) {
+        grobs[[1L]]
+    } else {
+        mfrow <- sort(n2mfrow(length(grobs)))
+        gridExtra::grid.arrange(grobs = grobs, nrow = mfrow[1L], ncol = mfrow[2L])
+    }
 }
 
 

@@ -6,9 +6,9 @@
 ### Data structure "epidata" representing the SIR event history of a fixed
 ### geo-referenced population (e.g., farms, households) for twinSIR() analysis
 ###
-### Copyright (C) 2008-2010, 2012, 2014 Sebastian Meyer
-### $Revision: 1079 $
-### $Date: 2014-10-18 01:26:00 +0200 (Sat, 18 Oct 2014) $
+### Copyright (C) 2008-2010, 2012, 2014-2015 Sebastian Meyer
+### $Revision: 1489 $
+### $Date: 2015-10-06 22:55:24 +0200 (Die, 06. Okt 2015) $
 ################################################################################
 
 ## CAVE:
@@ -32,7 +32,7 @@
 
 as.epidata.data.frame <- function (data, t0, tE.col, tI.col, tR.col,
                                    id.col, coords.cols, f = list(), w = list(),
-                                   keep.cols = TRUE, ...)
+                                   D = dist, keep.cols = TRUE, ...)
 {
     if (missing(t0)) {
         return(NextMethod("as.epidata"))  # as.epidata.default
@@ -129,7 +129,7 @@ as.epidata.data.frame <- function (data, t0, tE.col, tI.col, tR.col,
         data = evHist,
         id.col = "id", start.col = "start", stop.col = "stop",
         atRiskY.col = "atRiskY", event.col = "event", Revent.col = "Revent",
-        coords.cols = coords.cols, f = f, w = w)
+        coords.cols = coords.cols, f = f, w = w, D = D)
 }
 
 
@@ -140,7 +140,7 @@ as.epidata.data.frame <- function (data, t0, tE.col, tI.col, tR.col,
 ################################################################################
 
 as.epidata.default <- function(data, id.col, start.col, stop.col, atRiskY.col,
-    event.col, Revent.col, coords.cols, f = list(), w = list(), ...)
+    event.col, Revent.col, coords.cols, f = list(), w = list(), D = dist, ...)
 {
     cl <- match.call()
     
@@ -242,6 +242,7 @@ as.epidata.default <- function(data, id.col, start.col, stop.col, atRiskY.col,
     # Check consistency of atRiskY and event (not at-risk after event) 
     .checkFunction <- function(eventblock, eventid)
     {
+        if (eventblock == nBlocks) return(invisible())
         rowsOfNextBlock <- beginBlock[eventblock+1L]:endBlock[eventblock+1L]
         nextBlockData <- data[rowsOfNextBlock, c("id", "atRiskY")]
         idIdx <- which(nextBlockData[["id"]] == eventid)
@@ -262,14 +263,16 @@ as.epidata.default <- function(data, id.col, start.col, stop.col, atRiskY.col,
     attr(data, "coords.cols") <- coords.cols
     # <- must include this info because externally of this function
     #    we don't know how many coords.cols (dimensions) we have
+    attr(data, "f") <- list()  # initialize
+    attr(data, "w") <- list()  # initialize
     class(data) <- c("epidata", "data.frame")
 
     # Compute epidemic variables
-    update.epidata(data, f = f, w = w)
+    update.epidata(data, f = f, w = w, D = D)
 }
 
 
-update.epidata <- function (object, f = list(), w = list(), ...)
+update.epidata <- function (object, f = list(), w = list(), D = dist, ...)
 {
     oldclass <- class(object)
     class(object) <- "data.frame" # avoid use of [.epidata
@@ -282,9 +285,6 @@ update.epidata <- function (object, f = list(), w = list(), ...)
 
     ## check f and calculate distance matrix
     if (length(f) > 0L) {
-        if (is.null(coords.cols <- attr(object, "coords.cols"))) {
-            stop("need coordinates for distance-dependent force of infection")
-        }
         if (!is.list(f) || is.null(names(f)) || any(!sapply(f, is.function))) {
             stop("'f' must be a named list of functions")
         }
@@ -301,12 +301,25 @@ update.epidata <- function (object, f = list(), w = list(), ...)
         ## keep functions as attribute
         attr(object, "f")[names(f)] <- f
         
-        ## compute distance matrix
-        coords <- as.matrix(firstDataBlock[coords.cols], rownames.force = FALSE)
-        rownames(coords) <- as.character(firstDataBlock[["id"]])
-        distmat <- as.matrix(dist(coords, method = "euclidean"))
-    } else {
-        attr(object, "f") <- list()
+        ## check / compute distance matrix
+        distmat <- if (is.function(D)) {
+            if (length(coords.cols <- attr(object, "coords.cols")) == 0L) {
+                stop("need coordinates to calculate the distance matrix")
+            }
+            coords <- as.matrix(firstDataBlock[coords.cols],
+                                rownames.force = FALSE)
+            rownames(coords) <- as.character(firstDataBlock[["id"]])
+            as.matrix(D(coords))
+        } else if (is.matrix(D)) {
+            stopifnot(is.numeric(D))
+            if (any(!firstDataBlock[["id"]] %in% rownames(D),
+                    !firstDataBlock[["id"]] %in% colnames(D))) {
+                stop("'dimnames(D)' must contain the individuals' IDs")
+            }
+            D
+        } else {
+            stop("'D' must be a function or a matrix")
+        }
     }
 
     ## check covariate-based epidemic weights
@@ -325,8 +338,6 @@ update.epidata <- function (object, f = list(), w = list(), ...)
 
         ## compute wij matrix for each of w
         wijlist <- compute_wijlist(w = w, data = firstDataBlock)
-    } else {
-        attr(object, "w") <- list()
     }
 
     ## Compute sum of epidemic covariates over infectious individuals

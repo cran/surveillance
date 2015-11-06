@@ -7,7 +7,7 @@
 ###
 ### Copyright (C) 2015 Sebastian Meyer
 ### $Revision: 1347 $
-### $Date: 2015-05-29 11:45:51 +0200 (Fri, 29 May 2015) $
+### $Date: 2015-05-29 11:45:51 +0200 (Fre, 29. Mai 2015) $
 ################################################################################
 
 epitest <- function (model, data, tiles, method = "time", B = 199,

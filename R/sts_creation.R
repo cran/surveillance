@@ -113,7 +113,7 @@ sts_creation <- function(theta,beta,gamma1,gamma2,m,overdispersion,dates,
     for (t in 1:lengthT){
       if(observed[t]!=0){
         for (case in 1:observed[t]){
-          delay <- sample(x=0:10,size=1,prob=densityDelay)
+          delay <- sample(x=0:delayMax,size=1,prob=densityDelay)
           if (delay > delayMax) {delay <- delayMax}
           n[t, delay + 1] <- n[t, delay + 1] + 1
         }

@@ -7,8 +7,8 @@
 ### vcov, logLik, print, summary, plot (intensity, iaf), R0, residuals, update
 ###
 ### Copyright (C) 2009-2015 Sebastian Meyer
-### $Revision: 1334 $
-### $Date: 2015-05-12 11:05:33 +0200 (Tue, 12 May 2015) $
+### $Revision: 1459 $
+### $Date: 2015-08-21 16:35:39 +0200 (Fre, 21. Aug 2015) $
 ################################################################################
 
 ## extract the link function used for the epidemic predictor (default: log-link)
@@ -93,9 +93,9 @@ print.twinstim <- function (x, digits = max(3, getOption("digits") - 3), ...)
 }
 
 summary.twinstim <- function (object, test.iaf = FALSE,
-    correlation = FALSE, symbolic.cor = FALSE, ...)
+    correlation = FALSE, symbolic.cor = FALSE, runtime = FALSE, ...)
 {
-    ans <- unclass(object)[c("call", "converged", "counts")]
+    ans <- unclass(object)[c("call", "converged", if (runtime) "counts")]
     npars <- object$npars
     nbeta0 <- npars[1]; p <- npars[2]; nbeta <- nbeta0 + p
     q <- npars[3]
@@ -131,7 +131,9 @@ summary.twinstim <- function (object, test.iaf = FALSE,
     }
     ans$loglik <- logLik(object)
     ans$aic <- AIC(object)
-    ans$runtime <- object$runtime
+    if (runtime) {
+        ans$runtime <- object$runtime
+    }
     class(ans) <- "summary.twinstim"
     ans
 }
@@ -169,15 +171,21 @@ print.summary.twinstim <- function (x,
     } else cat("\nNo epidemic component.\n")
     cat("\nAIC: ", format(x$aic, digits=max(4, digits+1)))
     cat("\nLog-likelihood:", format(x$loglik, digits = digits))
-    cat("\nNumber of log-likelihood evaluations:", x$counts[1])
-    cat("\nNumber of score function evaluations:", x$counts[2])
-    cores <- attr(x$runtime, "cores")
-    cat("\nRuntime",
-        if (!is.null(cores) && cores > 1) paste0(" (", cores, " cores)")
-        , ": ", format(
-        if (length(x$runtime)==0) NA_real_ else if (length(x$runtime)==1)
-        x$runtime else x$runtime[["elapsed"]],
-        digits=max(4, digits+1)), " seconds", sep="")
+    runtime <- x$runtime
+    if (!is.null(runtime)) {
+        cat("\nNumber of log-likelihood evaluations:", x$counts[1L])
+        cat("\nNumber of score function evaluations:", x$counts[2L])
+        cores <- attr(runtime, "cores")
+        elapsed <- if (length(runtime) == 1L) { # surveillance < 1.6-0
+            runtime
+        } else {
+            runtime[["elapsed"]]
+        }
+        cat("\nRuntime",
+            if (!is.null(cores) && cores > 1) paste0(" (", cores, " cores)"),
+            ": ", format(elapsed, digits = max(4, digits+1)), " seconds",
+            sep = "")
+    }
     cat("\n")
     correl <- x$correlation
     if (!is.null(correl)) {

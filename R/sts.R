@@ -22,9 +22,7 @@ fix.dimnames <- function(x) {
 }
 
 #constructor function
-## FIXME @ Michael: why do 'start' and 'freq' have these specific defaults,
-##                  and 'epoch' not conveniently default to 1:nrow(observed)?
-init.sts <- function(.Object, epoch, start=c(2000,1), freq=52, observed, state=0*observed, map=NULL, neighbourhood=NULL, populationFrac=NULL,alarm=NULL,upperbound=NULL, control=NULL,epochAsDate=FALSE,multinomialTS=FALSE) {
+init.sts <- function(.Object, epoch=seq_len(nrow(observed)), start=c(2000,1), frequency=52, observed, state=0*observed, map=NULL, neighbourhood=NULL, populationFrac=NULL,alarm=NULL,upperbound=NULL, control=NULL,epochAsDate=FALSE,multinomialTS=FALSE) {
 
   #If used in constructor
   if(nargs() > 1) {
@@ -94,7 +92,7 @@ init.sts <- function(.Object, epoch, start=c(2000,1), freq=52, observed, state=0
       stop("start must be a vector of length two denoting (year, epoch/week/month/idx)")
     }
     
-    .Object@freq <- freq
+    .Object@freq <- frequency
     .Object@state <- state
     .Object@observed <- observed
     

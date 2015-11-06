@@ -5,9 +5,9 @@
 ###
 ### Compute one-step-ahead predictions (means) at a series of time points
 ###
-### Copyright (C) 2011-2012 Michaela Paul, 2012-2014 Sebastian Meyer
-### $Revision: 1141 $
-### $Date: 2014-12-16 13:28:38 +0100 (Tue, 16 Dec 2014) $
+### Copyright (C) 2011-2012 Michaela Paul, 2012-2015 Sebastian Meyer
+### $Revision: 1508 $
+### $Date: 2015-11-04 15:44:19 +0100 (Mit, 04. Nov 2015) $
 ################################################################################
 
 
@@ -24,10 +24,14 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
 {
     stopifnot(inherits(result, c("ah4", "hhh4")))
     type <- match.arg(type)
-    which.start <- if (type == "rolling") match.arg(which.start) else "final"
-    if (cores > 1 && which.start == "current")
-        stop("no parallelization for 'type=\"rolling\"' ",
-             "if 'which.start=\"current\"'")
+    if (type == "rolling" && !is.list(which.start)) {
+        ## new in surveillance 1.10-0: if 'which.start' is a list, it is
+        ## directly used as the 'start' argument for hhh4() in all time steps
+        which.start <- match.arg(which.start)
+        if (cores > 1 && which.start == "current")
+            stop("no parallelization for 'type=\"rolling\"' ",
+                 "if 'which.start=\"current\"'")
+    }
 
     ## get model terms
     model <- result[["terms"]]
@@ -35,8 +39,9 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
         model <- result$terms <- with(result, interpretControl(control, stsObj))
     nTime <- model$nTime
     nUnits <- model$nUnits
-    psiIdx <- model$nFE + model$nd + seq_len(model$nOverdisp)
-    withPsi <- length(psiIdx) > 0L
+    dimPsi <- model$nOverdisp
+    withPsi <- dimPsi > 0L
+    psiIdx <- model$nFE + model$nd + seq_len(dimPsi)
     
     ## check that tp is within the time period of the data
     maxlag <- if (is.null(result$lags) || all(is.na(result$lags)))
@@ -67,7 +72,7 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
     pred <- matrix(NA_real_, nrow=ntps, ncol=nUnits,
                    dimnames=list(tps+1, colnames(observed)))
     if (withPsi)
-        psi <- matrix(NA_real_, nrow=ntps, ncol=length(psiIdx),
+        psi <- matrix(NA_real_, nrow=ntps, ncol=dimPsi,
                       dimnames=list(tps, names(model$initialTheta)[psiIdx]))
     if (keep.estimates) {
         coefficients <- matrix(NA_real_,
@@ -105,6 +110,7 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
                 cat("One-step-ahead prediction @ t =", tp, "...\n")
             if (type == "rolling") { # update fit
                 fit <- update.hhh4(result, subset.upper=tp, use.estimates=TRUE,
+                                   start=if (is.list(which.start)) which.start,
                                    verbose=FALSE, # chaotic in parallel
                                    keep.terms=TRUE) # need "model" -> $terms
                 if (!fit$convergence) {
@@ -137,9 +143,12 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
             
             if (type == "rolling") { # update fit
                 fit.old <- fit # backup
+                start <- if (is.list(which.start)) {
+                    which.start
+                } else if (which.start == "current") hhh4coef2start(fit)
+                ## else NULL
                 fit <- update.hhh4(result, subset.upper=tps[i],
-                                   start=if (which.start == "current")
-                                       hhh4coef2start(fit), # takes precedence
+                                   start=start, # takes precedence
                                    use.estimates=TRUE,
                                    keep.terms=TRUE) # need "model" -> $terms
                 if (!fit$convergence) {
@@ -167,12 +176,39 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
 
     }
 
+    ## with shared overdispersion parameters we need to expand psi to ncol(pred)
+    if (dimPsi > 1L && dimPsi != nUnits) {
+        psi <- psi[,model$indexPsi]
+    }
+    
     ## done
-    c(list(pred = pred, observed = observed,
+    res <- c(list(pred = pred, observed = observed,
            psi = if (withPsi) psi else NULL,
            allConverged = all(!is.na(pred))),
       if (keep.estimates) list(coefficients = coefficients,
                                Sigma.orig = Sigma.orig,
                                logliks = logliks)
       )
+    class(res) <- "oneStepAhead"
+    res
+}
+
+
+## extract estimated overdispersion in dnbinom() parametrization, as full matrix
+psi2size.oneStepAhead <- function (object)
+{
+    if (is.null(object$psi)) # Poisson model
+        return(NULL)
+
+    size <- exp(object$psi) # a matrix with 1 or nUnit columns
+
+    ## ensure that we always have a full 'size' matrix with nUnit columns
+    dimpred <- dim(object$pred)
+    if (ncol(size) != dimpred[2L]) { # => ncol(size)=1, unit-independent psi
+        size <- rep.int(size, dimpred[2L])
+        dim(size) <- dimpred
+    }
+    
+    dimnames(size) <- list(rownames(object$psi), colnames(object$pred))
+    size
 }

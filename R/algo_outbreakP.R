@@ -1,5 +1,5 @@
 ###################################################
-### chunk number 1: 
+### chunk number 1:
 ###################################################
 
 ######################################################################
@@ -30,7 +30,7 @@ calc.outbreakP.statistic <- function(x) {
   n <- length(x)
   #Index problem when converting java arrays to R arrays
   x <- c(0,x)
-  
+
   #Initialization (not all parts might be needed)
   leftl <- numeric(n+1);
   y <- numeric(n+1);
@@ -43,9 +43,9 @@ calc.outbreakP.statistic <- function(x) {
 
   xbar <- 0
   meanl[1] = -Inf
-  leftl[1] = 0		
+  leftl[1] = 0
 
-  
+
   for (i in 1:n) {
     #Initialize
     yhat[i+1] <- x[i+1];
@@ -53,10 +53,10 @@ calc.outbreakP.statistic <- function(x) {
     sumw[i+1] <- 1;
     meanl[i+1] <- x[i+1];
     leftl[i+1] <- i;
-    #Calculate mean
+    #Calculate mean (this is a sequential formula to calculate mean(x[1:i]))
     xbar=xbar+(x[i+1]-xbar)/i
-				
-    #create plateaus 
+
+    #Create plateaus
     while (meanl[i+1] <= meanl[ (leftl[i+1] - 1) + 1]) {
       #merge sets
       sumwy[i+1] = sumwy[i+1] + sumwy[(leftl[i+1] - 1)+1];
@@ -64,25 +64,27 @@ calc.outbreakP.statistic <- function(x) {
       meanl[i+1] = sumwy[i+1] / sumw[i+1];
       leftl[i+1] = leftl[(leftl[i+1] - 1)+1];
     }
-    
-    #calculate yhat 
-    for (j in leftl[i+1]:i){
+
+    #calculate yhat
+    for (j in leftl[i+1]:i) {
       yhat[j+1] = meanl[i+1];
     }
   }
-		
+
+  #Compute the statistic in case of a Poisson distribution
   alarm.stat <- 1
-  for (j in 1:n) {
+  for (j in seq_len(n)) {
     #Ensure 0/0 = 1 so we don't get NaNs
     div <- ifelse(yhat[j+1]==0 & xbar==0, 1, yhat[j+1]/xbar)
     alarm.stat <- alarm.stat * (div)^x[j+1]
   }
   return(alarm.stat)
 
+## The above might cause NaN's in case of large numbers.
 ##  logalarm <- 0
 ##  for (j in 1:n) {
 ##     #Eqn (5) in Frisen et al paper in log form. However: it is undefined
-##     #what happens if \hat{\mu}^D(t) == 0 (it is a division by zero). 
+##     #if \hat{\mu}^D(t) == 0 (it is a division by zero).
 ##     #We fix 0/0 = 1
 ##     if (xbar != 0) {
 ##       if (yhat[j+1] != 0) { #if \hat{\mu}^{C1} == 0 then
@@ -94,7 +96,7 @@ calc.outbreakP.statistic <- function(x) {
 ##       }
 ##     }
 ##  }
-##  #Done, return the value  
+##  #Done, return the value
 ##  return(exp(logalarm))
 }
 
@@ -114,7 +116,7 @@ algo.outbreakP <- function(disProgObj, control = list(range = range, k=100, ret=
 
   #Which value to return in upperbound?
   control$ret <- match.arg(control$ret, c("value","cases"))
-   
+
   #Initialize the necessary vectors
   alarm <- matrix(data = 0, nrow = length(control$range), ncol = 1)
   upperbound <- matrix(data = 0, nrow = length(control$range), ncol = 1)
@@ -133,26 +135,34 @@ algo.outbreakP <- function(disProgObj, control = list(range = range, k=100, ret=
       if (i<=1) {
         upperbound[count] <- ifelse(control$k>=1, NA, 0)
       } else {
-        #Go up or down
-        delta <- ifelse(alarm[count], -1, 1)
-        #Initialize       
-        observedi <- observed[i]
-        foundNNBA <- FALSE
-        #Loop with modified last observation until alarm is caused (dx=1)
-        #or until NO alarm is caused anymore (dx=-1)
-        while ( ((delta == -1 & observedi > 0) | (delta == 1 & observedi < 1e5)) & (!foundNNBA)) {
-          observedi <- observedi + delta
-          newObserved <- c(observed[seq_len(i-1)],observedi)
-          statistic <- calc.outbreakP.statistic( newObserved )
-          foundNNBA <- (statistic > control$k) == ifelse(alarm[count],FALSE,TRUE)
+        if (is.nan(statistic)) { #if no decent statistic was computed.
+          upperbound[count] <- NA
+        } else {
+          #Go up or down
+          delta <- ifelse(alarm[count], -1, 1)
+          #Initialize
+          observedi <- observed[i]
+          foundNNBA <- FALSE
+          #Loop with modified last observation until alarm is caused (dx=1)
+          #or until NO alarm is caused anymore (dx=-1)
+          while ( ((delta == -1 & observedi > 0) | (delta == 1 & observedi < control$maxUpperboundCases)) & (!foundNNBA)) {
+            observedi <- observedi + delta
+            newObserved <- c(observed[seq_len(i-1)],observedi)
+            statistic <- calc.outbreakP.statistic( newObserved )
+            if (is.nan(statistic)) { #statistic produced a numeric overflow.
+              observedi <- control$maxUpperboundCases
+            } else {
+              foundNNBA <- (statistic > control$k) == ifelse(alarm[count],FALSE,TRUE)
+            }
+          }
+          upperbound[count] <- ifelse( foundNNBA, observedi + ifelse(alarm[count],1,0), NA)
         }
-        upperbound[count] <- ifelse( foundNNBA, observedi + ifelse(alarm[count],1,0), NA) 
       }
     } else {
       upperbound[count] <- statistic
     }
 
-    #Advance time index 
+    #Advance time index
     count <- count + 1
   }
 

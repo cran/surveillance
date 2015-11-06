@@ -38,9 +38,9 @@ importFrom(utils, head, tail, toLatex)
 ##                   na.omit, as.formula, pnbinom, qnbinom, qnorm, sd, glm, optim,
 ##                   poisson, ppois, qpois, predict.glm, summary.glm, quasipoisson,
 ##                   glm.fit) ## and many more...
-importFrom(utils, packageVersion, modifyList, capture.output, read.table,
+importFrom(utils, packageVersion, modifyList, capture.output, read.table, data,
                   setTxtProgressBar, txtProgressBar, sessionInfo, head.matrix,
-                  str, flush.console, write.table)
+                  str, flush.console, write.table, as.roman, tail.matrix)
 
 
 ### sampling from mv.Gausian for OSAIC weights (twinSIR) and iafplot (twinstim)
@@ -149,6 +149,7 @@ export(coeflist)
 S3method(coeflist, default)
 S3method(coeflist, twinstim)
 S3method(coeflist, simEpidataCS)
+S3method(coeflist, hhh4)
 
 # Spatio-temporal cluster detection
 export(stcd)
@@ -162,9 +163,24 @@ S3method(toLatex, knox)
 export(stKtest)
 S3method(plot, stKtest)
 
+# PIT histograms
+export(pit)
+export(pit.default)
+S3method(pit, default)
+S3method(pit, oneStepAhead)
+S3method(pit, hhh4)
+S3method(plot, pit)
+
+# calibration test for Poisson or NegBin predictions
+export(calibrationTest)
+S3method(calibrationTest, default)
+export(calibrationTest.default)
+export(dss, logs, rps)  # ses, nses
+
 
 ### sts(BP)-specific
 
+export(sts)
 exportClasses(sts, stsBP)
 export(linelist2sts)
 
@@ -188,7 +204,7 @@ exportMethods(reportingTriangle,delayCDF,score)
 # plot variants
 export(stsplot_space)
 export(stsplot_time, stsplot_time1, stsplot_alarm)
-export(atChange, at2ndChange, atMedian) #for time axis formatting
+export(addFormattedXAxis, atChange, at2ndChange, atMedian) #for time axis formatting
 export(stsplot_spacetime) # old implementation of (animated) map
 S3method(animate, sts)    # S3-method for an S4 class, see ?Methods
 
@@ -419,9 +435,9 @@ export(hhh4)
 export(addSeason2formula)
 export(zetaweights, W_powerlaw)
 export(W_np)
-export(oneStepAhead, scores)
+export(oneStepAhead)
+export(scores)
 export(permutationTest)
-export(pit)
 
 ## S3-methods
 S3method(print, hhh4)
@@ -439,13 +455,36 @@ S3method(confint, hhh4)
 S3method(residuals, hhh4)
 S3method(predict, hhh4)
 S3method(update, hhh4)
+S3method(all.equal, hhh4)
 S3method(simulate, hhh4)
 S3method(plot, hhh4)
 export(plotHHH4_fitted, plotHHH4_fitted1,
        plotHHH4_season, getMaxEV_season,
        plotHHH4_maxEV, getMaxEV,
-       plotHHH4_ri,
+       plotHHH4_maps, plotHHH4_ri,
        plotHHH4_neweights)
+
+#S3method(scores, default)  # rather an internal auxiliary function, undocumented
+S3method(scores, hhh4)
+S3method(scores, oneStepAhead)
+S3method(calibrationTest, hhh4)
+S3method(calibrationTest, oneStepAhead)
+
+## methods for simulations from hhh4 fits
+S3method(aggregate, hhh4sims)
+S3method(plot, hhh4sims)
+export(as.hhh4simslist)
+S3method(as.hhh4simslist, hhh4sims)
+S3method(as.hhh4simslist, list)
+S3method(as.hhh4simslist, hhh4simslist)
+S3method("[", hhh4simslist)
+S3method("[[", hhh4simslist)
+S3method(aggregate, hhh4simslist)
+S3method(plot, hhh4simslist)
+export(plotHHH4sims_size)
+export(plotHHH4sims_time)
+S3method(scores, hhh4sims)
+S3method(scores, hhh4simslist)
 
 ## backwards-compatibility for old class name "ah4"
 S3method(print, ah4)

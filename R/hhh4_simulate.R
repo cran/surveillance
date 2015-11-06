@@ -5,9 +5,9 @@
 ###
 ### Simulate from a HHH4 model
 ###
-### Copyright (C) 2012-2014 Michaela Paul and Sebastian Meyer
-### $Revision: 860 $
-### $Date: 2014-03-25 21:16:54 +0100 (Tue, 25 Mar 2014) $
+### Copyright (C) 2012 Michaela Paul, 2013-2015 Sebastian Meyer
+### $Revision: 1477 $
+### $Date: 2015-09-15 14:25:35 +0200 (Die, 15. Sep 2015) $
 ################################################################################
 
 
@@ -38,22 +38,17 @@ simulate.hhh4 <- function (object, # result from a call to hhh4
     ## END seed
     
     cl <- match.call()
-    stsObj <- object$stsObj
-    control <- object$control
     theta <- if (missing(coefs)) coefs else checkCoefs(object, coefs)
     
-    ## get weight matrix/array of the ne component
-    neweights <- getNEweights(object, coefW(theta))
-
     ## lags
-    lag.ar <- control$ar$lag
-    lag.ne <- control$ne$lag
+    lag.ar <- object$control$ar$lag
+    lag.ne <- object$control$ne$lag
     maxlag <- max(lag.ar, lag.ne)
     
     ## initial counts
-    nUnits <- ncol(stsObj)
+    nUnits <- object$nUnit
     if (is.null(y.start)) { # set starting value to mean observed (in subset!)
-        y.means <- ceiling(colMeans(observed(stsObj)[subset,,drop=FALSE]))
+        y.means <- ceiling(colMeans(observed(object$stsObj)[subset,,drop=FALSE]))
         y.start <- matrix(y.means, maxlag, nUnits, byrow=TRUE)
     } else {
         if (is.vector(y.start)) y.start <- t(y.start)
@@ -64,9 +59,12 @@ simulate.hhh4 <- function (object, # result from a call to hhh4
     }
 
     ## get fitted components nu_it (with offset), phi_it, lambda_it, t in subset
-    model <- interpretControl(control, stsObj)
+    model <- terms.hhh4(object)
     means <- meanHHH(theta, model, subset=subset)
     psi <- splitParams(theta,model)$overdisp
+
+    ## weight matrix/array of the ne component
+    neweights <- getNEweights(object, coefW(theta))
 
     ## set predictor to zero if not included ('components' argument)
     stopifnot(length(components) > 0, components %in% c("ar", "ne", "end"))
@@ -86,7 +84,7 @@ simulate.hhh4 <- function (object, # result from a call to hhh4
         )
     if (!simplify) {
         ## result template
-        res0 <- stsObj[subset,]
+        res0 <- object$stsObj[subset,]
         setObserved <- function (observed) {
             res0@observed[] <- observed
             res0
@@ -96,7 +94,12 @@ simulate.hhh4 <- function (object, # result from a call to hhh4
     res <- if (nsim==1) eval(simcall) else
            replicate(nsim, eval(simcall),
                      simplify=if (simplify) "array" else FALSE)
-    if (simplify) dimnames(res)[1:2] <- list(subset, colnames(model$response))
+    if (simplify) {
+        dimnames(res)[1:2] <- list(subset, colnames(model$response))
+        attr(res, "initial") <- y.start
+        attr(res, "stsObserved") <- object$stsObj[subset,]
+        class(res) <- "hhh4sims"
+    }
     
     ## Done
     attr(res, "call") <- cl
@@ -130,7 +133,7 @@ simHHH4 <- function(ar,     # lambda_it (nTime x nUnits matrix)
         ## draw 'n' samples from NegBin with mean vector 'mean' (length=nUnits)
         ## and overdispersion psi such that Variance = mean + psi*mean^2
         ## where 'size'=1/psi and length(psi) == 1 or length(mean)
-        function(n, mean, size = psi.inv) rnbinom(n, mu = mean, size = psi.inv)
+        function(n, mean) rnbinom(n, mu = mean, size = psi.inv)
     }
 
     ## if only endemic component -> simulate independently
@@ -178,4 +181,80 @@ checkCoefs <- function (object, coefs, reparamPsi=TRUE)
         stop(sQuote("coefs"), " must be of length ", length(theta))
     names(coefs) <- names(theta)
     coefs
+}
+
+
+### aggregate predictions over time and/or (groups of) units
+
+aggregate.hhh4sims <- function (x, units = TRUE, time = FALSE, ..., drop = FALSE)
+{
+    ax <- attributes(x)
+
+    if (time) {
+        ## sum counts over the whole simulation period
+        res <- colSums(x)
+        ## -> a nUnits x nsim matrix -> will no longer be "hhh4sims"
+        if (isTRUE(units)) { # sum over all units
+            res <- colSums(res) # now a vector of length nsim
+        } else if (!identical(FALSE, units)) { # sum over groups of units
+            stopifnot(length(units) == dim(x)[2])
+            res <- t(rowSumsBy.matrix(t(res), units))
+        }
+    } else {
+        if (isTRUE(units)) { # sum over all units
+            res <- apply(X = x, MARGIN = c(1L, 3L), FUN = sum)
+            if (!drop) {
+                ## restore unit dimension conforming to "hhh4sims" class
+                dim(res) <- c(ax$dim[1L], 1L, ax$dim[3L])
+                dnres <- ax$dimnames
+                dnres[2L] <- list(NULL)
+                dimnames(res) <- dnres
+                ## restore attributes
+                attr(res, "initial") <- as.matrix(rowSums(ax$initial))
+                attr(res, "stsObserved") <- aggregate(ax$stsObserved, by = "unit")
+                class(res) <- "hhh4sims"
+            }
+        } else if (!identical(FALSE, units)) { # sum over groups of units
+            stopifnot(length(units) == dim(x)[2])
+            groupnames <- names(split.default(seq_along(units), units))
+            res <- apply(X = x, MARGIN = 3L, FUN = rowSumsBy.matrix, by = units)
+            dim(res) <- c(ax$dim[1L], length(groupnames), ax$dim[3L])
+            dnres <- ax$dimnames
+            dnres[2L] <- list(groupnames)
+            dimnames(res) <- dnres
+            if (!drop) {
+                ## restore attributes
+                attr(res, "initial") <- rowSumsBy.matrix(ax$initial, units)
+                attr(res, "stsObserved") <- rowSumsBy.sts(ax$stsObserved, units)
+                class(res) <- "hhh4sims"
+            }
+        } else {
+            return(x)
+        }
+    }
+    
+    ## done
+    res
+}
+
+rowSumsBy.matrix <- function (x, by, na.rm = FALSE)
+{
+    dn <- dim(x)
+    res <- vapply(X = split.default(x = seq_len(dn[2L]), f = by),
+                  FUN = function (idxg)
+                      .rowSums(x[, idxg, drop = FALSE],
+                               dn[1L], length(idxg), na.rm = na.rm),
+                  FUN.VALUE = numeric(dn[1L]), USE.NAMES = TRUE)
+    if (dn[1L] == 1L) t(res) else res
+}
+
+rowSumsBy.sts <- function (x, by, na.rm = FALSE)
+{
+    ## map, neighbourhood, upperbound, control get lost by aggregation of units
+    sts(epoch = x@epoch, freq = x@freq, start = x@start,
+        observed = rowSumsBy.matrix(x@observed, by, na.rm),
+        state = rowSumsBy.matrix(x@state, by, na.rm) > 0,
+        alarm = rowSumsBy.matrix(x@alarm, by, na.rm) > 0,
+        populationFrac = rowSumsBy.matrix(x@populationFrac, by, na.rm),
+        epochAsDate = x@epochAsDate, multinomialTS = x@multinomialTS)
 }

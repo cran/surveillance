@@ -1,6 +1,7 @@
 \name{sts-class}
 \Rdversion{1.1}
 \docType{class}
+\alias{sts}
 \alias{sts-class}
 
 % methods to access and replace slots

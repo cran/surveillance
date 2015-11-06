@@ -293,9 +293,7 @@ data("measlesDE")
 measles2w <- aggregate(measlesDE, nfreq = 26)
 
 plot(measles2w, type = observed ~ time,   # plot aggregated over all units i
-                   main = "Bi-weekly number of measles cases in Germany", 
-                   legend.opts = NULL        # suppress default legend
-                   )
+     main = "Bi-weekly number of measles cases in Germany")
 @
 \end{center}
 

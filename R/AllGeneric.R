@@ -10,6 +10,16 @@ fixef <- function (object, ...) UseMethod("fixef")
 ranef <- function (object, ...) UseMethod("ranef")
 intersectPolyCircle <- function (object, center, radius, ...)
     UseMethod("intersectPolyCircle")
+calibrationTest <- function (x, ...) UseMethod("calibrationTest")
+scores <- function (x, ...) {
+    if (identical(class(x), "list")) {
+        ## backward compatibility with surveillance < 1.10-0
+        scores.oneStepAhead(x, ...)
+    } else {
+        UseMethod("scores")
+    }
+}
+pit <- function (x, ...) UseMethod("pit")
 
 ## internal function with methods for "twinSIR" and "simEpidata"
 getModel <- function (object, ...) UseMethod("getModel")
@@ -59,14 +69,17 @@ setMethod("epoch", "sts", function(x, as.Date=x@epochAsDate) {
   } else { # convert to Date format
     if (x@epochAsDate) {
       as.Date(x@epoch, origin = "1970-01-01")
-    } else {
+    } else if (x@freq == 12) { # use the first day of every month
+      as.Date(strptime(paste(year(x), epochInYear(x), 1, sep = "-"),
+                       format = "%Y-%m-%d"))
+    } else if (x@freq == 52) { # use Mondays
       firstMonday <- strptime(x = paste0(x@start[1L], "-W", x@start[2L], "-1"),
                               format = "%Y-W%W-%u")
-      dateInc <- switch(as.character(x@freq),
-                        "365" = 1, "52" = 7, "12" = 30,
-                        stop("date conversion only implemented for daily, ",
-                             "weekly and monthly data"))
-      seq(from = as.Date(firstMonday), by = dateInc, length.out = nrow(x))
+      seq(from = as.Date(firstMonday), by = 7L, length.out = nrow(x))
+    } else if (x@freq == 365) { # use day of the year (incorrect in leap years)
+      as.Date(strptime(paste0(year(x), "-D", epochInYear(x)), format = "%Y-D%j"))
+    } else {
+      stop("date conversion only implemented for daily, weekly and monthly data")
     }
   }
 })

@@ -1,6 +1,6 @@
 # -------------  class sts  ----------------------------------------
 
-setClass( "sts", representation(epoch = "numeric",  ##this slot used to be named week
+sts <- setClass( "sts", representation(epoch = "numeric",  ##this slot used to be named week
                                 freq = "numeric",
                                 start = "numeric",
                                 observed = "matrix",

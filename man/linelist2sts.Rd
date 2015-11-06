@@ -103,7 +103,7 @@ all.equal(sum(observed(sts)),nrow(husO104Hosp))
 #Plot the result
 plot(sts,xaxis.tickFreq=list("\%d"=atChange,"\%m"=atChange),
            xaxis.labelFreq=list("\%d"=at2ndChange),
-           xaxis.labelFormat="\%d \%b",legend.opts=NULL,
+           xaxis.labelFormat="\%d \%b",
            xlab="",las=2,cex.axis=0.8)
 }
 

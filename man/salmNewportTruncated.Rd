@@ -15,9 +15,11 @@ data("salmNewportTruncated")
 }
 }
 \description{
-  A list containing 6 time series of counts of Salmonella Newport in Germany 2001-2011 aggregated by data of disease onset as known during weeks 44 to 49 of 2011. 
+  A list containing 6 time series of counts of Salmonella Newport in Germany 2001-2011 aggregated by data of disease onset as known during weeks 44 to 49 of 2011.
 }
 \references{
-  Bayesian outbreak detection in the presence of reporting delays, Salmon, M., Schumacher, D., Stark, K., \enc{H?hle}{Hoehle}, M. (2015), in revision.
+  Bayesian outbreak detection in the presence of reporting delays,
+  Salmon, M., Schumacher, D., Stark, K., \enc{Höhle}{Hoehle}, M. (2015),
+  Biometrical Journal, http://dx.doi.org/10.1002/bimj.201400159.
 }
 \keyword{datasets}

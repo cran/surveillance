@@ -7,7 +7,7 @@
 ###
 ### Copyright (C) 2009 Michael Hoehle, 2009, 2012, 2014 Sebastian Meyer
 ### $Revision: 1079 $
-### $Date: 2014-10-18 01:26:00 +0200 (Sat, 18 Oct 2014) $
+### $Date: 2014-10-18 01:26:00 +0200 (Sam, 18. Okt 2014) $
 ################################################################################
 
 ## Apart from simulation of SIR data, it is possible to simulate
