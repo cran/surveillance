@@ -28,6 +28,8 @@
     (\code{"neweights"}) as a function of neighbourhood order
     (shortest-path distance between regions), i.e., \code{w_ji ~ o_ji}.
   }
+  Spatio-temporal \code{"hhh4"} models and these plots are illustrated in
+  Meyer et al. (2016, Section 5).
 }
 
 \usage{
@@ -256,6 +258,11 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
   infectious disease surveillance data.
   \emph{Biometrical Journal}, \bold{54}, 824-843.\cr
   DOI-Link: \url{http://dx.doi.org/10.1002/bimj.201200037}
+
+  Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
+  Spatio-temporal analysis of epidemic phenomena using the \R package
+  \pkg{surveillance}. \emph{Journal of Statistical Software}. In press.\cr
+  Preprint available at \url{http://arxiv.org/abs/1411.0416}
 }
 
 \seealso{

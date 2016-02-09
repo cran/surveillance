@@ -1,8 +1,11 @@
 \name{create.grid}
 \alias{create.grid}
 \encoding{latin1}
-\title{Computes a matrix of initial values}
+\title{Create a Matrix of Initial Values for \code{algo.hhh.grid}}
 \description{
+  (An auxiliary function for the \strong{deprecated} HHH estimation
+  routine \code{\link{algo.hhh.grid}}; use \code{\link{hhh4}} instead.)
+  
        For a given model and a list of parameters specified as \code{param = c(lower,upper,length)},
        \code{create.grid} creates a grid of initial values for \code{algo.hhh.grid}.
        The resulting matrix contains all combinations of the supplied parameters 

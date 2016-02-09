@@ -26,6 +26,7 @@ Print, Summary and other Standard Methods for \code{"hhh4"} Objects
 Besides \code{print} and \code{summary} methods there are also some standard
 extraction methods defined for objects of class \code{"hhh4"} resulting
 from a call to \code{\link{hhh4}}.
+The implementation is illustrated in Meyer et al. (2016, Section 5).
 }
 
 \usage{
@@ -94,8 +95,7 @@ from a call to \code{\link{hhh4}}.
 
 \value{
   The \code{\link{coef}}-method returns all estimated (regression)
-  parameters from a \code{\link{hhh4}} model as proposed by Paul and
-  Held (2011). 
+  parameters from a \code{\link{hhh4}} model.
   If the model includes random effects, those can be extracted with
   \code{ranef}, whereas \code{fixef} returns the fixed parameters.
   The \code{coeflist}-method extracts the model coefficients in a list
@@ -134,9 +134,10 @@ from a call to \code{\link{hhh4}}.
 }
 
 \references{
-  Paul, M. and Held, L. (2011) Predictive assessment of a non-linear
-    random  effects model for multivariate time series of infectious
-    disease counts. Statistics in Medicine, \bold{30}, 1118--1136.
+  Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
+  Spatio-temporal analysis of epidemic phenomena using the \R package
+  \pkg{surveillance}. \emph{Journal of Statistical Software}. In press.\cr
+  Preprint available at \url{http://arxiv.org/abs/1411.0416}
 }
 
 \keyword{methods}

@@ -70,6 +70,9 @@ importMethodsFrom(Matrix, coerce, diag, forceSymmetric, solve)
 # for use in computing OSAIC weights by simulation
 #importFrom(quadprog, solve.QP)   # moved to "Suggests"
 
+# for update.epidata() if 'D' is a "Matrix"
+importMethodsFrom(Matrix, rowSums)
+
 
 ### twinstim-specific
 

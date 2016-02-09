@@ -1,83 +1,70 @@
-%\VignetteIndexEntry{Additional documentation of the function algo.glrnb}
-%\VignetteKeywords{getting started}
-%\VignettePackage{surveillance}
-%\VignetteDepends{surveillance}
+%\VignetteIndexEntry{algo.glrnb: Count data regression charts using the generalized likelihood ratio statistic}
 
 \documentclass[a4paper,11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
 \usepackage{natbib}
 \bibliographystyle{apalike}
+\usepackage{lmodern}
 
-% Preabmle parts
-\usepackage[T1]{fontenc}        % Make it possible to use danish characters !!
-\usepackage{url}
-\usepackage{hyperref}
-\usepackage{times}  
-\renewcommand{\sfdefault}{ptm} % Brug times som font - vigtigt i
-                               % pdflatex?
-
-\usepackage{bm}
 \usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{latexsym}
-\usepackage{verbatim}
+\usepackage{amsfonts,amssymb}
 \usepackage{relsize}
-\usepackage{epsfig}
-\usepackage{comment}
-\newcommand{\surveillance}{\texttt{surveillance}}
-\usepackage{pdfpages}
-\setlength{\parindent}{0pt} 
+\setlength{\parindent}{0pt}
 
+%%% Meta data
+\usepackage{hyperref}
+\hypersetup{
+  pdfauthor = {Valentin Wimmer and Michael H\"ohle},
+  pdftitle = {'algo.glrnb': Count data regression charts using the generalized likelihood ratio statistic},
+  pdfsubject = {R package 'surveillance'}
+}
 
-
-\title{The function 'algo.glrnb' in the R-Package 'surveillance'}
+\title{\texttt{algo.glrnb}: Count data regression charts using the generalized likelihood ratio statistic}
 \author{
-Valentin Wimmer$^{(1,2)}$\thanks{Author of correspondence: Email: \texttt{Valentin.Wimmer@gmx.de}}$\>\>$ and Michael H\"{o}hle$^{(1,2)}$ \\
-(1) Department of Statistics\\
-University of Munich, Germany\\
-(2) MC-Health - Munich Center of Health Sciences
-} \date{\today}
+Valentin Wimmer$^{(1,2)}$\thanks{Author of correspondence: \texttt{Valentin.Wimmer@gmx.de}}\; and Michael H\"{o}hle$^{(1,2)}$ \\
+(1) Department of Statistics, University of Munich, Germany\\
+(2) MC-Health -- Munich Center of Health Sciences
+}
+\date{6 June 2008}
 
-\begin{document}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Sweave 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Put all in another directory
-\SweaveOpts{prefix.string=figs/vignette_glrnb}
- \setkeys{Gin}{width=1\textwidth} 
+\usepackage{Sweave}
+\SweaveOpts{prefix.string=plots/glrnb}
+\setkeys{Gin}{width=1\textwidth} 
 
 \DefineVerbatimEnvironment{Sinput}{Verbatim}{fontshape=sl,fontsize=\relsize{-1}}
-\DefineVerbatimEnvironment{Soutput}{Verbatim}{fontshape=s1,fontsize=\relsize{-1}}
+\DefineVerbatimEnvironment{Soutput}{Verbatim}{fontsize=\relsize{-1}}
 \DefineVerbatimEnvironment{Scode}{Verbatim}{fontshape=sl,fontsize=\relsize{-1}}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Initial R code
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 <<echo=F,results=hide>>=
-library(surveillance)
-library(xtable)
-options(SweaveHooks=list(fig=function() par(mar=c(5,4,4,0),cex.axis=1.5,cex.lab=1.5,cex.main=1.5)))
+library("surveillance")
+options(SweaveHooks=list(fig=function() par(mar=c(4,4,2,0)+.5)))
 options(width=70)
 set.seed(247)
 
-#####################################################################
-# create directory figs if it does not exist
-#####################################################################
-if(!file.exists("figs/")) dir.create("figs/")
-
+## create directory for plots if it does not exist
+if(!dir.exists("plots")) dir.create("plots")
 @ 
 
 
+
+\begin{document}
+
 \maketitle  
-%\mbox{}\hrulefill\\
 
 \begin{abstract}
-  \noindent The aim of this document is to show the use of the function \verb+algo.glrnb+ for a type of count data regression chart, the generalized likelihood ratio (GLR) statistic. The function is part of the R-Package '\texttt{surveillance}' \citep{hoehle2007R}, which provides outbreak detection algorithms for surveillance data. For an introduction to this package, the vignette for the package can be used \citep{vignette}. There one can find information about the data structure of the \verb+disProg+ and \verb+SurvRes+ objects. Furthermore tools for outbreak detection, such as a Bayesian approach, procedures described by \citet{stroup89},
+  \noindent The aim of this document is to show the use of the function \verb+algo.glrnb+ for a type of count data regression chart, the generalized likelihood ratio (GLR) statistic. The function is part of the \textsf{R} package \textbf{surveillance} \citep{hoehle-2007}, which provides outbreak detection algorithms for surveillance data. For an introduction to these monitoring features of the package, see \texttt{vignette("surveillance")}. There one can find information about the data structure of the \verb+disProg+ and \verb+SurvRes+ objects. Furthermore tools for outbreak detection, such as a Bayesian approach, procedures described by \citet{stroup89},
   \citet{farrington96} and the methods used at the Robert Koch Institut, Germany, are explained. 
-  
-  The function \verb+algo.glrnb+ is the implementation of the control charts for poisson and negative binomial distributions for monitoring time series of counts described in \citet{hoehle2008}. This document gives an overview of the different features of the function and illustrations of its use are given for simulated and real surveillance data. \\
+  The function \verb+algo.glrnb+ is the implementation of the control charts for poisson and negative binomial distributions for monitoring time series of counts described in \citet{hoehle.paul2008}. This document gives an overview of the different features of the function and illustrations of its use are given for simulated and real surveillance data. \\
   
     \noindent{\bf Keywords:} change-point detection, generalized regression charts, poisson and negative binomial distribution, increase and decrease
 \end{abstract}
@@ -85,7 +72,7 @@ if(!file.exists("figs/")) dir.create("figs/")
 
 \section{Introduction}\label{sec:intro}
 
-For the monitoring of infectious diseases it is necessary to monitor time series of routinely collected surveillance data. Methods of the statistic process control (SPC) can be used for this purpose. Here it is important, that the methods can handle the special features of surveillance data, e.g.\ seasonality of the disease or the count data nature of the collected data. It is also important, that not only the number of counts of one time point (week, month) are regarded but instead the cases of previous time points are considered, because beside abrupt changes also small constant changes should be detected. CUSUM-methods (function \verb+algo.cusum+), LR-charts or GLR-methods as described by \citet{lai95} and \citet{hoehle2008} can afford this. With the function \verb+algo.glrnb+ these methods can easily applied to surveillance data.
+For the monitoring of infectious diseases it is necessary to monitor time series of routinely collected surveillance data. Methods of the statistic process control (SPC) can be used for this purpose. Here it is important, that the methods can handle the special features of surveillance data, e.g.\ seasonality of the disease or the count data nature of the collected data. It is also important, that not only the number of counts of one time point (week, month) are regarded but instead the cases of previous time points are considered, because beside abrupt changes also small constant changes should be detected. CUSUM-methods (function \verb+algo.cusum+), LR-charts or GLR-methods as described by \citet{lai95} and \citet{hoehle.paul2008} can afford this. With the function \verb+algo.glrnb+ these methods can easily applied to surveillance data.
 
 A typical assumption for time series of counts is, that the observed counts at each time point follow a Poisson distribution. If overdispersion is likely, the negative binomial distribution provides a better alternative. Both distributions are provided by \verb+algo.glrnb+.
 
@@ -103,12 +90,12 @@ The state is 1, if e.g. the Robert Koch Institut declares the week to be part of
 As an first example the number of cases of salmonella hadar in the years 2001-2006 is examined.  \\
 
 \textit{Example 1:}
-<<fig=T,width=13,height=6>>=
+<<fig=T,width=10,height=5>>=
 data(shadar)
 plot(shadar,main="Number of salmonella hadar cases in Germany 2001-2006")
 @ 
 
-The package provides the possibility to simulate surveillance data with the functions \verb+sim.pointSource+, \verb+sim.seasonalNoise+ and \verb+sim.HHH+. See \citep{hoehle2007R} and the vignette for further information. \\
+The package provides the possibility to simulate surveillance data with the functions \verb+sim.pointSource+, \verb+sim.seasonalNoise+ and \verb+sim.HHH+. See \citet{hoehle-2007} and \texttt{vignette("surveillance")} for further information. \\
 
 \textit{Example 2:}
 
@@ -117,14 +104,14 @@ The package provides the possibility to simulate surveillance data with the func
 simData <- sim.pointSource(length=300,K=0.5,r=0.6,p=0.95)
 @
 
-<<fig=T,width=13,height=6>>=
+<<fig=T,width=10,height=5>>=
 plot(simData)
 @
 
 \section{LR and GLR-charts}\label{sec:glr}
 
 
-Our aim is to detect a significant change in the number of cases. This is done as follows. One assumes, that there is a number of cases that is usual, the in control mean $\mu_0$. The in-control mean is defined in \citet{hoehle2008} to be
+Our aim is to detect a significant change in the number of cases. This is done as follows. One assumes, that there is a number of cases that is usual, the in control mean $\mu_0$. The in-control mean is defined in \citet{hoehle.paul2008} to be
 \begin{equation} \label{mu0}
 \operatorname{log}(\mu_{0,t})=\beta_0 + \beta_1t + \sum_{s=1}^S(\beta_{2s} \cos(\omega s t) + \beta_{2s+1}\sin(\omega s t)).
 \end{equation}
@@ -149,9 +136,9 @@ Now $N=\inf \{n \geq 1 : GLR(n) \geq c_{\gamma} \}$ is the first time point wher
 With the function \verb+algo.glrnb+ one can compute the the GLR-statistic for every time point. If the actual value extends the chosen threshold $c_{\gamma}$, an alarm is given. After every alarm, the algorithm gets reset and the surveillance starts again. The result of a call of \verb+algo.glrnb+ is an object of class \verb+SurvRes+. This is basically a list of several arguments. The most important one is the \verb+upperbound+ statistic, which is a vector of length $n$ containing the likelihood-ratio-statistic for every time point under surveillance. The \verb+alarm+-vector contains a boolean for every time point whether there was an alarm or not. \\ 
  
 
-At this point in the vignette we move more into the applied direction and refer the user to \citet{hoehle2008} for further theoretical details about the GLR procedure. The next example demonstrates the surveillance with the \verb+algo.glrnb+ in a learning by doing type of way. The example should demonstrate primarily the result of the surveillance. More details to the control-options follow in the next section. All control values are set here on default and the first two years are used to find a model for the in-control mean and so surveillance is starting in week 105. A plot of the results can be obtained as follows
+At this point in the vignette we move more into the applied direction and refer the user to \citet{hoehle.paul2008} for further theoretical details about the GLR procedure. The next example demonstrates the surveillance with the \verb+algo.glrnb+ in a learning by doing type of way. The example should demonstrate primarily the result of the surveillance. More details to the control-options follow in the next section. All control values are set here on default and the first two years are used to find a model for the in-control mean and so surveillance is starting in week 105. A plot of the results can be obtained as follows
 
-<<fig=T,width=13,height=6>>=
+<<fig=T,width=10,height=5>>=
 survObj <- algo.glrnb(shadar,control=list(range=105:295,alpha=0))
 plot(survObj,startyear=2003)
 @
@@ -228,7 +215,7 @@ surv <- algo.glrnb(disProgObj=shadar,control=control)
 
 The predicted values for the in-control mean in the range are shown as a dashed line in the following plot.
 
-<<fig=T,width=13,height=6>>=
+<<fig=T,width=10,height=5>>=
 plot(shadar)
 with(surv$control,lines(mu0~range,lty=2,lwd=4,col=4))
 @
@@ -323,10 +310,10 @@ no. of alarms & \Sexpr{num[1]} & \Sexpr{num[2]} & \Sexpr{num[3]} & \Sexpr{num[4]
 
 
 \item \verb+change+ \\
-There are two possibilitys to define an outbreak. The intercept-change is described in Section \ref{sec:glr} and equation \ref{interceptchange}. Use \verb+change="intercept"+ to choose this possibility. The other alternative is the epidemic chart, where an auto-regressive model is used. See \citet{held2005} and \citet{hoehle2008} for more details. A call with \verb+change="epi"+ in the control-settings leads to this alternative. Note that in the epidemic chart not every feature of \verb+algo.glrnb+ is available. 
+There are two possibilitys to define an outbreak. The intercept-change is described in Section \ref{sec:glr} and equation \ref{interceptchange}. Use \verb+change="intercept"+ to choose this possibility. The other alternative is the epidemic chart, where an auto-regressive model is used. See \citet{held-etal-2005} and \citet{hoehle.paul2008} for more details. A call with \verb+change="epi"+ in the control-settings leads to this alternative. Note that in the epidemic chart not every feature of \verb+algo.glrnb+ is available. 
 
 \item \verb+theta+ \\
-If the change in intercept in the intercept-charts is known in advance, this value can be passed to the function (see Section \ref{sec:glr}). These LR-charts are faster but can lead to inferior results if a wrong value of \verb+theta+ is used compared to the actual out-of-control value (\citet{hoehle2008}). If  an increase of 50 percent in cases is common when there is an outbreak which corresponds to a $\kappa$ of $\log(1.5)=0.405$ in equation \ref{interceptchange} use
+If the change in intercept in the intercept-charts is known in advance, this value can be passed to the function (see Section \ref{sec:glr}). These LR-charts are faster but can lead to inferior results if a wrong value of \verb+theta+ is used compared to the actual out-of-control value (\citet{hoehle.paul2008}). If  an increase of 50 percent in cases is common when there is an outbreak which corresponds to a $\kappa$ of $\log(1.5)=0.405$ in equation \ref{interceptchange} use
 
 <<echo=T,eval=F>>=
 control=list(range=105:295,theta=0.4)
@@ -350,7 +337,7 @@ control=list(range=105:295,ret="cases",alpha=0)
 surv2 <- algo.glrnb(disProgObj=shadar,control=control)
 @
 
-<<fig=T,echo=F,width=13,height=6>>=
+<<fig=T,echo=F,width=10,height=5>>=
 plot(surv2,startyear=2003)
 @
 
@@ -366,14 +353,14 @@ control=list(range=105:295,ret="cases",dir="dec",alpha=0)
 surv3 <- algo.glrnb(disProgObj=shadar,control=control)
 @
 
-<<fig=T,echo=F,width=13,height=6>>=
+<<fig=T,echo=F,width=10,height=5>>=
 plot(surv3,startyear=2003)
 @
 
 The observed number of cases is below the computed threshold several times in 2005 to 2006 and alarms are given.
 
 \item \verb+Mtilde+ and \verb+M+ \\
-These parameters are necessary for the so called ''window-limited'' GLR scheme. Here the maximation is not performed for all $1 \leq k \leq n$ but instead only for a window $k \in \{n-M,...,n-\tilde{M}+1 \}$ of values. Note that $1 \leq \tilde{M} \leq M$, where the minimum delay $\tilde{M}$ is the minimal required sample size to obtain a sufficient estimate of $\theta_1=(\mu_0,\kappa)$ ~\citep{hoehle2008}. The advantage of using a window of values instead of all values is the faster computation, but in the setup with intercept-charts and $\theta_1=\kappa$ this doesn't bother much and $\tilde{M}=1$ is sufficient.      
+These parameters are necessary for the so called ''window-limited'' GLR scheme. Here the maximation is not performed for all $1 \leq k \leq n$ but instead only for a window $k \in \{n-M,...,n-\tilde{M}+1 \}$ of values. Note that $1 \leq \tilde{M} \leq M$, where the minimum delay $\tilde{M}$ is the minimal required sample size to obtain a sufficient estimate of $\theta_1=(\mu_0,\kappa)$ ~\citep{hoehle.paul2008}. The advantage of using a window of values instead of all values is the faster computation, but in the setup with intercept-charts and $\theta_1=\kappa$ this doesn't bother much and $\tilde{M}=1$ is sufficient.      
    
 
 \end{itemize}

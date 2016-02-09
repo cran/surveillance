@@ -13,6 +13,7 @@
 intensity, its epidemic proportion or its endemic proportion over time.
 The default \code{plot} method for objects of class \code{"twinSIR"}
 is just a wrapper for the \code{intensityplot} method.
+The implementation is illustrated in Meyer et al. (2016, Section 4).
 }
 
 \usage{
@@ -102,9 +103,10 @@ is just a wrapper for the \code{intensityplot} method.
 }
 
 \references{
-  \enc{Höhle}{Hoehle}, M. (2009),
-  Additive-Multiplicative Regression Models for Spatio-Temporal
-  Epidemics, Biometrical Journal, 51(6):961-978.
+  Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
+  Spatio-temporal analysis of epidemic phenomena using the \R package
+  \pkg{surveillance}. \emph{Journal of Statistical Software}. In press.\cr
+  Preprint available at \url{http://arxiv.org/abs/1411.0416}
 }
 
 \author{
@@ -112,8 +114,7 @@ Sebastian Meyer
 }
 
 \seealso{
-\code{\link{twinSIR}} or \enc{Höhle}{Hoehle} (2009) for a more detailed
-description of the intensity model.
+\code{\link{twinSIR}} for a description of the intensity model, and
 \code{\link{simulate.twinSIR}} for the simulation of epidemic data
 according to a \code{twinSIR} specification.
 }

@@ -3,8 +3,26 @@ context("hhh4() model with shared overdispersion parameters")
 ## use a small subset of districts from the fluBYBW data
 data("fluBYBW")
 fluBWsub <- fluBYBW[, substr(colnames(fluBYBW), 1, 2) %in% "81"]
-neighbourhood(fluBWsub) <- nbOrder(neighbourhood(fluBWsub), maxlag = 5) + 1
 ## stsplot_space(fluBWsub, labels = TRUE)
+
+## set "neighbourhood" to order of adjacency + 1
+neighbourhood(fluBWsub) <-  # nbOrder(neighbourhood(fluBWsub), maxlag = 5) + 1
+    structure(
+        c(1, 4, 3, 2, 2, 4, 2, 4, 3, 3, 4, 4, 5, 4, 1, 2, 3, 
+          4, 5, 4, 2, 3, 4, 3, 4, 4, 3, 2, 1, 2, 3, 4, 3, 2, 2, 3, 3, 4, 
+          4, 2, 3, 2, 1, 2, 4, 3, 3, 2, 3, 3, 4, 4, 2, 4, 3, 2, 1, 4, 2, 
+          3, 2, 3, 3, 4, 4, 4, 5, 4, 4, 4, 1, 3, 4, 3, 2, 3, 3, 4, 2, 4, 
+          3, 3, 2, 3, 1, 3, 2, 2, 3, 3, 4, 4, 2, 2, 3, 3, 4, 3, 1, 2, 3, 
+          2, 3, 3, 3, 3, 2, 2, 2, 3, 2, 2, 1, 2, 2, 3, 3, 3, 4, 3, 3, 3, 
+          2, 2, 3, 2, 1, 2, 2, 3, 4, 3, 3, 3, 3, 3, 3, 2, 2, 2, 1, 2, 2, 
+          4, 4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 1, 2, 5, 4, 4, 4, 4, 4, 4, 3, 
+          3, 3, 2, 2, 1),
+        .Dim = c(13L, 13L),
+        .Dimnames = list(
+            c("8115", "8135", "8117", "8116", "8111", "8121", "8118", "8136",
+              "8119", "8125", "8127", "8126", "8128"),
+            c("8115", "8135", "8117", "8116", "8111", "8121", "8118", "8136",
+              "8119", "8125", "8127", "8126", "8128")))
 
 ## a crazy model base
 fluModel <- list(

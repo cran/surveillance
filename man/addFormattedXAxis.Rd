@@ -82,7 +82,7 @@ addFormattedXAxis(x, epochsAsDate = FALSE,
 }
 
 \author{
-  Michael H\enc{Ã¶}{oe}hle with contributions by Sebastian Meyer
+  Michael H\enc{ö}{oe}hle with contributions by Sebastian Meyer
 }
 
 \seealso{

@@ -6,6 +6,70 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.11.0 (2016-02-08)}{
+
+\subsection{NEW FEATURES}{
+  \itemize{
+    \item \code{update.epidata()} can now handle a distance matrix
+    \code{D} in the form of a classed \code{"Matrix"}
+    (suggested by George Wood).
+    
+    \item \code{glrnb()} can now handle \code{ret="cases"} for the
+    generalized likelihood ratio detector based on the negative binomial
+    distribution. It's based on a brute-force search and hence might be
+    slow in some situations.
+
+    \item \code{boda()} and \code{bodaDelay()} now support an
+    alternative method (\code{quantileMethod="MM"}) to compute quantiles
+    based on the posterior distribution. The new method samples
+    parameters from the posterior distribution and then computes the
+    quantile of the mixture distribution using bisectionning, which is
+    faster and yields similar results compared to the original method
+    (\code{quantileMethod="MC"}, still the default).
+  }
+}
+
+\subsection{MINOR CHANGES}{
+  \itemize{
+    \item Revised \code{vignette("hhh4")}, updated the package
+    description as well as some references in the documentation.
+    Also updated (the cache of) the slightly outdated
+    \code{vignette("surveillance")} to account for the corrected version
+    of \code{algo.bayes()} implemented since \pkg{surveillance} 1.10-0.
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item Fixed bug in \code{categoricalCUSUM()}, which ignored alarms
+    generated for the last time point in \code{range}. Furthermore, the
+    exact computation in case of returns of the type \code{"value"} for
+    the binomial are now checked through an attribute.
+    
+    \item Fixed bug in the \code{estimateGLRNbHook} function of
+    \code{algo.glrnb}, which ignored potential fixed \code{alpha}
+    values. If \code{alpha} is fixed this is now taken into consideration
+    while fitting the negative binomial function. See revised help files
+    for the details.
+    
+    \item Made a hot-fix such that the \code{algo.quality} function now
+    also works for \code{sts} objects and if the \code{state} or
+    \code{alarm} slots consists of TRUE/FALSE instead of 0/1.
+    
+    \item \code{intensity.twinstim()} did not work for non-endemic models.
+
+    \item A parallelized \code{epitest()} could fail with a strange
+    error message if some replications were left unassigned.
+    This seems to happen if forking is used (\code{mclapply}) with
+    insufficient memory. Incomplete replications are now ignored with a
+    warning.
+  }
+}
+
+}
+
+
+
 \section{Changes in surveillance version 1.10-0 (2015-11-04)}{
 
 \subsection{NEW FEATURES}{
@@ -27,7 +91,7 @@
     \code{oneStepAhead()} procedure can now be specified directly
     through the \code{which.start} argument (as an alternative to the
     previous options \code{"current"} and \code{"final"}).
-    
+
     \item \code{plotHHH4_fitted()} (and \code{plotHHH4_fitted1()})
     gained an option \code{decompose} to plot the contributions from
     each single unit (and the endemic part) instead of the default

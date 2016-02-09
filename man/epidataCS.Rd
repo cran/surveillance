@@ -25,8 +25,9 @@
   disease mapping) and a representation of the observation region.
 
   The \code{"epidataCS"} class is the basis for fitting 
-  spatio-temporal epidemic intensity models with the function
-  \code{\link{twinstim}}.
+  spatio-temporal endemic-epidemic intensity models with the function
+  \code{\link{twinstim}} (Meyer et al., 2012).
+  The implementation is described in Meyer et al. (2016, Section 3).
 }
 
 \usage{
@@ -302,15 +303,16 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
   disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.\cr
   DOI-Link: \url{http://dx.doi.org/10.1111/j.1541-0420.2011.01684.x}
 
-  Meyer, S. (2010):
-  Spatio-Temporal Infectious Disease Epidemiology based on Point Processes.
-  Master's Thesis, Ludwig-Maximilians-Universit\enc{ä}{ae}t
-  M\enc{ü}{ue}nchen.\cr
-  Available as \url{http://epub.ub.uni-muenchen.de/11703/}
+  Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
+  Spatio-temporal analysis of epidemic phenomena using the \R package
+  \pkg{surveillance}. \emph{Journal of Statistical Software}. In press.\cr
+  Preprint available at \url{http://arxiv.org/abs/1411.0416}
 }
 
 \author{
-  Sebastian Meyer with documentation contributions by Michael
+  Sebastian Meyer
+
+  Contributions to this documentation by Michael
   H\enc{ö}{oe}hle and Mayeul Kauffmann.
 }
 

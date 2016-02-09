@@ -1,5 +1,5 @@
 ###################################################
-### chunk number 1: 
+### chunk number 1:
 ###################################################
 
 
@@ -10,97 +10,95 @@
 #      survResObj: object of class survRes, which includes the state chain and
 #                               the computed alarm chain
 
-algo.quality <- function(survResObj, penalty = 20){
+######################################################################
+## Hot fix function fixing two issues in the algo.quality function.
+##
+## Author: Michael Hoehle <http://www.math.su.se/~hoehle>
+## Date:   2015-11-24
+##
+## 1) The function does not work if state or alarms are coded as TRUE/FALSE
+##    instead of 0/1.
+## 2) algo.quality doesn't work for sts objects.
+##
+## The function now branches on the appropriate thing to do depending on
+## what class the argument is. This is not necessarily very good object
+## oriented programming, but it works for now.
+######################################################################
 
-        state <- survResObj$disProgObj$state[survResObj$control$range]
-        alarm <- survResObj$alarm
+algo.quality <- function (sts, penalty = 20) {
+  if (class(sts) == "survRes") {
+    state <- sts$disProgObj$state[sts$control$range] * 1
+    alarm <- sts$alarm * 1
+  } else {
+    if (class(sts) == "sts") {
+      if (ncol(sts) > 1) { stop("Function only works for univariate objects.") }
+      state <- sts@state*1
+      alarm <- alarms(sts)*1
+    } else {
+      stop(paste0("Class ",class(sts)," not supported!"))
+    }
+  }
 
-        # go sure to get a complete confusion matrix
-        state <- factor(state, levels = c(0,1))
-        alarm <- factor(alarm, levels = c(0,1))
-        # create a confusion matrix
-        confusionTable <- table(state, alarm)
-
-        # compute Sensitiviy (TP rate) and Specifity (TN rate)
-        sens = confusionTable[2,2]/(confusionTable[2,2] + confusionTable[2,1])
-        spec = confusionTable[1,1]/(confusionTable[1,2] + confusionTable[1,1])
-
-        # get the TP, FN, TN, FP value
-        TP = confusionTable[2,2]
-        FN = confusionTable[2,1]
-        TN = confusionTable[1,1]
-        FP = confusionTable[1,2]
-
-        # compute the Euclidean distance between (1-spec, sens) to (0,1)
-        dist = sqrt(((1-spec) - 0)^2 + (sens - 1)^2)
-
-        # compute the lag
-        # match gets the first position of a symbol
-
-        # check if the state vector contains at least one outbreak
-        if( !(is.element(1,state)) ){
-                lag = 0
+  state <- factor(state, levels = c(0, 1))
+  alarm <- factor(alarm, levels = c(0, 1))
+  confusionTable <- table(state, alarm)
+  sens = confusionTable[2, 2]/(confusionTable[2, 2] + confusionTable[2,
+      1])
+  spec = confusionTable[1, 1]/(confusionTable[1, 2] + confusionTable[1,
+      1])
+  TP = confusionTable[2, 2]
+  FN = confusionTable[2, 1]
+  TN = confusionTable[1, 1]
+  FP = confusionTable[1, 2]
+  dist = sqrt(((1 - spec) - 0)^2 + (sens - 1)^2)
+  if (!(is.element(1, state))) {
+    lag = 0
+  }
+  else {
+    lag <- c()
+    outbegins <- c()
+    varA <- which(state == 1)
+    outbegins <- c(outbegins, varA[1])
+    if (length(varA) > 1) {
+      varB <- diff(varA)
+      outbegins <- c(outbegins, varA[which(varB != 1) +
+                                     1])
+    }
+    count <- 1
+    for (i in outbegins) {
+      if (count < length(outbegins)) {
+        pos <- match(1, alarm[i:min(i + penalty, (outbegins[count +
+                                                            1] - 1))])
+        if (is.na(pos)) {
+          lag <- c(lag, penalty)
         }
-        else{
-                lag <- c()
-
-                # outbreakbeginnings
-                outbegins <- c()
-                # find outbreakpositions
-                varA <- which(state == 1)
-                outbegins <- c(outbegins, varA[1])
-                # Are there more than one outbreak ? ;-)
-                if(length(varA) > 1){
-                        # get just the beginnings of the outbreakserieses
-                        #varB <- varA[2:length(varA)] - varA[1:(length(varA)-1)
-                        varB <- diff(varA)
-                        outbegins <- c(outbegins,varA[which(varB != 1)+1])
-                }
-
-                count <- 1
-                for(i in outbegins){
-                        # decide if it's the last outbreak
-                        if(count < length(outbegins)){
-                                # check if the outbreak was found by the system before the
-                                # next outbreak took place
-                                pos <- match(1,alarm[i:min(i+penalty,(outbegins[count+1]-1))])
-
-                                if (is.na(pos)){
-                                        # give a penalty if the outbreak wasn't found
-                                        lag <- c(lag, penalty)
-                                }
-                                else{
-                                        # compute the lag for the current outbreak
-                                        lag <- c(lag, pos-1)
-                                }
-                        }
-                        else{
-                                # check if the outbreak was found by the system
-                                pos <- match(1, alarm[i:min(i+penalty, length(alarm))])
-                                if (is.na(pos)){
-                                        # give a penalty if the outbreak wasn't found
-                                        lag <- c(lag, penalty)
-                                }
-                                else{
-                                        # compute the lag for the current outbreak
-                                        lag <- c(lag, pos-1)
-                                }
-                        }
-                        count <- count + 1
-                }
-                lag <- mean(lag)
+        else {
+          lag <- c(lag, pos - 1)
         }
-
-        result <- list(TP = TP, FP = FP, TN = TN,
-                FN = FN, sens = sens, spec = spec, dist = dist, mlag =lag)
-        class(result) <- "algoQV"
-        return(result)
+      }
+      else {
+        pos <- match(1, alarm[i:min(i + penalty, length(alarm))])
+        if (is.na(pos)) {
+          lag <- c(lag, penalty)
+        }
+        else {
+          lag <- c(lag, pos - 1)
+        }
+      }
+      count <- count + 1
+    }
+    lag <- mean(lag)
+  }
+  result <- list(TP = TP, FP = FP, TN = TN, FN = FN, sens = sens,
+                 spec = spec, dist = dist, mlag = lag)
+  class(result) <- "algoQV"
+  return(result)
 }
 
 
 
 ###################################################
-### chunk number 2: 
+### chunk number 2:
 ###################################################
 
 print.algoQV <- function(x,...) {
@@ -117,9 +115,9 @@ print.algoQV <- function(x,...) {
 
 
 ###################################################
-### chunk number 3: 
+### chunk number 3:
 ###################################################
-xtable.algoQV <- function(x, caption = NULL, label = NULL, align = NULL,  
+xtable.algoQV <- function(x, caption = NULL, label = NULL, align = NULL,
     digits = NULL, display = NULL, ...)  {
   n <- names(x)
   x <- matrix(x,nrow=1)
@@ -129,7 +127,7 @@ xtable.algoQV <- function(x, caption = NULL, label = NULL, align = NULL,
 
 
 ###################################################
-### chunk number 4: 
+### chunk number 4:
 ###################################################
 
 # 'algo.call' calls the defined surveillance algorithms for
@@ -148,7 +146,7 @@ algo.call <- function(disProgObj, control = list( list(funcName = "rki1", range 
                                                    list(funcName = "rki", range = range, b = 2, w = 5, actY = TRUE) ) ) {
   #Function to apply one algorithm to the disProgObj
   onecall <- function(i) {
-    do.call(paste("algo.",control[[i]]$funcName, sep=""), 
+    do.call(paste("algo.",control[[i]]$funcName, sep=""),
             list(disProgObj = disProgObj, control = control[[i]]))
   }
 
@@ -156,7 +154,7 @@ algo.call <- function(disProgObj, control = list( list(funcName = "rki1", range 
   survResults <- lapply(1:length(control),onecall)
 
   #Create some fancy naming..
-  names(survResults) <- lapply(survResults,function(survObj) {survObj$control$name})  
+  names(survResults) <- lapply(survResults,function(survObj) {survObj$control$name})
 
   #Done
   return(survResults)
@@ -164,7 +162,7 @@ algo.call <- function(disProgObj, control = list( list(funcName = "rki1", range 
 
 
 ###################################################
-### chunk number 5: 
+### chunk number 5:
 ###################################################
 
 algo.compare <- function(survResList){
@@ -175,7 +173,7 @@ algo.compare <- function(survResList){
 
 
 ###################################################
-### chunk number 6: 
+### chunk number 6:
 ###################################################
 
 algo.summary <- function(compMatrices){

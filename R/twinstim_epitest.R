@@ -5,9 +5,9 @@
 ###
 ### Monte Carlo Permutation Test for Space-Time Interaction in "twinstim"
 ###
-### Copyright (C) 2015 Sebastian Meyer
-### $Revision: 1347 $
-### $Date: 2015-05-29 11:45:51 +0200 (Fre, 29. Mai 2015) $
+### Copyright (C) 2015-2016 Sebastian Meyer
+### $Revision: 1542 $
+### $Date: 2016-02-01 15:10:18 +0100 (Mon, 01. Feb 2016) $
 ################################################################################
 
 epitest <- function (model, data, tiles, method = "time", B = 199,
@@ -182,6 +182,16 @@ epitest <- function (model, data, tiles, method = "time", B = 199,
     ## rock'n'roll (the computationally intensive part)
     permfits <- plapply(X = integer(B), FUN = permfits1,
                         .verbose = .verbose, ...)
+
+    ## if parallelized using forking with insufficient memory available,
+    ## part of the replications in 'permfits' may be left unassigned (NULL)
+    permIsNull <- vapply(X = permfits, FUN = is.null,
+                         FUN.VALUE = logical(1L), USE.NAMES = FALSE)
+    if (npermIsNull <- sum(permIsNull)) {
+        warning(npermIsNull, "/", B,
+                " replications did not return (insufficient memory?)")
+        permfits <- permfits[!permIsNull]
+    }
     
     ## extract the statistics
     permstats <- as.data.frame(t(vapply(

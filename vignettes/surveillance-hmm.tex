@@ -1,0 +1,37 @@
+\documentclass{minimal}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{pstricks}
+\usepackage{pst-all}
+\pagestyle{empty}
+\begin{document}
+
+\begin{pspicture}(0,0)(10,3) %lower y -2.5 would be better
+   \psset{arrowsize=7pt,arrowinset=0}
+
+   \rput(1,2.5){\ovalnode{X1}{$X_1$}}
+   \rput(3,2.5){\ovalnode{X2}{$X_2$}}
+   \rput(5,2.5){\ovalnode{X3}{$X_3$}}
+   \rput(6.5,2.5){\ovalnode[linestyle=none]{Xinv1}{}}
+   \rput(7,2.5){$\ldots$}
+   \rput(7.5,2.5){\ovalnode[linestyle=none]{Xinv2}{}}
+   \rput(9,2.5){\ovalnode{Xn}{$X_n$}}
+
+
+   \rput(1,0.5){\ovalnode{Y1}{$Y_1$}}
+   \rput(3,0.5){\ovalnode{Y2}{$Y_2$}}
+   \rput(5,0.5){\ovalnode{Y3}{$Y_3$}}
+   \rput(9,0.5){\ovalnode{Yn}{$Y_n$}}
+
+   \ncline{->}{X1}{X2}
+   \ncline{->}{X2}{X3}
+   \ncline{->}{X3}{Xinv1}
+   \ncline{->}{Xinv2}{Xn}
+
+   \ncline{->}{X1}{Y1}
+   \ncline{->}{X2}{Y2}
+   \ncline{->}{X3}{Y3}
+   \ncline{->}{Xn}{Yn}
+\end{pspicture}
+ 
+\end{document}

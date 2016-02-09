@@ -4,10 +4,10 @@
 \description{Computation of the quality values for a surveillance System output.
 }
 \usage{
-    algo.quality(survResObj, penalty = 20)
+    algo.quality(sts, penalty = 20)
 }
 \arguments{
-\item{survResObj}{object of class survRes, which includes the state chain and
+\item{sts}{object of class \code{survRes} or \code{sts}, which includes the state chain and
     the computed alarm chain}
 \item{penalty}{the maximal penalty for the lag}
 }

@@ -1,7 +1,14 @@
+## need a writable figs/ directory in getwd()
+## -> switch to a temporary directory to save figures to
+TMPDIR <- tempdir()
+OWD <- setwd(TMPDIR)
+dir.create("figs")
+
+
 ###################################################
 ### chunk number 1: 
 ###################################################
-library(surveillance)
+library("surveillance")
 options(width=70)
 options("prompt"="R> ")
 set.seed(1234)
@@ -30,7 +37,6 @@ plot(aggregate(ha),main="Hepatitis A in Berlin 2001-2006")
 ###################################################
 ### chunk number 3: 
 ###################################################
-cat("Info: I need a writable figs/ directory in getwd()\n")
 opendevice(file="figs/002.pdf")
 data("ha")
 plot(aggregate(ha),main="Hepatitis A in Berlin 2001-2006")
@@ -209,7 +215,7 @@ print(res,digits=3)
 ### chunk number 19: HA eval=FALSE
 ###################################################
 ## shp <- system.file("shapes/berlin.shp",package="surveillance")
-## ha <- disProg2sts(ha, map=readShapePoly(shp,IDvar="SNAME"))
+## ha <- disProg2sts(ha, map=maptools::readShapePoly(shp,IDvar="SNAME"))
 ## plot(ha,type=observed ~ 1 | unit)
 ## 
 
@@ -220,7 +226,7 @@ print(res,digits=3)
 opendevice(file="figs/ha-1unit.pdf",width=7,height=7)
 par(mar=c(0,0,0,0))
 shp <- system.file("shapes/berlin.shp",package="surveillance")
-ha <- disProg2sts(ha, map=readShapePoly(shp,IDvar="SNAME"))
+ha <- disProg2sts(ha, map=maptools::readShapePoly(shp,IDvar="SNAME"))
 plot(ha,type=observed ~ 1 | unit)
 
 dev.off()
@@ -246,3 +252,6 @@ plot(ha4.cusum,type=observed ~ time | unit)
 dev.off()
 
 
+## finally switch back to original working directory
+message("Note: selected figures have been saved in ", getwd(), "/figs")
+setwd(OWD)

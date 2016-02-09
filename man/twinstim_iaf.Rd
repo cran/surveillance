@@ -24,6 +24,9 @@
   \code{\link{siaf}} and \code{\link{tiaf}}, respectively), but the
   package already predefines some useful dispersal kernels returned by
   the constructor functions documented here.
+  See Meyer and Held (2014) for various spatial interaction functions,
+  and Meyer et al. (2016, Section 3) for an illustration of
+  the implementation.
 }
 
 \usage{
@@ -104,8 +107,9 @@ tiaf.exponential(nTypes = 1, validpars = NULL)
   \item{effRangeMult}{
     determines the effective range for numerical integration
     in terms of multiples of the standard deviation \eqn{\sigma} of the
-    Gaussian kernel, i.e. with \code{effRangeMult=6} numerical
-    integration only considers the \eqn{6 \sigma} area around the event instead
+    Gaussian kernel, i.e. with \code{effRangeMult=6}
+    the \eqn{6 \sigma} region around the event is considered as
+    the relevant integration domain instead
     of the whole observation region \code{W}.
     Setting \code{effRangeMult=NULL} will disable
     the integral approximation with an effective integration range.
@@ -120,6 +124,15 @@ tiaf.exponential(nTypes = 1, validpars = NULL)
 }
 
 \details{
+  Evaluation of \code{twinstim}'s likelihood involves cubature of the
+  spatial interaction function over polygonal domains. Various
+  approaches have been compared by Meyer (2010, Section 3.2) and a new
+  efficient method, which takes advantage of the assumed isotropy, has
+  been proposed by Meyer and Held (2014, Supplement B, Section 2) for
+  evaluation of the power-law kernels.
+  These cubature methods are available in the dedicated \R package
+  \pkg{polyCub} and used by the kernels implemented in \pkg{surveillance}.
+  
   The readily available spatial interaction functions are defined as
   follows:
   \describe{
@@ -222,21 +235,26 @@ tiaf.exponential(nTypes = 1, validpars = NULL)
 }
 
 \references{
-  Meyer, S. and Held, L. (2014):
-  Power-law models for infectious disease spread.
-  \emph{The Annals of Applied Statistics}, \bold{8} (3), 1612-1639.\cr
-  DOI-Link: \url{http://dx.doi.org/10.1214/14-AOAS743}
+  Meyer, S. (2010):
+  Spatio-Temporal Infectious Disease Epidemiology based on Point Processes.
+  Master's Thesis, Ludwig-Maximilians-Universit\enc{ä}{ae}t
+  M\enc{ü}{ue}nchen.\cr
+  Available as \url{http://epub.ub.uni-muenchen.de/11703/}
 
   Meyer, S., Elias, J. and H\enc{ö}{oe}hle, M. (2012):
   A space-time conditional intensity model for invasive meningococcal
   disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.\cr
   DOI-Link: \url{http://dx.doi.org/10.1111/j.1541-0420.2011.01684.x}
 
-  Meyer, S. (2010):
-  Spatio-Temporal Infectious Disease Epidemiology based on Point Processes.
-  Master's Thesis, Ludwig-Maximilians-Universit\enc{ä}{ae}t
-  M\enc{ü}{ue}nchen.\cr
-  Available as \url{http://epub.ub.uni-muenchen.de/11703/}
+  Meyer, S. and Held, L. (2014):
+  Power-law models for infectious disease spread.
+  \emph{The Annals of Applied Statistics}, \bold{8} (3), 1612-1639.\cr
+  DOI-Link: \url{http://dx.doi.org/10.1214/14-AOAS743}
+
+  Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
+  Spatio-temporal analysis of epidemic phenomena using the \R package
+  \pkg{surveillance}. \emph{Journal of Statistical Software}. In press.\cr
+  Preprint available at \url{http://arxiv.org/abs/1411.0416}
 }
 
 \author{
@@ -244,7 +262,8 @@ tiaf.exponential(nTypes = 1, validpars = NULL)
 }
 
 \seealso{
-\code{\link{twinstim}}, \code{\link{siaf}}, \code{\link{tiaf}}
+  \code{\link{twinstim}}, \code{\link{siaf}}, \code{\link{tiaf}},
+  and package \pkg{polyCub} for the involved cubature methods.
 }
 
 \examples{

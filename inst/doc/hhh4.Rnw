@@ -1,38 +1,26 @@
-%\VignetteIndexEntry{Additional documentation of the function hhh4}
-%\VignetteDepends{surveillance, maptools, Matrix}
-%\VignetteKeyword{getting started}
-%\VignettePackage{surveillance}
+%\VignetteIndexEntry{hhh4: An endemic-epidemic modelling framework for infectious disease counts}
+%\VignetteDepends{surveillance, Matrix}
 
 \documentclass[a4paper,11pt]{article}
-\usepackage{natbib}
-\bibliographystyle{apalike}
 
-% Preamble parts
-\usepackage[T1]{fontenc}        % Make it possible to use danish characters !!
-\usepackage[utf8]{inputenc}
-\usepackage{hyperref}
-\newcommand{\email}[1]{\href{mailto:#1}{\normalfont\texttt{#1}}}
-\usepackage{times}  
-\renewcommand{\sfdefault}{ptm} 
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{natbib}
+\usepackage{lmodern}
 
 \usepackage{bm}
 \usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{latexsym}
-\usepackage{verbatim}
+\usepackage{amsfonts,amssymb}
+
 \usepackage{relsize}
-\usepackage{epsfig}
-\usepackage{comment}
-\usepackage[english]{babel}
-
-\usepackage{pdfpages}
-
 \setlength{\parindent}{0pt} 
 \setcounter{secnumdepth}{1}
 
 \newcommand{\Po}{\operatorname{Po}}
 \newcommand{\NegBin}{\operatorname{NegBin}}
-\newcommand{\n}{{\cal N}}
+\newcommand{\N}{\mathcal{N}}
 
 \newcommand{\pkg}[1]{{\fontseries{b}\selectfont #1}}
 \newcommand{\surveillance}{\pkg{surveillance}}
@@ -40,22 +28,30 @@
 \newcommand{\hhh}{\texttt{hhh4}}
 \newcommand{\R}{\textsf{R}}
 \newcommand{\sts}{\texttt{sts}}
-\newcommand{\example}[1]{\textit{Example: #1}}
+\newcommand{\example}[1]{\subsubsection*{Example: #1}}
 
-\title{The function \code{hhh4} in the \R-package \surveillance}  %'
+%%% Meta data
+\usepackage{hyperref}
+\hypersetup{
+  pdfauthor = {Michaela Paul and Sebastian Meyer},
+  pdftitle = {'hhh4': An endemic-epidemic modelling framework for infectious disease counts},
+  pdfsubject = {R package 'surveillance'}
+}
+\newcommand{\email}[1]{\href{mailto:#1}{\normalfont\texttt{#1}}}
+
+\title{\code{hhh4}: An endemic-epidemic modelling framework for infectious disease counts}
 \author{
 Michaela Paul and Sebastian Meyer\thanks{Author of correspondence: \email{Sebastian.Meyer@ifspm.uzh.ch}}\\
-Division of Biostatistics\\
-Institute of Social and Preventive Medicine\\
-University of Zurich, Switzerland
-} 
+Epidemiology, Biostatistics and Prevention Institute\\
+University of Zurich, Zurich, Switzerland
+}
+\date{8 February 2016}
 
-\begin{document}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Sweave 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\SweaveOpts{prefix.string=figs/hhh4, width=10,height=4.5, keep.source=T, strip.white=true}
-\setkeys{Gin}{width=1\textwidth} 
+
+
+%%% Sweave 
+\usepackage{Sweave}
+\SweaveOpts{prefix.string=plots/hhh4, keep.source=T, strip.white=true}
 
 \definecolor{Sinput}{rgb}{0,0,0.56}
 \definecolor{Scode}{rgb}{0,0,0.56}
@@ -65,48 +61,41 @@ University of Zurich, Switzerland
 \DefineVerbatimEnvironment{Soutput}{Verbatim}{formatcom={\color{Soutput}},fontfamily=courier, fontshape=it,fontsize=\relsize{-2}}
 \DefineVerbatimEnvironment{Scode}{Verbatim}{formatcom={\color{Scode}},fontshape=sl,fontsize=\relsize{-1}}
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Initial R code
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-<<setup, echo=F,results=hide>>=
+%%% Initial R code
+<<setup, echo=FALSE, results=hide>>=
 library("surveillance")  
 
-options(width=70)
-set.seed(247)
+options(width=75)
 
-#####################################################################
-# create directory figs if it does not exist
-#####################################################################
-if(!file.exists("figs/")) dir.create("figs/")
+## create directory for plots if it does not exist
+if(!dir.exists("plots")) dir.create("plots")
 
-
-######################################################################
-#Do we need to compute or can we just fetch results
-######################################################################
+######################################################
+## Do we need to compute or can we just fetch results?
+######################################################
 compute <- !file.exists("hhh4-cache.RData")
-#load computed results
+message("Doing computations: ", compute)
 if(!compute) load("hhh4-cache.RData")
-print(paste("Doing computations: ",compute,sep=""))
 @ 
 
 
+
+\begin{document}
+
 \maketitle  
 
-\begin{abstract}
-  \noindent This document gives an introduction to the use of the function 
-  \hhh\ for modelling univariate and multivariate time series of infectious 
-  disease counts. The function is part of the \R-package \surveillance, 
-  which provides tools for the visualization, modelling and monitoring of 
-  surveillance time series. 
-  The basic functionality of \surveillance\ is introduced in 
-  the package vignette \citep{vignette} and in \cite{hoehle-2007} with main 
-  focus on outbreak detection methods. The following illustrates the use 
-  of \hhh\ as estimation and prediction routine for the modelling framework 
-  proposed by \citet{held-etal-2005}, and extended in \citet{paul-etal-2008}, 
-  \citet{paul-held-2011} and \citet{herzog-etal-2010}.
+\begin{abstract} \noindent
+  The \R\ package \surveillance\ provides tools for the visualization,
+  modelling and monitoring of epidemic phenomena.
+  This vignette is concerned with the \hhh\ modelling
+  framework for univariate and multivariate time series of infectious 
+  disease counts proposed by \citet{held-etal-2005}, and further extended by
+  \citet{paul-etal-2008}, \citet{paul-held-2011}, \citet{held.paul2012}, and
+  \citet{meyer.held2013}. The implementation is illustrated using several
+  built-in surveillance data sets.
+  The special case of \emph{spatio-temporal} \hhh\ models is covered
+  in greater detail in \citet[Section~5]{meyer.etal2014}.
+  %% the extra \code{vignette("hhh4\_spacetime")}
 \end{abstract}
 
 
@@ -121,27 +110,30 @@ confirmed according to a specific definition and reported daily, weekly or
 monthly on a regional or national level, are used for surveillance purposes.
 
 The \R-package \surveillance\ provides functionality for the retrospective 
-modelling and prospective change-point detection in the resulting surveillance 
-time series. A recent introduction to the package with focus on outbreak 
-detection methods is given by \cite{hoehle-mazick-2010}.
-
+modelling and prospective aberration detection in the resulting surveillance 
+time series. 
+Overviews of the outbreak detection functionality of \surveillance\ are given by
+\citet{hoehle-mazick-2010} and \citet{salmon.etal2014}.
 This document illustrates the functionality of the function \hhh\ for
 the modelling of univariate and multivariate time series of infectious
 disease counts.  It is part of the \surveillance\ package as 
 of version 1.3. 
+
+The remainder of this vignette unfolds as follows:
 Section~\ref{sec:data} introduces the S4 class data structure used to
 store surveillance time series data within the package. Access and
 visualization methods are outlined by means of built-in data sets.  In
 Section~\ref{sec:model}, the statistical modelling approach by
-\cite{held-etal-2005} and further model extensions are described.
+\citet{held-etal-2005} and further model extensions are described.
 After the general function call and arguments are shown, the detailed
 usage of \hhh\ is demonstrated in Section~\ref{sec:hhh} using data
 introduced in Section~\ref{sec:data}.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%  DATA
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Surveillance data}\label{sec:data}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Denote by $\{y_{it}; i=1,\ldots,I,t=1,\ldots,T\}$ the multivariate time series
 of disease counts for a specific partition of gender, age and location. 
@@ -150,7 +142,9 @@ of units (e.g\ geographical regions or age groups) being monitored.
 Such data are represented using objects of the S4 class \sts\ (surveillance 
 time series).
 
-This class contains the $T\times I$ matrix of counts $y_{it}$ in
+\subsection[The sts data class]{The \sts\ data class}
+
+The \sts\ class contains the $T\times I$ matrix of counts $y_{it}$ in
 a slot \code{observed}. An integer slot \code{epoch} denotes the time index
 $1\leq t \leq T$ of each row in \code{observed}. The number of observations
 per year, e.g.\ 52 for weekly or 12 for monthly data, is denoted by \code{freq}.
@@ -159,27 +153,36 @@ of the time series as \code{c(year, epoch)}.
 For spatially stratified time series, the slot \code{neighbourhood}
 denotes an $I \times I$ adjacency matrix with elements 1 if two regions are
 neighbors and 0 otherwise. For map visualizations, the slot \code{map} 
-links the multivariate time series to geographical regions of an ESRI shapefile
-(using functionality from the package \pkg{maptools}~\citep{maptools}).
+links the multivariate time series to geographical regions stored in a
+\code{"SpatialPolygons"} object (package \pkg{sp}).
 Additionally, the slot \code{populationFrac} contains a $T\times I$ matrix
 representing population fractions in unit $i$ at time $t$.
 
+The \sts\ data class is also described in
+\citet[Section~2.1]{hoehle-mazick-2010},
+\citet[Section~1.1]{salmon.etal2014},
+\citet[Section~5.2]{meyer.etal2014},
+and on the associated help page \code{help("sts")}.
+
+\subsection{Some example data sets}
 
 The package \surveillance\ contains a number of time series in the
 \code{data} directory. Most data sets originate from the SurvStat@RKI
-database\footnote{\url{http://www3.rki.de/SurvStat}}, maintained by
-the Robert Koch Institute (RKI), Germany. Selected data sets will be
-analyzed in Section~\ref{sec:hhh} and are introduced in the
-following. Note that many of the built-in datasets are stored in the
-S3 class data structure \mbox{\code{disProg}}.  They can be easily converted
-into the S4 \sts\ data structure using the function
+database\footnote{\url{https://survstat.rki.de}}, maintained by
+the Robert Koch Institute (RKI) in Germany. Selected data sets will be
+analyzed in Section~\ref{sec:hhh} and are introduced in the following.
+
+Note that many of the built-in datasets are stored in the
+S3 class data structure \mbox{\code{disProg}} used in ancient versions
+of the \surveillance\ package (until 2006).  They can be easily converted
+into the new S4 \sts\ data structure using the function
 \code{disProg2sts}. The resulting \sts\ object can be accessed similar
 as standard \code{matrix} objects and allows easy temporal and spatial
-aggregation as will be shown in the remainder of this section. \\
+aggregation as will be shown in the remainder of this section.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\example{Influenza and meningococcal disease in Germany 01/2001--52/2006}
+\example{Influenza and meningococcal disease, Germany, 2001--2006}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 As a first example, the weekly number of influenza and meningococcal disease 
@@ -192,24 +195,24 @@ print(fluMen <- disProg2sts(influMen))
 @
 The univariate time series of meningococcal disease counts can be obtained
 with
-<<getMen, keep.source=F>>=
+<<getMen>>=
 meningo <- fluMen[, "meningococcus"]
 dim(meningo)
 @
-The \code{plot} function provides an interface to the visual representation
-of the multivariate time series in time, space and space-time which is
+The \code{plot} function provides ways to visualize
+the multivariate time series in time, space and space-time, as
 controlled by the \code{type} argument:
-<<plotfluMen, fig=T, keep.source=T>>=
-plot(fluMen, type = observed ~ time | unit, # type of plot
-             same.scale = FALSE,            # unit-specific ylim ?
-             col = "grey"                   # color of bars
-             )
+\setkeys{Gin}{width=1\textwidth}
+<<plotfluMen, fig=TRUE, width=10, height=4.5>>=
+plot(fluMen, type = observed ~ time | unit, # type of plot (default)
+             same.scale = FALSE,            # unit-specific ylim?
+             col = "grey")                  # color of bars
 @ 
-See \cite{hoehle-mazick-2010} for a detailed description of the plot routines.\\
+See \code{help("stsplot")} for a detailed description of the plot routines.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\example{Influenza in Southern Germany, 01/2001-52/2008}
+\example{Influenza, Southern Germany, 2001--2008}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The spatio-temporal spread of influenza in the 140 Kreise (districts) 
@@ -219,92 +222,93 @@ An \sts\ object containing the data is created as follows:
 <<readInFlu>>=
 # read in observed number of cases
 flu.counts <- as.matrix(read.table(system.file("extdata/counts_flu_BYBW.txt", 
-                                      package = "surveillance")))
-# remove 'X' in column names                                      
-colnames(flu.counts) <- substring(colnames(flu.counts),first = 2, last = 5)                                      
-# read in adjacency matrix with elements 1 if two regions share a common border
-nhood <- as.matrix(read.table(system.file("extdata/neighbourhood_BYBW.txt",
-                                      package = "surveillance")))
+                                               package = "surveillance"),
+                                   check.names = FALSE))
 @ 
-<<nhoodByBw, fig=TRUE, width=4,height=4, include=FALSE>>=
-# visualize adjacency matrix
+
+\begin{center}
+\setkeys{Gin}{width=.5\textwidth}
+<<nhoodByBw, fig=TRUE, width=4.5, height=4.5>>=
+# read in 0/1 adjacency matrix (1 if regions share a common border)
+nhood <- as.matrix(read.table(system.file("extdata/neighbourhood_BYBW.txt",
+                                          package = "surveillance"),
+                              check.names = FALSE))
 library("Matrix")
 print(image(Matrix(nhood)))
 @
-
-\begin{center}
-\vspace*{-2em}
-\includegraphics[width=0.5\textwidth]{figs/hhh4-nhoodByBw}
 \end{center}
 
-<<fluAsSTS, keep.source=T>>=
-# read in a shapefile of the districts in Bavaria and Baden-Wuerttemberg
-map <- maptools::readShapePoly(
-    system.file("shapes/districts_BYBW.shp", package = "surveillance"),
-    IDvar = "id"
-    )
+<<fluAsSTS>>=
 # read in population fractions
-p <- matrix(
-    read.table(system.file("extdata/population_2001-12-31_BYBW.txt",
-                           package = "surveillance"),
-               header = TRUE)$popFrac, 
-    nrow = nrow(flu.counts), ncol = ncol(flu.counts), byrow = TRUE)
+popfracs <- read.table(system.file("extdata/population_2001-12-31_BYBW.txt",
+                                   package = "surveillance"),
+                       header = TRUE)$popFrac
 # create sts object
-flu <- new("sts", epoch = 1:nrow(flu.counts),
-                  observed = flu.counts,
-                  start = c(2001, 1),
-                  freq = 52,
-                  neighbourhood = nhood,
-                  map = map,
-                  population = p
-                  )
+flu <- sts(observed = flu.counts, start = c(2001, 1), frequency = 52,
+           neighbourhood = nhood, population = popfracs)
 @
-This \sts\ object is already included in \surveillance\ and may be
-loaded with \code{data(fluBYBW)}.
 
-A map of the total number of cases in the year 2001 may be obtained as follows:
+These data are already included as \code{data("fluBYBW")} in \surveillance.
+In addition to the \sts\ object created above, \code{fluBYBW} contains
+a map of the administrative districts of Bavaria and Baden-W\"urttemberg.
+This works by specifying a \code{"SpatialPolygons"} representation of the
+districts as an extra argument \code{map} in the above \sts\ call. Such a
+\code{"SpatialPolygons"} object can be obtained from, e.g, an external shapefile
+using the function \mbox{\code{readShapePoly}} from package \pkg{maptools}.
+A map enables plots and animations of the cumulative number of cases by region.
+For instance, a disease incidence map of the year 2001 can be obtained as
+follows:
 \setkeys{Gin}{width=.5\textwidth}
-%\vspace*{-2em}
 \begin{center}
-<<plot-flu-ByBw, fig=T,width=6,height=6, include=T,echo=T>>=
-par(mar=c(0,0,0,0))
-plot(flu[year(flu) == 2001, ],    # select year 2001
-     type = observed ~ 1 | unit,  # map of counts aggregated over times t
-     labels = FALSE               # suppress region labels in map
-     )
+<<plot-flu-ByBw, fig=TRUE, width=4.5, height=4.5>>=
+data("fluBYBW")
+plot(fluBYBW[year(fluBYBW) == 2001, ], # select year 2001
+     type = observed ~ unit,           # total counts by region
+     population = fluBYBW@map$X31_12_01 / 100000) # per 100000 inhabitants
+grid::grid.text("Incidence [per 100'000 inhabitants]", x = 0.5, y = 0.02)
 @
 \end{center}
+
+<<echo = FALSE>>=
+# consistency check
+local({
+    fluBYBW@map <- flu@map
+    stopifnot(all.equal(fluBYBW, flu))
+})
+@ 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\example{Measles in Germany, 01/2005--52/2007}
+\example{Measles, Germany, 2005--2007}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The following data set contains the weekly number of measles cases in the 16
-German Bundesl\"ander (federal states), in the years 2005--2007. These data 
-are analyzed in~\cite{herzog-etal-2010} after aggregation into successive 
+German federal states, in the years 2005--2007. These data 
+have been analyzed by \citet{herzog-etal-2010} after aggregation into
 bi-weekly periods.
 
-\setkeys{Gin}{width=1\textwidth}
-\begin{center}
-<<plot-measles, fig=T, echo=T>>=
+<<measles2w>>=
 data("measlesDE")
-# aggregate into successive bi-weekly periods
 measles2w <- aggregate(measlesDE, nfreq = 26)
+@ 
 
-plot(measles2w, type = observed ~ time,   # plot aggregated over all units i
+\setkeys{Gin}{width=.75\textwidth}
+\begin{center}
+<<plot-measles, fig=TRUE, width=7, height=4>>=
+plot(measles2w, type = observed ~ time,  # aggregate counts over all units
      main = "Bi-weekly number of measles cases in Germany")
 @
 \end{center}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Model
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Model formulation}\label{sec:model}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Retrospective surveillance aims to identify outbreaks and (spatio-)temporal
 patterns through statistical modelling. Motivated by a branching process
-with immigration, \cite{held-etal-2005} suggest the following model
+with immigration, \citet{held-etal-2005} suggest the following model
 for the analysis of univariate time series of infectious disease counts 
 $\{y_{t}; t=1,\ldots,T\}$.
 The counts are assumed to be Poisson distributed with conditional mean
@@ -317,7 +321,7 @@ epidemic or \emph{autoregressive} component $\lambda y_{t-1}$, and
 an \emph{endemic} component $\nu_t$. The former should be able to capture
 occasional outbreaks whereas the latter explains a baseline rate of cases
 with stable temporal pattern. 
-\cite{held-etal-2005} suggest the following parametric model for the endemic 
+\citet{held-etal-2005} suggest the following parametric model for the endemic 
 component:
 \begin{align}\label{eq:nu_t}
   \log(\nu_t) =\alpha + \beta t +
@@ -343,7 +347,7 @@ the same but the conditional variance increases to $\mu_t (1+\mu_t \psi)$
 with additional unknown overdispersion parameter $\psi>0$.
 
 The model is extended to multivariate time series $\{y_{it}\}$ in 
-\cite{held-etal-2005} and \cite{paul-etal-2008} by including an additional 
+\citet{held-etal-2005} and \citet{paul-etal-2008} by including an additional 
 \emph{neighbor-driven} component, where past cases in other (neighboring) 
 units also enter as explanatory covariates. The conditional mean $\mu_{it}$ 
 is then given by
@@ -351,11 +355,13 @@ is then given by
   \mu_{it} = \lambda y_{i,t-1} + \phi \sum_{j\neq i} w_{ji} y_{j,t-1} +e_{it} \nu_{t},
 \end{align}
 where the unknown parameter $\phi$ quantifies the influence of other units $j$ 
-on unit $i$, $w_{ji}$ are suitably chosen known weights and $e_{it}$
+on unit $i$, $w_{ji}$ are weights reflecting between-unit transmission and $e_{it}$
 corresponds to an offset (such as population fractions at time $t$ in region $i$).
 A simple choice for the weights is $w_{ji}=1$ if units $j$ and $i$ are adjacent
-and 0 otherwise. See \cite{paul-etal-2008} for a discussion of alternative
-weights.
+and 0 otherwise. See \citet{paul-etal-2008} for a discussion of alternative
+weights, and \citet{meyer.held2013} for how to estimate these weights in the
+spatial setting using a parametric power-law formulation based on the order of
+adjacency.
 
 When analyzing a specific disease observed in, say, multiple regions or several
 pathogens (such as influenza and meningococcal disease), the assumption
@@ -367,19 +373,20 @@ $i$. This can be done via
   \item unit-specific fixed parameters, e.g.\ $\log(\lambda_i)=\alpha_i$ 
      \citep{paul-etal-2008};
   \item unit-specific random effects, e.g\ $\log(\lambda_i)=\alpha_0 +a_i$, 
-     $a_i \stackrel{\text{iid}}{\sim} \n(0,\sigma^2_\lambda)$ \citep{paul-held-2011};
+     $a_i \stackrel{\text{iid}}{\sim} \N(0,\sigma^2_\lambda)$ \citep{paul-held-2011};
   \item linking parameters with known (possibly time-varying) explanatory 
      variables, e.g.\ $\log(\lambda_i)=\alpha_0 +x_i\alpha_1$ with
      region-specific vaccination coverage $x_i$ \citep{herzog-etal-2010}.
 \end{itemize}
 
-A call to \hhh\ fits a Poisson or negative binomial model with conditional
-mean
+In general, the parameters of all three model components may depend on both
+time and unit.
+A call to \hhh\ fits a Poisson or negative binomial model with conditional mean
 \begin{align*}
   \mu_{it} = \lambda_{it} y_{i,t-1} + \phi_{it} \sum_{j\neq i} w_{ji} y_{j,t-1} +e_{it} \nu_{it}
 \end{align*}
-to a multivariate time series of counts.
-Here, the three unknown quantities are decomposed additively on the log scale
+to a (multivariate) time series of counts.
+Here, the three unknown quantities are modelled as log-linear predictors
 \begin{align}
   \log(\lambda_{it}) &= \alpha_0 + a_i +\bm{u}_{it}^\top \bm{\alpha} \tag{\code{ar}}\\
   \log(\phi_{it}) &=  \beta_0 + b_i +\bm{x}_{it}^\top \bm{\beta} \tag{\code{ne}}\\
@@ -392,16 +399,19 @@ For instance, model~\eqref{eq:nu_t} with $S=1$ seasonal terms may be
 represented as $\bm{z}_{it}=(t,\sin(2\pi/\code{freq}\;t),\cos(2\pi/\code{freq}\;t))^\top$.
 The stacked vector of all random effects
 is assumed to follow a normal distribution with mean $\bm{0}$ and covariance
-matrix $\bm{\Sigma}$, see \cite{paul-held-2011} for further details.
-Inference is based on (penalized) likelihood methodology as proposed in 
-\cite{paul-held-2011}. In applications, each component (\code{ar})--(\code{end}) 
-may be omitted in parts or as a whole.
+matrix $\bm{\Sigma}$.
+In applications, each of the components \code{ar},
+\code{ne}, and \code{end} may be omitted in parts or as a whole.
+
+If the model does not contain random effects, standard likelihood inference can
+be performed. Otherwise, inference is based on penalized quasi-likelihood as
+described in detail in \citet{paul-held-2011}.
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Function call and arguments
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Function call and control settings}\label{sec:hhh}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The estimation procedure is called with
 <<hhh4, eval=F>>=
@@ -410,99 +420,129 @@ hhh4(sts, control)
 where \code{sts} denotes a (multivariate) surveillance time series and
 the model is specified in the argument \code{control} in consistency
 with other algorithms in \surveillance.
-The \code{control} setting is a list of the following arguments:
+The \code{control} setting is a list of the following arguments (here with
+default values):
 
-<<controlObj, eval=F, keep.source=T>>=
+<<controlObj, eval=FALSE>>=
 control = list(
-    ar = list(f = ~ -1),       # formula: exp(u'alpha) * y_i,t-1 
-    ne = list(f = ~ -1,        # formula: exp(x'beta) * sum_j {w_ji * y_j,t-1} 
-              weights = neighbourhood(stsObj)),  # matrix of weights w_ji 
-    end = list(f = ~ 1,        # formula:  exp(z'gamma) * e_it 
-               offset = 1),     # optional offset e_it 
-    family = "Poisson",                # Poisson or NegBin model
-    subset = 2:nrow(stsObj),           # subset of observations to be used 
-    optimizer = list(),                # control optimization procedure
-    verbose = FALSE,                   # no progress information is printed
-    start = list(fixed = NULL,         # list with initial values for fixed,
-                 random = NULL,        # random, and
-                 sd.corr = NULL),      # variance parameters
-    data = list(t=epoch(stsObj)-1),    # named list of covariates 
-    keep.terms = FALSE                 # do not keep the model terms
+    ar = list(f = ~ -1,              # formula for log(lambda_it)
+              offset = 1),           # optional multiplicative offset
+    ne = list(f = ~ -1,              # formula for log(phi_it)
+              offset = 1,            # optional multiplicative offset
+              weights = neighbourhood(stsObj) == 1),  # (w_ji) matrix
+    end = list(f = ~ 1,              # formula for log(nu_it)
+               offset = 1),          # optional multiplicative offset e_it
+    family = "Poisson",              # Poisson or NegBin model
+    subset = 2:nrow(stsObj),         # subset of observations to be used 
+    optimizer = list(stop = list(tol = 1e-5, niter = 100), # stop rules
+                     regression = list(method = "nlminb"), # for penLogLik
+                     variance = list(method = "nlminb")),  # for marLogLik
+    verbose = FALSE,                 # level of progress reporting
+    start = list(fixed = NULL,       # list with initial values for fixed,
+                 random = NULL,      # random, and
+                 sd.corr = NULL),    # variance parameters
+    data = list(t = epoch(stsObj)-1),# named list of covariates 
+    keep.terms = FALSE               # whether to keep the model terms
 )
 @
+
 The first three arguments \code{ar}, \code{ne}, and \code{end} 
 specify the model components using \code{formula} objects.
-As default, the counts $y_{it}$ are assumed to be Poisson distributed.
-A negative binomial model is obtained with \code{family = "NegBin1"}.
+By default, the counts $y_{it}$ are assumed to be Poisson distributed,
+but a negative binomial model can be chosen by setting \mbox{\code{family = "NegBin1"}}.
 By default, both the penalized and marginal log-likelihoods are maximized using
-the optimization routine implemented in \code{nlminb}.
-The methods implemented in \code{optim} may also be used, e.g.\
-\code{optimizer = list(variance = list(method="Nelder-Mead")} is an attractive
+the quasi-Newton algorithm available via the \R\ function \code{nlminb}.
+The methods from \code{optim} may also be used, e.g.,
+\mbox{\code{optimizer = list(variance = list(method="Nelder-Mead")}} is a useful
 alternative for maximization of the marginal log-likelihood with respect to the
-variance parameters (see \code{?hhh4}).
+variance parameters.
 Initial values for the fixed, random, and variance parameters 
-are passed on in the \code{start} argument.
-If the model contains covariates, these have to be specified in the \code{data} 
-argument. When covariates do not vary across units, they may be passed on as a 
-vector of length $T$. Otherwise, covariate values have to be stored and passed on
+can be specified in the \code{start} argument.
+If the model contains covariates, these have to be provided in the \code{data} 
+argument. If a covariate does not vary across units, it may be given as a 
+vector of length $T$. Otherwise, covariate values must be given
 in a matrix of size $T \times I$.
-
 
 In the following, the functionality of \hhh\ is demonstrated using
 the data sets introduced in Section~\ref{sec:data}
-and previously analyzed in \cite{paul-etal-2008}, \cite{paul-held-2011} and 
-\cite{herzog-etal-2010}.
+and previously analyzed in \citet{paul-etal-2008}, \citet{paul-held-2011} and 
+\citet{herzog-etal-2010}.
 Selected results are reproduced. For a thorough discussion 
 we refer to these papers.
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Univariate modelling}
+\subsection{Univariate modelling}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 As a first example, consider the univariate time series of meningococcal infections
-in Germany, 01/2001--52/2006 \citep[cf.~Tab.~1 in ][]{paul-etal-2008}.
+in Germany, 01/2001--52/2006 \citep[cf.][Table~1]{paul-etal-2008}.
 A Poisson model without autoregression and $S=1$ seasonal term is specified 
 as follows:
-<<fitMeningo1, eval=T, echo=T>>=
-# specify formula object for endemic component
+<<fitMeningo0>>=
+# specify a formula object for the endemic component
 ( f_S1 <- addSeason2formula(f = ~ 1, S = 1, period = 52) )
-# fit Poisson model
-summary(hhh4(meningo, control = list(end = list(f = f_S1), family = "Poisson")))
+# fit the Poisson model
+result0 <- hhh4(meningo, control = list(end = list(f = f_S1),
+                                        family = "Poisson"))
+summary(result0)
 @
-A corresponding negative binomial model is obtained via
-<<fitMeningo2, eval=T, echo=T>>=
-result1 <- hhh4(meningo, control = list(end = list(f = f_S1), 
-                                        family = "NegBin1")) 
+
+To fit the corresponding negative binomial model,
+we can use the convenient \code{update} method:
+<<fitMeningo1>>=
+result1 <- update(result0, family = "NegBin1")
 @
-As default, the autoregressive component is omitted with \code{$\sim$ -1} 
-in the formula specification. In can be included in the model with
-<<fitMeningo3, eval=T, echo=T>>=
-m2 <- list(ar = list(f = ~ 1),     # log(lambda) = alpha
-           end = list(f = f_S1), 
-           family = "NegBin1",
-           # use estimates from previous model as initial values
-           start = list(fixed = c(log(0.1),      # initial values for alpha, 
-                                  coef(result1)) # and remaining parameters
-                        )
-           )
-# fit model
-result2 <- hhh4(meningo, control = m2)
-# extract ML estimates
-round(coef(result2, se = TRUE,      # also return standard errors
-                    idx2Exp = 1     # exponentiate 1st param [-> exp(alpha)]
-                    ),2)
-# get AIC
-AIC(result2)
+Note that the \code{update} method by default uses the parameter estimates from
+the original model as start values when fitting the updated model; see
+\code{help("update.hhh4")} for details.
+
+We can calculate Akaike's Information Criterion for the two models to check
+whether accounting for overdispersion is useful for these data:
+<<>>=
+AIC(result0, result1)
+@ 
+
+Due to the default control settings with \verb|ar = list(f = ~ -1)|,
+the autoregressive component has been omitted in the above models.
+It can be included by the following model update:
+<<fitMeningo2>>=
+# fit an autoregressive model
+result2 <- update(result1, ar = list(f = ~ 1))
+@ 
+
+To extract only the ML estimates and standard errors instead of a full model
+\code{summary}, the \code{coef} method can be used:
+<<>>=
+coef(result2, se = TRUE,    # also return standard errors
+     amplitudeShift = TRUE, # transform sine/cosine coefficients
+                            # to amplitude/shift parameters
+     idx2Exp = TRUE)        # exponentiate remaining parameters
 @
+Here, \code{exp(ar.1)} is the autoregressive coefficient $\lambda$ and can be
+interpreted as the epidemic proportion of disease incidence
+\citep{held.paul2012}.
+Note that the above transformation arguments \code{amplitudeShift} and
+\code{idx2Exp} can also be used in the \code{summary} method.
+Many other standard methods are implemented for \code{"hhh4"} fits,
+see, e.g., \code{help("confint.hhh4")}.
+
+A plot of the fitted model components can be easily obtained:
+\begin{center}
+<<plot_result2, fig=TRUE, width=7, height=4>>=
+plot(result2)
+@ 
+\end{center}
+See the comprehensive \code{help("plot.hhh4")} for further options.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Bivariate modelling}
+\subsection{Bivariate modelling}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Now, the weekly numbers of both meningococcal disease (\textsc{MEN}) and 
 influenza (\textsc{FLU}) cases are analyzed to investigate whether influenza 
-infections predispose meningococcal disease \citep[cf.~Tab.~2 in][]{paul-etal-2008}.
+infections predispose meningococcal disease \citep[cf.][Table~2]{paul-etal-2008}.
 This requires disease-specific parameters which are specified in the formula 
 object with \code{fe(\ldots)}.
 In the following, a negative binomial model with mean
@@ -518,142 +558,162 @@ where the endemic component includes $S=3$ seasonal terms for the \textsc{FLU}
 data and $S=1$ seasonal terms for the \textsc{MEN} data is considered. 
 Here, $\phi$ quantifies the influence of past influenza cases on the meningococcal
 disease incidence. 
-This model corresponds to the second model of Tab.~2 in \cite{paul-etal-2008}
+This model corresponds to the second model of Table~2 in \citet{paul-etal-2008}
 and is fitted as follows:
-<<neighbourhood_fluMen, echo=TRUE>>=
+<<neighbourhood_fluMen>>=
 # no "transmission" from meningococcus to influenza
 neighbourhood(fluMen)["meningococcus","influenza"] <- 0
 neighbourhood(fluMen)
 @
-<<fitFluMen, eval=T,echo=T>>=
+<<fitFluMen>>=
 # create formula for endemic component
-f.end <- addSeason2formula(f = ~ -1 + fe(1, which = c(TRUE, TRUE)), 
+f.end <- addSeason2formula(f = ~ -1 + fe(1, unitSpecific = TRUE),
                                            # disease-specific intercepts
                            S = c(3, 1),    # S = 3 for flu, S = 1 for men
                            period = 52)
 # specify model
-m <- list(ar = list(f = ~ -1 + fe(1, which=c(TRUE, TRUE))), 
-          ne = list(f = ~ -1 + fe(1, which=c(FALSE, TRUE))), 
+m <- list(ar = list(f = ~ -1 + fe(1, unitSpecific = TRUE)),
+          ne = list(f = ~ 1,  # phi, only relevant for meningococcus due to
+                    weights = neighbourhood(fluMen)),   # the weight matrix
           end = list(f = f.end),
-          family = "NegBinM"
-          )
-
+          family = "NegBinM") # disease-specific overdispersion
 # fit model
-summary(result <- hhh4(fluMen, control = m))
+result <- hhh4(fluMen, control = m)
+summary(result, idx2Exp=1:3)
 @
-A plot of the estimated mean for the meningococcal disease data, 
-decomposed into the three components, is obtained with
-\setkeys{Gin}{width=.8\textwidth}
+
+A plot of the estimated mean components can be obtained as follows:
+\setkeys{Gin}{width=1\textwidth}
 \begin{center}
-<<plot-fit_men, fig=T, width=8,height=5>>=
-plot(result, units = "meningococcus")
+<<plot-fit_men, fig=TRUE, width=10, height=4.5>>=
+plot(result, units = 1:2, legend = 2, legend.args = list(
+     legend = c("influenza-driven", "autoregressive", "endemic")))
 @
 \end{center}
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Multivariate modelling}
+\subsection{Multivariate modelling}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 For disease counts observed in a large number of regions, say, (i.e.\
 highly multivariate time series of counts) the use of region-specific 
-parameters to account for regional heterogeneity is no longer feasible, 
-as estimation and identifiability problems may occur. 
-\cite{paul-held-2011} propose a random effects formulation to analyze the weekly
-number of influenza cases in \Sexpr{ncol(flu)} districts of Southern Germany.
+parameters to account for regional heterogeneity is no longer feasible
+as estimation and identifiability problems may occur.
+Here we illustrate two approaches: region-specific random effects and
+region-specific covariates.
+
+\subsubsection*{Influenza, Southern Germany, 2001--2008}
+
+\citet{paul-held-2011} propose a random effects formulation to analyze the weekly
+number of influenza cases in \Sexpr{ncol(fluBYBW)} districts of Southern Germany.
 For example, consider a model with random intercepts in the endemic component: 
-$c_i \sim \n(0,\sigma^2_\nu), i=1,\ldots,I$.
-Such effects are specified in a formula object as
+$c_i \stackrel{iid}{\sim} \N(0,\sigma^2_\nu), i=1,\ldots,I$.
+Such effects are specified as:
 <<ri, eval=F>>=
 f.end <- ~ -1 + ri(type = "iid", corr = "all")
 @
-Setting \code{type = "car"} would assume that the random effects are spatially 
-correlated instead of uncorrelated. See \cite{paul-held-2011} for further details.
+The alternative \code{type = "car"} would assume spatially correlated random
+effects; see \citet{paul-held-2011} for details.
 The argument \code{corr = "all"} allows for correlation between region-specific 
-random effects in different components, e.g.\ random incidence levels $c_i$ 
+random effects in different components, e.g., random incidence levels $c_i$ 
 in the endemic component and random effects $b_i$ in the neighbor-driven component.
 The following call to \hhh\ fits such a random effects model with
-linear trend and $S=3$ seasonal terms in the endemic component and
-a fixed autoregressive parameter $\lambda$ to the influenza data 
-\citep[cf. model B2 in Tab.~3 in][]{paul-held-2011}.
+linear trend and $S=3$ seasonal terms in the endemic component,
+a fixed autoregressive parameter $\lambda$,
+and first-order transmission weights $w_{ji}=\mathbb{I}(j\sim i)$
+-- normalized such that $\sum_i w_{ji} = 1$ for all rows $j$ --
+to the influenza data \citep[cf.][Table~3, model~B2]{paul-held-2011}.
 
-<<computeFluBYBW, eval=TRUE, echo=F>>=
-# weight matrix w_ji = 1/(No. neighbors of j) if j ~ i, and 0 otherwise
-wji <- neighbourhood(flu)/rowSums(neighbourhood(flu))
-
-f.end <- addSeason2formula(f = ~ -1 + ri(type = "iid", corr="all") +I((t-208)/100) , S = 3, period = 52)
-
+<<modelFluBYBW>>=
+# endemic component: iid random effects, linear trend, S=3 seasonal terms
+f.end <- addSeason2formula(f = ~ -1 + ri(type="iid", corr="all") +
+                               I((t-208)/100),
+                           S = 3, period = 52)
+# model specification
 model.B2 <- list(ar = list(f = ~ 1),
-                 ne = list(f = ~ -1+ ri(type = "iid", corr="all"), weights = wji),
-                 end = list(f = f.end, offset = population(flu)),
-                 family = "NegBin1", 
-                 verbose = 1, 
-                 start=list(fixed=c(-0.9,-1.53,0.56,2.45,2.05,0.33,-0.49,0.21,-0.36,0.21,-0.09),
-                            sd.corr=c(-0.02,-0.34,0.68))
-                 )
+                 ne = list(f = ~ -1 + ri(type="iid", corr="all"),
+                           weights = neighbourhood(fluBYBW),
+                           normalize = TRUE),  # all(rowSums(weights) == 1)
+                 end = list(f = f.end, offset = population(fluBYBW)),
+                 family = "NegBin1", verbose = TRUE,
+                 optimizer = list(variance = list(method = "Nelder-Mead")))
+# default start values for random effects are sampled from a normal
+set.seed(42)
+@ 
 
-
-if(compute){   
-  # this is time-consuming...
-  result.B2 <- hhh4(flu, model.B2)
-  s.B2 <- summary(result.B2)
-
-  system.time(pred.B2 <- oneStepAhead(result.B2,tp=nrow(flu)-2*52))
-  meanSc.B2 <- colMeans(scores(pred.B2)) 
-    
+<<computeFluBYBW, echo=FALSE, results=hide>>=
+if(compute){
+  result.B2 <- hhh4(fluBYBW, model.B2)
+  s.B2 <- summary(result.B2, maxEV = TRUE, idx2Exp = 1:3)
+  
+  #pred.B2 <- oneStepAhead(result.B2, tp = nrow(fluBYBW) - 2*52)
+  predfinal.B2 <- oneStepAhead(result.B2, tp = nrow(fluBYBW) - 2*52,
+                               type = "final")
+  meanSc.B2 <- colMeans(scores(predfinal.B2))
+  
   save(s.B2, meanSc.B2, file="hhh4-cache.RData")
 }
 @
 
-<<fitFluBYBW, eval=F, echo=T>>=
-# weight matrix w_ji = 1/(No. neighbors of j) if j ~ i, and 0 otherwise
-wji <- neighbourhood(flu)/rowSums(neighbourhood(flu))
-
-# endemic component: iid random effects, linear trend, and S=3 seasonal terms
-f.end <- addSeason2formula(f = ~ -1 + ri(type = "iid", corr="all") + 
-                                I((t-208)/100), 
-                                S = 3, 
-                                period = 52)
-
-model.B2 <- list(ar = list(f = ~ 1),
-                 ne = list(f = ~ -1+ ri(type = "iid", corr="all"), 
-                           weights = wji),
-                 end = list(f = f.end, offset = population(flu)),
-                 family = "NegBin1"
-                 )
-
-# fit model
-summary(result.B2 <- hhh4(flu, model.B2))
+<<fitFluBYBW, eval=FALSE>>=
+# fit the model (takes about 35 seconds)
+result.B2 <- hhh4(fluBYBW, model.B2)
+summary(result.B2, maxEV = TRUE, idx2Exp = 1:3)
 @
-<<echo=F>>=
+<<echo=FALSE>>=
 s.B2
 @
+
 Model choice based on information criteria such as AIC or BIC is well
 explored and understood for models that correspond to fixed-effects likelihoods.
 However, in the presence of random effects their use can be problematic.
 For model selection in time series models, the comparison of successive 
 one-step-ahead forecasts with the actually observed data 
-provides a natural alternative. In this context, \cite{gneiting-raftery-2007}
+provides a natural alternative. In this context, \citet{gneiting-raftery-2007}
 recommend the use of strictly proper scoring 
-rules, such as the logarithmic score or the ranked probability score.
-See \cite{czado-etal-2009} and \cite{paul-held-2011} for further details.
+rules, such as the logarithmic score (logs) or the ranked probability score (rps).
+See \citet{czado-etal-2009} and \citet{paul-held-2011} for further details.
 
-One-step-ahead predictions for the last 2 years for model B2 are obtained as 
-follows:
-<<oneStepAhead, eval=F, echo=T>>=
-pred.B2 <- oneStepAhead(result.B2, tp = nrow(flu) - 2 * 52)
+One-step-ahead predictions for the last 2 years for model B2 could be obtained
+as follows:
+<<oneStepAhead_rolling, eval=FALSE>>=
+pred.B2 <- oneStepAhead(result.B2, tp = nrow(fluBYBW) - 2*52)
 @
-The mean logarithmic and mean ranked probability score are then computed with
-<<scores, eval=F>>=
-colMeans(scores(pred.B2)[, c("logs", "rps")])
-@
-<<echo=F, eval=T>>=
-meanSc.B2[ c("logs", "rps")]
-@
+However, computing ``rolling'' one-step-ahead predictions from a random effects
+model is computationally expensive, since the model needs to be refitted at
+every time point. The above call would take approximately 45 minutes!
+So for the purpose of this vignette, we use the fitted model based on the whole
+time series to compute all (fake) predictions during the last two years:
+<<oneStepAhead_fake, eval=FALSE>>=
+predfinal.B2 <- oneStepAhead(result.B2, tp = nrow(fluBYBW) - 2*52,
+                             type = "final")
+@ 
+The mean scores (logs and rps) corresponding to this set of predictions can then
+be computed as follows:
+<<scores, eval=FALSE>>=
+colMeans(scores(predfinal.B2, which = c("logs", "rps")))
+@ 
+<<echo=FALSE>>=
+meanSc.B2[c("logs", "rps")]
+@ 
+
+Using predictive model assessments, \citet{meyer.held2013} found that
+power-law transmission weights more appropriately reflect the spread of
+influenza than the previously used first-order weights (which actually allow the
+epidemic to spread only to directly adjacent districts within one week).
+These power-law weights can be constructed by the function \code{W\_powerlaw}
+and require the \code{neighbourhood} of the \sts\ object to contain adjacency
+orders. The latter can be easily obtained from the binary adjacency matrix
+using the function \code{nbOrder}. See the corresponding help pages or
+\citet[Section~5]{meyer.etal2014} for illustrations.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Measles data
-<<createVacc, eval=T, echo=F>>=
+\subsubsection*{Measles, German federal states, 2005--2007}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+<<createVacc, echo=FALSE>>=
 data(MMRcoverageDE)
 cardVac1 <- MMRcoverageDE[1:16,3:4]
 
@@ -666,55 +726,61 @@ adjustVac <- function(cardVac, p=0.5,nrow=1){
 vac0 <- 1-adjustVac(cardVac1,p=0.5,nrow=measles2w@freq*3)
 colnames(vac0) <- colnames(measles2w)
 @
+
 As a last example, consider the number of measles cases in the 16 federal states
 of Germany, in the years 2005--2007. There is considerable regional variation 
 in the incidence pattern which is most likely due to differences in vaccination 
 coverage. In the following, information about vaccination coverage in each 
 state, namely the log proportion of unvaccinated school starters, is included 
 as explanatory variable in a model for the bi-weekly aggregated measles data. 
-See \cite{herzog-etal-2010} for further details.
+See \citet{herzog-etal-2010} for further details.
 
 Vaccination coverage levels for the year 2006 are available in the dataset
 \code{data(MMRcoverageDE)}. This dataset can be used to compute
 the $\Sexpr{nrow(vac0)}\times \Sexpr{ncol(vac0)}$ matrix \code{vac0} with adjusted
 proportions of unvaccinated school starters in each state $i$ used by
-\cite{herzog-etal-2010} 
+\citet{herzog-etal-2010}.
+The first few entries of this matrix are shown below:
 <<>>=
-vac0[1:2, 1:5]
+vac0[1:2, 1:6]
 @
-A Poisson model which links the autoregressive parameter with this covariate
-and contains $S=1$ seasonal term in the endemic component 
-\citep[cf.~model A0 in Tab.~3 in ][]{herzog-etal-2010} is obtained with
+
+We fit a Poisson model, which links the autoregressive parameter with this covariate
+and contains $S=1$ seasonal term in the endemic component
+\citep[cf.][Table~3, model~A0]{herzog-etal-2010}:
 <<fitMeasles>>=
-# endemic component: Intercept + S = 1 sine/cosine pair
+# endemic component: Intercept + sine/cosine terms
 f.end <- addSeason2formula(f = ~ 1, S = 1, period = 26)
 # autoregressive component: Intercept + vaccination coverage information
 model.A0 <- list(ar = list(f = ~ 1 + logVac0),
                  end = list(f = f.end, offset = population(measles2w)),
                  data = list(t = epoch(measles2w), logVac0 = log(vac0)))
-# fit model
-result.A0 <- hhh4(measles2w, model.A0)    
-             
-# parameter estimates
-round(coef(result.A0, 
-           se = TRUE,              # also return standard errors
-           amplitudeShift = TRUE   # transform sin/cos terms to 
-           ), 2)                   # Amplitude/shift formulation
+# fit the model
+result.A0 <- hhh4(measles2w, model.A0)
+summary(result.A0, amplitudeShift = TRUE)
 @
 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Summary
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5
- \section{Summary}
-As part of the \R-package \surveillance, the function \hhh\ provides
+\section{Conclusion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+As part of the \R~package \surveillance, the function \hhh\ provides
 a flexible tool for the modelling of multivariate time series 
-of infectious disease counts. The discussed count data model is able to
+of infectious disease counts. The presented count data model is able to
 account for serial and spatio-temporal correlation, as well as
 heterogeneity in incidence levels and disease transmission. 
-The functionality of \hhh\ was illustrated using several built-in data 
-sets.
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{apalike}
+\renewcommand{\bibfont}{\small}
 \bibliography{references}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 \end{document}
  

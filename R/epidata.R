@@ -7,8 +7,8 @@
 ### geo-referenced population (e.g., farms, households) for twinSIR() analysis
 ###
 ### Copyright (C) 2008-2010, 2012, 2014-2015 Sebastian Meyer
-### $Revision: 1489 $
-### $Date: 2015-10-06 22:55:24 +0200 (Die, 06. Okt 2015) $
+### $Revision: 1518 $
+### $Date: 2015-11-13 13:22:31 +0100 (Fre, 13. Nov 2015) $
 ################################################################################
 
 ## CAVE:
@@ -310,15 +310,15 @@ update.epidata <- function (object, f = list(), w = list(), D = dist, ...)
                                 rownames.force = FALSE)
             rownames(coords) <- as.character(firstDataBlock[["id"]])
             as.matrix(D(coords))
-        } else if (is.matrix(D)) {
-            stopifnot(is.numeric(D))
-            if (any(!firstDataBlock[["id"]] %in% rownames(D),
-                    !firstDataBlock[["id"]] %in% colnames(D))) {
+        } else { # a numeric matrix (or "Matrix")
+            if (length(dn <- dimnames(D)) != 2L) {
+                stop("if not a function, 'D' must be a matrix-like object")
+            }
+            if (!all(firstDataBlock[["id"]] %in% dn[[1L]],
+                     firstDataBlock[["id"]] %in% dn[[2L]])) {
                 stop("'dimnames(D)' must contain the individuals' IDs")
             }
             D
-        } else {
-            stop("'D' must be a function or a matrix")
         }
     }
 

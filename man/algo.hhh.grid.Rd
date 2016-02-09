@@ -3,13 +3,17 @@
 \alias{print.ahg}
 \alias{coef.ahg}
 \encoding{latin1}
-\title{Function to try multiple starting values}
+\title{Fit a Classical HHH Model (DEPRECATED) with Varying Start Values}
 \description{
-        Tries multiple starting values in \code{algo.hhh}. 
-        Starting values are provided in a matrix with \code{gridSize} rows, the
-        grid search is conducted until either all starting values are used or
+        \code{algo.hhh.grid} tries multiple starting values in \code{algo.hhh}. 
+        Starting values are provided in a matrix with \code{gridSize} rows
+        (usually created by \code{\link{create.grid}}).
+        The grid search is conducted until either all starting values are used or
         a time limit \code{maxTime} is exceeded.
-        The result with the highest likelihood is returned. 
+        The result with the highest likelihood is returned.
+        
+        Note that the \code{algo.hhh} implementation of HHH models is
+        \strong{deprecated} and superseded by the function \code{\link{hhh4}}.
 }
 \usage{
 algo.hhh.grid(disProgObj, control=list(lambda=TRUE, neighbours=FALSE, 
@@ -126,7 +130,3 @@ algo.hhh.grid(influMen, control=model2, thetastartMatrix=grid, maxTime=30)
     infectious disease surveillance data, Statistics in Medicine, \bold{27}, 
     6250--6267.    
 }
-
-
-
-% create.grid

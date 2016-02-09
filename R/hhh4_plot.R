@@ -6,8 +6,8 @@
 ### Plot-method(s) for fitted hhh4() models
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2015 Sebastian Meyer
-### $Revision: 1504 $
-### $Date: 2015-10-23 16:52:26 +0200 (Fre, 23. Okt 2015) $
+### $Revision: 1519 $
+### $Date: 2015-11-20 15:20:41 +0100 (Fre, 20. Nov 2015) $
 ################################################################################
 
 
@@ -42,16 +42,27 @@ plotHHH4_fitted <- function (x, units = 1, names = NULL,
 {
     if (is.null(units)) units <- seq_len(x$nUnit)
     if (!is.null(names)) stopifnot(length(units) == length(names))
-    
+    if (isTRUE(decompose)) decompose <- colnames(x$stsObj)
+
+    ## get decomposed mean
+    if (is.null(meanHHH)) {
+        meanHHH <- if (is.null(decompose)) {
+            meanHHH(x$coefficients, terms.hhh4(x))
+        } else {
+            decompose.hhh4(x)
+        }
+    }
+
+    ## check color vector
     col <- if (is.null(decompose) && length(col) == 4) {
         ## compatibility with surveillance < 1.10-0
         pt.col <- col[4L]
         rev(col[-4L])
     } else {
-        if (isTRUE(decompose)) decompose <- colnames(x$stsObj)
-        plotHHH4_fitted_check_col_decompose(col, decompose, colnames(x$stsObj))
+        plotHHH4_fitted_check_col_decompose(col, decompose, dimnames(meanHHH)[[3L]][-1L])
     }
-    
+
+    ## setup graphical parameters
     if (is.list(par.settings)) {
         par.defaults <- list(mfrow = sort(n2mfrow(length(units))),
                              mar = c(4,4,2,0.5)+.1, las = 1)
@@ -85,15 +96,6 @@ plotHHH4_fitted <- function (x, units = 1, names = NULL,
         legend.args <- modifyList(default.args, legend.args)
     }
 
-    ## get decomposed mean
-    if (is.null(meanHHH)) {
-        meanHHH <- if (is.null(decompose)) {
-            meanHHH(x$coefficients, terms.hhh4(x))
-        } else {
-            decompose.hhh4(x)
-        }
-    }
-    
     ## plot fitted values region by region
     meanHHHunits <- vector(mode="list", length=length(units))
     names(meanHHHunits) <- if (is.character(units)) units else colnames(x$stsObj)[units]
@@ -109,11 +111,9 @@ plotHHH4_fitted <- function (x, units = 1, names = NULL,
 plotHHH4_fitted_check_col_decompose <- function (col, decompose, unitNames)
 {
     if (is.null(decompose)) {
-        stopifnot(length(col) == 3)
+        stopifnot(length(col) == 3L)
     } else {
         nUnit <- length(unitNames)
-        stopifnot(length(decompose) == nUnit,
-                  setequal(decompose, unitNames))
         if (length(col) == nUnit) {
             col <- c("grey85", col)  # first color is for "endemic"
         } else if (length(col) != 1L + nUnit) {
@@ -139,15 +139,7 @@ plotHHH4_fitted1 <- function(x, unit=1, main=NULL,
         is.na(unit <- match(.unit <- unit, colnames(stsObj))))
         stop("region '", .unit, "' does not exist")
     if (is.null(main)) main <- colnames(stsObj)[unit]
-
-    col <- if (is.null(decompose) && length(col) == 4) {
-        ## compatibility with surveillance < 1.10-0
-        pt.col <- col[4L]
-        rev(col[-4L])
-    } else {
-        if (isTRUE(decompose)) decompose <- colnames(x$stsObj)
-        plotHHH4_fitted_check_col_decompose(col, decompose, colnames(x$stsObj))
-    }
+    if (isTRUE(decompose)) decompose <- colnames(stsObj)
 
     ## get observed counts
     obs <- observed(stsObj)[,unit]
@@ -178,6 +170,8 @@ plotHHH4_fitted1 <- function(x, unit=1, main=NULL,
     } else {
         if (is.null(meanHHH))
             meanHHH <- decompose.hhh4(x)
+        if (!setequal(decompose, dimnames(meanHHH)[[3L]][-1L]))
+            stop("'decompose' must be (a permutation of) the fitted units")
         meanHHH[,unit,c("endemic",decompose)]
     }
     stopifnot(is.matrix(meanHHHunit), !is.null(colnames(meanHHHunit)),
@@ -187,6 +181,15 @@ plotHHH4_fitted1 <- function(x, unit=1, main=NULL,
         ## could be due to wrong x$control$subset wrt the epidemic lags
         ## a workaround is then to set 'start' to a later time point
         stop("predicted mean contains missing values")
+    }
+
+    ## check color vector
+    col <- if (is.null(decompose) && length(col) == 4L) {
+        ## compatibility with surveillance < 1.10-0
+        pt.col <- col[4L]
+        rev(col[-4L])
+    } else {
+        plotHHH4_fitted_check_col_decompose(col, decompose, colnames(meanHHHunit)[-1L])
     }
     
     ## establish basic plot window

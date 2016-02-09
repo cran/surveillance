@@ -6,9 +6,11 @@
 \title{CUSUM detector for time-varying categorical time series}
 \description{
   Function to process \code{sts} object by binomial, beta-binomial
-  or multinomial CUSUM. Logistic, multinomial logistic, proportional
+  or multinomial CUSUM as described by \enc{Höhle}{Hoehle} (2010).
+  Logistic, multinomial logistic, proportional
   odds or Bradley-Terry regression models are used to specify in-control
   and out-of-control parameters.
+  The implementation is illustrated in Salmon et al. (2016).
 }
 \usage{
 categoricalCUSUM(stsObj,control = list(range=NULL,h=5,pi0=NULL,
@@ -29,18 +31,22 @@ categoricalCUSUM(stsObj,control = list(range=NULL,h=5,pi0=NULL,
 	vector for all categories except the reference category.}
       \item{\code{mu1}}{\eqn{(k-1) \times t_{max}} out-of-control probability
 	vector for all categories except the reference category.}
-      \item{\code{dfun}}{The probability mass function or density used
+      \item{\code{dfun}}{The probability mass function (PMF) or density used
 	to compute the likelihood ratios of the CUSUM. In a negative
 	binomial CUSUM this is \code{dnbinom}, in a binomial CUSUM
 	\code{dbinom} and in a multinomial CUSUM \code{dmultinom}. The
 	function must be able to handle the arguments \code{y},
 	\code{size}, \code{mu} and \code{log}. As a consequence, one in
-	the case of the beta-binomial distribution has to write a small
+	the case of, e.g, the beta-binomial distribution has to write a small
 	wrapper function.}
       \item{\code{ret}}{Return the necessary proportion to sound an alarm in the
 	slot \code{upperbound} or just the value of the CUSUM
 	statistic. Thus, \code{ret} is one of tha values in
-	\code{c("cases","value")}.}
+	\code{c("cases","value")}. Note: For the binomial PMF it is
+	possible to compute this value explicitly, which is much faster
+	than the numeric search otherwise conducted. In case \code{dfun}
+	just corresponds to \code{dbinom} just set the attribute
+	\code{isBinomialPMF} for the \code{dfun} object.}
   }}
   \item{\dots}{Additional arguments to send to \code{dfun}.}
 }
@@ -60,9 +66,15 @@ categoricalCUSUM(stsObj,control = list(range=NULL,h=5,pi0=NULL,
   etc. slots trimmed to the \code{control$range} indices.
 }
 \references{
-  Höhle, M. (2010), Changepoint detection in categorical time series, 
-  Book chapter to appear in T. Kneib and G. Tutz (Eds.), Statistical
-  Modelling and Regression Structures, Springer.
+  Höhle, M. (2010):
+  Online Change-Point Detection in Categorical Time Series.
+  Book chapter in T. Kneib and G. Tutz (Eds.), Statistical
+  Modelling and Regression Structures, Physica-Verlag.
+
+  Salmon, M., Schumacher, D. and \enc{Höhle}{Hoehle}, M. (2016):
+  Monitoring count time series in \R: Aberration detection in public
+  health surveillance. \emph{Journal of Statistical Software}. In press.\cr
+  Preprint available at \url{http://arxiv.org/abs/1411.1292}  
 }
 \examples{
 if (require("gamlss")) {
@@ -82,7 +94,7 @@ if (require("gamlss")) {
   #Fit beta-binomial model using GAMLSS
   abattoir.df <- as.data.frame(abattoir)
   colnames(abattoir.df) <- c("y","t","state","alarm","n")
-  m.bbin <- gamlss( cbind(y,n-y) ~ 1 + t + 
+  m.bbin <- gamlss( cbind(y,n-y) ~ 1 + t +
 		    + sin(2*pi/52*t) + cos(2*pi/52*t) +
 		    + sin(4*pi/52*t) + cos(4*pi/52*t), sigma.formula=~1,
 		    family=BB(sigma.link="log"),

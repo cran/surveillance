@@ -9,6 +9,9 @@
   model (one with \code{epidemic = ~1}) and tests if the spatio-temporal
   interaction invoked by the \code{epidemic} model component is
   statistically significant.
+  The approach is described in detail in Meyer et al. (2015),
+  where it is also compared to alternative global tests for clustering
+  such as the \code{\link{knox}} test.
 }
 
 \usage{
@@ -155,6 +158,14 @@ epitest(model, data, tiles, method = "time", B = 199,
   \code{permfits} (by default for the full model \code{which = "m1"}).
 }
 
+\references{
+  Meyer, S., Warnke, I., R\enc{ö}{oe}ssler, W. and Held, L. (2015):
+  Model-based testing for space-time interaction using point processes:
+  An application to psychiatric hospital admissions in an urban area.
+  \emph{Spatial and Spatio-temporal Epidemiology}. In revision.\cr
+  Preprint available at \url{http://arxiv.org/abs/1512.09052}
+}
+
 \author{
   Sebastian Meyer
 }
@@ -178,10 +189,10 @@ imdfitB50 <- update(imdepifit, data = imdepiB50,
 ## simple likelihood ratio test
 epitest(imdfitB50, imdepiB50, method = "LRT")
 
-## permutation test (only few permutations for speed, in parallel)
-et <- epitest(imdfitB50, imdepiB50, B = 4 + 25*surveillance.options("allExamples"),
+## permutation test (only a few permutations for speed)
+et <- epitest(imdfitB50, imdepiB50, B = 3 + 26*surveillance.options("allExamples"),
               verbose = 2 * (.Platform$OS.type == "unix"),
-              .seed = 1, .parallel = 2)
+              .seed = 1, .parallel = 1 + surveillance.options("allExamples"))
 et
 plot(et)
 summary(coef(et))

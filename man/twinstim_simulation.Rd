@@ -304,12 +304,6 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
   A space-time conditional intensity model for invasive meningococcal
   disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.\cr
   DOI-Link: \url{http://dx.doi.org/10.1111/j.1541-0420.2011.01684.x}
-
-  Meyer, S. (2010):
-  Spatio-Temporal Infectious Disease Epidemiology based on Point Processes.
-  Master's Thesis, Ludwig-Maximilians-Universit\enc{ä}{ae}t
-  M\enc{ü}{ue}nchen.\cr
-  Available as \url{http://epub.ub.uni-muenchen.de/11703/}
 }
 
 \author{ 

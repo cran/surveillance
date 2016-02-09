@@ -6,8 +6,8 @@
 ### Plot the temporal or spatial evolution of the estimated intensity
 ###
 ### Copyright (C) 2012-2015 Sebastian Meyer
-### $Revision: 1281 $
-### $Date: 2015-03-24 10:17:20 +0100 (Die, 24. Mär 2015) $
+### $Revision: 1520 $
+### $Date: 2015-11-24 15:12:29 +0100 (Die, 24. Nov 2015) $
 ################################################################################
 
 
@@ -68,11 +68,10 @@ intensity.twinstim <- function (x, aggregate = c("time", "space"),
                 fact * c(tapply(expeta * modelenv$dt, gridTiles, sum,
                                 simplify = TRUE))
             }
-        } else {
-            ngrid <- if (aggregate == "time") {
-                gridBlocks[length(gridBlocks)]
-            } else nlevels(gridTiles)
-            rep.int(0, ngrid)
+        } else { ## the endemic intensity is 0
+            ## but a non-endemic "twinstim" holds no information on 'stgrid':
+            ## 'gridBlocks' and 'gridTiles', respectively, are undefined
+            NULL
         }
 
     ## endemic component as a function of time or location

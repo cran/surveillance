@@ -4,13 +4,15 @@
 \usage{
 bodaDelay(sts, control = list(range = NULL, b = 3, w = 3,
                                           mc.munu=100, mc.y=10,
-                                          pastAberrations = FALSE,
+                                          pastAberrations = TRUE, 
                                           verbose = FALSE,
                                           alpha = 0.01, trend = TRUE,
-                                          limit54=c(5,4),
+                                          limit54=c(5,4), 
                                           inferenceMethod=c("asym","INLA"),
-                                          noPeriods = 1, pastWeeksNotIncluded = 26,
-                                          delay = TRUE))
+                                          quantileMethod=c("MC","MM"),
+                                          noPeriods = 1, 
+                                          pastWeeksNotIncluded = 26,
+                                          delay = TRUE)) 
 }
 \arguments{
 \item{sts}{sts-object to be analysed. Needs to have a reporting triangle.}
@@ -38,20 +40,21 @@ i.e. the \eqn{(1-\alpha)\cdot 100\%} quantile serves as an upperbound.}
 equal to 1 no factor variable is created, the set of reference values is defined as in
 Farrington et al (1996).}
 
-\item{inferenceMethod}{Which inference method used, as defined in Salmon et al (2015). If one chooses \code{INLA} then inference is performed with INLA. If one chooses \code{asym} then the asymptotic normal approximation of the posteriori is used.}
+\item{inferenceMethod}{Which inference method used, as defined in Salmon et al. (2015). If one chooses \code{INLA} then inference is performed with INLA. If one chooses \code{asym} then the asymptotic normal approximation of the posteriori is used.}
 
 \item{pastWeeksNotIncluded}{Number of past weeks to ignore in the calculation.}
 
 \item{delay}{Boolean indicating whether to take reporting delays into account.}
 
-\item{mc.munu}{Number of samples for the parameters of the negative binomial distribution
-when performing Monte Carlo to calculate a threshold}
+\item{mc.munu}{Number of samples for the parameters of the negative binomial distribution for calculating a threshold}
 
 \item{mc.y}{Number of samples for observations
 when performing Monte Carlo to calculate a threshold}
 
 \item{limit54}{c(cases,period) is a vector allowing the
 user to change these numbers.}
+
+\item{quantileMethod}{Character, either \code{MC} or \code{MM}. Indicates how to compute the quantile based on the posterior distribution (no matter the inference method): either by sampling \code{mc.munu} values from the posterior distribution of the parameters and then for each sampled parameters vector sampling \code{mc.y} response values so that one gets a vector of response values based on which one computes an empirical quantile (MC method, as explained in Salmon et al. 2015); or by sampling \code{mc.munu} from the posterior distribution of the parameters and then compute the quantile of the mixture distribution using bisectionning, which is faster.}
 
 }
 \description{
@@ -60,33 +63,70 @@ series \code{sts} and for each time point uses a Bayesian model of the negative 
 log link inspired by the work of Noufaily et al. (2012) and of Manitz and \enc{Höhle}{Hoehle} (2014). It allows delay-corrected aberration detection as explained in Salmon et al. (2015). A \code{reportingTriangle} has to be provided in the \code{control} slot.
 }
 \examples{
-data(salmAllOnset)
-rangeTest <- 410:412
-alpha <- 0.05
-# Control slot for the proposed algorithm with D=0 correction
-controlNormal <- list(range = rangeTest, b = 4, w = 3,
-                      pastAberrations = TRUE, mc.munu=10, mc.y=10,
-                      verbose = FALSE,
-                      alpha = alpha, trend = TRUE,
-                      limit54=c(0,50),
-                      noPeriods = 10, pastWeeksNotIncluded = 26,
-                      delay=FALSE,inferenceMethod="asym")
-# Control slot for the proposed algorithm with D=10 correction
-controlDelay <-  list(range = rangeTest, b = 4, w = 3,
-                      pastAberrations = TRUE, mc.munu=10, mc.y=10,
-                      verbose = FALSE,
-                      alpha = alpha, trend = TRUE,
-                      limit54=c(0,50),
-                      noPeriods = 10, pastWeeksNotIncluded = 26,
-                      delay=TRUE,inferenceMethod="asym")
-salm.Normal <- bodaDelay(salmAllOnset, controlNormal)
-salm.delay <- bodaDelay(salmAllOnset, controlDelay)
-plot(salm.Normal)
-plot(salm.delay)
+\dontrun{data(stsNewport)
+salm.Normal <- list()
+salmDelayAsym <- list()
+for (week in 43:45){
+  listWeeks <- as.Date(row.names(stsNewport@control$reportingTriangle$n), origin="1970-01-01")
+  dateObs <- listWeeks[isoWeekYear(listWeeks)$ISOYear==2011&
+                         isoWeekYear(listWeeks)$ISOWeek==(week)]
+  stsC <- sts_observation(stsNewport,
+                          dateObservation=dateObs,
+                          cut=TRUE)
+  inWeeks <- which(formatDate(epoch(stsC), "%G") == 2011 & 
+                     isoWeekYear(as.Date(epoch(stsC)))$ISOWeek>=40 & 
+                     isoWeekYear(as.Date(epoch(stsC)))$ISOWeek<=48)
+  
+  rangeTest <- inWeeks
+  alpha <- 0.07
+  #  isoWeekYear(epoch(dataTrunc))$ISOWeek >39 & 
+  # isoWeekYear(epoch(dataTrunc))$ISOWeek <=47)
+  # Control slot for Noufaily method          
+  controlNoufaily <- list(range=rangeTest,noPeriods=10,
+                          b=4,w=3,weightsThreshold=2.58,pastWeeksNotIncluded=26,
+                          pThresholdTrend=1,thresholdMethod="nbPlugin",alpha=alpha*2,
+                          limit54=c(0,50))
+  # Control slot for the Proposed algorithm with D=0 correction
+  controlNormal <- list(range = rangeTest, b = 4, w = 3,
+                        reweight = TRUE, mc.munu=10000, mc.y=100,
+                        verbose = FALSE,
+                        alpha = alpha, trend = TRUE,
+                        limit54=c(0,50), 
+                        noPeriods = 10, pastWeeksNotIncluded = 26,
+                        delay=FALSE)
+  # Control slot for the Proposed algorithm with D=10 correction
+  
+  controlDelayNorm <-  list(range = rangeTest, b = 4, w = 3,
+                            reweight = FALSE, mc.munu=10000, mc.y=100,
+                            verbose = FALSE,
+                            alpha = alpha, trend = TRUE,
+                            limit54=c(0,50), 
+                            noPeriods = 10, pastWeeksNotIncluded = 26,
+                            delay=TRUE,inferenceMethod="asym")
+  set.seed(1)
+  
+  salm.Normal[[week]] <- farringtonFlexible(stsC, controlNoufaily)
+  
+  salmDelayAsym[[week]] <- bodaDelay(stsC, controlDelayNorm)
+  
+}
+
+par(mfrow=c(2,3))
+lapply(salmDelayAsym[c(43,44,45)],plot, legend=NULL, main="", ylim=c(0,35))
+lapply(salm.Normal[c(43,44,45)],plot, legend=NULL, main="", ylim=c(0,35))} 
 
 }
 \references{
-A statistical algorithm for the early detection of outbreaks of infectious disease, Farrington, C.P., Andrews, N.J, Beale A.D. and Catchpole, M.A. (1996), J. R. Statist. Soc. A, 159, 547-563.
-An improved algorithm for outbreak detection in multiple surveillance systems, Noufaily, A., Enki, D.G., Farrington, C.P., Garthwaite, P., Andrews, N.J., Charlett, A. (2012), Statistics in Medicine, published online.
-Bayesian outbreak detection in the presence of reporting delays, Salmon, M., Schumacher, D., Stark, K., \enc{Höhle}{Hoehle}, M. (2015), in revision.
+  Farrington, C.P., Andrews, N.J, Beale A.D. and Catchpole, M.A. (1996):
+  A statistical algorithm for the early detection of outbreaks of
+  infectious disease. J. R. Statist. Soc. A, 159, 547-563.
+
+  Noufaily, A., Enki, D.G., Farrington, C.P., Garthwaite, P.,
+  Andrews, N.J., Charlett, A. (2012): An improved algorithm for outbreak
+  detection in multiple surveillance systems. Statistics in Medicine,
+  32 (7), 1206-1222.
+
+  Salmon, M., Schumacher, D., Stark, K., \enc{Höhle}{Hoehle}, M. (2015):
+  Bayesian outbreak detection in the presence of reporting delays.
+  Biometrical Journal, 57 (6), 1051-1067.
 }

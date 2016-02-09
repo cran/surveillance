@@ -155,9 +155,11 @@ intensity.twinstim(x,
   a function is returned, which takes a vector of
   time points (if \code{aggregate = "time"}) or a matrix of coordinates
   (if \code{aggregate = "space"}), and returns \code{which} on this grid.
-
+  \code{intensity.twinstim} returns a list containing such functions for
+  the endemic and epidemic intensity (but these are not vectorized).
+  
   If \code{plot = TRUE} and \code{aggregate = "space"}, the
-  \code{\link{trellis.object}} containg the spatial plot is returned.
+  \code{\link{trellis.object}} of the spatial plot is returned.
 }
 
 \author{
@@ -165,7 +167,7 @@ intensity.twinstim(x,
 }
 
 \seealso{
-  \code{\link{plot.twinstim}}, which calls this function.
+  \code{\link{plot.twinstim}}, which calls \code{intensityplot.twinstim}.
 }
 
 \examples{

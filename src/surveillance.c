@@ -730,12 +730,12 @@ static R_INLINE double nblnk(double kappa,int *x, double *mu0, double alpha, int
 
 /**********************************************************************
  GLR detector for the negative binomial model described in
- Hoehle and Paul (2007).
+ Hoehle and Paul (2008).
 
  Parameters:
   x   -- the data (as array)
   mu0 -- base means under H0
-  alpha -- fixed dispersion parameter of the NegBin distribution (see Lawless87)
+  alpha -- fixed dispersion parameter of the NegBin distribution (see Lawless (1987))
   lx -- length of x
   Mtilde_R -- number of obs needed to get good estimate (typically 1)
   M        -- Mtilde < M
@@ -974,13 +974,13 @@ static R_INLINE double nbGeneralLnk(double theta,int *x, double *xm1,  double *m
 
 /**********************************************************************
  GLR detector for the general negative binomial model described in
- Hoehle and Paul (2007). Currently, the epidemic chart is implemented.
+ Hoehle and Paul (2008). Currently, the epidemic chart is implemented.
  To obtain other alternatives modify the mu1, d1mu1 and d2mu1 functions.
 
  Parameters:
   x   -- the data (as array)
   mu0 -- base means under H0
-  alpha -- fixed dispersion parameter of the NegBin distribution (see Lawless87)
+  alpha -- fixed dispersion parameter of the NegBin distribution (see Lawless (1987))
   lx -- length of x
   Mtilde_R -- number of obs needed to get good estimate (typically 1)
   M        -- Mtilde < M

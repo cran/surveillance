@@ -3,12 +3,13 @@
 \alias{iafplot}
 
 \title{
-  Plot the spatial or temporal interaction function of a twimstim
+  Plot the Spatial or Temporal Interaction Function of a \code{twimstim}
 }
 
 \description{
   The function plots the fitted temporal or (isotropic) spatial
   interaction function of a \code{twinstim} object.
+  The implementation is illustrated in Meyer et al. (2016, Section 3).
 }
 
 \usage{
@@ -187,6 +188,11 @@ iafplot(object, which = c("siaf", "tiaf"), types = NULL,
   A space-time conditional intensity model for invasive meningococcal
   disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.\cr
   DOI-Link: \url{http://dx.doi.org/10.1111/j.1541-0420.2011.01684.x}
+
+  Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
+  Spatio-temporal analysis of epidemic phenomena using the \R package
+  \pkg{surveillance}. \emph{Journal of Statistical Software}. In press.\cr
+  Preprint available at \url{http://arxiv.org/abs/1411.0416}
 }
 
 \author{

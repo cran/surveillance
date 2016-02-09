@@ -14,7 +14,14 @@
 }
 
 \description{
-  \Sexpr[stage=build]{meta$Description}
+  The \pkg{surveillance} package implements statistical methods for the
+  retrospective modeling and prospective monitoring of epidemic phenomena
+  in temporal and spatio-temporal contexts.
+  Focus is on (routinely collected) public health surveillance data,
+  but the methods just as well apply to data from environmetrics,
+  econometrics or the social sciences. As many of the monitoring methods
+  rely on statistical process control methodology, the package is
+  also relevant to quality control and reliability engineering.
 } 
 
 \details{
@@ -26,46 +33,46 @@
     % cannot use \Sexpr within \url; and results=rd with "\\url"-paste is buggy
   }
   
-  \pkg{surveillance} is an \R package implementing statistical methods
-  for the retrospective modeling and prospective change-point detection
-  in time series of counts, proportions and categorical data. The main
-  application is in the detection of aberrations in routine collected
-  public health data seen as univariate and multivariate time series of
-  counts or point-processes. However, applications could just as well
-  originate from environmetrics, econometrics or social sciences. As
-  many methods rely on statistical process control methodology, the
-  package is thus also relevant to quality control and reliability
-  engineering.
-
-  The fundamental data structure of the package is an S4 class
-  \code{sts} wrapping observations, monitoring results and date handling
-  for multivariate time series. Currently the package contains
-  implementations typical outbreak detection procedures such as Stroup et
-  al. (1989), Farrington et al., (1996), Rossi et al. (1999), Rogerson
-  and Yamada (2001), a Bayesian approach (H\enc{ö}{oe}hle, 2007),
+  The package implements many typical outbreak detection procedures such
+  as Stroup et al. (1989), Farrington et al., (1996), Rossi et al. (1999),
+  Rogerson and Yamada (2001), a Bayesian approach (H\enc{ö}{oe}hle, 2007),
   negative binomial CUSUM methods (H\enc{ö}{oe}hle and Mazick, 2009), and a
   detector based on generalized likelihood ratios (H\enc{ö}{oe}hle
   and Paul, 2008). However, also CUSUMs for the prospective change-point
   detection in binomial, beta-binomial and multinomial time series is
-  covered based on generalized linear modelling.  This includes
-  e.g. paired binary CUSUM described by Steiner et al. (1999) or paired
-  comparison Bradley-Terry modelling described in H\enc{ö}{oe}hle
+  covered based on generalized linear modeling.  This includes,
+  e.g., paired binary CUSUM described by Steiner et al. (1999) or paired
+  comparison Bradley-Terry modeling described in H\enc{ö}{oe}hle
   (2010). The package contains several real-world datasets, the ability
   to simulate outbreak data, visualize the results of the monitoring in
-  temporal, spatial or spatio-temporal fashion.
+  temporal, spatial or spatio-temporal fashion. In dealing with time
+  series data, the fundamental data structure of the package is the S4
+  class \code{\link{sts}} wrapping observations, monitoring results and
+  date handling for multivariate time series.
+  A recent overview of the available monitoring procedures is
+  given by Salmon et al. (2016).
 
-  Furthermore, the package contains inference methods for the
-  retrospective infectious disease model in Held et al. (2005), Paul et
-  al. (2008) ("algo.hhh") and Paul and Held (2011) ("hhh4") handling
-  multivariate time series of counts. Furthermore, the fully Bayesian
-  approach for univariate time series of counts from Held et al. (2006)
-  ("twins") is also implemented. Self-exciting spatio-temporal point
-  processes are modeled through additive-multiplicative conditional
-  intensities as described in H\enc{ö}{oe}hle (2009) ("twinSIR") and
-  Meyer et al (2012) ("twinstim").
-
-  Altogether, the package allows the modelling and monitoring of
-  epidemic phenomena in temporal and spatio-temporal contexts.
+  For the retrospective analysis of epidemic spread, the package
+  provides three endemic-epidemic modeling frameworks with
+  tools for visualization, likelihood inference, and simulation.
+  The function \code{\link{hhh4}} offers inference methods for the
+  (multivariate) count time series models of Held et al. (2005), Paul et
+  al. (2008), Paul and Held (2011), Held and Paul (2012), and Meyer and
+  Held (2014). See the \code{vignette("hhh4")} for an introduction.
+  Furthermore, the fully Bayesian approach for univariate
+  time series of counts from Held et al. (2006) is implemented as
+  function \code{\link{algo.twins}}.
+  Self-exciting point processes are modeled through endemic-epidemic
+  conditional intensity functions.
+  \code{\link{twinSIR}} (H\enc{ö}{oe}hle, 2009) models the
+  susceptible-infectious-recovered (SIR) event history of a 
+  fixed population, e.g, epidemics across farms or networks.
+  \code{\link{twinstim}} (Meyer et al., 2012) fits spatio-temporal point
+  process models to point patterns of infective events, e.g.,
+  time-stamped geo-referenced surveillance data on infectious disease
+  occurrence.
+  A recent overview of the implemented space-time modeling frameworks
+  for epidemic phenomena is given by Meyer et al. (2016).
 }
 
 %% Author information is dynamically extracted from the DESCRIPTION file
@@ -93,7 +100,17 @@
 }
 
 \references{
-  See \code{citation(package="surveillance")}.
+  Relevant references can be listed by calling
+  \code{citation(package="surveillance")}.
+  
+  If you use functionality of the \pkg{surveillance} package in your own
+  work, please do cite the corresponding publications.
+}
+
+\seealso{
+  Additional documentation and illustrations of the methods are
+  available in the form of package vignettes, see
+  \code{vignette(package="surveillance")} for an overview.
 }
 
 \keyword{ package }

@@ -15,6 +15,7 @@
   (\dQuote{Infektionsschutzgesetz}, \acronym{IfSG}).\cr
   \code{data("measlesWeserEms")} is a corrected version of
   \code{data("measles.weser")} (see Format section below).
+  These data are illustrated and analyzed in Meyer et al. (2016, Section 5).
 }
 
 \usage{
@@ -98,11 +99,20 @@ data("measlesWeserEms")
   also as an interactive version.
 }
 
+\references{
+  Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
+  Spatio-temporal analysis of epidemic phenomena using the \R package
+  \pkg{surveillance}. \emph{Journal of Statistical Software}. In press.\cr
+  Preprint available at \url{http://arxiv.org/abs/1411.0416}
+}
+
 \examples{
+## old "disProg" object
 data("measles.weser")
 measles.weser
 plot(measles.weser, as.one=FALSE)
 
+## new "sts" object (with corrections)
 data("measlesWeserEms")
 measlesWeserEms
 plot(measlesWeserEms)

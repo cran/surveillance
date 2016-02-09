@@ -7,8 +7,8 @@
 ### model described in Meyer et al (2012), DOI: 10.1111/j.1541-0420.2011.01684.x
 ###
 ### Copyright (C) 2009-2015 Sebastian Meyer
-### $Revision: 1321 $
-### $Date: 2015-04-27 23:19:13 +0200 (Mon, 27. Apr 2015) $
+### $Revision: 1540 $
+### $Date: 2016-01-29 09:35:10 +0100 (Fre, 29. Jan 2016) $
 ################################################################################
 
 
@@ -400,7 +400,8 @@ twinstim <- function (
         ## but do not parallelize for a memoised siaf.step (becomes slower)
         if (useParallel &&
             !is.null(attr(siaf, "knots")) && !is.null(attr(siaf, "maxRange")) &&
-            isTRUE(attr(environment(siaf$f)$ringAreas, "memoised"))) {
+            requireNamespace("memoise", quietly = TRUE) &&
+            memoise::is.memoised(environment(siaf$f)$ringAreas)) {
             cores <- 1L
             useParallel <- FALSE
         }

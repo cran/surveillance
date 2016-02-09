@@ -1,14 +1,18 @@
-% algo.hhh
 \name{algo.hhh}
 \alias{algo.hhh}
 \alias{print.ah}
 \alias{coef.ah}
 \encoding{latin1}
-\title{Model fit based on the Held, Hoehle, Hofman paper} 
+\title{Fit a Classical HHH Model (DEPRECATED)}
 \description{
-        Fits a Poisson/negative binomial model with mean \eqn{\mu_{it}}{\mu_it} 
-        (as described in Held/\enc{Höhle}{Hoehle}/Hofmann, 2005) to a multivariate 
-        time series of counts.  
+        Fits a Poisson or negative binomial model
+        to a (multivariate) time series of counts
+        as described by Held et al. (2005) and Paul et al. (2008).
+        
+        Note that this implementation is \strong{deprecated} and
+        superseded by the function \code{\link{hhh4}}.
+        We keep \code{algo.hhh} in the package only for backwards
+        compatibility with the original publications.
 }
 \usage{
 algo.hhh(disProgObj, control=list(lambda=TRUE, neighbours=FALSE, 
@@ -42,7 +46,7 @@ algo.hhh(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
         \item{\code{lag.range}}{determines which observations are used to fit the model }
         }}        
   \item{thetastart}{vector with starting values for all parameters specified
-      in the control object (for \code{optim}).  } 
+      in the control object (for \code{optim}). See \code{\link{algo.hhh.grid}}.}
   \item{verbose}{if \code{true} information about convergence is printed}
 
 }
@@ -169,5 +173,3 @@ algo.hhh(influMen, control=model2)
     6250--6267.    
 
 }
-
-

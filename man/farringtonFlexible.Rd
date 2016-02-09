@@ -10,20 +10,20 @@
   predict an upper bound on the number of counts according to the procedure by
   Farrington et al. (1996) and by Noufaily et al. (2012). This bound is then compared to the observed
   number of counts. If the observation is above the bound, then an alarm is raised.
+  The implementation is illustrated in Salmon et al. (2016).
 %
 }
 \usage{
-farringtonFlexible(sts, control = list(range = NULL, b = 3, w = 3,
-                                      reweight = TRUE, 
-                                      weightsThreshold = 2.58,
-                                      verbose = FALSE,glmWarnings = TRUE,
-                                      alpha = 0.01, trend = TRUE,
-                                      pThresholdTrend = 0.05, limit54=c(5,4), 
-                                      powertrans="2/3",
-                                      fitFun="algo.farrington.fitGLM.flexible",
-                                      populationOffset = FALSE, 
-                                      noPeriods = 1, pastWeeksNotIncluded = 26, 
-                                      thresholdMethod = "delta"))
+farringtonFlexible(sts, control = list(
+    range = NULL, b = 3, w = 3,
+    reweight = TRUE, weightsThreshold = 2.58,
+    verbose = FALSE, glmWarnings = TRUE,
+    alpha = 0.01, trend = TRUE, pThresholdTrend = 0.05,
+    limit54 = c(5,4), powertrans = "2/3",
+    fitFun = "algo.farrington.fitGLM.flexible",
+    populationOffset = FALSE,
+    noPeriods = 1, pastWeeksNotIncluded = 26,
+    thresholdMethod = "delta"))
 }
 \arguments{
 \item{sts}{object of class sts (including the \code{observed} and the \code{state} time series)}
@@ -145,44 +145,53 @@ salm <- disProg2sts(salmonella.agona)
 ### RUN THE ALGORITHMS WITH TWO DIFFERENT SETS OF OPTIONS ###           
 # Farrington with old options
 control1 <-  list(range=(260:312),
-						 noPeriods=1,populationOffset=FALSE,
-						 fitFun="algo.farrington.fitGLM.flexible",
-						 b=4,w=3,weightsThreshold=1,
-						 pastWeeksNotIncluded=3,
-						 pThresholdTrend=0.05,trend=TRUE,
-						 thresholdMethod="delta",alpha=0.1)
-control2<-   list(range=(260:312),
-						 noPeriods=10,populationOffset=FALSE,
-						 fitFun="algo.farrington.fitGLM.flexible",
-						 b=4,w=3,weightsThreshold=2.58,
-						 pastWeeksNotIncluded=26,
-						 pThresholdTrend=1,trend=TRUE,
-						 thresholdMethod="delta",alpha=0.1)
+                  noPeriods=1,populationOffset=FALSE,
+                  fitFun="algo.farrington.fitGLM.flexible",
+                  b=4,w=3,weightsThreshold=1,
+                  pastWeeksNotIncluded=3,
+                  pThresholdTrend=0.05,trend=TRUE,
+                  thresholdMethod="delta",alpha=0.1)
+control2 <- list(range=(260:312),
+                 noPeriods=10,populationOffset=FALSE,
+                 fitFun="algo.farrington.fitGLM.flexible",
+                 b=4,w=3,weightsThreshold=2.58,
+                 pastWeeksNotIncluded=26,
+                 pThresholdTrend=1,trend=TRUE,
+                 thresholdMethod="delta",alpha=0.1)
 salm1 <- farringtonFlexible(salm,control=control1)
 salm2 <- farringtonFlexible(salm,control=control2)
 
 ### PLOT THE RESULTS ###
 y.max <- max(upperbound(salm1),observed(salm1),upperbound(salm2),na.rm=TRUE)
  
-plot(salm1,ylim=c(0,y.max),
-        main='S. Newport in Germany')
-lines( 1:(nrow(salm1)+1)-0.5, 
-       c(upperbound(salm1),upperbound(salm1)[nrow(salm1)]),
+plot(salm1, ylim=c(0,y.max), main='S. Newport in Germany', legend.opts=NULL)
+lines(1:(nrow(salm1)+1)-0.5, 
+      c(upperbound(salm1),upperbound(salm1)[nrow(salm1)]),
       type="s",col='tomato4',lwd=2)
-lines( 1:(nrow(salm2)+1)-0.5, 
-       c(upperbound(salm2),upperbound(salm2)[nrow(salm2)]),
+lines(1:(nrow(salm2)+1)-0.5, 
+      c(upperbound(salm2),upperbound(salm2)[nrow(salm2)]),
       type="s",col="blueviolet",lwd=2)
 
-legend(c(0,10),c('Alarm','Upperbound with old options','Upperbound with new options'),
-      pch=c(24,NA,NA),lty=c(NA,1,1),
-        bg="white",lwd=c(2,2,2),col=c('red','tomato4',"blueviolet"))
+legend(0, 10, legend=c('Alarm','Upperbound with old options',
+                       'Upperbound with new options'),
+       pch=c(24,NA,NA),lty=c(NA,1,1),
+       bg="white",lwd=c(2,2,2),col=c('red','tomato4',"blueviolet"))
 }
-\author{M. Salmon, M. \enc{H?hle}{Hoehle}}
+\author{M. Salmon, M. \enc{Höhle}{Hoehle}}
 \seealso{\code{\link{algo.farrington.fitGLM}},\code{\link{algo.farrington.threshold}}}
 \keyword{classif}
-\references{A statistical algorithm for the early detection of outbreaks of infectious disease, Farrington, C.P., Andrews, N.J, Beale A.D. and Catchpole, M.A. (1996), J. R. Statist. Soc. A, 159, 547-563.
+\references{
+  Farrington, C.P., Andrews, N.J, Beale A.D. and Catchpole, M.A. (1996):
+  A statistical algorithm for the early detection of outbreaks of
+  infectious disease. J. R. Statist. Soc. A, 159, 547-563.
 
+  Noufaily, A., Enki, D.G., Farrington, C.P., Garthwaite, P., Andrews,
+  N.J., Charlett, A. (2012): An improved algorithm for outbreak
+  detection in multiple surveillance systems. Statistics in Medicine,
+  32 (7), 1206-1222.
 
-An improved algorithm for outbreak detection in multiple surveillance systems, Noufaily, A., Enki, D.G., Farrington, C.P., Garthwaite, P., Andrews, N.J., Charlett, A. (2012), Statistics in Medicine, published online.}
-
-
+  Salmon, M., Schumacher, D. and \enc{Höhle}{Hoehle}, M. (2016):
+  Monitoring count time series in \R: Aberration detection in public
+  health surveillance. \emph{Journal of Statistical Software}. In press.\cr
+  Preprint available at \url{http://arxiv.org/abs/1411.1292}
+}

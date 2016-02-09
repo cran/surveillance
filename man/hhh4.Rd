@@ -31,6 +31,8 @@
   also possible to include such offsets in the epidemic components.
   The \eqn{w_{ji}}{w_ji} are neighbourhood weights, which can either be
   prespecified or estimated parametrically as proposed by Meyer and Held (2014).
+  The implementation is illustrated in the \code{vignette("hhh4")} and
+  in Meyer et al. (2016, Section 5).
 }
 
 \usage{
@@ -411,6 +413,11 @@ res_D <- hhh4(fluBYBW,cntrl_D)
     Power-law models for infectious disease spread.
     \emph{The Annals of Applied Statistics}, \bold{8} (3), 1612-1639.\cr
     DOI-Link: \url{http://dx.doi.org/10.1214/14-AOAS743}
+
+  Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
+  Spatio-temporal analysis of epidemic phenomena using the \R package
+  \pkg{surveillance}. \emph{Journal of Statistical Software}. In press.\cr
+  Preprint available at \url{http://arxiv.org/abs/1411.0416}
 }
 
 \keyword{ts}

@@ -16,15 +16,21 @@ delta <- 1e-4 #sqrt(.Machine$double.eps)
 
 for (score in rownames(zExpected)) {
     .zExpected <- zExpected[score, , drop = TRUE]
+    ## if package "gsl" is not available, rps_EV is less accurate
+    tol_equal <- if (score == "rps" && !requireNamespace("gsl", quietly = TRUE))
+                     1e-4 else .Machine$double.eps^0.5
     test_that(paste0("still the same z-statistics with ", score), {
         ## Poisson predictions
         zP <- calibrationTest(y, mu, which = score, tolerance = delta)$statistic
-        expect_equal(zP, .zExpected["P"], check.attributes = FALSE)
+        expect_equal(zP, .zExpected["P"], check.attributes = FALSE,
+                     tolerance = tol_equal)
         ## NegBin predictions with common size parameter
         zNB1 <- calibrationTest(y, mu, size1, which = score, tolerance = delta)$statistic
-        expect_equal(zNB1, .zExpected["NB1"], check.attributes = FALSE)
+        expect_equal(zNB1, .zExpected["NB1"], check.attributes = FALSE,
+                     tolerance = tol_equal)
         ## NegBin predictions with varying size parameter
         zNB2 <- calibrationTest(y, mu, size2, which = score, tolerance = delta)$statistic
-        expect_equal(zNB2, .zExpected["NB2"], check.attributes = FALSE)
+        expect_equal(zNB2, .zExpected["NB2"], check.attributes = FALSE,
+                     tolerance = tol_equal)
     })
 }

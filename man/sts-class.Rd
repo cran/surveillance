@@ -144,14 +144,14 @@
 \author{M. \enc{Höhle}{Hoehle}}
 \examples{
 if (requireNamespace("maptools")) {
-   # load disProg-object "ha" and convert to S4-class "sts"
-   data("ha")
-   shpfile <- system.file("shapes/berlin.shp",package="surveillance")
-   ha.sts <- disProg2sts(ha, map=maptools::readShapePoly(shpfile,IDvar="SNAME"))
+    # load disProg-object "ha" and convert to S4-class "sts"
+    data("ha")
+    shpfile <- system.file("shapes/berlin.shp",package="surveillance")
+    ha.sts <- disProg2sts(ha, map=maptools::readShapePoly(shpfile,IDvar="SNAME"))
 } else {
-   data("ha.sts")
-   # is almost identical to the above except that German umlauts
-   # have been replaced in 'ha.sts@map@data$BEZIRK' for compatibility reasons
+    data("ha.sts")
+    # is almost identical to the above except that German umlauts
+    # have been replaced in 'ha.sts@map@data$BEZIRK' for compatibility reasons
 }
 
 ha.sts
@@ -168,6 +168,23 @@ if (require("xts")) {
     z.xts <- as.xts(z.sts)
     plot(z.xts)
 }
+
+## reconstruct 'measlesWeserEms' from its components
+data("measlesWeserEms")
+measlesWeserEms
+counts <- observed(measlesWeserEms)
+map <- measlesWeserEms@map
+populationFrac <- measlesWeserEms@populationFrac
+weserems_nbOrder <- if(requireNamespace("spdep")) {
+    # determine adjacency orders from the map
+    nbOrder(poly2adjmat(map), maxlag = 10)
+} else {
+    # use the stored neighbourhood structure
+    neighbourhood(measlesWeserEms)
+}
+mymeasles <- sts(observed = counts, start = c(2001, 1), frequency = 52,
+    neighbourhood = weserems_nbOrder, map = map, population = populationFrac)
+stopifnot(identical(mymeasles, measlesWeserEms))
 }
 
 \keyword{classes}

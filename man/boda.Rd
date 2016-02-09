@@ -1,6 +1,5 @@
 \name{boda}
 \alias{boda}
-\encoding{latin1}
 
 \title{Surveillance for an univariate count data time series using the
   Bayesian Outbreak Detection Algorithm (BODA) described in Manitz and
@@ -14,13 +13,15 @@
   100\%}{(1-alpha)*100} quantile of this predictive distribution is then
   used as bound: If the actual observation is above the bound an alarm
   is raised. 
+  The implementation is illustrated in Salmon et al. (2016).
 %
 }
 \usage{
-boda(sts, control=list(range=NULL, X=NULL, trend=FALSE,
-     season=FALSE, prior=c('iid','rw1','rw2'), alpha=0.05,
-     mc.munu=100, mc.y=10, verbose=FALSE,multicore=TRUE,
-     samplingMethod=c('joint','marginals')))
+boda(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE,
+                                   prior=c('iid','rw1','rw2'), alpha=0.05, mc.munu=100, 
+                                   mc.y=10, verbose=FALSE,multicore=TRUE,
+                                   samplingMethod=c('joint','marginals'),
+                                   quantileMethod=c("MC","MM")))
 }
 \arguments{
   \item{sts}{object of class sts (including the \code{observed} and the
@@ -47,6 +48,7 @@ boda(sts, control=list(range=NULL, X=NULL, trend=FALSE,
       \item{\code{multicore}}{Detect using \code{parallel::detectCores}
 	how many logical cores are available and set INLA to use this number.}
       \item{\code{samplingMethod}}{Should one sample from the parameters joint distribution (joint) or from their respective marginal posterior distribution (marginals)?}
+      \item{quantileMethod}{Character, either \code{MC} or \code{MM}. Indicates how to compute the quantile based on the posterior distribution (no matter the inference method): either by sampling \code{mc.munu} values from the posterior distribution of the parameters and then for each sampled parameters vector sampling \code{mc.y} response values so that one gets a vector of response values based on which one computes an empirical quantile (MC method, as explained in Manitz and \enc{Höhle}{Hoehle} 2013); or by sampling \code{mc.munu} from the posterior distribution of the parameters and then compute the quantile of the mixture distribution using bisectionning, which is faster.}
     }
   }
 }
@@ -99,9 +101,13 @@ boda(sts, control=list(range=NULL, X=NULL, trend=FALSE,
 \author{J. Manitz, M. \enc{Höhle}{Hoehle}, M. Salmon}
 
 \references{
-  Bayesian model algorithm for monitoring reported cases of
-  campylobacteriosis in Germany (2013), Manitz J and \enc{Höhle}{Hoehle} M,
-  Biometrical Journal, 55(4), pp. 509 526.
+  Manitz, J. and \enc{Höhle}{Hoehle}, M. (2013):
+  Bayesian outbreak detection algorithm for monitoring reported cases of
+  campylobacteriosis in Germany.
+  Biometrical Journal, 55(4), 509-526.
+
+  Salmon, M., Schumacher, D. and \enc{Höhle}{Hoehle}, M. (2016):
+  Monitoring count time series in \R: Aberration detection in public
+  health surveillance. \emph{Journal of Statistical Software}. In press.\cr
+  Preprint available at \url{http://arxiv.org/abs/1411.1292}
 }
-
-

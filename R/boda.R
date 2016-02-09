@@ -2,10 +2,9 @@
 # An implementation of the Bayesian Outbreak Detection Algorithm (BODA)
 # described in Manitz and H{\"o}hle (2013), Biometrical Journal.
 #
-# Note: The algorithm requires the non CRAN package INLA to run.
-# You can install this package by writing
-# R> source("http://www.math.ntnu.no/inla/givemeINLA.R")
-# See http://www.r-inla.org/download for details.
+# Note: The algorithm requires the non-CRAN package INLA to run.
+# You can easily install this package as described at
+# http://www.r-inla.org/download
 #
 #
 # Author:
@@ -30,14 +29,14 @@
 boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE,
                                    prior=c('iid','rw1','rw2'), alpha=0.05, mc.munu=100, 
                                    mc.y=10, verbose=FALSE,multicore=TRUE,
-                                   samplingMethod=c('joint','marginals'))) {
+                                   samplingMethod=c('joint','marginals'),
+                                   quantileMethod=c("MC","MM"))) {
 
   #Check if the INLA package is available.
   if (!requireNamespace("INLA", quietly = TRUE)) {
       stop("The boda function requires the INLA package to be installed.\n",
-           "  The package is not available on CRAN, but can be downloaded by calling\n",
-           "\tsource(\"http://www.math.ntnu.no/inla/givemeINLA.R\")\n",
-           "  as described at http://www.r-inla.org/download in detail.")
+           "  The package is not available on CRAN, but can be easily obtained\n",
+           "  from <http://www.r-inla.org/download>.")
   }
 
   #Possibly speed up the computations by using multiple cores.
@@ -49,6 +48,14 @@ boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE
   #Stop if the sts object is multivariate
   if (ncol(sts)>1) {
       stop("boda currently only handles univariate sts objects.")
+  }
+  
+  # quantileMethod parameter
+  if(is.null(control[["quantileMethod",exact=TRUE]])){ 
+    control$quantileMethod <- "MC" }
+  else {
+    control$quantileMethod <- match.arg(control$quantileMethod, 
+                                        c("MC","MM"))
   }
   
   # extract data
@@ -157,7 +164,11 @@ boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE
 
     # fit model and calculate quantile using INLA & MC sampling
 #    browser()
-    xi[i] <- bodaFit(dat=dati, samplingMethod=samplingMethod, modelformula=modelformula, prior=prior, alpha=control$alpha, mc.munu=control$mc.munu, mc.y=control$mc.y)
+    xi[i] <- bodaFit(dat=dati, samplingMethod=samplingMethod,
+                     modelformula=modelformula, prior=prior, 
+                     alpha=control$alpha, mc.munu=control$mc.munu,
+                     mc.y=control$mc.y,
+                     quantileMethod=control$quantileMethod)
 
     # update progress bar
     if (useProgressBar) setTxtProgressBar(pb, i)
@@ -193,7 +204,7 @@ boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE
 ######################################################################
 
 bodaFit <- function(dat=dat, modelformula=modelformula,prior=prior,alpha=alpha, mc.munu=mc.munu, mc.y=mc.y,
-                    samplingMethod=samplingMethod,...) {
+                    samplingMethod=samplingMethod,quantileMethod=quantileMethod,...) {
   
   # set time point
   T1 <- nrow(dat)
@@ -232,14 +243,7 @@ bodaFit <- function(dat=dat, modelformula=modelformula,prior=prior,alpha=alpha, 
         return(qi=NA)
     }
 
-    #Draw (mc.munu \times mc.y) responses. Would be nice, if we could
-    #determine the quantile of the predictive posterior in more direct form
-    yT1 <- numeric(mc.munu*mc.y) #NULL
-    idx <- seq(mc.y)
-    for(j in seq(mc.munu)) {
-        idx <- idx + mc.y 
-        yT1[idx] <- rnbinom(n=mc.y,size=theta[j],mu=E*mT1[j])
-    }
+
     
 
   }
@@ -253,9 +257,39 @@ bodaFit <- function(dat=dat, modelformula=modelformula,prior=prior,alpha=alpha, 
     yT1 <- rnbinom(n=mc.y*mc.munu,size=theta,mu=E*mT1) 
   }
   
-  qi <- quantile(yT1, probs=(1-alpha), type=3, na.rm=TRUE) 
 
-  #Determine the upper (1-alpha)*100% quantile of the predictive posterior
+  
+  if(quantileMethod=="MC"){
+    #Draw (mc.munu \times mc.y) responses. Would be nice, if we could
+    #determine the quantile of the predictive posterior in more direct form
+    yT1 <- numeric(mc.munu*mc.y) #NULL
+    idx <- seq(mc.y)
+    for(j in seq(mc.munu)) {
+      idx <- idx + mc.y 
+      yT1[idx] <- rnbinom(n=mc.y,size=theta[j],mu=E*mT1[j])
+    }
+    
+    qi <- quantile(yT1, probs=(1-alpha), type=3, na.rm=TRUE)
+  }
+  if(quantileMethod=="MM"){
+    mT1 <- mT1[mT1>=0&theta>0]
+    
+    theta <- theta[mT1>=0&theta>0]
+    
+    minBracket <- qnbinom(p=(1-alpha), 
+                          mu=E*min(mT1),
+                          size=max(theta))
+    
+    maxBracket <- qnbinom(p=(1-alpha), 
+                          mu=E*max(mT1),
+                          size=min(theta))
+    
+    qi <- qmix(p=(1-alpha), mu=E*mT1, size=theta,
+               bracket=c(minBracket, maxBracket))
+    
+    
+    
+  }
   return(qi)
 } 
 
