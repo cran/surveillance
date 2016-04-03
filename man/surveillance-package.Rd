@@ -58,7 +58,9 @@
   The function \code{\link{hhh4}} offers inference methods for the
   (multivariate) count time series models of Held et al. (2005), Paul et
   al. (2008), Paul and Held (2011), Held and Paul (2012), and Meyer and
-  Held (2014). See the \code{vignette("hhh4")} for an introduction.
+  Held (2014). See \code{vignette("hhh4")} for a general introduction
+  and \code{vignette("hhh4_spacetime")} for a discussion and
+  illustration of spatial \code{hhh4} models.
   Furthermore, the fully Bayesian approach for univariate
   time series of counts from Held et al. (2006) is implemented as
   function \code{\link{algo.twins}}.
@@ -66,11 +68,12 @@
   conditional intensity functions.
   \code{\link{twinSIR}} (H\enc{ö}{oe}hle, 2009) models the
   susceptible-infectious-recovered (SIR) event history of a 
-  fixed population, e.g, epidemics across farms or networks.
+  fixed population, e.g, epidemics across farms or networks;
+  see \code{vignette("twinSIR")} for an illustration.
   \code{\link{twinstim}} (Meyer et al., 2012) fits spatio-temporal point
   process models to point patterns of infective events, e.g.,
   time-stamped geo-referenced surveillance data on infectious disease
-  occurrence.
+  occurrence; see \code{vignette("twinstim")} for an illustration.
   A recent overview of the implemented space-time modeling frameworks
   for epidemic phenomena is given by Meyer et al. (2016).
 }
@@ -107,20 +110,11 @@
   work, please do cite the corresponding publications.
 }
 
-\seealso{
-  Additional documentation and illustrations of the methods are
-  available in the form of package vignettes, see
-  \code{vignette(package="surveillance")} for an overview.
-}
-
 \keyword{ package }
 
 \examples{
-#Code from an early survey article about the package: Hoehle (2007)
-#available from http://surveillance.r-forge.r-project.org/
-\dontrun{demo(cost)}
-
-#Code from a more recent book chapter about using the package for the
-#monitoring of Danish mortality data (Hoehle and Mazick, 2010).
-\dontrun{demo(biosurvbook)}
+## Additional documentation and illustrations of the methods are
+## available in the form of package vignettes and demo scripts:
+vignette(package = "surveillance")
+demo(package = "surveillance")
 }

@@ -4,11 +4,11 @@
 ### a copy of which is available at http://www.r-project.org/Licenses/.
 ###
 ### Methods for objects of class "twinstim", specifically:
-### vcov, logLik, print, summary, plot (intensity, iaf), R0, residuals, update
+### vcov, logLik, print, summary, plot, R0, residuals, update, terms, all.equal
 ###
-### Copyright (C) 2009-2015 Sebastian Meyer
-### $Revision: 1459 $
-### $Date: 2015-08-21 16:35:39 +0200 (Fre, 21. Aug 2015) $
+### Copyright (C) 2009-2016 Sebastian Meyer
+### $Revision: 1692 $
+### $Date: 2016-04-02 16:24:21 +0200 (Sam, 02. Apr 2016) $
 ################################################################################
 
 ## extract the link function used for the epidemic predictor (default: log-link)
@@ -17,14 +17,6 @@
     link <- attr(x$formula$epidemic, "link")
     if (is.null(link)) "log" else link
 }
-
-## ## compare two "twinstim" fits
-## all.equal.twinstim <- function (target, current, ...,
-##                                 ignore = c("runtime", "call"))
-## {
-##     target[ignore] <- current[ignore] <- NULL
-##     NextMethod("all.equal")
-## }
 
 ### don't need a specific coef-method (identical to stats:::coef.default)
 ## coef.twinstim <- function (object, ...)
@@ -593,7 +585,8 @@ residuals.twinstim <- function (object, ...)
 ######################################################################
 
 profile.twinstim <- function (fitted, profile, alpha = 0.05,
-    control = list(fnscale = -1, factr = 1e1, maxit = 100), do.ltildeprofile=FALSE,...)
+    control = list(fnscale = -1, maxit = 100, trace = 1),
+    do.ltildeprofile=FALSE, ...)
 {
   warning("the profile likelihood implementation is experimental")
   ## the implementation below is not well tested, simply uses optim (ignoring
@@ -617,7 +610,7 @@ profile.twinstim <- function (fitted, profile, alpha = 0.05,
   ## Control of the optim procedure
   if (is.null(control[["fnscale",exact=TRUE]])) { control$fnscale <- -1 }
   if (is.null(control[["maxit",exact=TRUE]])) { control$maxit <- 100 }
-  if (is.null(control[["trace",exact=TRUE]])) { control$trace <- 2 }
+  if (is.null(control[["trace",exact=TRUE]])) { control$trace <- 1 }
 
 
   ## Estimated normalized likelihood function
@@ -659,7 +652,7 @@ profile.twinstim <- function (fitted, profile, alpha = 0.05,
     resOthers <- tryCatch(
             optim(par=theta.ml[-i], fn = ltildethetaminusi, gr = stildethetaminusi,
                   method = "BFGS", control = control),
-            warning = function(w) print(w), error = function(e) list(value=NA))
+            error = function(e) list(value=NA))
     resOthers$value
   }
 
@@ -825,3 +818,11 @@ terms.twinstim <- function (x, component=c("endemic", "epidemic"), ...)
     terms.formula(x$formula[[component]], keep.order=TRUE)
 }
 
+## compare two twinstim fits ignoring at least the "runtime" and the "call"
+## just like all.equal.hhh4()
+all.equal.twinstim <- function (target, current, ..., ignore = NULL)
+{
+    ignore <- unique.default(c(ignore, "runtime", "call"))
+    target[ignore] <- current[ignore] <- list(NULL)
+    NextMethod("all.equal")
+}

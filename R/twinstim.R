@@ -6,9 +6,9 @@
 ### Maximum Likelihood inference for the two-component spatio-temporal intensity
 ### model described in Meyer et al (2012), DOI: 10.1111/j.1541-0420.2011.01684.x
 ###
-### Copyright (C) 2009-2015 Sebastian Meyer
-### $Revision: 1540 $
-### $Date: 2016-01-29 09:35:10 +0100 (Fre, 29. Jan 2016) $
+### Copyright (C) 2009-2016 Sebastian Meyer
+### $Revision: 1617 $
+### $Date: 2016-03-10 14:31:43 +0100 (Don, 10. Mär 2016) $
 ################################################################################
 
 
@@ -205,15 +205,15 @@ twinstim <- function (
         gIntUpper <- mfe[["(obsInfLength)"]]
         gIntLower <- pmax(0, t0-eventTimes)
         eventCoords <- coordinates(data$events)[inmfe,,drop=FALSE]
-        ## if (verbose && N > 6000)
-        ##     cat("calculating distance matrix of", N, "events ...\n")
-        eventDists <- as.matrix(dist(eventCoords, method = "euclidean"))
         influenceRegion <- data$events@data$.influenceRegion[inmfe]
         iRareas <- vapply(X = influenceRegion, FUN = attr, which = "area",
                           FUN.VALUE = 0, USE.NAMES = FALSE)
         eventSources <- if (N == nobs(data) && identical(qmatrix, data$qmatrix)) {
             data$events@data$.sources
         } else { # re-determine because subsetting has invalidated row indexes
+            ## if (verbose && N > 6000)
+            ##     cat("calculating distance matrix of", N, "events ...\n")
+            eventDists <- as.matrix(dist(eventCoords, method = "euclidean"))
             if (verbose) cat("updating list of potential sources ...\n")
             lapply(seq_len(N), function (i)
                 determineSources(i, eventTimes, removalTimes, eventDists[i,],
@@ -1075,8 +1075,10 @@ twinstim <- function (
                     "are redundant and slow!\n",
                     "         Really consider installing package \"memoise\"!\n",
                     sep="")
-            .siafInt.args[[1]] <- initpars[paste("e.siaf", 1:nsiafpars, sep=".")]
-            siafInt <- do.call("..siafInt", .siafInt.args) # memoise()d
+            siafInt <- local({
+                siafpars <- initpars[paste("e.siaf", 1:nsiafpars, sep=".")]
+                do.call("..siafInt", .siafInt.args) # memoise()d
+            })
         }
         if (fixedtiafpars) {
             if (verbose) cat("pre-evaluating 'tiaf' integrals with fixed parameters ...\n")

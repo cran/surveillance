@@ -41,19 +41,19 @@ data("hagelloch")
     \item{DEAD:}{\code{Date} of death (with missings)}
     \item{IFTO:}{number of patient who is the putative source of infection (0 = unknown)}
     \item{SI:}{serial interval = number of days between dates of prodromes of infection source and infected person}
-    \item{C:}{complications (factor: no complicatons, bronchopneumonia, severe bronchitis, lobar pneumonia, pseudocroup, cerebral edema)}
+    \item{C:}{complications (factor: no complications, bronchopneumonia, severe bronchitis, lobar pneumonia, pseudocroup, cerebral edema)}
     \item{PR:}{duration of prodromes in days}
     \item{CA:}{number of cases in family}
     \item{NI:}{number of initial cases}
     \item{GE:}{generation number of the case}
     \item{TD:}{day of max. fever (days after rush)}
-    \item{TM:}{max. fever (degree celsius)}
+    \item{TM:}{max. fever (degree Celsius)}
     \item{x.loc:}{x coordinate of house (in meters). Scaling in metres
       is obtained by multiplying the original coordinates by 2.5 (see details
       in Neal and Roberts (2004))}
     \item{y.loc:}{y coordinate of house (in meters). See also the above
       description of \code{x.loc}.}
-    \item{tPRO:}{Time of prodomes (first symptoms) in days after the start of the
+    \item{tPRO:}{Time of prodromes (first symptoms) in days after the start of the
       epidemic (30 Oct 1861).}
     \item{tERU:}{Time upon which the rash first appears.}
     \item{tDEAD:}{Time of death, if available.}
@@ -69,7 +69,7 @@ data("hagelloch")
   }
 
   The time variables describe the transitions of the individual in an
-  Susceptible-Infectious-Revovered (SIR) model.  Note that in
+  Susceptible-Infectious-Recovered (SIR) model.  Note that in
   order to avoid ties in the event times resulting from daily
   interval censoring, the times have been jittered uniformly within the
   respective day. The time point 0.5 would correspond to noon of 30 Oct 1861.

@@ -15,7 +15,8 @@
   (\dQuote{Infektionsschutzgesetz}, \acronym{IfSG}).\cr
   \code{data("measlesWeserEms")} is a corrected version of
   \code{data("measles.weser")} (see Format section below).
-  These data are illustrated and analyzed in Meyer et al. (2016, Section 5).
+  These data are illustrated and analyzed in Meyer et al. (2016, Section 5),
+  see \code{vignette("hhh4_spacetime")}.
 }
 
 \usage{

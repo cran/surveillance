@@ -1,52 +1,53 @@
 ######################################################################
-# Init function for stsBP objects. More or less call-through
-# to init of sts objects
+# initialize-method for "stsBP" objects
 ######################################################################
 
-init.stsBP <- function(.Object, epoch, start=c(2000,1), freq=52, observed, state=0*observed, map=NULL, neighbourhood=NULL, populationFrac=NULL,alarm=NULL,upperbound=NULL, control=NULL,epochAsDate=FALSE,multinomialTS=FALSE,ci=array(NA,dim=c(nrow(observed),ncol(observed),2)),lambda=NULL) {
-  
-  .Object <- init.sts(.Object, epoch, start, freq, observed, state, map, neighbourhood, populationFrac,alarm,upperbound, control,epochAsDate,multinomialTS)
+fix.dimnamesBP <- function (x) {
+    dimnames(x@ci) <- dimnames(x@lambda) <-
+        c(dimnames(x@observed), list(NULL))
+    x
+}
+    
+init.stsBP <- function(.Object, ..., ci, lambda)
+{
+    .Object <- callNextMethod()  # use initialize,sts-method
+    ## NOTE: we cannot have a validity check for the dimensions of ci and lambda
+    ## in the class definition of "stsBP" since we could not easily get
+    ## new("stsBP") to be a valid object. Thus, we will directly check here.
 
-  #Check that CI matches
-  dim.ci <- c(dim(observed),2)
-  if (all(dim(ci) == dim.ci)) {
-    .Object@ci <- ci
-  } else {
-    stop("Dimension of confidence interval (ci) (",paste(dim.ci,collapse=","),") is wrong.\n")
-  }
-  #Assign lambda slot (bootstrap replicates)
-  .Object@lambda <- lambda
-  
-  return(.Object)
+    ## check/set extra stsBP-slots
+    dimObserved <- dim(.Object@observed)
+    if (missing(ci)) {
+        .Object@ci <- array(NA_real_, dim = c(dimObserved, 2L))
+    } else {
+        dimCI <- dim(.Object@ci)
+        if (length(dimCI) != 3 || any(dimCI != c(dimObserved, 2L)))
+            stop("dim(ci) = (", paste0(dimCI, collapse=","), ")")
+    }
+    if (missing(lambda)) {
+        .Object@lambda <- array(NA_real_, dim = c(dimObserved, 0L))
+    } else {
+        dimLambda <- dim(.Object@lambda)
+        if (length(dimLambda) != 3 || !identical(dimLambda[1:2], dimObserved))
+            stop("dim(lambda) = (", paste0(dimLambda, collapse=","), ")")
+    }
+
+    ## fix dimnames of extra stsBP-slots
+    .Object <- fix.dimnamesBP(.Object)
+    
+    return(.Object)
 }
 
-######################################################################
-# Coerce method
-######################################################################
-
-setAs("sts", "stsBP", function(from) {
-  stsBP <- new("stsBP",
-               epoch=from@epoch,
-               freq=from@freq, 
-               start=from@start,
-               observed=from@observed,
-               state = from@state,
-               alarm=from@alarm,
-               upperbound=from@upperbound,
-               neighbourhood=from@neighbourhood,
-               populationFrac=from@populationFrac,
-               map=from@map,
-               control=from@control,
-               epochAsDate=from@epochAsDate,
-               multinomialTS=from@epochAsDate,
-               ci=array(NA,dim=c(nrow(from@observed),ncol(from@observed),2)),
-               lambda=array(NA,dim=c(nrow(from@observed),ncol(from@observed),2)))
-  return(stsBP)
-  })
-
-
-######################################################################
-#Methods
-######################################################################
 setMethod("initialize", "stsBP", init.stsBP)
 
+
+######################################################################
+# Special coerce method to account for consistent dimensions
+######################################################################
+
+setAs(from = "sts", to = "stsBP", function (from) {
+    res <- new("stsBP", from,
+               ci = array(NA_real_, dim = c(dim(from@observed), 2L)),
+               lambda = array(NA_real_, dim = c(dim(from@observed), 0L)))
+    fix.dimnamesBP(res)
+})

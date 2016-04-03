@@ -18,7 +18,7 @@ Profile Likelihood Computation and Confidence Intervals for
 
 \usage{
 \method{profile}{twinstim}(fitted, profile, alpha = 0.05,
-        control = list(fnscale = -1, factr = 10, maxit = 100),
+        control = list(fnscale = -1, maxit = 100, trace = 1),
         do.ltildeprofile=FALSE, ...)
 }
 
@@ -67,8 +67,10 @@ Profile Likelihood Computation and Confidence Intervals for
 }
 
 \value{
-list with profile log-likelihood evaluations on the grid and highest likelihood
-and wald confidence intervals.  The argument \code{profile} is also returned.
+list with profile log-likelihood evaluations on the grid, and
+-- not implemented yet --
+highest likelihood and Wald confidence intervals.
+The argument \code{profile} is also returned.
 }
 
 \author{
@@ -76,10 +78,10 @@ Michael \enc{Höhle}{Hoehle}
 }
 
 \examples{
-# the following call takes a while
+# profiling takes a while
 \dontrun{
 #Load the twinstim model fitted to the IMD data
-data("imdepifit")
+data("imdepi", "imdepifit")
 # for profiling we need the model environment
 imdepifit <- update(imdepifit, model=TRUE)
 
@@ -91,14 +93,15 @@ coefList <- lapply(names, function(name) {
 
 #Profile object (necessary to specify a more loose convergence
 #criterion). Speed things up by using do.ltildeprofile=FALSE (the default)
-prof <- profile(imdepifit, coefList,control=list(fnscale=-1,maxit=50,
-   reltol=0.1,REPORT=1,trace=5),do.ltildeprofile=TRUE)
+prof <- profile(imdepifit, coefList,
+  control=list(reltol=0.1, REPORT=1), do.ltildeprofile=TRUE)
 
 #Plot result for one variable
 par(mfrow=c(1,2))
 for (name in names) {
-  with(as.data.frame(prof$lp[[name]]),matplot(grid,cbind(profile,estimated,wald),
-    type="l",xlab=name,ylab="loglik"))
+  with(as.data.frame(prof$lp[[name]]),
+       matplot(grid,cbind(profile,estimated,wald),
+               type="l",xlab=name,ylab="loglik"))
   legend(x="bottomleft",c("profile","estimated","wald"),lty=1:3,col=1:3)
 }
 }

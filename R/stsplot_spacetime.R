@@ -5,9 +5,9 @@
 ###
 ### Old implementation of (animated) maps of an sts-object
 ###
-### Copyright (C) 2007-2013 Michael Hoehle
-### $Revision: 883 $
-### $Date: 2014-04-05 17:26:48 +0200 (Sam, 05 Apr 2014) $
+### Copyright (C) 2007-2013 Michael Hoehle, 2016 Sebastian Meyer
+### $Revision: 1694 $
+### $Date: 2016-04-02 22:37:52 +0200 (Sam, 02. Apr 2016) $
 ################################################################################
 
 
@@ -25,26 +25,10 @@ stsplot_spacetime <- function(
   if (is.null(colnames(x@observed)))
     stop("The sts observed slot does not have any colnames to match with the shapefile.")
 
-  #Check for color options
-  if (is.null(opts.col)) {
-    opts.col <- list(ncolors=100,use.color=TRUE)
-  }
   #Check for legend options
   if (is.null(legend)) {
     legend <- list(dx=0.4,dy=0.04,x=maplim$x[1],y=maplim$y[1],once=TRUE)
   }
-
-  #Process dev.printer options
-  if (!is.null(dev.printer)) {
-    #Device
-    if (is.null(dev.printer$device)) dev.printer$device <- png
-    #File extension
-    if (is.null(dev.printer$extension)) dev.printer$extension <- ".png"
-    #Width and height
-    if (is.null(dev.printer$width)) dev.printer$width <- 640
-    if (is.null(dev.printer$height)) dev.printer$height <- 480
-  }
-      
 
   #Extract the data
   o <- x@observed
@@ -60,9 +44,20 @@ stsplot_spacetime <- function(
   #Number of time points
   maxt <- dim(o)[1]
 
-  
+  #Process dev.printer options
+  if (is.list(dev.printer)) {
+    dev.printer <- modifyList(
+      list(device = png, extension = ".png", width = 640, height = 480,
+           name = "Rplot"),
+      dev.printer)
+    #filename format (padding with zeroes)
+    fnfmt <- paste0("%s-%0", nchar(maxt), "i%s")
+  }
+
   #Get color vector
-  gyr <- hcl.colors(ncolors=length(o), use.color=TRUE)
+  opts.col_default <- list(ncolors=length(o), use.color=TRUE)
+  gyr <- do.call("hcl.colors", if (is.list(opts.col))
+    modifyList(opts.col_default, opts.col) else opts.col_default)
   theCut <- cut(o, length(gyr))
   
   #Cut into specified number of colors
@@ -121,13 +116,18 @@ stsplot_spacetime <- function(
     }
 
     #Is writing to files requested?
-    if (!is.null(dev.printer)) {
+    if (is.list(dev.printer)) {
       #Create filename
-      fileName <- paste(dev.printer$name,"-",insert.zeroes(t,length=ceiling(log10(maxt))),
-                        dev.printer$extension,sep="")
+      fileName <- sprintf(fnfmt, dev.printer$name, t, dev.printer$extension)
       cat("Creating ",fileName,"\n")
       #Save the current device using dev.print
-     dev.print(dev.printer$device, file=fileName, width=dev.printer$width, height=dev.printer$height)
+      if (inherits(try(
+        dev.print(dev.printer$device, file=fileName,
+                  width=dev.printer$width, height=dev.printer$height)
+      ), "try-error")) {
+        warning("disabling dev.print()", immediate. = TRUE)
+        dev.printer <- NULL
+      }
     }
     
     wait(wait.ms) 
@@ -190,17 +190,4 @@ add.legend <- function(legend, maplim, theColors)
 
   text(xlu, ylu - 0.5*dy, formatC(trans(theColors$min)), cex = 1, col = black,adj=c(0,1))
   text(xru, yru - 0.5*dy, formatC(trans(theColors$max)), cex = 1, col = black,adj=c(1,1))
-}
-
-
-### Insert leading zeros so integers obtain a fixed length.
-### Useful for filenames so they are all of same length (for sorting).
-
-insert.zeroes <- function (x, length=3) # x is an integer
-{
-  for (i in 1:(length-1)) {
-    if (x<10^i) return(paste(paste(rep(0,length-i),collapse=""),x,sep=""))
-  }
-  #If x has more digits than length then just return x
-  return(paste(x))
 }

@@ -1,0 +1,1172 @@
+%\VignetteIndexEntry{twinstim: An endemic-epidemic modeling framework for spatio-temporal point patterns}
+%\VignetteEngine{knitr::knitr}
+%\VignetteDepends{surveillance, lattice, polyclip, memoise, maptools, spdep, colorspace, scales}
+
+<<setup, cache = FALSE, include = FALSE, purl = FALSE>>=
+## purl=FALSE => not included in the tangle'd R script
+knitr::opts_chunk$set(echo = TRUE, tidy = FALSE, results = 'markup',
+                      fig.path='plots/twinstim-', fig.width = 8, fig.height = 4,
+                      fig.align = "center", fig.scap = NA, out.width = NULL,
+                      cache = FALSE, error = FALSE, message = FALSE)
+knitr::render_sweave()             # use Sweave environments
+knitr::set_header(highlight = '')  # no \usepackage{Sweave} (part of jss class)
+## R settings
+options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE)  # JSS
+options(width = 85, digits = 4)
+options(scipen = 1)  # so that 1e-4 gets printed as 0.0001
+## xtable settings
+options(xtable.booktabs = TRUE, xtable.size = "small",
+        xtable.sanitize.text.function = identity,
+        xtable.comment = FALSE)
+@ 
+
+<<include = FALSE>>=
+## load the "cool" package
+library("surveillance")
+
+## Compute everything or fetch cached results?
+message("Doing computations: ",
+        COMPUTE <- !file.exists("twinstim-cache.RData"))
+if (!COMPUTE) load("twinstim-cache.RData", verbose = TRUE)
+@ 
+
+
+\documentclass[nojss,nofooter,article]{jss}
+
+\title{%
+  \vspace{-1.5cm}
+  \fbox{\vbox{\normalfont\footnotesize
+      This introduction to the \code{twinstim} modeling framework of the
+      \proglang{R}~package \pkg{surveillance} is based on a publication in the
+      \textit{Journal of Statistical Software} --
+      \citet[Section~3]{meyer.etal2014} -- which is the suggested reference
+      if you use the \code{twinstim} implementation in your own work.}}\\[1cm]
+  \code{twinstim}: An endemic-epidemic modeling framework for spatio-temporal point patterns}
+\Plaintitle{twinstim: An endemic-epidemic modeling framework for spatio-temporal point patterns}
+\Shorttitle{Endemic-epidemic modeling of spatio-temporal point patterns}
+
+\author{Sebastian Meyer\thanks{Author of correspondence: \email{Sebastian.Meyer@ifspm.uzh.ch}}\\University of Zurich \And
+        Leonhard Held\\University of Zurich \And
+        Michael H\"ohle\\Stockholm University}
+\Plainauthor{Sebastian Meyer, Leonhard Held, Michael H\"ohle}
+
+%% Basic packages
+\usepackage{lmodern}          % successor of CM -> searchable Umlauts (1 char)
+\usepackage[english]{babel}   % language of the manuscript is American English
+
+%% Math packages
+\usepackage{amsmath,amsfonts} % amsfonts defines \mathbb
+\usepackage{mathtools}        % tools for math typesetting + amsmath-bugfixes
+\usepackage{bm}               % \bm: alternative to \boldsymbol from amsfonts
+\usepackage{bbm}              % \mathbbm: alternative to \mathbb from amsfonts
+
+%% Packages for figures and tables
+\usepackage{booktabs}         % make tables look nicer
+\usepackage{subcaption}       % successor of subfig, which supersedes subfigure
+\newcommand{\subfloat}[2][need a sub-caption]{\subcaptionbox{#1}{#2}} % -> knitr
+
+%% Handy math commands
+\newcommand{\abs}[1]{\lvert#1\rvert}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\given}{\,\vert\,}
+\newcommand{\dif}{\,\mathrm{d}}
+\newcommand{\IR}{\mathbb{R}}
+\newcommand{\IN}{\mathbb{N}}
+\newcommand{\ind}{\mathbbm{1}}
+\DeclareMathOperator{\Po}{Po}
+\DeclareMathOperator{\NegBin}{NegBin}
+\DeclareMathOperator{\N}{N}
+
+%% Additional commands
+\newcommand{\class}[1]{\code{#1}}  % could use quotes (JSS does not like them)
+\newcommand{\CRANpkg}[1]{\href{https://CRAN.R-project.org/package=#1}{\pkg{#1}}}
+
+%% Reduce the font size of code input and output
+\DefineVerbatimEnvironment{Sinput}{Verbatim}{fontshape=sl, fontsize=\small}
+\DefineVerbatimEnvironment{Soutput}{Verbatim}{fontsize=\small}
+
+%% Abstract
+\Abstract{
+The availability of geocoded health data and the inherent temporal
+structure of communicable diseases have led to
+an increased interest in statistical models and software for
+spatio-temporal data with epidemic features.
+The \proglang{R}~package \pkg{surveillance} can handle
+various levels of aggregation at which infective events have been recorded.
+This vignette illustrates the analysis of \emph{point-referenced}
+surveillance data using the endemic-epidemic point process model
+``\code{twinstim}'' proposed by \citet{meyer.etal2011} and extended in
+\citet{meyer.held2013}.
+%% (For other types of surveillance data, see
+%% \code{vignette("twinSIR")} and \code{vignette("hhh4\_spacetime")}.)
+We first describe the general modeling approach and then exemplify
+data handling, model fitting, visualization, and simulation methods
+for time-stamped geo-referenced case reports of invasive meningococcal disease
+(IMD) caused by the two most common bacterial finetypes of meningococci in
+Germany, 2002--2008.
+}
+
+\Keywords{%
+spatio-temporal point pattern,
+endemic-epidemic modeling,
+infectious disease epidemiology,
+self-exciting point process,
+spatial interaction function,
+branching process with immigration}
+
+
+
+\begin{document}
+
+%% \vfill
+%% {
+%%   \renewcommand{\abstractname}{Outline}  % local change
+%%   \begin{abstract}
+%%     We start by describing the general model class in
+%%     Section~\ref{sec:twinstim:methods}.
+%%     Section~\ref{sec:twinstim:data} introduces the example data and the
+%%     associated class \class{epidataCS},
+%%     Section~\ref{sec:twinstim:fit} presents the core functionality of
+%%     fitting and analyzing such data using \code{twinstim}, and
+%%     Section~\ref{sec:twinstim:simulation} shows how to simulate realizations
+%%     from a fitted model.
+%%   \end{abstract}
+%% }
+%% \vfill
+%% \newpage
+
+
+
+\section[Model class]{Model class: \code{twinstim}} \label{sec:twinstim:methods}
+
+
+Infective events occur at specific points in continuous space and
+time, which gives rise to a spatio-temporal point pattern
+$\{(\bm{s}_i,t_i): i = 1,\dotsc,n\}$
+from a region~$\bm{W}$ observed during a period~$(0,T]$.
+The locations~$\bm{s}_i$ and time points~$t_i$ of the $n$~events can be regarded
+as a realization of a self-exciting spatio-temporal point process,
+which can be characterized by its
+conditional intensity function (CIF, also termed intensity process)
+$\lambda(\bm{s},t)$.
+It represents the instantaneous event rate at location~$\bm{s}$ at time point~$t$
+given all past events, and is often more verbosely denoted by~$\lambda^*$
+or by explicit conditioning on the ``history''~$\mathcal{H}_t$ of the process.
+\citet[Chapter~7]{Daley.Vere-Jones2003} provide a rigorous mathematical
+definition of this concept, which is key to likelihood analysis and simulation
+of ``evolutionary'' point processes.
+
+\citet{meyer.etal2011} formulated the model class ``\code{twinstim}'' --
+a \emph{two}-component \emph{s}patio-\emph{t}emporal \emph{i}ntensity \emph{m}odel --
+by a superposition of an endemic and an epidemic component:
+\begin{equation} \label{eqn:twinstim}
+  \lambda(\bm{s},t) = \nu_{[\bm{s}][t]} +
+  \sum_{j \in I(\bm{s},t)} \eta_j \, f(\norm{\bm{s}-\bm{s}_j}) \, g(t-t_j) \:.
+\end{equation}
+
+This model constitutes a branching process with immigration.
+Part of the event rate is due to the first, endemic component, which
+reflects sporadic events caused by unobserved sources of infection.
+This background rate of new events
+is modeled by a log-linear predictor
+$\nu_{[\bm{s}][t]}$ incorporating regional and/or time-varying characteristics.
+Here, the space-time index $[\bm{s}][t]$ refers to the region covering $\bm{s}$
+during the period containing $t$ and thus spans a whole spatio-temporal grid on
+which the involved covariates are measured, e.g., district $\times$ month.
+We will later see that the endemic component therefore simply equals an
+inhomogeneous Poisson process for the event counts by cell of that grid.
+
+The second, observation-driven epidemic component adds ``infection pressure''
+from the set
+\begin{equation*}
+  I(\bm{s},t) = \big\{ j : t_j < t \:\wedge\: t-t_j \le \tau_j
+  \:\wedge\: \norm{\bm{s}-\bm{s}_j} \le \delta_j \big\}
+\end{equation*}
+of past events and hence makes the process ``self-exciting''.
+During its infectious period of length~$\tau_j$
+and within its spatial interaction radius~$\delta_j$,
+the model assumes each event~$j$ to trigger further events, which are
+called offspring, secondary cases, or aftershocks, depending on the application.
+The triggering rate (or force of infection) is proportional
+to a log-linear predictor~$\eta_j$ associated with event-specific
+characteristics (``marks'') $\bm{m}_j$, which are usually
+attached to the point pattern of events.
+The decay of infection pressure with increasing spatial and temporal
+distance from the infective event is modeled by parametric interaction
+functions~$f$ and~$g$, respectively.
+A simple assumption for the time course of infectivity is $g(t) = 1$.
+Alternatives include exponential decay, a step function,
+or empirically derived functions such as Omori's law for aftershock intervals.
+With regard to spatial interaction, a
+Gaussian kernel $f(x) = \exp\left\{-x^2/(2 \sigma^2)\right\}$ could be chosen.
+However, in modeling the spread of human infectious diseases on larger scales,
+a heavy-tailed power-law kernel $f(x) = (x+\sigma)^{-d}$ was found to
+perform better \citep{meyer.held2013}.
+The (possibly infinite) upper bounds~$\tau_j$ and~$\delta_j$ provide a way of
+modeling event-specific interaction ranges. However, since these need to be
+pre-specified, a common assumption is $\tau_j \equiv \tau$ and
+$\delta_j \equiv \delta$, where the infectious period~$\tau$ and the spatial
+interaction radius~$\delta$ are determined by subject-matter considerations.
+
+
+\subsection{Model-based effective reproduction numbers}
+
+Similar to the simple SIR model
+\citep[see, e.g.,][Section 2.1]{Keeling.Rohani2008}, the above point process
+model~\eqref{eqn:twinstim} features a reproduction number derived from its
+branching process interpretation. 
+As soon as an event occurs (individual becomes infected), it triggers offspring
+(secondary cases) around its origin $(\bm{s_j}, t_j)$
+according to an inhomogeneous Poisson process with rate
+$\eta_j \, f(\norm{\bm{s}-\bm{s_j}}) \, g(t-t_j)$.
+Since this triggering process is independent of the event's parentage and of other
+events, the expected number $\mu_j$ of events triggered by event $j$
+can be obtained by integrating the triggering rate over
+the observed interaction domain: 
+\begin{gather} \label{eqn:R0:twinstim}
+  \mu_j = \eta_j \cdot
+  \left[ \int_0^{\min(T-t_j,\tau_j)} g(t) \,dt \right] \cdot
+  \left[ \int_{\bm{R}_j} f(\norm{\bm{s}}) \,d\bm{s} \right] \:,
+\shortintertext{where}
+  \label{eqn:twinstim:IR}
+  \bm{R}_j = (b(\bm{s}_j,\delta_j) \cap \bm{W}) - \bm{s}_j
+\end{gather}
+is event $j$'s influence region centered at $\bm{s}_j$, and
+$b(\bm{s}_j, \delta_j)$ denotes the disc centered at $\bm{s}_j$ with radius $\delta_j$.
+Note that the above model-based reproduction number $\mu_j$ is event-specific
+since it depends on event marks through $\eta_j$,
+on the interaction ranges $\delta_j$ and $\tau_j$,
+as well as on the event location $\bm{s}_j$ and time point $t_j$.
+If the model assumes unique interaction ranges $\delta$ and $\tau$,
+a single reference number of secondary cases can be extrapolated from
+Equation~\ref{eqn:R0:twinstim} by imputing an unbounded domain
+$\bm{W} = \IR^2$ and $T = \infty$ \citep{meyer.etal2015}.
+
+Equation~\ref{eqn:R0:twinstim} can also be motivated by looking at
+a spatio-temporal version of the simple SIR model
+wrapped into the \class{twinstim} class~\eqref{eqn:twinstim}. This means:
+no endemic component,
+homogeneous force of infection ($\eta_j \equiv \beta$),
+homogeneous mixing in space ($f(x) = 1$, $\delta_j \equiv \infty$),
+and exponential decay of infectivity ($g(t) = e^{-\alpha t}$, $\tau_j
+\equiv \infty$).
+Then, for $T \rightarrow \infty$,
+\begin{equation*}
+  \mu = \beta \cdot
+  \left[ \int_0^\infty e^{-\alpha t} \,dt \right] \cdot
+  \left[ \int_{\bm{W}-\bm{s_j}} 1 \,d\bm{s} \right] =
+  \beta \cdot \abs{\bm{W}} / \alpha \:,
+\end{equation*}
+which corresponds to the basic reproduction number
+known from the simple SIR model by interpreting $\abs{\bm{W}}$ as the population
+size, $\beta$ as the transmission rate and $\alpha$ as the removal rate.
+If $\mu < 1$, the process is sub-critical, i.e.,
+its eventual extinction is almost sure.
+
+However, it is crucial to understand that in a full model with an
+endemic component, new infections may always occur via ``immigration''.
+Hence, reproduction numbers in \class{twinstim} are adjusted for
+infections occurring independently of previous infections.
+This also means that a misspecified endemic component may distort model-based
+reproduction numbers \citep{meyer.etal2015}.
+Furthermore, under-reporting and implemented control measures imply that the
+estimates are to be thought of as \emph{effective} reproduction numbers.
+
+
+\subsection{Likelihood inference}
+
+The log-likelihood of the point process model~\eqref{eqn:twinstim} is a function
+of all parameters in the log-linear predictors $\nu_{[\bm{s}][t]}$ and $\eta_j$ and in
+the interaction functions $f$ and $g$. It has the form
+%% \begin{equation} \label{eqn:twinstim:marked:loglik}
+%%   l(\bm{\theta}) = \left[ \sum_{i=1}^{n} \log\lambda(\bm{s}_i,t_i,k_i) \right] -
+%%   \sum_{k\in\mathcal{K}} \int_0^T \int_{\bm{W}} \lambda(\bm{s},t,k) \dif\bm{s}
+%%   \dif t \:,
+%% \end{equation}
+\begin{equation} \label{eqn:twinstim:loglik}
+  \left[ \sum_{i=1}^{n} \log\lambda(\bm{s}_i,t_i) \right] -
+  \int_0^T \int_{\bm{W}} \lambda(\bm{s},t) \dif\bm{s} \dif t \:.
+\end{equation}
+%\citep[Proposition~7.3.III]{Daley.Vere-Jones2003}
+To estimate the model parameters, we maximize the above log-likelihood
+numerically using the quasi-Newton algorithm available through the
+\proglang{R}~function \code{nlminb}. We thereby employ the
+analytical score function and an approximation of the expected Fisher information 
+worked out by \citet[Web Appendices A and B]{meyer.etal2011}.
+
+The space-time integral in the log-likelihood \eqref{eqn:twinstim:loglik} poses no difficulties for
+the endemic component of $\lambda(\bm{s},t)$, since $\nu_{[\bm{s}][t]}$ is
+defined on a spatio-temporal grid.
+However, integration of the epidemic component
+involves two-dimensional integrals
+$\int_{\bm{R}_i} f(\norm{\bm{s}}) \dif\bm{s}$
+over the influence regions~$\bm{R}_i$,
+which are represented by polygons (as is~$\bm{W}$).
+Similar integrals appear in the score function, where $f(\norm{\bm{s}})$ is
+replaced by partial derivatives with respect to kernel parameters.
+Calculation of these integrals is trivial for (piecewise) constant~$f$, but otherwise requires
+numerical integration. For this purpose, the \proglang{R}~package
+\CRANpkg{polyCub} \citep{R:polyCub} offers cubature methods for polygonal
+domains as described in \citet[Supplement~B, Section~2]{meyer.held2013}.
+For Gaussian~$f$, we apply a midpoint rule with $\sigma$-adaptive bandwidth
+%% combined with an analytical formula via the $\chi^2$ distribution
+%% if the $6\sigma$-circle around $\bm{s}_i$ is contained in $\bm{R}_i$.
+and use product Gauss cubature \citep{sommariva.vianello2007}
+to approximate the integrals in the score function.
+For the recently implemented power-law kernels,
+we established a cubature method which takes
+advantage of the assumed isotropy of spatial interaction
+such that numerical integration remains in only one dimension
+\citep[Supplement~B, Section~2.4]{meyer.held2013}.
+We also \CRANpkg{memoise} \citep{R:memoise} the cubature function during
+log-likelihood maximization to avoid integration
+for unchanged parameters of~$f$.
+
+
+\subsection{Special cases: Single-component models}
+
+If the \emph{epidemic} component is omitted in Equation~\ref{eqn:twinstim},
+the point process model
+becomes equivalent to a Poisson regression model for aggregated counts.
+This provides a link to 
+ecological regression approaches in general
+and to the count data model \code{hhh4} illustrated in
+\code{vignette("hhh4")} and \code{vignette("hhh4\_spacetime")}.
+To see this, recall that the endemic component $\nu_{[\bm{s}][t]}$
+is piecewise constant on the spatio-temporal grid with cells $([\bm{s}],[t])$.
+Hence the log-likelihood~\eqref{eqn:twinstim:loglik} of an endemic-only
+\code{twinstim} simplifies to a sum over all these cells,
+\begin{equation*}
+\sum_{[\bm{s}],[t]} \left\{
+  Y_{[\bm{s}][t]} \log\nu_{[\bm{s}][t]} -
+  \abs{[\bm{s}]} \, \abs{[t]} \, \nu_{[\bm{s}][t]}
+\right\} \:,
+\end{equation*}
+where $Y_{[\bm{s}][t]}$ is the aggregated number of events observed in cell
+$([\bm{s}],[t])$, and $\abs{[\bm{s}]}$ and $\abs{[t]}$ denote cell area and length,
+respectively.
+Except for an additive constant, the above log-likelihood is equivalently
+obtained from the Poisson model 
+$Y_{[\bm{s}][t]} \sim \Po( \abs{[\bm{s}]} \, \abs{[t]} \, \nu_{[\bm{s}][t]})$.
+This relation offers a means of code validation using the established
+\code{glm} function to fit an endemic-only \code{twinstim} model --
+see the examples in \code{help("glm_epidataCS")}.
+%% The \code{help("glm_epidataCS")} also shows how to fit
+%% an equivalent endemic-only \code{hhh4} model.
+
+If, in contrast, the \emph{endemic} component is omitted,
+all events are necessarily triggered by other observed events.
+For such a model to be identifiable,
+a prehistory of events must exist to trigger the first event,
+and interaction typically needs to be unbounded
+such that each event can actually be linked to potential source events.
+
+
+\subsection[Extension: Event types]{Extension: \code{twinstim} with event types}
+
+To model the example data on invasive meningococcal disease in the remainder of this section,
+we actually need to use an extended version $\lambda(\bm{s},t,k)$ of
+Equation~\ref{eqn:twinstim}, which accounts for different event types~$k$ with
+own transmission dynamics.
+This introduces a further dimension in the point process, and the second
+log-likelihood component in Equation~\ref{eqn:twinstim:loglik}
+accordingly splits into a sum over all event types.
+We refer to \citet[Sections~2.4 and~3]{meyer.etal2011} for the technical details
+of this type-specific \code{twinstim} class.
+The basic idea is that the meningococcal finetypes share the same endemic pattern
+(e.g., seasonality), while infections of different finetypes are not associated
+via transmission. This means that the force of infection is restricted to
+previously infected individuals with the same bacterial finetype~$k$,
+i.e., the epidemic sum in Equation~\ref{eqn:twinstim} is over the set
+$I(\bm{s},t,k) = I(\bm{s},t) \cap \{j: k_j = k\}$.
+The implementation has limited support for type-dependent interaction
+functions $f_{k_j}$ and $g_{k_j}$ (not further considered here).
+
+
+
+\section[Data structure]{Data structure: \class{epidataCS}} \label{sec:twinstim:data}
+
+
+<<imdepi_components, echo=FALSE>>=
+## extract components from imdepi to reconstruct
+data("imdepi")
+events <- SpatialPointsDataFrame(
+    coords = coordinates(imdepi$events),
+    data = marks(imdepi, coords=FALSE),
+    proj4string = imdepi$events@proj4string  # ETRS89 projection (+units=km)
+    )
+stgrid <- imdepi$stgrid[,-1]
+@ 
+<<load_districtsD, echo=FALSE>>=
+load(system.file("shapes", "districtsD.RData", package = "surveillance"))
+@ 
+
+The first step toward fitting a \code{twinstim} is to turn the relevant
+data into an object of the dedicated class \class{epidataCS}.\footnote{
+  The suffix ``CS'' indicates that the data-generating point process is indexed
+  in continuous space.
+}
+The primary ingredients of this class are a spatio-temporal point pattern
+(\code{events}) and its underlying observation region (\code{W}).
+An additional spatio-temporal grid (\code{stgrid}) holds (time-varying)
+area-level covariates for the endemic regression part.
+We exemplify this data class by the \class{epidataCS} object for the
+\Sexpr{nobs(imdepi)} cases of invasive meningococcal disease in Germany
+originally analyzed by \citet{meyer.etal2011}.
+It is already contained in the \pkg{surveillance} package as
+\code{data("imdepi")} and has been constructed as follows:
+<<imdepi_construct, results="hide", eval=FALSE>>=
+imdepi <- as.epidataCS(events = events, W = stateD, stgrid = stgrid,
+  qmatrix = diag(2), nCircle2Poly = 16)
+@ 
+The function \code{as.epidataCS} checks the consistency of the
+three data ingredients described in detail below.
+It also pre-computes auxiliary variables for model fitting, e.g.,
+the individual influence regions~\eqref{eqn:twinstim:IR},
+which are intersections of the observation region with discs
+%of radius \code{eps.s} centered at the event location
+approximated by polygons with \code{nCircle2Poly = 16} edges.
+The intersections are computed using 
+functionality of the package \CRANpkg{polyclip} \citep{R:polyclip}.
+For multitype epidemics as in our example, the additional indicator matrix
+\code{qmatrix} specifies transmissibility across event types.
+An identity matrix corresponds to an independent spread of the event
+types, i.e., cases of one type can not produce cases of another type.
+
+
+\subsection{Data ingredients}
+
+The core \code{events} data must be provided in the form of a
+\class{SpatialPointsDataFrame} as defined by the package \CRANpkg{sp}
+\citep{R:sp}:
+<<imdepi_events_echo, results="hide">>=
+summary(events)
+@ 
+<<imdepi_events, echo=FALSE, purl=FALSE>>=
+oopt <- options(width=100)
+## hack to reduce the 'print.gap' in the data summary but not for the bbox
+local({
+    print.summary.Spatial <- sp:::print.summary.Spatial
+    environment(print.summary.Spatial) <- environment()
+    print.table <- function (x, ..., print.gap = 0) {
+        base::print.table(x, ..., print.gap = print.gap)
+    }
+    print.summary.Spatial(summary(events))
+})
+options(oopt)
+@ 
+The associated event coordinates are residence postcode centroids, projected in
+the \emph{European Terrestrial Reference System 1989} (in kilometer units)
+to enable Euclidean geometry.
+See the \code{spTransform}-methods in package \CRANpkg{rgdal} \citep{R:rgdal}
+for how to project latitude and longitude coordinates
+into a planar coordinate reference system (CRS).
+The data frame associated with these spatial coordinates ($\bm{s}_i$) contains a
+number of required variables and additional event marks
+(in the notation of Section~\ref{sec:twinstim:methods}:
+$\{(t_i,[\bm{s}_i],k_i,\tau_i,\delta_i,\bm{m}_i): i = 1,\dotsc,n\}$).
+For the IMD data, the event
+\code{time} is measured in days since the beginning of the observation period
+2002--2008 and is subject to a tie-breaking procedure (described later).
+The \code{tile} column refers to the region of the spatio-temporal grid where
+the event occurred and here contains the official key of the administrative
+district of the patient's residence.
+There are two \code{type}s of events labeled as \code{"B"} and \code{"C"}, which refer
+to the serogroups of the two meningococcal finetypes \emph{B:P1.7-2,4:F1-5} and
+\emph{C:P1.5,2:F3-3} contained in the data.
+The \code{eps.t} and \code{eps.s} columns specify upper limits
+for temporal and spatial interaction, respectively.
+Here, the infectious period is assumed to last a maximum of 30 days and
+spatial interaction is limited to a 200 km radius for all cases.
+The latter has numerical advantages for a Gaussian interaction function $f$ with a
+relatively small standard deviation. For a power-law kernel, however, this
+restriction will be dropped to enable occasional long-range transmission.
+The last two data attributes displayed in the above \code{event} summary are
+covariates from the case reports: the gender and age group of the patient.
+
+For the observation region \code{W}, we use a polygon representation
+of Germany's boundary.
+Since the observation region defines the integration domain
+in the point process log-likelihood~\eqref{eqn:twinstim:loglik},
+the more detailed the polygons of \code{W} are
+the longer it will take to fit a \code{twinstim}.
+It is thus advisable to sacrifice some shape details for speed by reducing
+the polygon complexity, e.g., by applying one of the simplification methods
+available at \href{www.MapShaper.org}{MapShaper.org}.
+Alternative tools in \proglang{R} are
+\CRANpkg{spatstat}'s \code{simplify.owin} procedure \citep{R:spatstat} and the function
+\code{thinnedSpatialPoly} in package \CRANpkg{maptools} \citep{R:maptools}, which
+implements the Douglas-Peucker reduction method.
+The \pkg{surveillance} package already contains a simplified representation of
+Germany's boundaries:
+<<imdepi_W_echo, echo=TRUE, eval=FALSE, purl=FALSE>>=
+<<load_districtsD>>
+@ 
+This file contains both the \class{SpatialPolygonsDataFrame} \code{districtsD}
+of Germany's \Sexpr{length(districtsD)} administrative districts as at
+January 1, 2009,
+as well as their union \code{stateD}.
+%obtained by the call \code{rgeos::gUnaryUnion(districtsD)} \citep{R:rgeos}.
+These boundaries are projected in the same CRS as the \code{events} data.
+
+The \code{stgrid} input for the endemic model component
+is a data frame with (time-varying) area-level covariates,
+e.g., socio-economic or ecological characteristics.
+In our example:
+<<imdepi_stgrid, echo=FALSE>>=
+.stgrid.excerpt <- format(rbind(head(stgrid, 3), tail(stgrid, 3)), digits=3)
+rbind(.stgrid.excerpt[1:3,], "..."="...", .stgrid.excerpt[4:6,])
+@ 
+Numeric (\code{start},\code{stop}] columns index the time periods and
+the factor variable \code{tile} identifies the regions of the grid.
+Note that the given time intervals (here: months) also define the resolution of
+possible time trends and seasonality of the piecewise constant endemic intensity.
+We choose monthly intervals to reduce package size and computational cost
+compared to the weekly resolution originally used by \citet{meyer.etal2011}
+and \citet{meyer.held2013}.
+The above \code{stgrid} data frame thus consists of 7 (years) times 12 (months)
+blocks of \Sexpr{nlevels(stgrid[["tile"]])} (districts) rows each.
+The \code{area} column gives the area of the respective \code{tile} in square
+kilometers (compatible with the CRS used for \code{events} and \code{W}).
+A geographic representation of the regions in \code{stgrid} is not required for
+model estimation, and is thus not part of the \class{epidataCS} class.
+%It is, however, necessary for plots of the fitted intensity and for
+%simulation from the estimated model.
+In our example, the area-level data only consists of the population density
+\code{popdensity}, whereas \citet{meyer.etal2011} additionally incorporated
+(lagged) weekly influenza counts by district as a time-dependent covariate.
+%% In another application, \citet{meyer.etal2015} used a large number of socio-economic
+%% characteristics to model psychiatric hospital admissions.
+
+
+\subsection{Data handling and visualization}
+
+The generated \class{epidataCS} object \code{imdepi} is a simple list of the
+checked ingredients
+<<echo = FALSE, results = "asis", purl=FALSE>>=
+cat(paste0('\\code{', names(imdepi), '}', collapse = ", "), ".", sep = "")
+@
+Several methods for data handling and visualization are available for
+such objects as listed in Table~\ref{tab:methods:epidataCS}
+and briefly presented in the remainder of this section.
+
+<<epidataCS-methods, echo=FALSE, results="asis", purl=FALSE>>=
+print(xtable(
+    surveillance:::functionTable("epidataCS", list(Convert=c("epidataCS2sts"))),
+    caption="Generic and \\textit{non-generic} functions applicable to \\class{epidataCS} objects.",
+    label="tab:methods:epidataCS"
+    ), include.rownames = FALSE)
+@ 
+
+Printing an \class{epidataCS} object presents some
+metadata and the first \Sexpr{formals(surveillance:::print.epidataCS)[["n"]]}
+events by default:
+<<imdepi_print>>=
+imdepi
+@ 
+During conversion to \class{epidataCS}, the last three columns \code{BLOCK}
+(time interval index), \code{start} and \code{popdensity} have been merged from
+the checked \code{stgrid} to the \code{events} data frame.
+The event marks including time and location can be extracted in a standard
+data frame by \code{marks(imdepi)} -- inspired by package \CRANpkg{spatstat} --
+and this is summarized by \code{summary(imdepi)}.
+<<imdepi_summary, include = FALSE>>=
+(simdepi <- summary(imdepi))
+@ 
+The number of potential sources of infection per event (denoted
+\texttt{|.sources|} in the above output) is additionally summarized.
+It is determined by the events' maximum ranges of interaction \code{eps.t} and
+\code{eps.s}. The event-specific set of potential sources is stored in the
+(hidden) list \code{imdepi$events$.sources} (events are referenced by row
+index), and the event-specific numbers of potential sources are stored in the
+summarized object as \code{simdepi$nSources}.
+
+A simple plot of the number of infectives as a function of time
+(Figure~\ref{fig:imdepi_stepfun})
+%determined by the event times and infectious periods
+can be obtained by the step function converter:
+<<imdepi_stepfun, echo=2, fig.cap="Time course of the number of infectives assuming infectious periods of 30 days.">>=
+par(mar = c(5, 5, 1, 1), las = 1)
+plot(as.stepfun(imdepi), xlim = summary(imdepi)$timeRange, xaxs = "i",
+  xlab = "Time [days]", ylab = "Current number of infectives", main = "")
+#axis(1, at = 2557, labels = "T", font = 2, tcl = -0.3, mgp = c(3, 0.3, 0))
+@ 
+
+\pagebreak[1]
+The \code{plot}-method for \class{epidataCS} offers aggregation of the events over time or space:
+<<imdepi_plot, fig.cap="Occurrence of the two finetypes viewed in the temporal and spatial dimensions.", fig.subcap=c("Temporal pattern.","Spatial pattern."), fig.width=5, fig.height=6, echo=c(2,4,5), out.width="0.47\\linewidth">>=
+par(las = 1)
+plot(imdepi, "time", col = c("indianred", "darkblue"), ylim = c(0, 20))
+par(mar = c(0, 0, 0, 0))
+plot(imdepi, "space", lwd = 2,
+  points.args = list(pch = c(1, 19), col = c("indianred", "darkblue")))
+layout.scalebar(imdepi$W, scale = 100, labels = c("0", "100 km"), plot = TRUE)
+@ 
+The time-series plot (Figure~\ref{fig:imdepi_plot1}) shows the monthly aggregated number of cases by finetype in
+a stacked histogram as well as each type's cumulative number over time.
+The spatial plot (Figure~\ref{fig:imdepi_plot2}) shows the observation window \code{W} with the locations of all
+cases (by type), where the areas of the points are proportional to the number of
+cases at the respective location.
+Additional shading by the population is possible and exemplified in
+\code{help("plot.epidataCS")}.
+
+The above static plots do not capture the space-time dynamics of epidemic
+spread. An animation may provide additional insight and can be produced by the
+corresponding \code{animate}-method. For instance, to look at the first year of
+the B-type in a weekly sequence of snapshots in a web browser (using facilities of the
+\CRANpkg{animation} package of \citealp{R:animation}):
+<<imdepi_animate_saveHTML, eval=FALSE>>=
+animation::saveHTML(
+  animate(subset(imdepi, type == "B"), interval = c(0, 365), time.spacing = 7),
+  nmax = Inf, interval = 0.2, loop = FALSE,
+  title = "Animation of the first year of type B events")
+@ 
+Selecting events from \class{epidataCS} as for the animation above is enabled
+by the \code{[}- and \code{subset}-methods, which return a new
+\class{epidataCS} object containing only the selected \code{events}.
+
+A limited data sampling resolution may lead to tied event times or locations,
+which are in conflict with a continuous spatio-temporal point process model.
+For instance, a temporal residual analysis
+would suggest model deficiencies \citep[Figure 4]{meyer.etal2011},
+and a power-law kernel for spatial interaction may diverge if
+there are events with zero distance to potential source events
+\citep{meyer.held2013}. The function \code{untie} breaks ties by
+random shifts. This has already been applied to the event \emph{times} in
+the provided \code{imdepi} data by subtracting a U(0,1)-distributed random
+number from the original dates.
+The event \emph{coordinates} in the IMD data are subject to interval censoring
+at the level of Germany's postcode regions. A possible replacement for the given
+centroids would thus be a random location within the corresponding postcode area.
+Lacking a suitable shapefile,
+\citet{meyer.held2013} shifted all locations by a random
+vector with length up to half the observed minimum spatial separation:
+<<imdepi_untied>>=
+eventDists <- dist(coordinates(imdepi$events))
+(minsep <- min(eventDists[eventDists > 0]))
+set.seed(321)
+imdepi_untied <- untie(imdepi, amount = list(s = minsep / 2))
+@ 
+Note that random tie-breaking requires sensitivity analyses as
+discussed by \citet{meyer.held2013}, but skipped here for the sake of brevity.
+
+The \code{update}-method is useful to change the values of the maximum
+interaction ranges \code{eps.t} and \code{eps.s}, since it takes care of the
+necessary updates of the hidden auxiliary variables in an \class{epidataCS}
+object. For unbounded spatial interaction:
+<<imdepi_untied_infeps>>=
+imdepi_untied_infeps <- update(imdepi_untied, eps.s = Inf)
+@ 
+
+Last but not least, \class{epidataCS} can be converted to the other classes
+\class{epidata} (described in \code{vignette("twinSIR")})
+and \class{sts} (described in, e.g., \code{vignette("hhh4_spacetime")})
+by aggregation.
+The method \code{as.epidata.epidataCS} aggregates events by region (\code{tile}),
+and the function \code{epidataCS2sts} yields counts by region and time interval.
+The data could then, e.g., be analyzed by the
+areal time-series model presented in \code{vignette("hhh4\_spacetime")}.
+We can also use visualization tools of the \class{sts} class, e.g., to produce
+Figure~\ref{fig:imdsts_plot}:
+<<imdsts_plot, fig.cap="IMD cases (joint types) aggregated as an \\class{sts} object by month and district.", fig.subcap=c("Time series of monthly counts.", "Disease incidence (per 100\\,000 inhabitants)."), fig.width=5, fig.height=5, out.width="0.47\\linewidth", fig.pos="ht", echo=-2>>=
+imdsts <- epidataCS2sts(imdepi, freq = 12, start = c(2002, 1), tiles = districtsD)
+par(las = 1, lab = c(7,7,7), mar = c(5,5,1,1))
+plot(imdsts, type = observed ~ time)
+plot(imdsts, type = observed ~ unit, population = districtsD$POPULATION / 100000)
+@ 
+
+
+
+\section{Modeling and inference} \label{sec:twinstim:fit}
+
+
+Having prepared the data as an object of class \class{epidataCS},
+the function \code{twinstim} can be used to perform likelihood inference
+for conditional intensity models of the form~\eqref{eqn:twinstim}.
+The main arguments for \code{twinstim}
+are the formulae of the \code{endemic} and \code{epidemic} linear predictors
+($\nu_{[\bm{s}][t]} = \exp$(\code{endemic}) and $\eta_j = \exp$(\code{epidemic})), and
+the spatial and temporal interaction functions \code{siaf} ($f$) and \code{tiaf} ($g$), respectively.
+Both formulae are parsed internally using the standard \code{model.frame}
+toolbox from package \pkg{stats} and thus can handle factor variables and
+interaction terms.
+While the \code{endemic} linear predictor incorporates
+%time-dependent and/or area-level
+covariates from \code{stgrid}, 
+%% and in the disease mapping context usually contains at least the population density as a multiplicative offset, i.e.,
+%% \code{endemic = ~offset(log(popdensity))}. There can be additional effects of time,
+%% which are functions of the variable \code{start} from \code{stgrid},
+%% or effects of, e.g., socio-demographic and ecological variables.
+the \code{epidemic} formula may use both \code{stgrid} variables and event marks
+to be associated with the force of infection. 
+%% For instance, \code{epidemic = ~log(popdensity) + type} corresponds to
+%% $\eta_j = \rho_{[\bm{s}_j]}^{\gamma_{\rho}} \exp(\gamma_0 + \gamma_C \ind(k_j=C))$,
+%% which models different infectivity of the event types, and scales
+%% with population density (a grid-based covariate) to reflect higher
+%% contact rates and thus infectivity in more densly populated regions.
+For the interaction functions, several alternatives are predefined as listed in
+Table~\ref{tab:iafs}. They are applicable out-of-the-box and
+illustrated as part of the following modeling exercise for the IMD data.
+Own interaction functions can also be implemented following the structure
+described in \code{help("siaf")} and \code{help("tiaf")}, respectively.
+
+<<tab_iafs, echo=FALSE, results="asis", purl=FALSE>>=
+twinstim_iafs <- suppressWarnings(
+    cbind("Spatial (\\code{siaf.*})" = ls(pattern="^siaf\\.", pos="package:surveillance"),
+          "Temporal (\\code{tiaf.*})" = ls(pattern="^tiaf\\.", pos="package:surveillance"))
+    )
+twinstim_iafs <- apply(twinstim_iafs, 2, function (x) {
+    is.na(x) <- duplicated(x)
+    x
+})
+print(xtable(substring(twinstim_iafs, 6), label="tab:iafs",
+             caption="Predefined spatial and temporal interaction functions."),
+      include.rownames=FALSE,
+      sanitize.text.function=function(x) paste0("\\code{", x, "}"),
+      sanitize.colnames.function=identity, sanitize.rownames.function=identity)
+@ 
+
+
+\subsection{Basic example}
+
+To illustrate statistical inference with \code{twinstim},
+we will estimate several models for the simplified and ``untied'' IMD data
+presented in Section~\ref{sec:twinstim:data}.
+In the endemic component, we include the district-specific population density as a multiplicative
+offset, a (centered) time trend, and 
+a sinusoidal wave of frequency $2\pi/365$ to capture seasonality,
+where the \code{start} variable from \code{stgrid} measures time:
+<<endemic_formula>>=
+(endemic <- addSeason2formula(~offset(log(popdensity)) + I(start / 365 - 3.5),
+  period = 365, timevar = "start"))
+@ 
+See \citet[Section~2.2]{held.paul2012} for how such sine/cosine terms
+reflect seasonality.
+Because of the aforementioned integrations in the log-likelihood~\eqref{eqn:twinstim:loglik}, it
+is advisable to first fit an endemic-only model to obtain reasonable
+start values for more complex epidemic models:
+<<imdfit_endemic, results="hide">>=
+imdfit_endemic <- twinstim(endemic = endemic, epidemic = ~0,
+  data = imdepi_untied, subset = !is.na(agegrp))
+@ 
+We exclude the single case with unknown age group from this analysis since we
+will later estimate an effect of the age group on the force of infection.
+
+Many of the standard functions to access model fits in \proglang{R} are also
+implemented for \class{twinstim} fits (see Table~\ref{tab:methods:twinstim}).
+For example, we can produce the usual model summary:
+<<strip.white.output=TRUE>>=
+summary(imdfit_endemic)
+@ 
+Because of the aforementioned equivalence of the endemic component with a
+Poisson regression model, the coefficients can be interpreted as
+log rate ratios in the usual way. For instance, the endemic rate is estimated to
+decrease by \code{1 - exp(coef(imdfit_endemic)[2])} $=$
+\Sexpr{round(100*(1-exp(coef(imdfit_endemic)[2])),1)}\% per year.
+Coefficient correlations can be retrieved by the argument
+\code{correlation = TRUE} in the \code{summary} call just like for
+\code{summary.glm}, but may also be extracted via the standard
+\code{cov2cor(vcov(imdfit_endemic))}.
+
+<<twinstim-methods, echo=FALSE, results="asis", purl=FALSE>>=
+print(xtable(
+    surveillance:::functionTable(
+        class = "twinstim",
+        functions = list(
+            Display = c("iafplot", "checkResidualProcess"),
+            Extract = c("intensity.twinstim", "simpleR0"),
+            Modify = c("stepComponent"),
+            Other = c("epitest"))),
+    caption="Generic and \\textit{non-generic} functions applicable to \\class{twinstim} objects. Note that there is no need for specific \\code{coef}, \\code{confint}, \\code{AIC} or \\code{BIC} methods, since the respective default methods from package \\pkg{stats} apply outright.",
+    label="tab:methods:twinstim"
+    ), include.rownames = FALSE)
+@ 
+
+We now update the endemic model to take additional spatio-temporal dependence between
+events into account. Infectivity shall depend on the meningococcal finetype and
+the age group of the patient, and is assumed to be constant over time (default),
+$g(t)=\ind_{(0,30]}(t)$, with a Gaussian distance-decay
+$f(x) = \exp\left\{-x^2/(2 \sigma^2)\right\}$.
+This model was originally selected by \citet{meyer.etal2011} and can be fitted as follows:
+<<imdfit_Gaussian, results="hide", eval=COMPUTE>>=
+imdfit_Gaussian <- update(imdfit_endemic, epidemic = ~type + agegrp,
+  siaf = siaf.gaussian(), start = c("e.(Intercept)" = -12.5, "e.siaf.1" = 2.75),
+  control.siaf = list(F = list(adapt = 0.25), Deriv = list(nGQ = 13)),
+  cores = 2 * (.Platform$OS.type == "unix"))
+@ 
+To reduce the runtime of this example, we specified convenient \code{start} values
+for some parameters (others start at 0) and set
+\code{control.siaf} with a rather low number of nodes for the cubature
+of $f(\norm{\bm{s}})$ in the log-likelihood (via the midpoint rule) and
+$\frac{\partial f(\norm{\bm{s}})}{\partial \log\sigma}$
+in the score function (via product Gauss cubature).
+%over the individual influence regions~\eqref{eqn:twinstim:IR}
+On Unix-alikes, these numerical integrations can be performed in parallel 
+using the ``multicore'' functions
+\code{mclapply} \textit{et al.}\ from the base package \pkg{parallel},
+here with \code{cores = 2} processes.
+
+Table~\ref{tab:imdfit_Gaussian} shows the output of \code{twinstim}'s
+\code{xtable} method \citep{R:xtable},
+which provides rate ratios for the endemic and epidemic effects. 
+The alternative \code{toLatex} method simply translates the
+\code{summary} table of coefficients to \LaTeX\ without \code{exp}-transformation.
+On the subject-matter level, we can conclude from 
+Table~\ref{tab:imdfit_Gaussian} that the meningococcal finetype of
+serogroup~C is less than half as infectious as the B-type, and that patients in
+the age group 3 to 18 years are estimated to cause twice as many secondary infections as infants
+aged 0 to 2 years.
+
+<<tab_imdfit_Gaussian, echo=FALSE, results="asis">>=
+print(xtable(imdfit_Gaussian,
+             caption="Estimated rate ratios (RR) and associated Wald confidence intervals (CI) for endemic (\\code{h.}) and epidemic (\\code{e.}) terms. This table was generated by \\code{xtable(imdfit\\_Gaussian)}.",
+             label="tab:imdfit_Gaussian"),
+      sanitize.text.function=NULL, sanitize.colnames.function=NULL,
+      sanitize.rownames.function=function(x) paste0("\\code{", x, "}"))
+@
+
+
+\subsection{Model-based effective reproduction numbers}
+
+The event-specific reproduction numbers~\eqref{eqn:R0:twinstim} can be extracted
+from fitted \class{twinstim} objects via the \code{R0} method.
+For the above IMD model, we obtain the following mean numbers of
+secondary infections by finetype:
+<<>>=
+R0_events <- R0(imdfit_Gaussian)
+tapply(R0_events, marks(imdepi_untied)[names(R0_events), "type"], mean)
+@ 
+Confidence intervals %for the estimated reproduction numbers $\hat\mu_j$
+can be obtained via Monte Carlo simulation,
+where Equation~\ref{eqn:R0:twinstim} is repeatedly evaluated
+with parameters sampled from the asymptotic multivariate normal distribution of the
+maximum likelihood estimate. For this purpose, the \code{R0}-method
+takes an argument \code{newcoef}, which is exemplified in \code{help("R0")}.
+%% Note that except for (piecewise) constant $f$, computing confidence intervals for
+%% $\hat\mu_j$ takes a considerable amount of time since the integrals over the
+%% polygons $\bm{R}_j$ have to be solved numerically for each new set of parameters.
+
+
+\subsection{Interaction functions}
+
+<<imdfit_powerlaw, results="hide", eval=COMPUTE, include=FALSE>>=
+imdfit_powerlaw <- update(imdfit_Gaussian, data = imdepi_untied_infeps,
+  siaf = siaf.powerlaw(), control.siaf = NULL,
+  start = c("e.(Intercept)" = -6.2, "e.siaf.1" = 1.5, "e.siaf.2" = 0.9))
+@ 
+
+<<imdfit_step4, results="hide", eval=COMPUTE, include=FALSE>>=
+imdfit_step4 <- update(imdfit_Gaussian, data = imdepi_untied_infeps,
+  siaf = siaf.step(exp(1:4 * log(100) / 5), maxRange = 100), control.siaf = NULL,
+  start = c("e.(Intercept)" = -10, setNames(-2:-5, paste0("e.siaf.", 1:4))))
+@
+
+<<save-fits, include = FALSE, eval = COMPUTE, purl=FALSE>>=
+save(imdfit_Gaussian, imdfit_powerlaw, imdfit_step4,
+     file = "twinstim-cache.RData", compress = "xz")
+@ 
+
+Figure~\ref{fig:imdfit_siafs} shows several estimated spatial interaction
+functions, which can be plotted by, e.g.,
+\code{plot(imdfit_Gaussian, which = "siaf")}.
+
+<<imdfit_siafs, fig.cap="Various estimates of spatial interaction (scaled by the epidemic intercept $\\gamma_0$).", fig.pos="!ht", echo=FALSE>>=
+par(mar = c(5,5,1,1))
+set.seed(2)  # Monte-Carlo confidence intervals
+plot(imdfit_Gaussian, "siaf", xlim=c(0,42), ylim=c(0,5e-5), lty=c(1,3),
+     xlab = expression("Distance " * x * " from host [km]"))
+plot(imdfit_powerlaw, "siaf", add=TRUE, col.estimate=4, lty=c(2,3))
+plot(imdfit_step4, "siaf", add=TRUE, col.estimate=3, lty=c(4,3))
+legend("topright", legend=c("Power law", "Step (df=4)", "Gaussian"),
+       col=c(4,3,2), lty=c(2,4,1), lwd=3, bty="n")
+@ 
+
+The estimated standard deviation $\hat\sigma$ of the Gaussian kernel is:
+<<>>=
+exp(cbind("Estimate" = coef(imdfit_Gaussian)["e.siaf.1"],
+          confint(imdfit_Gaussian, parm = "e.siaf.1")))
+@ 
+\citet{meyer.held2013} found that a power-law decay of spatial interaction is
+more appropriate than a Gaussian kernel to describe the spread of human infectious
+diseases.
+The power-law kernel concentrates on short-range interaction, but also exhibits a
+heavier tail reflecting occasional transmission over large distances.
+%This result is supported by the power-law distribution of short-time human
+%travel \citep{brockmann.etal2006}, which is an important driver of epidemic spread.
+To use the power-law kernel $f(x) = (x+\sigma)^{-d}$, we switch to the
+prepared \class{epidataCS} object with \code{eps.s = Inf} and update the
+previous Gaussian model as follows:
+<<imdfit_powerlaw_echo, echo=TRUE, eval=FALSE, purl=FALSE>>=
+<<imdfit_powerlaw>>
+@ 
+The estimated power-law parameters $(\hat\sigma, \hat d)$ are:
+<<>>=
+exp(cbind("Estimate" = coef(imdfit_powerlaw)[c("e.siaf.1", "e.siaf.2")],
+          confint(imdfit_powerlaw, parm = c("e.siaf.1", "e.siaf.2"))))
+@ 
+
+Table~\ref{tab:iafs} also lists the step function kernel as an alternative, which is
+particularly useful for two reasons. First, it is a more flexible approach since it
+estimates interaction between the given knots without assuming an overall functional form.
+Second, the spatial integrals in the log-likelihood can be computed
+analytically for the step function kernel, which therefore offers a quick estimate
+of spatial interaction. We update the Gaussian model to use four
+steps at log-equidistant knots up to an interaction range of 100 km:
+<<imdfit_step4_echo, echo=TRUE, eval=FALSE, purl=FALSE>>=
+<<imdfit_step4>>
+@ 
+Figure~\ref{fig:imdfit_siafs} suggests that the estimated step function is in
+line with the power law.
+
+For the temporal interaction function $g(t)$, model updates and plots are
+similarly possible, e.g., using
+\code{update(imdfit_Gaussian, tiaf = tiaf.exponential())}. However, the events
+in the IMD data are too rare to infer the time-course of infectivity with
+confidence. 
+
+<<echo=FALSE, results="asis", eval=FALSE, purl=FALSE>>=
+local({
+    nSources <- sapply(levels(imdepi$events$type), function (.type) {
+        mean(summary(subset(imdepi_untied_infeps, type==.type))$nSources)
+    })
+    structure(
+        paste("Specifically, there are only",
+              paste0(round(nSources,1), " (", names(nSources), ")",
+                     collapse=" and "),
+              "cases on average within the preceding 30 days",
+              "(potential sources of infection)."),
+        class="Latex")
+})
+@ 
+
+
+\subsection{Model selection}
+
+<<imdfits_AIC>>=
+AIC(imdfit_endemic, imdfit_Gaussian, imdfit_powerlaw, imdfit_step4)
+@ 
+
+Akaike's Information Criterion (AIC)
+suggests superiority of the power-law vs.\ the Gaussian model and the
+endemic-only model. The more flexible step function yields the best AIC value
+but its shape strongly depends on the chosen knots and is not guaranteed to be
+monotonically decreasing.
+The function \code{stepComponent} -- a wrapper around the \code{step} function
+from \pkg{stats} -- can be used to perform AIC-based stepwise
+selection within a given model component.
+<<imdfit_endemic_sel, results="hide", include=FALSE>>=
+## Example of AIC-based stepwise selection of the endemic model
+imdfit_endemic_sel <- stepComponent(imdfit_endemic, component = "endemic")
+## -> none of the endemic predictors is removed from the model
+@ 
+
+
+\subsection{Model diagnostics}
+
+The element \code{"fittedComponents"} of a \class{twinstim} object contains
+the endemic and epidemic values of the estimated intensity at each event
+occurrence. However, plots of the conditional intensity (and
+its components) as a function of location or time provide more insight into the
+fitted process.
+Evaluation of \code{intensity.twinstim} requires the model environment to be
+stored with the fit. By default, \code{model = FALSE} in \code{twinstim},
+but if the data are still available, the model environment can also be added
+afterwards using the convenient \code{update} method:
+<<imdfit_powerlaw_model>>=
+imdfit_powerlaw <- update(imdfit_powerlaw, model = TRUE)
+@ 
+
+Figure~\ref{fig:imdfit_powerlaw_intensityplot_time} shows
+an \code{intensityplot} of
+the fitted ``ground'' intensity
+$\sum_{k=1}^2 \int_{\bm{W}} \hat\lambda(\bm{s},t,k) \dif \bm{s}$:
+%aggregated over both event types:
+<<eval=FALSE, purl=FALSE>>=
+intensityplot(imdfit_powerlaw, which = "total", aggregate = "time", types = 1:2)
+@ 
+<<imdfit_powerlaw_intensityplot_time, fig.cap="Fitted ``ground'' intensity process aggregated over space and both types.", fig.pos="ht", echo=FALSE>>=
+par(mar = c(5,5,1,1), las = 1)
+intensity_endprop <- intensityplot(imdfit_powerlaw, aggregate="time",
+                                   which="endemic proportion", plot=FALSE)
+intensity_total <- intensityplot(imdfit_powerlaw, aggregate="time", 
+                                 which="total", tgrid=501, lwd=2,
+                                 xlab="Time [days]", ylab="Intensity")
+curve(intensity_endprop(x) * intensity_total(x), add=TRUE, col=2, lwd=2, n=501)
+#curve(intensity_endprop(x), add=TRUE, col=2, lty=2, n=501)
+text(2500, 0.36, labels="total", col=1, pos=2, font=2)
+text(2500, 0.08, labels="endemic", col=2, pos=2, font=2)
+@ 
+
+%% Note that this represents a realization of a stochastic process, since it
+%% depends on the occurred events.
+The estimated endemic intensity component has also been added to the plot.
+It exhibits strong seasonality and a slow negative trend. The proportion
+of the endemic intensity is rather constant along time since
+no major outbreaks occurred.
+This proportion can be visualized separately by specifying
+\code{which = "endemic proportion"} in the above call.
+
+<<echo=FALSE, eval=FALSE>>=
+meanepiprop <- integrate(intensityplot(imdfit_powerlaw, which="epidemic proportion"),
+                         50, 2450, subdivisions=2000, rel.tol=1e-3)$value / 2400
+@ 
+
+Spatial \code{intensityplot}s
+as in Figure~\ref{fig:imdfit_powerlaw_intensityplot_space}
+can be produced via \code{aggregate = "space"}
+and require a geographic representation of \code{stgrid}.
+The epidemic proportion is naturally high around clusters of cases and
+even more so if the population density is low.
+%% The function \code{epitest} offers a model-based global test for epidemicity,
+%% while \code{knox} and \code{stKtest} implement related classical approaches
+%% \citep{meyer.etal2015}.
+
+<<imdfit_powerlaw_intensityplot_space, fig.cap="Epidemic proportion of the fitted intensity process accumulated over time by type.", fig.subcap=c("Type B.", "Type C."), fig.width=5, fig.height=5, out.width="0.47\\linewidth", fig.pos="p", echo=FALSE>>=
+for (.type in 1:2) {
+    print(intensityplot(imdfit_powerlaw, aggregate="space", which="epidemic proportion",
+                        types=.type, tiles=districtsD, sgrid=1000,
+                        col.regions = grey(seq(1,0,length.out=10)), at = seq(0,1,by=0.1)))
+    grid::grid.text("Epidemic proportion", x=1, rot=90, vjust=-1)
+}
+@ 
+
+
+Another diagnostic tool is the function \code{checkResidualProcess} (Figure~\ref{fig:imdfit_checkResidualProcess}), which transforms the temporal ``residual
+process'' in such a way that it exhibits a uniform distribution and lacks serial
+correlation if the fitted model describes the true CIF well
+\citep[see][Section~3.3]{ogata1988}. % more recent work: \citet{clements.etal2011}
+
+<<imdfit_checkResidualProcess, fig.cap="\\code{checkResidualProcess(imdfit\\_powerlaw)}. The left plot shows the \\code{ecdf} of the transformed residuals with a 95\\% confidence band obtained by inverting the corresponding Kolmogorov-Smirnov test (no evidence for deviation from uniformity). The right-hand plot suggests absence of serial correlation.", results="hide", fig.pos="p", echo=FALSE>>=
+par(mar = c(5, 5, 1, 1))
+checkResidualProcess(imdfit_powerlaw)
+@ 
+
+
+
+\section{Simulation} \label{sec:twinstim:simulation}
+
+
+%% Simulations from the fitted model are also useful to investigate the
+%% goodness of fit.
+To identify regions with unexpected IMD dynamics,
+\citet{meyer.etal2011} compared the observed numbers of cases by district to the
+respective 2.5\% and 97.5\% quantiles of 100 simulations from the selected model.
+Furthermore, simulations allow us to investigate the stochastic volatility of the
+endemic-epidemic process, to obtain probabilistic forecasts, and 
+to perform parametric bootstrap of the spatio-temporal point pattern.
+
+The simulation algorithm we apply is described in \citet[Section 4]{meyer.etal2011}.
+It requires a geographic representation of the \code{stgrid},
+as well as functionality for sampling locations from the spatial kernel
+$f_2(\bm{s}) := f(\norm{\bm{s}})$. This is implemented for all predefined
+spatial interaction functions listed in Table~\ref{tab:iafs}. 
+%For instance for the
+%power-law kernel, we pass via polar coordinates (with density then proportional
+%to $rf(r)$) %, a function also involved in the efficient cubature of
+%           %$f_2(\bm{s})$ via Green's theorem)
+%and the inverse transformation method with numerical root finding for the
+%quantiles. 
+Event marks are by default sampled from their respective empirical
+distribution in the original data.
+%but a customized generator can be supplied as argument \code{rmarks}.
+The following code runs a single simulation over the last year
+based on the estimated power-law model:
+<<imdsim, results="hide">>=
+imdsim <- simulate(imdfit_powerlaw, nsim = 1, seed = 1, t0 = 2191, T = 2555,
+  data = imdepi_untied_infeps, tiles = districtsD)
+@ 
+This yields an object of the class \class{simEpidataCS}, which extends
+\class{epidataCS}. It carries additional components from the
+generating model to enable an \code{R0}-method and
+\code{intensityplot}s for simulated data.
+%All methods for \class{epidataCS} are applicable.
+%% The result is simplified in that only the \code{events} instead of a full
+%% \class{epidataCS} object are retained from every run to save memory and
+%% computation time. All other components, which do not vary between simulations,
+%% e.g., the \code{stgrid}, are only stored from the first run.
+%% There is a \code{[[}-method for such \class{simEpidataCSlist}s in order to
+%% extract single simulations as full \class{simEpidataCS} objects from the
+%% simplified structure.
+%Extracting a single simulation (e.g., \code{imdsims[[1]]})
+Figure~\ref{fig:imdsim_plot} shows the cumulative number of cases from the
+simulation appended to the first six years of data.
+
+<<imdsim_plot, fig.cap = "Simulation-based forecast of the cumulative number of cases by finetype in the last two years. The black lines correspond to the observed numbers.", fig.pos="bht", echo=FALSE>>=
+.t0 <- imdsim$timeRange[1]
+.cumoffset <- c(table(subset(imdepi, time < .t0)$events$type))
+par(mar = c(5,5,1,1), las = 1)
+plot(imdepi, ylim = c(0, 20), col = c("indianred", "darkblue"),
+     subset = time < .t0, cumulative = list(maxat = 336),
+     xlab = "Time [days]")
+plot(imdsim, add = TRUE, legend.types = FALSE,
+     col = scales::alpha(c("indianred", "darkblue"), 0.5),
+     subset = !is.na(source),  # exclude events of the prehistory
+     cumulative = list(offset = .cumoffset, maxat = 336, axis = FALSE),
+     border = NA, density = 0) # no histogram for simulations
+plot(imdepi, add = TRUE, legend.types = FALSE,
+     col = 1, subset = time >= .t0,
+     cumulative = list(offset = .cumoffset, maxat = 336, axis = FALSE),
+     border = NA, density = 0) # no histogram for the last year's data
+abline(v = .t0, lty = 2, lwd = 2)
+@ 
+
+%% Because we have started simulation at time \code{t0 = 0},
+%% no events from \code{data} have been used as the prehistory, i.e.,
+%% the first simulated event is necessarily driven by the endemic model component.
+A special feature of such simulated epidemics is that the source of each event
+is known:
+<<strip.white.output=TRUE>>=
+table(imdsim$events$source > 0, exclude = NULL)
+@ 
+The stored \code{source} value is 0 for endemic events, \code{NA} for events of
+the prehistory but still infective at \code{t0},
+and otherwise corresponds to the row index of the infective source.
+%% Averaged over all 30 simulations, the proportion of events triggered by
+%% previous events is
+%% Sexpr{mean(sapply(imdsims$eventsList, function(x) mean(x$source > 0, na.rm = TRUE)))}.
+
+
+
+%--------------
+% BIBLIOGRAPHY
+%--------------
+
+<<Rbib, include = FALSE, purl = FALSE>>=
+## create automatic references for R packages
+Rbib0 <- knitr::write_bib(
+    c("polyCub", "memoise", "sp", "rgdal", "polyclip",
+      ## spatstat, # non-standard author entries
+      "maptools", "animation", "xtable"),
+    file = NULL, tweak = FALSE, prefix = "R:")
+## package spatstat yields a bad automatic bib entry
+Rbib1 <- sapply(c("spatstat"), function (pkg) {
+    bib <- citation(pkg, auto = TRUE)
+    bib$key <- paste("R", pkg, sep=":")
+    bib
+}, simplify=FALSE, USE.NAMES=TRUE)
+Rbib1$spatstat$author <- "Adrian Baddeley and Rolf Turner and Ege Rubak"
+## write to bibfile
+.Rbibfile <- file("twinstim-R.bib", "w", encoding = "latin1")
+cat(unlist(c(Rbib0, lapply(Rbib1, toBibtex)), use.names = FALSE),
+    file = .Rbibfile, sep = "\n")
+close(.Rbibfile)
+@
+
+\bibliography{references,twinstim-R}
+
+
+
+%--------------
+% SESSION INFO
+%--------------
+
+\vfill
+\section*{\proglang{R} version and packages used for this vignette}
+
+<<sessionInfo, echo = FALSE, results = "asis", purl=FALSE>>=
+toLatex(sessionInfo(), locale=FALSE)
+@
+
+
+
+\end{document}

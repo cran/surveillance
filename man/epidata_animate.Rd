@@ -42,7 +42,7 @@ Spatio-Temporal Animation of an Epidemic
     By default, susceptible individuals are marked as filled green circles,
     infectious individuals as filled red circles and removed individuals as
     filled gray circles.  Note that the symbols are iteratively drawn
-    (overlayed) in the same plotting region as time procedes.
+    (overlayed) in the same plotting region as time proceeds.
     For information about the possible values of \code{pch} and \code{col}, see
     the help pages of \code{\link{points}} and \code{\link{par}}, respectively.
   }

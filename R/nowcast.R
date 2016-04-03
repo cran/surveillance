@@ -957,7 +957,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       }
     } #end if control$score
 
-    #Add first nowcast & ci to stsBP slots
+    #Add first nowcast & ci to stsNC slots
     sts@upperbound[i,] <- median(N.tInf.support[which.max( cumsum(Ps[[method[1]]][,i])>0.5)])
     sts@pi[i,,] <- N.tInf.support[c(which.max(cumsum(Ps[[method[1]]][,i]) > control$alpha/2),which.max(cumsum(Ps[[method[1]]][,i]) > 1-control$alpha/2))]
     dimnames(sts@pi) <- list(as.character(dateRange),NULL,paste( c(control$alpha/2*100,(1-control$alpha/2)*100),"%",sep=""))

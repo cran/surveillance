@@ -11,16 +11,15 @@ algo.twins <- function(disProgObj,
                             alpha_psi=1, beta_psi=0.1, nu_trend=FALSE,
                             logFile="twins.log"))
 {
+  if (inherits(disProgObj, "sts"))
+      disProgObj <- sts2disProg(disProgObj)
 
   if (ncol(disProgObj$observed)>1) {
-    stop("Error: algo.twins only handles univariate time series of counts.")
+    stop("algo.twins() only handles univariate time series of counts")
   }
   
   ## Determine period from data
   T <- as.integer(disProgObj$freq)
-
-  ## Convert sts objects
-  if (class(disProgObj) == "sts") disProgObj <- sts2disProg(disProgObj)
 
   ## set default values (if not provided in control)
   if(is.null(control[["burnin",exact=TRUE]]))
@@ -128,10 +127,8 @@ pois.plot <- function(m.results,...) {
     sts <- disProg2sts(m.results$disProgObj)
 
     ## Make default legend if nothing else is specified.
-    if (is.null(list(...)[["legend.opts",exact=TRUE]])) {
-        ##    plot(sts,legend.opts=list(x="topleft",legend=paste(plotorder),lwd=lwd,col=plotcols,horiz=TRUE,y.intersp=0,lty=1),...)
-        ## There is a bug here, but atm I do not have the time to fix it.
-        plot(sts,legend.opts=NULL,...)
+    if (!"legend.opts" %in% names(list(...))) {
+        plot(sts,legend.opts=list(x="topleft",legend=paste(plotorder),lwd=lwd,col=plotcols,horiz=TRUE,y.intersp=0,lty=1,pch=NA),...)
     } else {
         plot(sts,...)
     }

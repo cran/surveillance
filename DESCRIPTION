@@ -1,8 +1,8 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.11.0
-Date: 2016-02-08
+Version: 1.12.0
+Date: 2016-04-02
 Authors@R: c(MH = person("Michael", "Höhle",
                   email = "hoehle@math.su.se",
                   role = c("aut", "ths")),
@@ -36,14 +36,14 @@ Author: Michael Höhle [aut, ths], Sebastian Meyer [aut, cre],
         Mikko Virtanen [ctb], Wei Wei [ctb], Valentin Wimmer [ctb], R Core Team [ctb]
         (A few code segments are modified versions of code from base R)
 Maintainer: Sebastian Meyer <Sebastian.Meyer@ifspm.uzh.ch>
-Depends: R (>= 3.0.2), methods, grDevices, graphics, stats, utils, sp
+Depends: R (>= 3.2.0), methods, grDevices, graphics, stats, utils, sp
         (>= 1.0-15), xtable, polyCub (>= 0.4-3)
 Imports: Rcpp (>= 0.11.0), MASS, Matrix, spatstat (>= 1.36-0)
 LinkingTo: Rcpp
 Suggests: parallel, grid, xts, gridExtra, lattice, colorspace, scales,
         animation, msm, spc, quadprog, memoise, polyclip, rgeos,
         gpclib, maptools, intervals, spdep, numDeriv, maxLik, gsl,
-        testthat, coda, splancs, gamlss, INLA, runjags
+        testthat, coda, splancs, gamlss, INLA, runjags, knitr
 Description: Statistical methods for the modeling and monitoring of time series
         of counts, proportions and categorical data, as well as for the modeling
         of continuous-time point processes of epidemic phenomena.
@@ -77,10 +77,11 @@ Description: Statistical methods for the modeling and monitoring of time series
         <http://arxiv.org/abs/1411.0416>.
 License: GPL-2
 URL: http://surveillance.r-forge.r-project.org/
-Additional_repositories: http://www.math.ntnu.no/inla/R/stable
+Additional_repositories: https://www.math.ntnu.no/inla/R/stable
 BugReports: https://r-forge.r-project.org/tracker/?group_id=45
 Encoding: latin1
+VignetteBuilder: utils, knitr
 NeedsCompilation: yes
-Packaged: 2016-02-08 20:01:38 UTC; sebastian
+Packaged: 2016-04-02 21:08:27 UTC; sebastian
 Repository: CRAN
-Date/Publication: 2016-02-09 09:46:58
+Date/Publication: 2016-04-03 16:40:04

@@ -57,7 +57,7 @@ Profile Likelihood Computation and Confidence Intervals
 
 \value{
 list with profile log-likelihood evaluations on the grid and highest likelihood
-and wald confidence intervals.  The argument \code{profile} is also returned.
+and Wald confidence intervals.  The argument \code{profile} is also returned.
 }
 
 \author{

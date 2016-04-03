@@ -41,7 +41,7 @@ categoricalCUSUM(stsObj,control = list(range=NULL,h=5,pi0=NULL,
 	wrapper function.}
       \item{\code{ret}}{Return the necessary proportion to sound an alarm in the
 	slot \code{upperbound} or just the value of the CUSUM
-	statistic. Thus, \code{ret} is one of tha values in
+	statistic. Thus, \code{ret} is one of the values in
 	\code{c("cases","value")}. Note: For the binomial PMF it is
 	possible to compute this value explicitly, which is much faster
 	than the numeric search otherwise conducted. In case \code{dfun}

@@ -2,11 +2,10 @@
 \name{nowcast}
 \alias{nowcast}
 %Internal functions
-\alias{nowcast.fit}
-\alias{dist.median}
-\alias{outside.ci}
-\alias{logS}
-\alias{RPS}
+%\alias{dist.median}
+%\alias{outside.ci}
+%\alias{logS}
+%\alias{RPS}
 
 \title{
   Adjust a univariate time series of counts for observed
@@ -134,13 +133,13 @@ nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
 	  \item{\code{eta.prec}}{}
 	  \item{\code{mcmc}}{A names vector of length 3 containing
 	    burn-in, number of samples and thinning for the three MCMC chains
-	    which are ran. The values are passed on to \code{runjags}.
+	    which are ran. The values are passed on to \code{\link[runjags]{run.jags}}.
 	    Default: \code{c(burnin=2500,sample=10000,thin=1)}.}
 	}
       }
       \item{score}{Compute scoring rules. Default: \code{FALSE}. The
 	computed scores are found in the \code{SR} slot of the result.}
-      \item{predPMF}{Boolean whether to teturn the probability mass
+      \item{predPMF}{Boolean whether to return the probability mass
 	functions of the individual forecasts (Default: \code{FALSE}). The
 	result can be found in the \code{control} slot of the return object.}
     }
@@ -180,10 +179,13 @@ nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
 
 \note{
   Note: The \code{bayes.trunc.ddcp} uses the JAGS software together with
-  the R package \code{runjags} to handle the parallelization of
-  the MCMC using the runjags \code{rjparallel} method. You need to manually install
-  JAGS on your computer for the package to work -- see \url{http://mcmc-jags.sourceforge.net/}
-  and the documentation of \code{runjags} for details.
+  the \R package \pkg{runjags} to handle the parallelization of
+  the MCMC using the \code{"rjparallel"} method of
+  \code{\link[runjags]{run.jags}}, which additionally requires the
+  \pkg{rjags} package. You need to manually install
+  JAGS on your computer for the package to work -- see
+  \url{http://mcmc-jags.sourceforge.net/}
+  and the documentation of \pkg{runjags} for details.
 
   Note: The function is still under development and might change in the
   future. Unfortunately, little emphasis has so far been put on making
@@ -221,6 +223,8 @@ plot(nc,xaxis.tickFreq=list("\%d"=atChange,"\%m"=atChange),
      xlab="Time (days)",lty=c(1,1,1,1),lwd=c(1,1,2))
 
 \dontrun{
+### Using runjags to do a Bayesian model with changepoint(s)
+### -- this might take a while
 nc.control.ddcp <- modifyList(nc.control,
                     list(gd.prior.kappa=0.1,
                          ddcp=list(ddChangepoint=as.Date(c("2011-05-23")),
@@ -228,15 +232,13 @@ nc.control.ddcp <- modifyList(nc.control,
                              tau.gamma=1,
                              mcmc=c(burnin=1000,sample=1000,thin=1))))
 
-###Using runjags to do Bayesian model with changepoint(s) -- this might take
-###a while.
 nc.ddcp <- nowcast(now=t.repTriangle,when=when,
                dEventCol="dHosp",dReportCol="dReport",
                data=husO104Hosp, aggregate.by="1 day",
                method="bayes.trunc.ddcp", D=15,
                    control=nc.control.ddcp)
 
-plot(nc.ddcp,legend.opts=NULL,,
+plot(nc.ddcp,legend.opts=NULL,
      xaxis.tickFreq=list("\%d"=atChange,"\%m"=atChange),
      xaxis.labelFreq=list("\%d"=at2ndChange),xaxis.labelFormat="\%d-\%b",
      xlab="Time (days)",lty=c(1,1,1,1),lwd=c(1,1,2))
@@ -244,9 +246,8 @@ plot(nc.ddcp,legend.opts=NULL,,
 lambda <- attr(delayCDF(nc.ddcp)[["bayes.trunc.ddcp"]],"model")$lambda
 showIdx <- seq(which( max(when) == epoch(nc.ddcp))) #seq(ncol(lambda))
 matlines( showIdx,t(lambda)[showIdx,],col="gray",lwd=c(1,2,1),lty=c(2,1,2))
-legend(x="topright",c(expression(lambda(t)),"95% CI"),col="gray",lwd=c(2,1),lty=c(1,2))
+legend(x="topright",c(expression(lambda(t)),"95\% CI"),col="gray",lwd=c(2,1),lty=c(1,2))
 }
 }
 
 \keyword{models}
-

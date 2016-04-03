@@ -126,7 +126,7 @@ intensity.twinstim(x,
     if a list, its elements are passed as arguments to
     \code{\link{sp.points}}, which will add the event locations to the plot
     if \code{aggregate = "space"} (it is unused for the temporal plot).
-    By default, the plot symbol ist set to \code{pch=1}. The sizes
+    By default, the plot symbol is set to \code{pch=1}. The sizes
     of the points are determined as the product of the argument \code{cex}
     (default: 0.5) of this list and the sizes obtained from
     the function \code{cex.fun} which accounts for multiple events at the

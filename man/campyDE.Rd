@@ -15,7 +15,7 @@ data(campyDE)
 \format{
   A \code{data.frame} containing the following columns
   \describe{
-    \item{\code{date}}{\code{Date} instance containing the monday of the
+    \item{\code{date}}{\code{Date} instance containing the Monday of the
       reporting week.}
     \item{\code{case}}{Number of reported cases that week.}
     \item{\code{state}}{Boolean indicating whether there is external knowledge
@@ -27,7 +27,7 @@ data(campyDE)
     \item{newyears}{Boolean indicating whether the reporting week
       corresponds to the first two weeks of the year (TRUE) or not
       (FALSE). Note: The first week of a year is here defined as the first
-      reporting week, which has its corresponding monday within new year.}
+      reporting week, which has its corresponding Monday within new year.}
     \item{christmas}{Boolean indicating whether the reporting week
       corresponds to the last two weeks of the year (TRUE) or not
       (FALSE). Note: This are the first two weeks before the
@@ -43,7 +43,7 @@ data(campyDE)
   (\url{http://www3.rki.de/SurvStat/}).
 
   Data for the computation of absolute humidity were obtained from the
-  German Climiate Service (Deutscher Wetterdienst), Climate data of
+  German Climate Service (Deutscher Wetterdienst), Climate data of
   Germany, available at \url{http://www.dwd.de}.
 
   A complete data description and an analysis of the data can be found in:

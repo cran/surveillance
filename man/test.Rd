@@ -14,7 +14,7 @@
 \value{
         \item{xtable}{printed latex tables}
 }
-\details{The specified datasets are readed, corrected, enlarged and sent to
+\details{The specified datasets are read, corrected, enlarged and sent to
         the RKI 1, RKI 2, RKI 3 and Bayes system. The quality values are computed
         and printed for each diesease as latex table. Additonally a summary latex table
         for all diseases is printed

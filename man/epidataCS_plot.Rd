@@ -120,7 +120,7 @@ epidataCSplot_space(x, subset, by = type, tiles = x$W, pop = NULL,
     representation of the tiles of \code{x$stgrid}.}
   \item{pop}{if \code{tiles} is a
     \code{"\linkS4class{SpatialPolygonsDataFrame}"}, \code{pop} can
-    specify an attribute to be displayed in a levelplot behind the
+    specify an attribute to be displayed in a \code{levelplot} behind the
     point pattern, see \code{\link{spplot}}. By default (\code{NULL}),
     the conventional graphics system is used to display the \code{tiles}
     and event locations, otherwise the result is a

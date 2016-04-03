@@ -9,7 +9,8 @@
 \description{
   The function plots the fitted temporal or (isotropic) spatial
   interaction function of a \code{twinstim} object.
-  The implementation is illustrated in Meyer et al. (2016, Section 3).
+  The implementation is illustrated in Meyer et al. (2016, Section 3),
+  see \code{vignette("twinstim")}.
 }
 
 \usage{
@@ -31,13 +32,13 @@ iafplot(object, which = c("siaf", "tiaf"), types = NULL,
   \item{which}{
     argument indicating which of the two interaction functions to plot.
     Possible values are \code{"siaf"} (default) for the spatial interaction
-    \eqn{f(x)} as a funtion of the distance \eqn{x}, and \code{"tiaf"}
+    \eqn{f(x)} as a function of the distance \eqn{x}, and \code{"tiaf"}
     for the temporal interaction function \eqn{g(t)}.
   }
   \item{types}{
     integer vector indicating for which event \code{types} 
     the interaction function should be plotted in case of a marked
-    twinstim. The default \code{types=NULL} checks if the interaction
+    \code{"twinstim"}. The default \code{types=NULL} checks if the interaction
     function is type-specific: if so, \code{types=1:nrow(object$qmatrix)}
     is used, otherwise \code{types=1}.
   }
@@ -149,7 +150,7 @@ iafplot(object, which = c("siaf", "tiaf"), types = NULL,
       \code{maxRange<Inf}, i.e. it drops to 0 at \code{maxRange},
       \code{xlim[2]} is set to \code{maxRange}.
       \item Otherwise, it is set to the length of the observation period
-      (\code{which="tiaf"}) or the diagonale length of the bounding box of
+      (\code{which="tiaf"}) or the diagonal length of the bounding box of
       the observation region (\code{which="siaf"}), respectively.
     }
   }

@@ -33,7 +33,7 @@ Spatio-Temporal Animation of a Continuous-Time Continuous-Space Epidemic
   \item{time.spacing}{
     time interval for the animation steps.\cr
     If \code{NULL} (the default), the events are plotted sequentially by
-    producing a snapshot at every time point where an event occured.
+    producing a snapshot at every time point where an event occurred.
     Thus, it is just the \emph{ordering} of the events, which is shown.\cr
     To plot the appearance of events proportionally to the exact time line,
     \code{time.spacing} can be set to a numeric value indicating the period of
@@ -52,7 +52,7 @@ Spatio-Temporal Animation of a Continuous-Time Continuous-Space Epidemic
     otherwise.
   }
   \item{sleep}{
-    numeric scalar specyfing the artificial pause in seconds between two
+    numeric scalar specifying the artificial pause in seconds between two
     time points (using \code{\link{Sys.sleep}}), or \code{NULL}
     (default), when this is taken from \code{ani.options("interval")} if
     the \pkg{animation} package is available, and set to 0.1 otherwise.
@@ -86,7 +86,7 @@ Spatio-Temporal Animation of a Continuous-Time Continuous-Space Epidemic
     Note that the argument \code{legend}, which is the current time of the
     animation, can not be modified.
   }
-  \item{col.current}{color of events when occuring (new).}
+  \item{col.current}{color of events when occurring (new).}
   \item{col.I}{color once infectious.}
   \item{col.R}{color event has once \dQuote{recovered}. If \code{NA},
     then recovered events will not be shown.}

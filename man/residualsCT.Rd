@@ -9,7 +9,7 @@ Extract Cox-Snell-like Residuals of a Fitted Point Process
 
 \description{
 Extract the \dQuote{residual process} (cf. Ogata, 1988) of a fitted
-point process modell specified through the conditional intensity
+point process model specified through the conditional intensity
 function, for instance a model of class \code{"\link{twinSIR}"} or
 \code{"\link{twinstim}"} (and also \code{"\link{simEpidataCS}"}).
 The residuals are defined as the fitted cumulative intensities at the
@@ -38,7 +38,7 @@ Cox and Snell (1968).
   method just extracts these values.  Otherwise, the residuals have to
   be calculated, which is only possible with access to the model
   environment, i.e. \code{object} must have been fitted with
-  \code{model = TRUE}. The calulcated residuals are then also appended
+  \code{model = TRUE}. The calculated residuals are then also appended
   to \code{object} for future use. However, if \code{cumCIF} and
   \code{model} were both set to true in the \code{object} fit, then it
   is not possible to calculate the residuals and the method returns an

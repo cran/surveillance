@@ -18,7 +18,8 @@ Continuous-Time SIR Event History of a Fixed Population
   with some additional attributes.  These objects are the basis for fitting
   spatio-temporal epidemic intensity models with the function
   \code{\link{twinSIR}}.  Their implementation is illustrated in Meyer
-  et al. (2016, Section 4).  Note that the spatial information itself, i.e.
+  et al. (2016, Section 4), see \code{vignette("twinSIR")}.
+  Note that the spatial information itself, i.e.
   the positions of the individuals, is assumed to be constant over time.  
   Besides epidemics following the SIR compartmental model, also data from SI,
   SIRS and SIS epidemics may be supplied.  Inference for the infectious process
@@ -58,7 +59,7 @@ as.epidata(data, ...)
     It must contain the observed event history in a form similar to 
     \code{Surv(, type="counting")} with additional information (variables) along 
     the process.  Rows will be sorted automatically during conversion.
-    The observation period is splitted up into \emph{consecutive}
+    The observation period is split up into \emph{consecutive}
     intervals of constant state - thus constant infection intensities.
     The data frame consists of a block of \eqn{N} (number of individuals) 
     rows for each of those time intervals (all rows in a block have the same start 

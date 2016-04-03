@@ -12,6 +12,7 @@
 \alias{summary.epidataCS}
 \alias{print.summary.epidataCS}
 \alias{as.stepfun.epidataCS}
+\alias{getSourceDists}
 
 \title{
   Continuous Space-Time Marked Point Patterns with Grid-Based Covariates
@@ -27,7 +28,8 @@
   The \code{"epidataCS"} class is the basis for fitting 
   spatio-temporal endemic-epidemic intensity models with the function
   \code{\link{twinstim}} (Meyer et al., 2012).
-  The implementation is described in Meyer et al. (2016, Section 3).
+  The implementation is described in Meyer et al. (2016, Section 3),
+  see \code{vignette("twinstim")}.
 }
 
 \usage{
@@ -49,6 +51,8 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
 \method{print}{summary.epidataCS}(x, ...)
 
 \method{as.stepfun}{epidataCS}(x, ...)
+
+getSourceDists(object, dimension = c("space", "time"))
 }
 
 \arguments{
@@ -193,6 +197,10 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
     coordinates appended as last columns. This defaults to \code{TRUE}.}
 
   \item{object}{an object of class \code{"epidataCS"}.}
+
+  \item{dimension}{the distances of all events to their potential source
+    events can be computed in either the \code{"space"} or \code{"time"}
+    dimension.}
 }
 
 \details{
@@ -317,10 +325,13 @@ as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
 }
 
 \seealso{
+  \code{vignette("twinstim")}.
+
   \code{\link{plot.epidataCS}} for plotting, and
   \code{\link{animate.epidataCS}} for the animation of such an epidemic.
   There is also an \code{\link[=update.epidataCS]{update}} method for the
   \code{"epidataCS"} class.
+
   Models for \code{"epidataCS"} can be fitted with \code{\link{twinstim}}.
   It is also possible to convert the data to \code{\link{epidata}}
   objects (discrete space) for analysis with \code{\link{twinSIR}}
@@ -345,6 +356,11 @@ plot(table(s$nSources), xlab="Number of \"close\" infective individuals",
                 sep="\n"))
 ## the summary object contains further information
 str(s)
+
+## a histogram of the spatial distances to potential source events
+## (i.e., to events of the previous eps.t=30 days within eps.s=200 km)
+sourceDists_space <- getSourceDists(imdepi, "space")
+hist(sourceDists_space); rug(sourceDists_space)
 
 ## internal structure of an "epidataCS"-object
 str(imdepi, max.level=4)

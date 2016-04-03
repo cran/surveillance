@@ -10,8 +10,8 @@
             range = 200:400)
 }
 \arguments{
-\item{p}{probability to get a new epidemy at time i if there was one at time i-1, default 0.99}
-\item{r}{probability to get no new epidemy at time i if there was none at time i-1, default 0.01}
+\item{p}{probability to get a new epidemic at time i if there was one at time i-1, default 0.99}
+\item{r}{probability to get no new epidemic at time i if there was none at time i-1, default 0.01}
 \item{length}{number of weeks to model, default 400}
 \item{A}{amplitude (range of sinus), default = 1}
 \item{alpha}{parameter to move along the y-axis (negative values not allowed)
@@ -29,7 +29,7 @@
 \value{
 \item{xtable}{one printed latex table and a result plot}
 }
-\details{A pointSource epidemy is generated and sent to the RKI 1 system, the quality values for
+\details{A point-source epidemic is generated and sent to the RKI 1 system, the quality values for
   the result are computed and shown as a latex table. Additionally a plot of the result
   is generated.
 }

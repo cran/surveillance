@@ -8,7 +8,7 @@
 }
 
 \description{
-  The function \code{simEpidataCS} simulates events of a self-exiciting
+  The function \code{simEpidataCS} simulates events of a self-exciting
   spatio-temporal point process of the \code{"\link{twinstim}"} class.
   Simulation works via Ogata's modified thinning of the conditional
   intensity as described in Meyer et al. (2012). Note that simulation is
@@ -70,8 +70,8 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     type of event, i.e. \code{qmatrix = diag(1)}.
   }
   \item{rmarks}{
-    function of single time (1st arg) and location
-    (2nd arg) returning a one-row \code{data.frame} of marks (named
+    function of single time (1st argument) and location
+    (2nd argument) returning a one-row \code{data.frame} of marks (named
     according to the variables in \code{epidemic}) for an event at this
     point. This must include the columns \code{eps.s} and \code{eps.t}, 
     i.e. the values of the spatial and temporal interaction ranges at this
@@ -130,7 +130,7 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     not well defined and simulation cannot proceed.
   }
   \item{t0}{
-    \code{events} having occured during (-Inf;\code{t0}] are regarded as part of the
+    \code{events} having occurred during (-Inf;\code{t0}] are regarded as part of the
     prehistory \eqn{H_0} of the process. The time point \code{t0} must be an element
     of \code{stgrid$start}. For \code{simEpidataCS}, by default, and
     also if \code{t0=NULL}, it is the earliest time point of the
@@ -176,7 +176,7 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
   }
   \item{.skipChecks,.onlyEvents}{
     these logical arguments are not meant to be set by the user.
-    They are used by the simulate-method for twinstim objects.
+    They are used by the \code{simulate}-method for \code{"twinstim"} objects.
   }
   \item{object}{
     an object of class \code{"\link{twinstim}"}.
@@ -251,11 +251,11 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
 
   The \code{simulate.twinstim} method has some additional
   \emph{attributes} set on its result:
-  \code{call}, \code{seed}, \code{simplified}, and \code{runtime}
-  with their obvious meanings. Furthermore, if
-  \code{nsim > 1}, it returns an object of class
+  \code{call}, \code{seed}, and \code{runtime}.
+  If \code{nsim > 1}, it returns an object of class
   \code{"simEpidataCSlist"}, the form of which depends on the value of
-  \code{simplify}: if \code{simplify = FALSE}, then the return value is
+  \code{simplify} (which is stored as an attribute \code{simplified}):
+  if \code{simplify = FALSE}, then the return value is
   just a list of sequential simulations, each of class
   \code{"simEpidataCS"}. However, if \code{simplify = TRUE}, then the
   sequential simulations share all components but the simulated

@@ -45,14 +45,14 @@ Valentin Wimmer$^{(1,2)}$\thanks{Author of correspondence: \texttt{Valentin.Wimm
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Initial R code
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-<<echo=F,results=hide>>=
+<<setup,echo=F,results=hide>>=
 library("surveillance")
 options(SweaveHooks=list(fig=function() par(mar=c(4,4,2,0)+.5)))
 options(width=70)
 set.seed(247)
 
-## create directory for plots if it does not exist
-if(!dir.exists("plots")) dir.create("plots")
+## create directory for plots
+dir.create("plots", showWarnings=FALSE)
 @ 
 
 
@@ -221,23 +221,27 @@ with(surv$control,lines(mu0~range,lty=2,lwd=4,col=4))
 @
 
 
-The information about the used model is saved in the \verb+survRes+-object, too. 
+Information about the used model is saved in the \verb+survRes+-object, too. 
 
 <<echo=T,eval=F>>=
 surv$control$mu0Model
 @
 
-The $\mu_0$ model is fitted by a call of the function \verb+estimateGLRNbHook+. Instead of using the standard seasonal negative binomial model from equation \ref{mu0}, one can change the \texttt{R}-code of  the function \verb+estimateGLRNbHook+ to get any desired model. The standard code is the following
+The $\mu_0$ model is fitted by a call of the function \verb+estimateGLRNbHook+,
+%% Instead of using the standard seasonal negative binomial model from equation \ref{mu0}, one can change the \texttt{R}-code of the function \verb+estimateGLRNbHook+ to get any desired model.
+which is defined as follows:
 
 <<echo=T,eval=T>>=
 estimateGLRNbHook
 @
 
-To include own models in the \verb+estimateGLRNbHook+ function, the code of the function has to be changed. In the following code chunk \verb+estimateGLRNbHook+ is modified so that weights are included in the model.
+\iffalse
+
+To include own models in the \verb+estimateGLRNbHook+ function, the code of the function has to be changed. In the following code chunk \verb+estimateGLRNbHook+ is modified so that weights are included in the model (here always Poisson, ignoring \verb+alpha+).
 
 \begin{small}
 \begin{verbatim}
-estimateGLRPoisHook <- function() {
+estimateGLRNbHook <- function() {
   control <- parent.frame()$control
   p <- parent.frame()$disProgObj$freq
   range <- parent.frame()$range
@@ -256,7 +260,6 @@ estimateGLRPoisHook <- function() {
     formula <- paste(formula,"+cos(2*",s,"*pi/p*t)+ sin(2*",s,"*pi/p*t)",sep="")
   }
   
-
   m <- eval(substitute(glm(form,family=poisson(),data=data,weights=weights),
                        list(form=as.formula(formula))))
   return(list(mod=m,pred=as.numeric(predict(m,newdata=data.frame(t=test),   
@@ -265,9 +268,9 @@ estimateGLRPoisHook <- function() {
 \end{verbatim}
 \end{small}
 
+\fi
 
-
-Additionally the fitted model from the call of \verb+estimateGLRNbHook+ is saved. The result of a call of \verb+glm.nb+ is in the standard setting an object of class \verb+negbin+  inheriting from class \verb+glm+. So methods as \verb+summary+, \verb+plot+ of \verb+predict+ can be used on this object. If refitting is done, the list of the used models is saved. Use 
+The fitted model from the call of \verb+estimateGLRNbHook+ is saved. The result of a call of \verb+glm.nb+ is in the standard setting an object of class \verb+negbin+  inheriting from class \verb+glm+. So methods as \verb+summary+, \verb+plot+ of \verb+predict+ can be used on this object. If refitting is done, the list of the used models is saved. Use 
 
 <<echo=T,eval=T>>=
 coef(surv$control$mu0Model$fitted[[1]])
@@ -294,15 +297,14 @@ num[i] <- table(algo.glrnb(disProgObj=shadar,control=c(control,c.ARL=i))$alarm)[
 @
 
 \begin{table}[h]
-\begin{center}
-\caption{Number of alarms for salmonella hadar data in dependence of c.ARL}
+\centering
+\caption{Number of alarms for salmonella hadar data for varying c.ARL}
 \label{c.ARL}
 \begin{tabular}{l|cccccc}
 \verb+c.ARL+ & 1 & 2 & 3 & 4 & 5 & 6 \\
 \hline
 no. of alarms & \Sexpr{num[1]} & \Sexpr{num[2]} & \Sexpr{num[3]} & \Sexpr{num[4]} & \Sexpr{num[5]} & \Sexpr{num[6]}
 \end{tabular}
-\end{center}
 \end{table}
 
 

@@ -34,7 +34,7 @@ boda(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE,
       \item{\code{X}}{}
       \item{\code{trend}}{Boolean indicating whether a linear trend term should be
 	included in the model for the expectation the log-scale}
-      \item{\code{season}}{Boolean to indicate wheather a cyclic spline
+      \item{\code{season}}{Boolean to indicate whether a cyclic spline
 	should be included.}
       \item{\code{alpha}}{The threshold for declaring an observed count as
 	an aberration is the \eqn{(1-\alpha)\cdot 100\%}{(1-alpha)*100\%}
@@ -52,15 +52,16 @@ boda(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE,
     }
   }
 }
-\details{
 
-  Note: This function requires presence of the INLA R package, which is
-  NOT available from CRAN. It can can be downloaded by calling
-  \code{source("http://www.math.ntnu.no/inla/givemeINLA.R")} as described in
-  detail at \url{http://www.r-inla.org/download}. 
+\note{
+  This function requires the \R package \pkg{INLA}, which is currently
+  \emph{not} available from CRAN. It can be obtained from an additional
+  repository as described at \url{http://www.r-inla.org/download}.
+}
 
-  WARNING: This function is currently experimental!! It also heavily
-  depends on the INLA package so changes here might affect the
+\section{Warning}{
+  This function is currently experimental!! It also heavily
+  depends on the \pkg{INLA} package so changes here might affect the
   operational ability of the function. Since the computations
   for the Bayesian GAM are quite involved do not expected this function
   to be particularly fast. Future work could focus on improving the

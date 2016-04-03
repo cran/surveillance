@@ -1,10 +1,9 @@
 \name{toLatex.sts}
 \alias{toLatex.sts}
 \alias{toLatex,sts-method}
-\alias{toLatex,list-method}
 \encoding{latin1}
 
-\title{\code{toLatex}-Method for (lists of) \code{"sts"} Objects}
+\title{\code{toLatex}-Method for \code{"sts"} Objects}
 
 \description{
 Convert \code{"\linkS4class{sts}"} objects to a

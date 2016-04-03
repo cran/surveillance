@@ -5,34 +5,18 @@
 \title{Fitting HHH Models with Random Effects and Neighbourhood Structure}
 
 \description{
-  Fits a Poisson or negative binomial model with conditional mean
-  \deqn{\mu_{it} = \lambda_{it} y_{i,t-1} + 
-                   \phi_{it} \sum_{j\neq i} w_{ji} y_{j,t-1} +
-                   e_{it} \nu_{it}  }{%
-        \mu_it = \lambda_it y_i,t-1 + 
-                 \phi_it sum_(j != i) w_ji y_j,t-1 +
-                   e_it \nu_it  }
-  containing epidemic and endemic components to a multivariate time series
-  of counts \eqn{Y_{it}}{Y_it} (unit \eqn{i}, period \eqn{t}).
-  Univariate count time series are supported as well.
-  In the case of a negative binomial model, the conditional 
-  variance is \eqn{\mu_{it}(1+\psi\mu_{it})}{\mu_it(1+\psi*\mu_it)} 
-  with overdispersion parameter \eqn{\psi}. 
-  The three unknown quantities of the mean \eqn{\mu_{it}}{\mu_it},
-  \itemize{
-  \item \eqn{\lambda_{it}}{\lambda_it} in the autoregressive (\code{ar}) component, 
-  \item \eqn{\phi_{it}}{\phi_it} in the neighbor-driven (\code{ne}) component, and
-  \item \eqn{\nu_{it}}{\nu_it} in the endemic (\code{end}) component,
-  }
-  are log-linear predictors incorporating time-/unit-specific
-  covariates. They may contain unit-specific random intercepts
-  (\code{\link{ri}}) as proposed by Paul and Held (2011).
-  The \eqn{e_{it}}{e_it} is a (multiplicative) endemic offset; it is
-  also possible to include such offsets in the epidemic components.
-  The \eqn{w_{ji}}{w_ji} are neighbourhood weights, which can either be
-  prespecified or estimated parametrically as proposed by Meyer and Held (2014).
-  The implementation is illustrated in the \code{vignette("hhh4")} and
-  in Meyer et al. (2016, Section 5).
+  Fits an autoregressive Poisson or negative binomial model
+  to a univariate or multivariate time series of counts.
+  The characteristic feature of \code{hhh4} models is the additive
+  decomposition of the conditional mean into \emph{epidemic} and
+  \emph{endemic} components (Held et al, 2005).
+  Log-linear predictors of covariates and random intercepts are allowed
+  in all components; see the Details below.
+  A general introduction to the \code{hhh4} modelling approach and its
+  implementation is given in the \code{vignette("hhh4")}. Meyer et al
+  (2016, Section 5, available as \code{vignette("hhh4_spacetime")})
+  describe \code{hhh4} models for areal time series of infectious
+  disease counts.
 }
 
 \usage{
@@ -71,7 +55,7 @@ hhh4(stsObj,
 	    \eqn{y_{i,t-lag}}}
 	}
       }
-      \item{\code{ne}}{Model for the neighbor-driven component given as
+      \item{\code{ne}}{Model for the neighbour-driven component given as
        list with the following components:
 	\describe{
 	  \item{f = ~ -1}{a formula specifying \eqn{\log(\phi_{it})}{log(\phi_it)}}
@@ -216,177 +200,259 @@ hhh4(stsObj,
 }
 
 \details{
-  For further details see \code{vignette("hhh4")} and the references.
+  An endemic-epidemic multivariate time-series model for infectious
+  disease counts \eqn{Y_{it}}{Y_it} from units \eqn{i=1,\dots,I} during
+  periods \eqn{t=1,\dots,T} was proposed by Held et al (2005) and was
+  later extended in a series of papers (Paul et al, 2008; Paul and Held,
+  2011; Held and Paul, 2012; Meyer and Held, 2014).
+  In its most general formulation, this so-called \code{hhh4} (or HHH or
+  \eqn{H^3} or triple-H) model assumes that, conditional on past
+  observations, \eqn{Y_{it}}{Y_it} has a Poisson or negative binomial
+  distribution with mean
+  \deqn{\mu_{it} = \lambda_{it} y_{i,t-1} + 
+                   \phi_{it} \sum_{j\neq i} w_{ji} y_{j,t-1} +
+                   e_{it} \nu_{it}  }{%
+        \mu_it = \lambda_it y_i,t-1 + 
+                 \phi_it sum_(j != i) w_ji y_j,t-1 +
+                   e_it \nu_it  }
+  In the case of a negative binomial model, the conditional 
+  variance is \eqn{\mu_{it}(1+\psi_i\mu_{it})}{\mu_it(1+\psi_i*\mu_it)} 
+  with overdispersion parameters \eqn{\psi_i > 0} (possibly shared
+  across different units, e.g., \eqn{\psi_i\equiv\psi}{\psi_i=\psi}).
+  Univariate time series of counts \eqn{Y_t} are supported as well, in
+  which case \code{hhh4} can be regarded as an extension of
+  \code{\link[MASS]{glm.nb}} to account for autoregression.
+  
+  The three unknown quantities of the mean \eqn{\mu_{it}}{\mu_it},
+  \itemize{
+  \item \eqn{\lambda_{it}}{\lambda_it} in the autoregressive (\code{ar}) component, 
+  \item \eqn{\phi_{it}}{\phi_it} in the neighbour-driven (\code{ne}) component, and
+  \item \eqn{\nu_{it}}{\nu_it} in the endemic (\code{end}) component,
+  }
+  are log-linear predictors incorporating time-/unit-specific
+  covariates. They may also contain unit-specific random intercepts
+  as proposed by Paul and Held (2011). The endemic mean is usually
+  modelled proportional to a unit-specific offset \eqn{e_{it}}{e_it}
+  (e.g., population numbers or fractions); it is possible to include
+  such multiplicative offsets in the epidemic components as well.
+  The \eqn{w_{ji}}{w_ji} are transmission weights reflecting the flow of
+  infections from unit \eqn{j} to unit \eqn{i}.
+  In spatial \code{hhh4} applications, the \dQuote{units} refer to
+  geographical regions and the weights could be derived from movement
+  network data. Alternatively, the weights can be estimated
+  parametrically as a function of adjacency order (Meyer and Held, 2014).
+
+  (Penalized) Likelihood inference for such \code{hhh4} models has been
+  established by Paul and Held (2011) with extensions for parametric
+  neighbourhood weights by Meyer and Held (2014).
+  Supplied with the analytical score function and Fisher information,
+  the function \code{hhh4} by default uses the quasi-Newton algorithm
+  available through \code{\link{nlminb}} to maximize the log-likelihood.
+  Convergence is usually fast even for a large number of parameters.
+  If the model contains random effects, the penalized and marginal
+  log-likelihoods are maximized alternately until convergence.
 }
 
 \seealso{
-  \code{\link{algo.hhh}}, 
-  \code{\link{fe}}, \code{\link{ri}}
+  See the special functions \code{\link{fe}}, \code{\link{ri}} and the
+  examples below for how to specify unit-specific effects.
+
+  Further details on the modelling approach and illustrations of its
+  implementation can be found in \code{vignette("hhh4")} and
+  \code{vignette("hhh4_spacetime")}.
 }
 
 \author{M. Paul, S. Meyer, and L. Held}
 
 \examples{
-#####################################################################
-# Fit some models from ?algo.hhh
-#####################################################################
+###########################################################################
+## Univariate examples (similar as for the 'hhh4' predecessor 'algo.hhh')
+###########################################################################
 
-## univariate salmonella agona data
-data(salmonella.agona)
-# convert to sts class
+### weekly counts of salmonella agona cases, UK, 1990-1995
+
+data("salmonella.agona")
+## convert old "disProg" to new "sts" data class
 salmonella <- disProg2sts(salmonella.agona)
+salmonella
+plot(salmonella)
 
-# generate formula for temporal and seasonal trends
-f.end <- addSeason2formula(f = ~ 1 + t, S=1, period=52)
-model1 <- list(ar = list(f = ~ 1), end = list(f =f.end),
-               family = "NegBin1")
-# run model
+## generate formula for an (endemic) time trend and seasonality
+f.end <- addSeason2formula(f = ~1 + t, S = 1, period = 52)
+f.end
+## specify a simple autoregressive negative binomial model
+model1 <- list(ar = list(f = ~1), end = list(f = f.end), family = "NegBin1")
+## fit this model to the data
 res <- hhh4(salmonella, model1)
-summary(res, idx2Exp=1, amplitudeShift=TRUE)
+## summarize the model fit
+summary(res, idx2Exp=1, amplitudeShift=TRUE, maxEV=TRUE)
+plot(res)
+plot(res, type = "season", components = "end")
 
 
-## multivariate time series: 
-# measles cases in Lower Saxony, Germany
-data(measles.weser)
+### weekly counts of meningococcal infections, Germany, 2001-2006
+
+data("influMen")
+fluMen <- disProg2sts(influMen)
+meningo <- fluMen[, "meningococcus"]
+meningo
+plot(meningo)
+
+## again a simple autoregressive NegBin model with endemic seasonality
+meningoFit <- hhh4(stsObj = meningo, control = list(
+    ar = list(f = ~1),
+    end = list(f = addSeason2formula(f = ~1, S = 1, period = 52)),
+    family = "NegBin1"
+))
+
+summary(meningoFit, idx2Exp=TRUE, amplitudeShift=TRUE, maxEV=TRUE)
+plot(meningoFit)
+plot(meningoFit, type = "season", components = "end")
+
+
+###########################################################################
+## Multivariate examples (similar as for the 'hhh4' predecessor 'algo.hhh')
+###########################################################################
+
+### bivariate analysis of influenza and meningococcal infections
+### (see Paul et al, 2008)
+
+plot(fluMen, same.scale = FALSE)
+     
+## Fit a negative binomial model with
+## - autoregressive component: disease-specific intercepts
+## - neighbour-driven component: only transmission from flu to men
+## - endemic component: S=3 and S=1 sine/cosine pairs for flu and men, respectively
+## - disease-specific overdispersion
+
+WfluMen <- neighbourhood(fluMen)
+WfluMen["meningococcus","influenza"] <- 0
+WfluMen
+f.end_fluMen <- addSeason2formula(f = ~ -1 + fe(1, which = c(TRUE, TRUE)),
+                                  S = c(3, 1), period = 52)
+f.end_fluMen
+fluMenFit <- hhh4(fluMen, control = list(
+    ar = list(f = ~ -1 + fe(1, unitSpecific = TRUE)),
+    ne = list(f = ~ 1, weights = WfluMen),
+    end = list(f = f.end_fluMen),
+    family = "NegBinM"))
+summary(fluMenFit, idx2Exp=1:3)
+plot(fluMenFit, type = "season", components = "end", unit = 1)
+plot(fluMenFit, type = "season", components = "end", unit = 2)
+
+
+### weekly counts of measles, Weser-Ems region of Lower Saxony, Germany
+### (see Held et al, 2005, and vignette("hhh4_spacetime"), where a
+### corrected version of these data is used for illustration of 'hhh4')
+
+data("measles.weser")
 measles <- disProg2sts(measles.weser)
+measles
+plot(measles)
 
-# same model as above
-summary(hhh4(measles, control=model1))
+## we could fit the same simple model as for the salmonella cases above
+measlesFit <- hhh4(measles, model1)
+summary(measlesFit, idx2Exp=TRUE, amplitudeShift=TRUE, maxEV=TRUE)
 
-# now use region-specific intercepts in endemic component
-f.end2 <- addSeason2formula(f = ~ -1 + fe(1, unitSpecific = TRUE) + t,
-                            S = 1, period = 52)
-model2 <- list(ar = list(f = ~ 1), 
-               end = list(f = f.end2, offset = population(measles)),
-               family = "NegBin1")
-# run model
-summary(hhh4(measles, control=model2), idx2Exp=1, amplitudeShift=TRUE)
+## but we should use region-specific intercepts and a population offset
+## in the endemic component => update the model
+f.end2 <- update.formula(f.end, ~ . + fe(1, unitSpecific = TRUE) - 1)
+f.end2
+measlesFit2 <- update(measlesFit,
+    end = list(f = f.end2, offset = population(measles)))
+summary(measlesFit2, idx2Exp=TRUE, amplitudeShift=TRUE, maxEV=TRUE)
 
-# include autoregressive parameter phi for adjacent "Kreise"
-# no linear trend in endemic component
-f.end3 <- addSeason2formula(f = ~ -1 + fe(1, unitSpecific = TRUE), 
-                            S = 1, period = 52)
-model3 <- list(ar = list(f = ~ 1),
-               ne = list(f = ~ 1),
-               end = list(f = f.end3, offset = population(measles)),
-               family = "NegBin1")
-# run model
-res3 <- hhh4(measles, control=model3)
-summary(res3, idx2Exp=1:2, amplitudeShift=TRUE)
+## now also allow for transmission from adjacent districts
+measlesFit3 <- update(measlesFit2,
+    ne = list(f = ~1, weights = neighbourhood(measles)))
+summary(measlesFit3, idx2Exp=TRUE, amplitudeShift=TRUE)
+plot(measlesFit3, units = NULL, hide0s = TRUE)
 
 \dontshow{
 ## check that neighbourhood weights array yields same result
 .neweights <- array(neighbourhood(measles),
                    dim = c(rep(ncol(measles),2),nrow(measles)),
                    dimnames = c(dimnames(neighbourhood(measles)), list(NULL)))
-res3_tv <- hhh4(measles, control = modifyList(model3,
-                list(ne=list(weights=.neweights))))
-stopifnot(all.equal(res3, res3_tv, ignore = "control"))
+measlesFit3_tv <- update(measlesFit3, ne = list(weights = .neweights),
+                         use.estimates = FALSE)
+stopifnot(all.equal(measlesFit3, measlesFit3_tv, ignore = "control"))
 }
 
+## See vignette("hhh4_spacetime") for further analyses of the measles
+## data from Weser-Ems, including vaccination coverage as a covariate,
+## power-law weights, and random intercepts.
+
+
 \dontrun{
-######################################################################
-# Fit the models from the Paul & Held (2011) paper for the influenza data
-# from Bavaria and Baden-Wuerttemberg (this takes some time!)
-# For further documentation see also the vignette.
-######################################################################
+### last but not least, a more sophisticated (and time-consuming)
+### analysis of weekly counts of influenza from 140 districts in
+### Southern Germany (originally analysed by Paul and Held, 2011,
+### and revisited by Held and Paul, 2012, and Meyer and Held, 2014)
 
-data("fluBYBW") 
+data("fluBYBW")
+plot(fluBYBW, type = observed ~ time)
+plot(fluBYBW, type = observed ~ unit,
+     ## mean yearly incidence per 100.000 inhabitants (8 years)
+     population = fluBYBW@map$X31_12_01 / 100000 * 8)
 
-###############################################################
-## generate formula for temporal and seasonal trends
-f.end <- addSeason2formula(f = ~ -1 + ri(type="iid", corr="all") + 
-                               I((t-208)/100), S=3, period=52)
+## For the full set of models for data("fluBYBW") as analysed by
+## Paul and Held (2011), including predictive model assessement
+## using proper scoring rules, see the (computer-intensive)
+## demo("fluBYBW") script:
+demoscript <- system.file(file.path("demo", "fluBYBW.R"),
+                          package = "surveillance")
+demoscript
+#file.show(demoscript)
 
-## details for optimizer
-opt <- list(stop = list(tol=1e-5, niter=200),
-            regression = list(method="nlminb"),
-            variance = list(method="nlminb"))
+## Here we fit the improved power-law model of Meyer and Held (2014)
+## - autoregressive component: random intercepts + S = 1 sine/cosine pair
+## - neighbour-driven component: random intercepts + S = 1 sine/cosine pair
+##   + population gravity with normalized power-law weights
+## - endemic component: random intercepts + trend + S = 3 sine/cosine pairs
+## - random intercepts are iid but correlated between components
+f.S1 <- addSeason2formula(
+    ~-1 + ri(type="iid", corr="all"),
+    S = 1, period = 52)
+f.end.S3 <- addSeason2formula(
+    ~-1 + ri(type="iid", corr="all") + I((t-208)/100),
+    S = 3, period = 52)
 
-##########################
-## models 
-# A0
-cntrl_A0 <- list(ar = list(f = ~ -1),
-                 end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt, verbose = 1)
-summary(res_A0 <- hhh4(fluBYBW,cntrl_A0))
+## for power-law weights, we need adjaceny orders, which can be
+## computed from the binary adjacency indicator matrix
+nbOrder1 <- neighbourhood(fluBYBW)
+neighbourhood(fluBYBW) <- nbOrder(nbOrder1, 15)
 
-# B0
-cntrl_B0 <- list(ar = list(f = ~ 1),
-                 end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt, verbose=1)
-res_B0 <- hhh4(fluBYBW,cntrl_B0)               
- 
+## full model specification
+fluModel <- list(
+    ar = list(f = f.S1),
+    ne = list(f = update.formula(f.S1, ~ . + log(pop)),
+              weights = W_powerlaw(maxlag=max(neighbourhood(fluBYBW)),
+                                   normalize = TRUE, log = TRUE)),
+    end = list(f = f.end.S3, offset = population(fluBYBW)),
+    family = "NegBin1", data = list(pop = population(fluBYBW)),
+    optimizer = list(variance = list(method = "Nelder-Mead")),
+    verbose = TRUE)
 
-# C0
-cntrl_C0 <- list(ar = list(f = ~ -1 + ri(type="iid", corr="all")),
-                 end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt, verbose=1)
-res_C0 <- hhh4(fluBYBW,cntrl_C0)               
+## CAVE: random effects considerably increase the runtime of model estimation
+## (It is usually advantageous to first fit a model with simple intercepts
+## to obtain reasonable start values for the other parameters.)
+set.seed(1)  # because random intercepts are initialized randomly
+fluFit <- hhh4(fluBYBW, fluModel)
 
+summary(fluFit, idx2Exp=TRUE, amplitudeShift=TRUE)
 
-#A1
+plot(fluFit, type = "season")
 
-# weight matrix w_ji = 1/(No. neighbors of j) if j ~ i, and 0 otherwise
-wji <- neighbourhood(fluBYBW)/rowSums(neighbourhood(fluBYBW))
+plot(fluFit, type = "neweights", xlab = "adjacency order")
 
-cntrl_A1 <- list(ar = list(f = ~ -1),
-                 ne = list(f = ~ 1, weights = wji),
-                 end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt, verbose=1)
-res_A1 <- hhh4(fluBYBW,cntrl_A1)               
+gridExtra::grid.arrange(
+    grobs = lapply(c("ar", "ne", "end"), function (comp)
+        plot(fluFit, type = "ri", component = comp, main = comp,
+             at = seq(-2.6, 2.6, length.out = 15),
+             col.regions = cm.colors(14))),
+    nrow = 1, ncol = 3)
 
-
-# B1
-cntrl_B1 <- list(ar = list(f = ~ 1),
-                 ne = list(f = ~ 1, weights = wji),
-                 end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt, verbose=1)
-res_B1 <- hhh4(fluBYBW,cntrl_B1)               
-
-
-# C1
-cntrl_C1 <- list(ar = list(f = ~ -1 + ri(type="iid", corr="all")),
-                 ne = list(f = ~ 1, weights = wji),
-                 end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt, verbose=1)
-res_C1 <- hhh4(fluBYBW,cntrl_C1)               
-
-
-#A2
-cntrl_A2 <- list(ar = list(f = ~ -1),
-                 ne = list(f = ~ -1 + ri(type="iid",corr="all"), weights=wji),
-                 end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt, verbose=1)
-res_A2 <- hhh4(fluBYBW,cntrl_A2)               
-
-
-# B2
-cntrl_B2 <- list(ar = list(f = ~ 1),
-                 ne = list(f = ~ -1 + ri(type="iid",corr="all"), weights =wji),
-                 end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt, verbose=1)
-res_B2 <- hhh4(fluBYBW,cntrl_B2)               
-
-# C2
-cntrl_C2 <- list(ar = list(f = ~ -1 + ri(type="iid", corr="all")),
-                 ne = list(f = ~ -1 + ri(type="iid",corr="all"), weights =wji),
-                 end = list(f =f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", optimizer = opt, verbose=1,
-                 start=list(fixed=fixef(res_B0),random=c(rep(0,140),
-                         ranef(res_B0)), sd.corr=c(-.5,res_B0$Sigma.orig,0)))
-res_C2 <- hhh4(fluBYBW,cntrl_C2)               
-
-
-# D
-cntrl_D <- list(ar = list(f = ~ 1),
-                ne = list(f = ~ -1 + ri(type="iid"), weights = wji),
-                end = list(f =addSeason2formula(f = ~ -1 + ri(type="car") + 
-                                             I((t-208)/100), S=3, period=52), 
-                          offset = population(fluBYBW)),
-                family = "NegBin1", optimizer = opt, verbose=1)
-res_D <- hhh4(fluBYBW,cntrl_D)               
-
+range(plot(fluFit, type = "maxEV"))
 }
 }
 

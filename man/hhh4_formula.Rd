@@ -9,8 +9,8 @@ Specify Formulae in a Random Effects HHH Model
 
 \description{
 The special functions \code{fe} and \code{ri} are used to specify 
-(unit-specific) effects of covariates and a random intercept term, 
-respectively, in formulae used in the function \code{\link{hhh4}}.
+unit-specific effects of covariates and random intercept terms, 
+respectively, in the component formulae of \code{\link{hhh4}}.
 }
 
 \usage{
@@ -40,7 +40,7 @@ respectively, in formulae used in the function \code{\link{hhh4}}.
     in a bivariate \code{hhh4} model, does \emph{not} mean that the
     (autoregressive) model component is omitted for this unit, but that
     \eqn{\log(\lambda_1) = \alpha_1} and \eqn{\log(\lambda_2) = 0}, which
-    is usually not of interest. ATM, omiting an autoregressive effect for
+    is usually not of interest. ATM, omitting an autoregressive effect for
     a specific unit is not possible.\cr
     If \code{which=NULL}, the parameter is assumed to be the same
     for all units.}
@@ -61,77 +61,19 @@ respectively, in formulae used in the function \code{\link{hhh4}}.
 
 
 \seealso{
-\code{\link{addSeason2formula}}, 
-usage of formulae in the vignette and in examples of \code{\link{hhh4}}.
+\code{\link{addSeason2formula}}
+
+\code{hhh4} model specifications in \code{vignette("hhh4")},
+\code{vignette("hhh4_spacetime")} or on the help page of
+\code{\link{hhh4}}.
 }
 
 \note{
-This function should only be used in formula objects for \code{\link{hhh4}}, 
-and is not intended for direct calling.
+These special functions are intended for use in component formulae of
+\code{hhh4} models and are not exported from the package namespace.
 
-If unit-specific or random intercepts are specified, an overall
+If unit-specific fixed or random intercepts are specified, an overall
 intercept must be excluded (by \code{-1}) in the component formula.
 }
 
 \keyword{regression}
-
-
-\examples{
-# some calls of the fitting function 'hhh4': 
-# see vignette("hhh4") for further details
-
-data("influMen")
-fluMen <- disProg2sts(influMen)
-meningo <- fluMen[, "meningococcus"]
-
-## Ex: univariate time series of meningococcal infections in Germany
-# Negative binomial model with
-# endemic component: Intercept + S = 1 sine/cosine pair
-# autoregressive component: Intercept
-
-f.S1 <- addSeason2formula(f = ~ 1, S = 1, period = 52)
-hhh4(meningo, list(
-    ar = list(f = ~ 1),
-    end = list(f = f.S1), 
-    family = "NegBin1"
-))
-
-
-## Ex: disease-specific intercept in influenza/meningococcal time series
-# Negative binomial model with
-# autoregressive component: disease-specific intercepts
-# neighbour-driven component: only transmission from flu to men
-# endemic component: S=3 and S=1 sine/cosine pairs for flu and men, respectively
-
-Wflumen <- neighbourhood(fluMen)
-Wflumen["meningococcus","influenza"] <- 0
-Wflumen
-f.end <- addSeason2formula(f = ~ -1 + fe(1, which = c(TRUE,TRUE)), 
-                           S = c(3, 1), period = 52)
-f.end
-m <- list(ar = list(f = ~ -1 + fe(1, unitSpecific = TRUE)),
-          ne = list(f = ~ 1, weights = Wflumen),
-          end = list(f = f.end),
-          family = "NegBinM")
-hhh4(fluMen, control = m)
-
-
-\dontrun{
-## Ex: (correlated) random intercepts for influenza in Southern Germany
-# Negative binomial model with
-# autoregressive component: Intercept
-# neighbour-driven component: random intercepts
-# endemic component: random intercepts + trend + S = 3 sine/cosine pairs
-
-data("fluBYBW")
-f.end <- addSeason2formula(f = ~ -1 + ri(type = "iid", corr="all") +
-                                 I((t-208)/100), S = 3, period = 52)
-wji <- neighbourhood(fluBYBW)/rowSums(neighbourhood(fluBYBW))
-model.B2 <- list(ar = list(f = ~ 1),
-                 ne = list(f = ~ -1 + ri(type = "iid", corr="all"), 
-                           weights = wji),
-                 end = list(f = f.end, offset = population(fluBYBW)),
-                 family = "NegBin1", verbose = TRUE)
-hhh4(fluBYBW, model.B2)
-}
-}

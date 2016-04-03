@@ -12,9 +12,9 @@
 \format{
   A \code{data.frame} containing 19 rows and 5 columns with variables
   \describe{
-    \item{state}{Names of states: first each of the 16 states (Bundeslaender, BL) 
-    is listed, followed by the Total of Germany, as well as the total 
-    of West (alte BL) and East Germany (neue BL).}
+    \item{state}{Names of states: the 16 federal states are
+    followed by the total of Germany, as well as the total 
+    of West and East Germany.}
     \item{nOfexaminedChildren}{Number of children examined.}
     \item{withVaccDocument}{Percentage of children who presented vaccination documents.}
     \item{MMR1}{Percentage of children with vaccination documents, who

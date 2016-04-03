@@ -12,7 +12,8 @@ epidemics as described in \enc{Höhle}{Hoehle} (2009).  Estimation is driven
 by (penalized) maximum likelihood in the point process frame work.  Optimization 
 (maximization) of the (penalized) likelihood function is performed by means of 
 \code{\link{optim}}.
-The implementation is illustrated in Meyer et al. (2016, Section 4).
+The implementation is illustrated in Meyer et al. (2016, Section 4),
+see \code{vignette("twinSIR")}.
 }
 
 \usage{
@@ -192,7 +193,7 @@ twinSIR(formula, data, weights, subset,
   \code{lambda.smooth} smoothing parameter selection based on a mixed
   model representation of an equivalent truncated power spline is offered (see
   reference for further details). The following two steps are iterated
-  until converegence:
+  until convergence:
   \enumerate{
     \item Given fixed smoothing parameter, the penalized
     likelihood is optimized for the regression components using a L-BFGS-B

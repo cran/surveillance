@@ -2,9 +2,9 @@
 \name{backprojNP}
 \alias{backprojNP}
 %Internal functions
-\alias{backprojNP.fit}
-\alias{naninf2zero}
-\alias{em.step.becker}
+%\alias{backprojNP.fit}
+%\alias{naninf2zero}
+%\alias{em.step.becker}
 
 \title{
   Non-parametric back-projection of incidence cases to exposure cases
@@ -24,12 +24,12 @@
   Poisson distribution, but without any parametric assumption on how the
   \eqn{\lambda_t}{lambda_t} evolve in time.
 
-  Furthermore, the function contains a boostrap based procedure, as
+  Furthermore, the function contains a bootstrap based procedure, as
   given in Yip et al (2011), which allows an indication of uncertainty
   in the estimated \eqn{\lambda_t}{lambda_T}. The procedure is
   equivalent to the suggestion in Becker and Marschner (1993). However,
   the present implementation in \code{backprojNP} allows only a
-  univariate time series, i.e. simulteneous age groups as in Becker and
+  univariate time series, i.e. simultaneous age groups as in Becker and
   Marschner (1993) are not possible.
 
   The method in Becker et al. (1991) was originally developed for the

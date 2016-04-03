@@ -5,7 +5,7 @@
 \title{Compute indices of reference value using Date class}
 \description{ 
 
-  The reference values are formed base on computatations 
+  The reference values are formed based on computations 
   of \code{seq} for Date class arguments.  
 
 }
@@ -27,7 +27,7 @@ refvalIdxByDate(t0, b, w, epochStr, epochs)
   For each year, go \code{w} epochs back and include from here to
   \code{w} epochs after \code{t0}.
 
-  In case of weeks we always go back to the closest monday of this
+  In case of weeks we always go back to the closest Monday of this
   date. In case of months we also go back in time to closest 1st of
   month. 
 }

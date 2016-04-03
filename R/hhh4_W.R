@@ -5,9 +5,9 @@
 ###
 ### Helper functions for neighbourhood weight matrices in hhh4()
 ###
-### Copyright (C) 2012-2015 Sebastian Meyer
-### $Revision: 1374 $
-### $Date: 2015-06-10 14:31:52 +0200 (Mit, 10. Jun 2015) $
+### Copyright (C) 2012-2016 Sebastian Meyer
+### $Revision: 1687 $
+### $Date: 2016-04-01 21:40:25 +0200 (Fre, 01. Apr 2016) $
 ################################################################################
 
 
@@ -268,7 +268,7 @@ getNEweights <- function (object, pars = coefW(object),
 
 coefW <- function (object)
 {
-    coefs <- if (inherits(object, c("hhh4","ah4"))) object$coefficients else object
+    coefs <- if (inherits(object, "hhh4")) object$coefficients else object
     coefW <- coefs[grep("^neweights", names(coefs))]
     names(coefW) <- sub("^neweights\\.", "", names(coefW))
     coefW

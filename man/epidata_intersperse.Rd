@@ -8,7 +8,7 @@ Impute Blocks for Extra Stops in \code{"epidata"} Objects
 \description{
   This function modifies an object inheriting from class \code{"epidata"} such 
   that it features the specified stop time points.  For this purpose, the time 
-  interval in the event history into which the new stop falls will be splitted 
+  interval in the event history into which the new stop falls will be split 
   up into two parts, one block for the time period until the new stop -- where 
   no infection or removal occurs -- and the other block for the time period 
   from the new stop to the end of the original interval.\cr

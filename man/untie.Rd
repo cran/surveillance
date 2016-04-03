@@ -33,7 +33,7 @@ untie(x, amount, ...)
     the data to be untied.
   }
   \item{amount}{
-    upperbound for the random amount by which data are shifted.
+    upper bound for the random amount by which data are shifted.
     \code{NULL} means to use a data-driven default, which equals
     the minimum separation of the data points for the non-symmetric
     default method and its half for the symmetric default method and the

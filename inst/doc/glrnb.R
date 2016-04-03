@@ -2,15 +2,15 @@
 ### Encoding: UTF-8
 
 ###################################################
-### code chunk number 1: glrnb.Rnw:48-55
+### code chunk number 1: setup
 ###################################################
 library("surveillance")
 options(SweaveHooks=list(fig=function() par(mar=c(4,4,2,0)+.5)))
 options(width=70)
 set.seed(247)
 
-## create directory for plots if it does not exist
-if(!dir.exists("plots")) dir.create("plots")
+## create directory for plots
+dir.create("plots", showWarnings=FALSE)
 
 
 ###################################################
@@ -102,19 +102,19 @@ with(surv$control,lines(mu0~range,lty=2,lwd=4,col=4))
 
 
 ###################################################
-### code chunk number 14: glrnb.Rnw:232-233
+### code chunk number 14: glrnb.Rnw:234-235
 ###################################################
 estimateGLRNbHook
 
 
 ###################################################
-### code chunk number 15: glrnb.Rnw:272-273
+### code chunk number 15: glrnb.Rnw:275-276
 ###################################################
 coef(surv$control$mu0Model$fitted[[1]])
 
 
 ###################################################
-### code chunk number 16: glrnb.Rnw:281-284
+### code chunk number 16: glrnb.Rnw:284-287
 ###################################################
 control=list(range=105:295,alpha=0)
 surv <- algo.glrnb(disProgObj=shadar,control=control)
@@ -122,7 +122,7 @@ table(surv$alarm)
 
 
 ###################################################
-### code chunk number 17: glrnb.Rnw:289-293
+### code chunk number 17: glrnb.Rnw:292-296
 ###################################################
 num <- rep(NA)
 for (i in 1:6){
@@ -131,42 +131,42 @@ num[i] <- table(algo.glrnb(disProgObj=shadar,control=c(control,c.ARL=i))$alarm)[
 
 
 ###################################################
-### code chunk number 18: glrnb.Rnw:318-320 (eval = FALSE)
+### code chunk number 18: glrnb.Rnw:320-322 (eval = FALSE)
 ###################################################
 ## control=list(range=105:295,theta=0.4)
 ## algo.glrnb(disProgObj=shadar,control=control)
 
 
 ###################################################
-### code chunk number 19: glrnb.Rnw:325-327 (eval = FALSE)
+### code chunk number 19: glrnb.Rnw:327-329 (eval = FALSE)
 ###################################################
 ## control=list(range=105:295,theta=NULL)
 ## algo.glrnb(disProgObj=shadar,control=control)
 
 
 ###################################################
-### code chunk number 20: glrnb.Rnw:335-337
+### code chunk number 20: glrnb.Rnw:337-339
 ###################################################
 control=list(range=105:295,ret="cases",alpha=0)
 surv2 <- algo.glrnb(disProgObj=shadar,control=control)
 
 
 ###################################################
-### code chunk number 21: glrnb.Rnw:340-341
+### code chunk number 21: glrnb.Rnw:342-343
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 plot(surv2,startyear=2003)
 
 
 ###################################################
-### code chunk number 22: glrnb.Rnw:351-353
+### code chunk number 22: glrnb.Rnw:353-355
 ###################################################
 control=list(range=105:295,ret="cases",dir="dec",alpha=0)
 surv3 <- algo.glrnb(disProgObj=shadar,control=control)
 
 
 ###################################################
-### code chunk number 23: glrnb.Rnw:356-357
+### code chunk number 23: glrnb.Rnw:358-359
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 plot(surv3,startyear=2003)

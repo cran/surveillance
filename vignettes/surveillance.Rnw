@@ -40,18 +40,14 @@ Germany }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Initial R code
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-<<echo=F,results=hide>>=
+<<setup,echo=F,results=hide>>=
 library("surveillance")
 options(SweaveHooks=list(fig=function() par(mar=c(4,4,2,0)+.5)))
 options(width=70)
 set.seed(1234)
 
-#####################################################################
-# create directory for plots if it does not exist
-#####################################################################
-if(!dir.exists("plots")) dir.create("plots")
+## create directory for plots
+dir.create("plots", showWarnings=FALSE)
 
 ######################################################################
 #Do we need to compute or can we just fetch results

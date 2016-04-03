@@ -33,7 +33,7 @@
         \item{main}{the title of the graphics is generated from the \code{method} and \code{disease} arguments if not specified otherwise}
         \item{same.scale}{plot all time series with the same \code{ylim}? Defaults to \code{true}}.
         \item{type}{line type of the observed counts (first two elements) and the upper bound (third element)}
-        \item{lty}{vector of size 3 speciying the line type of the observed counts (left, right) and the upperbound line}
+        \item{lty}{vector of size 3 specifying the line type of the observed counts (left, right) and the upperbound line}
         \item{col}{vector with three elements: color of left bar and color of top bar, color of right bar, col of the upperbound line.}
         \item{outbreak.symbol}{list with entries \code{pch} and \code{col} specifying the plot symbol}
         \item{alarm.symbol}{list with entries \code{pch} and \code{col} specifying the plot symbol}

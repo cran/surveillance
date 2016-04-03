@@ -5,10 +5,12 @@
 \title{Permutation Test for Space-Time Interaction in \code{"twinstim"}}
 
 \description{
-  The function \code{epitest} takes a simple epidemic \code{"twinstim"}
-  model (one with \code{epidemic = ~1}) and tests if the spatio-temporal
-  interaction invoked by the \code{epidemic} model component is
-  statistically significant.
+  The function \code{epitest} takes an epidemic \code{"twinstim"} model
+  (with homogeneous infectivity of events, i.e., \code{epidemic = ~1}),
+  and tests if the spatio-temporal interaction invoked by the epidemic
+  model component is statistically significant. A permutation test is
+  performed by default, which is only valid if the endemic intensity is
+  space-time separable.
   The approach is described in detail in Meyer et al. (2015),
   where it is also compared to alternative global tests for clustering
   such as the \code{\link{knox}} test.
@@ -31,6 +33,9 @@ epitest(model, data, tiles, method = "time", B = 199,
     space-time interaction such as in the permuted data. Estimating a
     rich epidemic \code{model} under the null hypothesis of no
     space-time interaction will most likely result in singular convergence.
+    Note that the permutation test is only valid for models with
+    a separable endemic intensity, i.e., independent spatial and
+    temporal background processes.
   }
   \item{data}{
     an object of class \code{"\link{epidataCS}"}, the \code{data} to
@@ -148,9 +153,10 @@ epitest(model, data, tiles, method = "time", B = 199,
   The test statistic is the reproduction number \code{\link{simpleR0}}.
   A likelihood ratio test of the supplied epidemic model against
   the corresponding endemic-only model is also available.
-  The null distribution of the test statistic is obtained by a Monte Carlo permutation
-  approach (via \code{\link{permute.epidataCS}}) similar to the
-  \code{\link{knox}} test.
+  By default, the null distribution of the test statistic under no
+  space-time interaction is obtained by a Monte Carlo permutation
+  approach (via \code{\link{permute.epidataCS}}) and therefore relies on
+  a space-time separable endemic model component.
   
   The \code{plot}-method shows a \code{\link{truehist}} of
   the simulated null distribution together with the observed value.

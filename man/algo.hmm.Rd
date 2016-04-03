@@ -10,7 +10,7 @@
   is estimated, the decoding problem, i.e. the most probable state
   configuration, is found by the Viterbi algorithm and the most
   probable state of the last observation is recorded. On-line
-  detection is performed by sequentally repeating this procedure.
+  detection is performed by sequentially repeating this procedure.
   
   Warning: This function can be very slow - a more efficient implementation would be nice!
 }
@@ -101,14 +101,13 @@
 \seealso{\code{\link[msm:msm]{msm}}}
 \author{M. \enc{Höhle}{Hoehle}}
 \examples{
-\dontrun{
-library("msm")
-set.seed(123)
 #Simulate outbreak data from HMM
+set.seed(123)
 counts <- sim.pointSource(p = 0.98, r = 0.8, length = 3*52,
                               A = 1, alpha = 1, beta = 0, phi = 0,
                               frequency = 1, state = NULL, K = 1.5)
 
+\dontrun{
 #Do surveillance using a two state HMM without trend component and
 #the effect of the harmonics being the same in both states. A sliding
 #window of two years is used to fit the HMM
@@ -116,7 +115,9 @@ surv <- algo.hmm(counts, control=list(range=(2*52):length(counts$observed),
                                    Mtilde=2*52,noStates=2,trend=FALSE,
                                    covEffectsEqual=TRUE,extraMSMargs=list()))
 plot(surv,legend=list(x="topright"))
+}
 
+if (require("msm")) {
 #Retrospective use of the function, i.e. monitor only the last time point
 #but use option saveHMMs to store the output of the HMM fitting
 surv <- algo.hmm(counts,control=list(range=length(counts$observed),Mtilde=-1,noStates=2,
@@ -126,7 +127,8 @@ surv <- algo.hmm(counts,control=list(range=length(counts$observed),Mtilde=-1,noS
 viterbi.msm(surv$control$hmm[[1]])$fitted
 
 #How often correct?
-tab <- cbind( truth=counts$state + 1 , hmm=viterbi.msm(surv$control$hmm[[1]])$fitted)
+tab <- cbind(truth=counts$state + 1 ,
+             hmm=viterbi.msm(surv$control$hmm[[1]])$fitted)
 table(tab[,1],tab[,2])
 }
 }

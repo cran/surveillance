@@ -66,7 +66,6 @@ algo.hhh.grid(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
 }
 \author{M. Paul, L. Held}
 \examples{
-\dontrun{
 ## monthly counts of menigococcal infections in France
 data(meningo.age)
             
@@ -81,6 +80,9 @@ grid1 <- create.grid(meningo.age, model1,
 algo.hhh.grid(meningo.age, control=model1, thetastartMatrix=grid1,
                verbose=TRUE)
 
+
+## more sophisticated models with a much longer runtime follow
+\dontrun{
 # specify model
 model2 <- list(lambda=TRUE, neighbours=TRUE, negbin="single",
                nseason=1)

@@ -74,14 +74,14 @@ farringtonFlexible(sts, control = list(
     Farrington et al (1996).}
      \item{\code{pastWeeksNotIncluded}}{Number of past weeks to ignore in the calculation.}
     \item{\code{thresholdMethod}}{Method to be used to derive the upperbound.
-    Options are "delta" for the method described in Farrington et al. (1996),
-    "Noufaily" for the method described in Noufaily et al. (2012),
-    and "muan" for the method extended from Noufaily et al. (2012).}
+    Options are \code{"delta"} for the method described in Farrington et al. (1996),
+    \code{"Noufaily"} for the method described in Noufaily et al. (2012),
+    and \code{"muan"} for the method extended from Noufaily et al. (2012).}
       }
     }
 }
 \details{
-  The following steps are perfomed according to the Farrington
+  The following steps are performed according to the Farrington
   et al. (1996) paper.
 \enumerate{
 \item Fit of the initial model with intercept, time trend if \code{trend} is \code{TRUE},
@@ -101,7 +101,7 @@ The method used depends on \code{thresholdMethod}, this can either be:
 error, depending on \code{powertrans}), is normally distributed. The threshold is deduced from a quantile of
 this normal distribution using the variance and estimate of the expected
 count given by GLM, and the delta rule. The procedure takes into account both the estimation error (variance of the estimator
-of the expected count in the glm) and the prediction error (variance of the prediction error). This is the suggestion
+of the expected count in the GLM) and the prediction error (variance of the prediction error). This is the suggestion
 in Farrington et al. (1996).}
     \item{"nbPlugin"}{One assumes that the new count follows
 a negative binomial distribution parameterized by the expected count and the overdispersion
@@ -123,10 +123,10 @@ The slot \code{control} is the usual list but with more items all of length \cod
 \item{trendVector}{ is a vector giving the coefficient of the time trend in the GLM for this time point. If no trend was fitted it is equal to NA.}
 \item{pvalue}{ is a vector giving the probability of observing a value at least equal to the observation under the null hypothesis .}
 \item{expected}{is a vector giving the expectation of the predictive distribution for each timepoint. 
-It is only reported if the conditions for raising an alarm are met, e.g enoughCases.}
+It is only reported if the conditions for raising an alarm are met (enough cases).}
 \item{mu0Vector}{ is a vector giving what is inputed in the negative binomial distribution to get the upperbound as a quantile 
-(either a plug-in from the glm or a quantile from the asymptotic normal distribution of the estimator)}
-\item{phiVector}{ is a vector giving the overdispersion of the glm at each timepoint.}
+(either a plug-in from the GLM or a quantile from the asymptotic normal distribution of the estimator)}
+\item{phiVector}{ is a vector giving the overdispersion of the GLM at each timepoint.}
 
 }
 }

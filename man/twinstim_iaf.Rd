@@ -25,8 +25,8 @@
   package already predefines some useful dispersal kernels returned by
   the constructor functions documented here.
   See Meyer and Held (2014) for various spatial interaction functions,
-  and Meyer et al. (2016, Section 3) for an illustration of
-  the implementation.
+  and Meyer et al. (2016, Section 3, available as \code{vignette("twinstim")})
+  for an illustration of the implementation.
 }
 
 \usage{
@@ -188,7 +188,7 @@ tiaf.exponential(nTypes = 1, validpars = NULL)
       the threshold \eqn{||s||=\sigma}. This local non-differentiability
       makes \code{twinstim}'s likelihood maximization sensitive wrt
       parameter start values, and is likely to cause false convergence
-      warnings by \code{\link{nlminb}}. Possible work-arounds are to use
+      warnings by \code{\link{nlminb}}. Possible workarounds are to use
       the slow and robust \code{method="Nelder-Mead"}, or to just ignore
       the warning and verify the result by sets of different start values.
     }

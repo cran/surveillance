@@ -3,7 +3,7 @@
 \alias{aggregate,sts,ANY,ANY-method}
 \alias{aggregate,sts-method}
 
-\title{Aggregate the the series of an sts object}
+\title{Aggregate an \code{"sts"} Object Over Time or Across Units}
 \description{
   Method to aggregate the matrix slots of an sts object.
   Either the time series is aggregated so a new sampling frequency of
@@ -13,8 +13,8 @@
 
   Note: The function is not 100\% consistent with what the generic
   function \code{\link{aggregate}} does.
-
 }
+
 \section{Methods}{
   \describe{
     \item{x = "sts", by="time", nfreq="all",...}{
@@ -30,20 +30,21 @@
   }
 }
 
-\details{
-    Warning: Aggregation by unit sets the upperbound slot to
-    \code{NA} and the MAP object is left as-is, but the object 
-    cannot be plotted by unit any longer. 
+\section{Warning}{
+  Aggregation by unit sets the upperbound slot to
+  \code{NA} and the \code{map} slot is left as-is, but the object 
+  cannot be plotted by unit any longer. 
 }
+  
 \seealso{
   \code{\link{aggregate}}
 }
-\examples{
-  data("ha")
-  has4 <- disProg2sts(ha)
-  dim(has4)
-  dim(aggregate(has4,by="unit"))
-  dim(aggregate(has4,nfreq=13))
-}
-\keyword{methods}
 
+\examples{
+  data("ha.sts")
+  dim(ha.sts)
+  dim(aggregate(ha.sts,by="unit"))
+  dim(aggregate(ha.sts,nfreq=13))
+}
+
+\keyword{methods}

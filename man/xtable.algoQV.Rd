@@ -1,7 +1,7 @@
 \name{xtable.algoQV}
 \alias{xtable.algoQV}
 \title{Xtable quality value object}
-\description{Xtable a single qualitity value object in a nicely formatted way}
+\description{xtable a single quality value object in a nicely formatted way}
 \usage{
   \method{xtable}{algoQV}(x,caption = NULL, label = NULL, 
              align = NULL, digits = NULL, display = NULL, ...)

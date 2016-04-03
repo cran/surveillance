@@ -45,7 +45,7 @@ simEpidata(formula, data, id.col, I0.col, coords.cols, subset,
     specified by \code{id.col}, \code{I0.col} and \code{coords.col} (see below).
     It represents the \dQuote{history} of the endemic covariates to use for the
     simulation.  The form is similar to and can be an object of class
-    \code{"\link{epidata}"}.  The simulation period is splitted up into
+    \code{"\link{epidata}"}.  The simulation period is split up into
     \emph{consecutive} intervals of constant endemic covariables.  The 
     data frame consists of a block of N (number of individuals) rows for each of
     those time intervals (all rows in a block share the same start and stop 

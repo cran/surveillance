@@ -1,7 +1,6 @@
 \encoding{latin1}
 \name{linelist2sts}
 \alias{linelist2sts}
-%Internal functions
 
 \title{
   Convert individual case information based on dates into an aggregated
@@ -31,7 +30,7 @@ linelist2sts(linelist,dateCol,
     A \code{data.frame} containing the line list of cases.
   }
   \item{dateCol}{A character string stating the column name in
-    \code{linelist} which contains the event occurence information (as a
+    \code{linelist} which contains the event occurrence information (as a
     vector of \code{Date}s) which are to be temporally aggregated.
   }
   \item{aggregate.by}{Temporal aggregation level given as a string, see
@@ -62,7 +61,7 @@ linelist2sts(linelist,dateCol,
 \details{
   The date range is automatically extended such that the starting and
   ending dates are always the first epoch within the period, i.e. for
-  aggregation by week it is moved to mondays. This is controlled by the
+  aggregation by week it is moved to Mondays. This is controlled by the
   \code{epochInPeriodStr} parameter.
 
   Please note that the formatting strings are implemented by the

@@ -66,7 +66,7 @@
     }
 }
 \details{
-  The following steps are perfomed according to the Farrington
+  The following steps are performed according to the Farrington
   et al. (1996) paper.
 \enumerate{
 \item fit of the initial model and initial estimation of mean and
@@ -98,19 +98,19 @@ res <- algo.farrington(salmonella.agona,control=control)
 plot(res,disease="Salmonella Agona",method="Farrington")
 
 \dontrun{
-#Generate random data and convert into sts object
+#Generate Poisson counts and convert into an "sts" object
 set.seed(123)
-x <- matrix(rpois(1000,lambda=1),ncol=1)
-sts <- new("sts", observed=x, epoch=1:nrow(x), state=x*0, freq=52)
+x <- rpois(520,lambda=1)
+sts <- sts(observed=x, state=x*0, freq=52)
 
 #Compare timing of the two possible fitters for algo.farrington (here using S4)
-system.time( sts1 <- farrington(sts, control=list(range=c(500:1000),
+system.time( sts1 <- farrington(sts, control=list(range=312:520,
                        fitFun="algo.farrington.fitGLM.fast")))
-system.time( sts2 <- farrington(sts, control=list(range=c(500:1000),
+system.time( sts2 <- farrington(sts, control=list(range=312:520,
                        fitFun="algo.farrington.fitGLM")))
 
 #Check if results are the same
-sum(upperbound(sts1) - upperbound(sts2))
+stopifnot(upperbound(sts1) == upperbound(sts2))
 }
 }
 \author{M. \enc{Höhle}{Hoehle}}

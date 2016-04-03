@@ -5,9 +5,9 @@
 ###
 ### Snapshot map (spplot) of an sts-object or matrix of counts
 ###
-### Copyright (C) 2013-2014 Sebastian Meyer
-### $Revision: 1125 $
-### $Date: 2014-12-05 14:11:14 +0100 (Fre, 05. Dez 2014) $
+### Copyright (C) 2013-2014,2016 Sebastian Meyer
+### $Revision: 1642 $
+### $Date: 2016-03-16 13:37:42 +0100 (Mit, 16. Mär 2016) $
 ################################################################################
 
 ## x: "sts" or (simulated) matrix of counts
@@ -33,6 +33,10 @@ stsplot_space <- function (x, tps = NULL, map = x@map,
 {
     counts <- if (inherits(x, "sts")) observed(x) else x
     if (length(map) == 0L) stop("no map")
+    if (is.null(colnames(counts)))
+        stop("need 'colnames(x)' (to be matched against 'row.names(map)')")
+    if (!all(colnames(counts) %in% row.names(map)))
+        stop("incomplete 'map'; ensure that 'all(colnames(x) %in% row.names(map))'")
     
     ## compute data to plot
     ncases <- getCumCounts(counts, tps)
@@ -47,7 +51,7 @@ stsplot_space <- function (x, tps = NULL, map = x@map,
     ## add ncases to map@data
     map <- as(map, "SpatialPolygonsDataFrame")
     map$ncases <- NA_real_
-    map$ncases[match(colnames(x),row.names(map))] <- ncases
+    map$ncases[match(colnames(counts),row.names(map))] <- ncases
     
     ## default main title
     if (is.null(main) && inherits(x, "sts"))

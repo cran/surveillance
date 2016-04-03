@@ -1,2 +1,3 @@
-cost    Run all commands in the Computational Statistics article. Requires a directory "figs" in the current working directory.
-biosurvbook Run all commands from the book chapter on Danish mortality monitoring using the surveillance package.
+cost          Code from the first paper about the R package surveillance (Hoehle, 2007, Comput Stat) illustrating some methods for aberration detection
+biosurvbook   Code from the book chapter on Danish mortality monitoring (Hoehle and Mazick, 2010)
+fluBYBW       Code from Paul and Held (2011, Stat Med) to illustrate hhh4() model fitting and predictive model assessement with proper scoring rules: an application to weekly influenza counts in Southern Germany

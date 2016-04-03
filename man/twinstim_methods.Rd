@@ -75,7 +75,7 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
   \item{runtime}{
     logical. If \code{TRUE}, the summary additionally includes the time
     elapsed and the number of log-likelihood and score function evaluations
-    during model fittting.
+    during model fitting.
   }
   \item{signif.stars}{logical. If \code{TRUE}, \dQuote{significance
       stars} are printed for each coefficient.}
@@ -89,7 +89,7 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
   \item{caption,label,align,display}{see \code{\link{xtable}}.}
   \item{ci.level,ci.fmt,ci.to}{the confidence intervals are calculated
     at level \code{ci.level} and printed using \code{\link{sprintf}}
-    with format \code{ci.fmt} and seperator \code{ci.to}.}
+    with format \code{ci.fmt} and separator \code{ci.to}.}
   \item{\dots}{
     For \code{print.summary.twinstim}, arguments passed to
     \code{\link{printCoefmat}}.\cr

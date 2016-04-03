@@ -275,3 +275,22 @@ estimateGLRNbHook <- function() {
 }
 
 
+######################################################################
+# simple wrapper for the Poisson case
+######################################################################
+
+algo.glrpois <- function(disProgObj,
+                         control = list(range=range,c.ARL=5,
+                           mu0=NULL, Mtilde=1, M=-1, change="intercept",
+                           theta=NULL,dir=c("inc","dec"),
+                           ret=c("cases","value"),xMax=1e4)) {
+  
+  if (is.null(control$alpha)) {
+    control$alpha <- 0
+  } else if (control$alpha != 0) {
+      stop("algo.glrpois has to operate with control$alpha = 0")
+  }
+  
+  algo.glrnb(disProgObj, control)
+  
+}

@@ -38,10 +38,11 @@
                     Fourier frequencies is fitted. Then this model is
                     used to predict the \code{range} values.}
                 }}
-            \item{\code{trans}}{one of the following transformations (warning: anscombe and negbin transformations are experimental)
+            \item{\code{trans}}{one of the following transformations (warning: Anscombe and NegBin transformations are experimental)
                 \describe{
                 \item{\code{rossi}}{standardized variables z3 as proposed by Rossi}
-                \item{\code{standard}}{standardized variables z1 (based on asympotic normality)}
+                \item{\code{standard}}{standardized variables z1 (based
+             on asymptotic normality) - This is the default.}
                 \item{\code{anscombe}}{anscombe residuals -- experimental}
                 \item{\code{anscombe2nd}}{ anscombe residuals as in Pierce and Schafer (1986) based on 2nd order approximation of E(X)  -- experimental}
                 \item{\code{pearsonNegBin}}{compute Pearson residuals for NegBin -- experimental}
@@ -54,23 +55,20 @@
       }
 }
 \value{
-\item{survRes}{
-    \code{algo.cusum} gives a list of class \code{survRes} which includes the 
+    \code{algo.cusum} gives a list of class \code{"survRes"} which includes the 
     vector of alarm values for every timepoint in \code{range} and the vector 
     of cumulative sums for every timepoint in \code{range} for the system 
     specified by \code{k} and \code{h}, the range and the input object of 
-    class disProg.
+    class \code{"disProg"}.
 
     The \code{upperbound} entry shows for each time instance the number of diseased individuals
     it would have taken the cusum to signal. Once the CUSUM signals no resetting is applied, i.e.
     signals occurs until the CUSUM statistic again returns below the threshold.
 
-    The \code{control$m.glm} entry contains the fitted glm object, if
-    the original argument was "\code{glm}".
-
-  }
+    In case \code{control$m="glm"} was used, the returned
+    \code{control$m.glm} entry contains the fitted \code{"glm"} object.
 }
-\details{This implementation is experimental, but will not be developed further.}
+\note{This implementation is experimental, but will not be developed further.}
 %\seealso{}
 \author{M. Paul and M. \enc{Höhle}{Hoehle}}
 \examples{
@@ -99,8 +97,3 @@
 }
 
 \keyword{classif}
-%\source{}
-
-
-
-

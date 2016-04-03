@@ -1,13 +1,13 @@
 \name{print.algoQV}
 \alias{print.algoQV}
 \title{Print quality value object}
-\description{Print a single qualitity value object in a nicely formatted way}
+\description{Print a single quality value object in a nicely formatted way}
 \usage{
   \method{print}{algoQV}(x,...)
 }
 \arguments{
 \item{x}{Quality Values object generated with \code{quality}}
-\item{...}{Further arguments (not reall used)}
+\item{...}{Further arguments (not really used)}
 }
 \keyword{print}
 \examples{

@@ -1,0 +1,559 @@
+%\VignetteIndexEntry{twinSIR: Individual-level epidemic modeling for a fixed population with known distances}
+%\VignetteEngine{knitr::knitr}
+%\VignetteDepends{surveillance, quadprog}
+
+<<setup, cache = FALSE, include = FALSE, purl = FALSE>>=
+## purl=FALSE => not included in the tangle'd R script
+knitr::opts_chunk$set(echo = TRUE, tidy = FALSE, results = 'markup',
+                      fig.path='plots/twinSIR-', fig.width = 8, fig.height = 4.5,
+                      fig.align = "center", fig.scap = NA, out.width = NULL,
+                      cache = FALSE, error = FALSE, message = FALSE)
+knitr::render_sweave()             # use Sweave environments
+knitr::set_header(highlight = '')  # no \usepackage{Sweave} (part of jss class)
+## R settings
+options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE)  # JSS
+options(width = 85, digits = 4)
+options(scipen = 1)  # so that 1e-4 gets printed as 0.0001
+## xtable settings
+options(xtable.booktabs = TRUE, xtable.size = "small",
+        xtable.sanitize.text.function = identity,
+        xtable.comment = FALSE)
+@ 
+
+<<include = FALSE>>=
+## load the "cool" package
+library("surveillance")
+
+## Compute everything or fetch cached results?
+message("Doing computations: ",
+        COMPUTE <- !file.exists("twinSIR-cache.RData"))
+if (!COMPUTE) load("twinSIR-cache.RData", verbose = TRUE)
+@ 
+
+
+\documentclass[nojss,nofooter,article]{jss}
+
+\title{%
+  \vspace{-1.5cm}
+  \fbox{\vbox{\normalfont\footnotesize
+      This introduction to the \code{twinSIR} modeling framework of the
+      \proglang{R}~package \pkg{surveillance} is based on a publication in the
+      \textit{Journal of Statistical Software} --
+      \citet[Section~4]{meyer.etal2014} -- which is the suggested reference
+      if you use the \code{twinSIR} implementation in your own work.}}\\[1cm]
+  \code{twinSIR}: Individual-level epidemic modeling for a fixed population with known distances}
+\Plaintitle{twinSIR: Individual-level epidemic modeling for a fixed population with known distances}
+\Shorttitle{Modeling epidemics in a fixed population with known distances}
+
+\author{Sebastian Meyer\thanks{Author of correspondence: \email{Sebastian.Meyer@ifspm.uzh.ch}}\\University of Zurich \And
+        Leonhard Held\\University of Zurich \And
+        Michael H\"ohle\\Stockholm University}
+\Plainauthor{Sebastian Meyer, Leonhard Held, Michael H\"ohle}
+
+%% Basic packages
+\usepackage{lmodern}          % successor of CM -> searchable Umlauts (1 char)
+\usepackage[english]{babel}   % language of the manuscript is American English
+
+%% Math packages
+\usepackage{amsmath,amsfonts} % amsfonts defines \mathbb
+\usepackage{mathtools}        % tools for math typesetting + amsmath-bugfixes
+\usepackage{bm}               % \bm: alternative to \boldsymbol from amsfonts
+\usepackage{bbm}              % \mathbbm: alternative to \mathbb from amsfonts
+
+%% Packages for figures and tables
+\usepackage{booktabs}         % make tables look nicer
+\usepackage{subcaption}       % successor of subfig, which supersedes subfigure
+\newcommand{\subfloat}[2][need a sub-caption]{\subcaptionbox{#1}{#2}} % -> knitr
+
+%% Handy math commands
+\newcommand{\abs}[1]{\lvert#1\rvert}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\given}{\,\vert\,}
+\newcommand{\dif}{\,\mathrm{d}}
+\newcommand{\IR}{\mathbb{R}}
+\newcommand{\IN}{\mathbb{N}}
+\newcommand{\ind}{\mathbbm{1}}
+\DeclareMathOperator{\Po}{Po}
+\DeclareMathOperator{\NegBin}{NegBin}
+\DeclareMathOperator{\N}{N}
+
+%% Additional commands
+\newcommand{\class}[1]{\code{#1}}  % could use quotes (JSS does not like them)
+\newcommand{\CRANpkg}[1]{\href{https://CRAN.R-project.org/package=#1}{\pkg{#1}}}
+
+%% Reduce the font size of code input and output
+\DefineVerbatimEnvironment{Sinput}{Verbatim}{fontshape=sl, fontsize=\small}
+\DefineVerbatimEnvironment{Soutput}{Verbatim}{fontsize=\small}
+
+%% Abstract
+\Abstract{
+The availability of geocoded health data and the inherent temporal
+structure of communicable diseases have led to
+an increased interest in statistical models and software for
+spatio-temporal data with epidemic features.
+The \proglang{R}~package \pkg{surveillance} can handle
+various levels of aggregation at which infective events have been recorded.
+This vignette illustrates the analysis of individual-level surveillance data
+for a fixed population, of which the complete SIR event history is assumed to be
+known. Typical applications for the multivariate, temporal point process model
+``\code{twinSIR}'' of \citet{hoehle2009} include the spread of infectious
+livestock diseases across farms, household models for childhood diseases,
+and epidemics across networks.
+%% (For other types of surveillance data, see
+%% \code{vignette("twinstim")} and \code{vignette("hhh4\_spacetime")}.)
+We first describe the general modeling approach and then exemplify
+data handling, model fitting, and visualization
+for a particularly well-documented measles outbreak among children of the
+isolated German village Hagelloch in 1861.
+%% Due to the many similarities with the spatio-temporal point process model
+%% ``\code{twinstim}'' described and illustrated in \code{vignette("twinstim")},
+%% we condense the \code{twinSIR} treatment accordingly.
+}
+
+\Keywords{%
+individual-level surveillance data,
+endemic-epidemic modeling,
+infectious disease epidemiology,
+self-exciting point process,
+branching process with immigration}
+
+
+
+\begin{document}
+
+
+
+\section[Model class]{Model class: \code{twinSIR}} \label{sec:twinSIR:methods}
+
+
+The spatio-temporal point process regression model ``\code{twinstim}''
+(\citealp{meyer.etal2011}, illustrated in \code{vignette("twinstim")})
+is indexed in a continuous spatial domain, i.e., the set of
+possible event locations %(the susceptible ``population'') 
+consists of the whole observation region and is thus infinite.
+In contrast, if infections can only occur at a known discrete set of sites, such
+as for livestock diseases among farms,
+the conditional intensity function (CIF) of the underlying point process
+formally becomes $\lambda_i(t)$. It characterizes the
+instantaneous rate of infection of individual $i$ at time $t$,
+given the sets $S(t)$ and $I(t)$ of susceptible and infectious individuals,
+respectively (just before time $t$).
+%In a similar regression view as in \code{vignette("twinstim")},
+\citet{hoehle2009} proposed the following endemic-epidemic
+multivariate temporal point process model (``\code{twinSIR}''):
+\begin{equation} \label{eqn:twinSIR}
+  \lambda_i(t) = \lambda_0(t) \, \nu_i(t) +
+  \sum_{j \in I(t)} \left\{ f(d_{ij}) +
+  \bm{w}_{ij}^\top \bm{\alpha}^{(w)} \right\} \:, %\qquad \text{if } i \in S(t)\:,
+\end{equation}
+if $i \in S(t)$, i.e., if individual $i$ is currently susceptible,
+and $\lambda_i(t) = 0$ otherwise.  The rate decomposes into two components. The
+first, endemic component consists of a Cox proportional hazards formulation
+containing a semi-parametric baseline hazard $\lambda_0(t)$ and a
+log-linear predictor $\nu_i(t)=\exp\left( \bm{z}_i(t)^\top \bm{\beta}
+\right)$ of covariates modeling infection from external
+sources. Furthermore, an additive epidemic component captures
+transmission from the set $I(t)$ of currently infectious individuals.
+The force of infection of individual $i$ depends on the distance $d_{ij}$ to each
+infective source $j \in I(t)$ through a distance kernel
+\begin{equation} \label{eqn:twinSIR:f}
+f(u) = \sum_{m=1}^M \alpha_m^{(f)} B_m(u) \: \geq 0 \:,
+\end{equation}
+which is represented by a linear combination of non-negative basis
+functions $B_m$ with the $\alpha_m^{(f)}$'s being
+the respective coefficients. 
+For instance, $f$ could be modeled by a B-spline
+\citep[Section~8.1]{Fahrmeir.etal2013},
+and $d_{ij}$ could refer to the Euclidean distance $\norm{\bm{s}_i - \bm{s}_j}$
+between the individuals' locations $\bm{s}_i$ and $\bm{s}_j$, or to the geodesic
+distance between the nodes $i$ and $j$ in a network.
+The distance-based force of infection
+is modified additively by a linear predictor of covariates $\bm{w}_{ij}$ describing
+the interaction of individuals $i$ and~$j$ further.
+Hence, the whole epidemic component of Equation~\ref{eqn:twinSIR} can be written
+as a single linear predictor $\bm{x}_i(t)^\top \bm{\alpha}$
+by interchanging the summation order to
+\begin{equation} \label{eqn:twinSIR:x}
+  \sum_{m=1}^M \alpha^{(f)}_m \sum_{j \in I(t)} B_m(d_{ij}) +
+  \sum_{k=1}^K \alpha^{(w)}_k \sum_{j \in I(t)} w_{ijk}
+  = \bm{x}_i(t)^\top \bm{\alpha} \:,
+\end{equation}
+such that $\bm{x}_i(t)$ comprises all epidemic terms summed over $j\in
+I(t)$. Note that the use of additive covariates $\bm{w}_{ij}$ on top
+of the distance kernel in \eqref{eqn:twinSIR} is
+different from \code{twinstim}'s multiplicative approach.
+One advantage of the additive approach is that
+the subsequent linear decomposition of the distance kernel allows one
+to gather all parts of the epidemic component in a single linear predictor.
+Hence, the above model represents a CIF extension of what in
+the context of survival analysis is known as an
+additive-multiplicative hazard
+model~\citep{Martinussen.Scheike2006}. As a consequence, the
+\code{twinSIR} model could in principle be fitted with the \CRANpkg{timereg}
+package, which yields estimates for the cumulative
+hazards. However, \citet{hoehle2009} chooses a more direct inferential
+approach: To ensure that the CIF $\lambda_i(t)$ is non-negative, all
+covariates are encoded such that the components of $\bm{w}_{ij}$ are
+non-negative. Additionally, the parameter vector $\bm{\alpha}$ is
+constrained to be non-negative. Subsequent parameter inference is then
+based on the resulting constrained penalized likelihood which gives
+directly interpretable estimates of $\bm{\alpha}$.
+Future work could investigate the potential of a multiplicative
+approach for the epidemic component in \code{twinSIR}.
+
+
+
+\section[Data structure]{Data structure: \class{epidata}} \label{sec:twinSIR:data}
+
+
+New SIR-type event data typically arrive in the form of a simple data frame with
+one row per individual and sequential event time points as columns.
+For the 1861 Hagelloch measles epidemic,
+which has previously been analyzed by, e.g., \citet{neal.roberts2004},
+such a data set of the 188 affected
+children is contained in the \pkg{surveillance} package:
+<<hagelloch.df>>=
+data("hagelloch")
+head(hagelloch.df, n = 5)
+@
+The \code{help("hagelloch")} contains a description of all columns. Here
+we concentrate on the event columns \code{PRO} (appearance of prodromes),
+\code{ERU} (eruption), and \code{DEAD} (day of death if during the outbreak).
+We take the day on which the index case developed first symptoms,
+30 October 1861 (\code{min(hagelloch.df$PRO)}), as the start of the epidemic,
+i.e., we condition on this case being initially infectious.
+% t0 = 1861-10-31 00:00:00
+As for \code{twinstim}, the property of point processes that concurrent
+events have zero probability requires special treatment. Ties are due to the
+interval censoring of the data to a daily basis -- we broke these ties
+by adding random jitter to the event times within the given days. The resulting
+columns \code{tPRO}, \code{tERU}, and \code{tDEAD} are relative to the defined
+start time. Following \citet{neal.roberts2004}, we assume that each child
+becomes infectious (S~$\rightarrow$~I event at time \code{tI}) one day before the appearance
+of prodromes, and is removed from the epidemic (I~$\rightarrow$~R event at time \code{tR})
+three days after the appearance of rash or at the time of death, whichever comes
+first.
+
+For further processing of the data, we convert \code{hagelloch.df} to
+the standardized \class{epidata} structure for \code{twinSIR}.
+This is done by the converter function \code{as.epidata},
+which also checks consistency and optionally
+pre-calculates the epidemic terms $\bm{x}_i(t)$ of Equation~\ref{eqn:twinSIR:x}
+to be incorporated in a \code{twinSIR} model.
+The following call generates the \class{epidata} object \code{hagelloch}:
+<<hagelloch>>=
+hagelloch <- as.epidata(hagelloch.df,
+  t0 = 0, tI.col = "tI", tR.col = "tR",
+  id.col = "PN", coords.cols = c("x.loc", "y.loc"),
+  f = list(household    = function(u) u == 0,
+           nothousehold = function(u) u > 0),
+  w = list(c1 = function (CL.i, CL.j) CL.i == "1st class" & CL.j == CL.i,
+           c2 = function (CL.i, CL.j) CL.i == "2nd class" & CL.j == CL.i),
+  keep.cols = c("SEX", "AGE", "CL"))
+@
+The coordinates (\code{x.loc}, \code{y.loc}) correspond to the location of the
+household the child lives in and are measured in meters.
+Note that \class{twinSIR} allows for tied locations of individuals, but assumes
+the relevant spatial location to be fixed during the entire observation period.
+By default, the Euclidean distance between the given coordinates will be used.
+Alternatively, \code{as.epidata} also accepts a pre-computed distance matrix via
+its argument \code{D} without requiring spatial coordinates.
+The argument \code{f} lists distance-dependent basis functions $B_m$ for
+which the epidemic terms $\sum_{j\in I(t)} B_m(d_{ij})$
+shall be generated. Here, \code{household} ($x_{i,H}(t)$) and
+\code{nothousehold} ($x_{i,\bar{H}}(t)$) count for each child the number of
+currently infective children in its household and outside its household,
+respectively.
+Similar to \citet{neal.roberts2004}, we also calculate the covariate-based
+epidemic terms \code{c1} ($x_{i,c1}(t)$) and \code{c2} ($x_{i,c2}(t)$)
+% from $w_{ijk} = \ind(\code{CL}_i = k, \code{CL}_j = \code{CL}_i)$
+counting the number of currently infective classmates.
+Note from the corresponding definitions of $w_{ij1}$ and $w_{ij2}$ in \code{w}
+that \code{c1} is always zero for children of the second class and \code{c2} is
+always zero for children of the first class. For pre-school children, both
+variables equal zero over the whole period.
+By the last argument \code{keep.cols}, we choose to only keep the covariates
+\code{SEX}, \code{AGE}, and school \code{CL}ass from \code{hagelloch.df}.
+
+The first few rows of the generated \class{epidata} object are shown below:
+<<hagelloch_show, warning=FALSE>>=
+head(hagelloch, n = 5)
+@
+
+The \class{epidata} structure inherits from counting processes as implemented by
+the \class{Surv} class of package \CRANpkg{survival} and also
+used in \CRANpkg{timereg}.
+Specifically, the observation period is split up into consecutive time
+intervals (\code{start}; \code{stop}] of constant conditional intensities.
+As the CIF $\lambda_i(t)$ of Equation~\eqref{eqn:twinSIR} only changes at time points, where
+the set of infectious individuals $I(t)$ or some endemic covariate in $\nu_i(t)$
+change, those occurrences define the break points of the time intervals.
+Altogether, the \code{hagelloch} event history consists of
+\Sexpr{nrow(hagelloch)/nlevels(hagelloch$id)} time \code{BLOCK}s of
+\Sexpr{nlevels(hagelloch[["id"]])} rows, where each row describes the state of
+individual \code{id} during the corresponding time interval.
+The susceptibility status and the I- and R-events are
+captured by the columns \code{atRiskY}, \code{event} and
+\code{Revent}, respectively. The \code{atRiskY} column indicates if
+the individual is at risk of becoming infected in the current interval.
+The event columns indicate, which individual was infected or removed at the
+\code{stop} time. Note that at most one entry in the \code{event} and
+\code{Revent} columns is 1, all others are 0.
+
+Apart from being the input format for \code{twinSIR} models,
+the \class{epidata} class has several associated methods
+(Table~\ref{tab:methods:epidata}), which are similar in
+spirit to the methods described for \class{epidataCS}.
+
+<<epidata-methods, echo=FALSE, results="asis", purl=FALSE>>=
+print(xtable(
+    surveillance:::functionTable("epidata", list(Display = c("stateplot"))),
+    caption="Generic and \\textit{non-generic} functions applicable to \\class{epidata} objects.",
+    label="tab:methods:epidata"), include.rownames = FALSE)
+@
+
+For example, Figure~\ref{fig:hagelloch_plot} illustrates the course of
+the Hagelloch measles epidemic by counting processes for the
+number of susceptible, infectious and removed children,
+respectively.
+Figure~\ref{fig:hagelloch_households} shows the locations of the households.
+An \code{animate}d map can also be produced
+to view the households' states over time
+and a simple \code{stateplot} shows the changes for a selected unit.
+
+<<hagelloch_plot, echo=2, fig.cap="Evolution of the 1861 Hagelloch measles epidemic in terms of the numbers of susceptible, infectious, and recovered children. The bottom \\code{rug} marks the infection times \\code{tI}.", fig.pos="!h">>=
+par(mar = c(5, 5, 1, 1))
+plot(hagelloch, xlab = "Time [days]")
+@
+
+<<hagelloch_households, fig.cap="Spatial locations of the Hagelloch households. The size of each dot is proportional to the number of children in the household.", fig.pos="ht", echo=-1>>=
+par(mar = c(5, 5, 1, 1))
+hagelloch_coords <- summary(hagelloch)$coordinates
+plot(hagelloch_coords, xlab = "x [m]", ylab = "y [m]",
+  pch = 15, asp = 1, cex = sqrt(multiplicity(hagelloch_coords)))
+legend(x = "topleft", pch = 15, legend = c(1, 4, 8), pt.cex = sqrt(c(1, 4, 8)),
+  title = "Household size")
+@
+
+
+
+\section{Modeling and inference} \label{sec:twinSIR:fit}
+
+
+\subsection{Basic example}
+
+To illustrate the flexibility of \code{twinSIR} we will analyze
+the Hagelloch data using class room and household indicators similar to
+\citet{neal.roberts2004}. We include an additional endemic background rate
+$\exp(\beta_0)$, which allows for multiple outbreaks triggered
+by external sources. Consequently, we do not
+need to ignore the child that got infected about one month after the end of the
+main epidemic (see the last event mark in Figure~\ref{fig:hagelloch_plot}).
+% ATM, there is no way to fit a twinSIR without an endemic component.
+Altogether, the CIF for a child $i$ is modeled as
+\begin{equation} \label{eqn:twinSIR:hagelloch}
+  \lambda_i(t) = Y_i(t) \cdot \left[ \exp(\beta_0) +
+    \alpha_H x_{i,H}(t) +
+    \alpha_{c1} x_{i,c1}(t) + \alpha_{c2} x_{i,c2}(t) +
+    \alpha_{\bar{H}} x_{i,\bar{H}}(t) \right] \:,
+\end{equation}
+where $Y_i(t) = \ind(i \in S(t))$ is the at-risk indicator.
+By counting the number of infectious classmates separately for both school
+classes as described in the previous section, we allow for class-specific
+effects $\alpha_{c1}$ and $\alpha_{c2}$ on the force of infection.
+The model is estimated by maximum likelihood \citep{hoehle2009}
+using the call
+
+<<hagellochFit, results='hide'>>=
+hagellochFit <- twinSIR(~household + c1 + c2 + nothousehold, data = hagelloch)
+@ 
+
+and the fit is summarized below:
+
+<<hagellochFit_summary_echo, eval=FALSE>>=
+set.seed(1)
+summary(hagellochFit)
+@
+<<hagellochFit_summary, echo=FALSE, purl=FALSE>>=
+## drop leading and trailing empty lines
+writeLines(tail(head(capture.output({
+<<hagellochFit_summary_echo>>
+}), -1), -1))
+@
+
+The results show, e.g., a
+\Sexpr{sprintf("%.4f",coef(hagellochFit)["c1"])} /
+  \Sexpr{sprintf("%.4f",coef(hagellochFit)["c2"])} $=$
+    \Sexpr{format(coef(hagellochFit)["c1"]/coef(hagellochFit)["c2"])}
+times higher transmission between individuals in
+the 1st class than in the 2nd class.
+Furthermore, an infectious housemate adds
+\Sexpr{sprintf("%.4f",coef(hagellochFit)["household"])} /
+  \Sexpr{sprintf("%.4f",coef(hagellochFit)["nothousehold"])} $=$
+    \Sexpr{format(coef(hagellochFit)["household"]/coef(hagellochFit)["nothousehold"])}
+times as much infection pressure as infectious children outside the household.
+The endemic background rate of infection in a population with no current measles
+cases is estimated to be
+$\exp(\hat{\beta}_0) = \exp(\Sexpr{format(coef(hagellochFit)["cox(logbaseline)"])}) = \Sexpr{format(exp(coef(hagellochFit)["cox(logbaseline)"]))}$.
+An associated Wald confidence interval (CI) based on the asymptotic normality of
+the maximum likelihood estimator (MLE) can be obtained by
+\code{exp}-transforming the \code{confint} for $\beta_0$:
+<<hagellochFit_confint>>=
+exp(confint(hagellochFit, parm = "cox(logbaseline)"))
+@
+
+Note that Wald confidence intervals for the epidemic parameters $\bm{\alpha}$
+are to be treated carefully, because their construction does not
+take the restricted parameter space into account.
+For more adequate statistical inference,
+the behavior of the log-likelihood near the MLE can be investigated using the
+\code{profile}-method for \class{twinSIR} objects.
+For instance, to evaluate the normalized profile log-likelihood of
+$\alpha_{c1}$ and $\alpha_{c2}$ on an equidistant grid of 25 points within the
+corresponding 95\% Wald CIs, we do:
+<<hagellochFit_profile, results='hide', eval=COMPUTE>>=
+prof <- profile(hagellochFit,
+  list(c(match("c1", names(coef(hagellochFit))), NA, NA, 25),
+       c(match("c2", names(coef(hagellochFit))), NA, NA, 25)))
+@
+The profiling result contains 95\% highest likelihood based CIs
+for the parameters, as well as the Wald CIs for comparison:
+<<>>=
+prof$ci.hl
+@
+The entire functional form of the normalized profile log-likelihood on the
+requested grid as stored in \code{prof$lp} can be visualized by:
+<<hagellochFit_profile_plot, fig.cap="Normalized log-likelihood for $\\alpha_{c1}$ and $\\alpha_{c2}$ when fitting the \\code{twinSIR} model formulated in Equation~\\eqref{eqn:twinSIR:hagelloch} to the Hagelloch data.", fig.pos="ht", fig.height=4.4>>=
+plot(prof)
+@
+
+The above model summary also reports the one-sided AIC~\citep{hughes.king2003},
+which can be used for model selection under positivity constraints on
+$\bm{\alpha}$ as described in \citet{hoehle2009}.
+The involved parameter penalty is determined by Monte Carlo simulation,
+which is why we did \code{set.seed} before the \code{summary} call.
+The algorithm is described in
+\citet[p.~79, Simulation 3]{Silvapulle.Sen2005} and involves quadratic
+programming using package \CRANpkg{quadprog} \citep{R:quadprog}.
+If there are less than three constrained parameters in a \code{twinSIR} model,
+the penalty is computed analytically.
+
+
+\subsection{Model diagnostics}
+
+<<twinSIR-methods, echo=FALSE, results="asis", purl=FALSE>>=
+print(xtable(
+    surveillance:::functionTable("twinSIR", functions=list(Display = c("checkResidualProcess"))),
+    caption="Generic and \\textit{non-generic} functions for \\class{twinSIR}. There are no specific \\code{coef} or \\code{confint} methods, since the respective default methods from package \\pkg{stats} apply outright.",
+    label="tab:methods:twinSIR"), include.rownames = FALSE)
+@
+
+Table~\ref{tab:methods:twinSIR} lists all methods for the \class{twinSIR} class.
+For example, to investigate how the conditional intensity function decomposes into endemic and epidemic
+components over time, we produce Figure~\ref{fig:hagellochFit_plot1} by:
+<<hagellochFit_plot, echo=2, fig.width=4.5, fig.height=4.5, out.width="0.49\\linewidth", fig.subcap=c("Epidemic proportion.","Transformed residuals."), fig.cap="Diagnostic plots for the \\code{twinSIR} model formulated in Equation~\\ref{eqn:twinSIR:hagelloch}.", fig.pos="htb">>=
+par(mar = c(5, 5, 1, 1))
+plot(hagellochFit, which = "epidemic proportion", xlab = "time [days]")
+checkResidualProcess(hagellochFit, plot = 1)
+@
+
+Note that the last infection was necessarily caused by the endemic component
+since there were no more infectious children in the observed population which
+could have triggered the new case.
+We can also inspect temporal Cox-Snell-like \code{residuals} of the fitted point
+process using the function \code{checkResidualProcess} as for the
+spatio-temporal point process models in \code{vignette("twinstim")}.
+The resulting Figure~\ref{fig:hagellochFit_plot2} reveals some deficiencies of
+the model in describing the waiting times between events, which might be related
+to the assumption of fixed infection periods.
+
+<<fstep, echo=FALSE, purl=FALSE>>=
+knots <- c(100, 200)
+fstep <- list(
+  B1 = function(D) D > 0 & D < knots[1],
+  B2 = function(D) D >= knots[1] & D < knots[2],
+  B3 = function(D) D >= knots[2])
+@
+
+To illustrate AIC-based model selection,
+we may consider a more flexible model for local spread using a
+step function for the distance kernel $f(u)$ in Equation \ref{eqn:twinSIR:f}.
+An updated model with
+<<echo=FALSE, results="asis", purl=FALSE>>=
+.allknots <- c(0, knots, "\\infty")
+cat(paste0("$B_{", seq_along(fstep), "} = ", "I_{", ifelse(seq_along(fstep)==1,"(","["),
+           .allknots[-length(.allknots)], ";", .allknots[-1], ")}(u)$",
+           collapse = ", "))
+@
+can be fitted as follows:
+<<hagellochFit_fstep, results='hide'>>=
+<<fstep>>
+hagellochFit_fstep <- twinSIR(
+  ~household + c1 + c2 + B1 + B2 + B3,
+  data = update(hagelloch, f = fstep))
+@
+
+<<hagellochFit_AIC>>=
+set.seed(1)
+AIC(hagellochFit, hagellochFit_fstep)
+@
+Hence the simpler model with just a \code{nothousehold} component instead
+of the more flexible distance-based step function is preferred.
+
+
+
+\section{Simulation} \label{sec:twinSIR:simulation}
+
+
+Simulation from fitted \code{twinSIR} models is described in
+detail in~\citet[Section~4]{hoehle2009}. The implementation is made
+available by an appropriate \code{simulate}-method for class \class{twinSIR}.
+We skip the illustration here and
+refer to \code{help("simulate.twinSIR")}.
+
+
+
+%--------------
+% BIBLIOGRAPHY
+%--------------
+
+<<Rbib, include = FALSE, purl = FALSE>>=
+## create automatic references for R packages
+Rbib <- sapply(c("quadprog"), function (pkg) {
+    bib <- citation(pkg, auto = TRUE)
+    bib$key <- paste("R", pkg, sep=":")
+    bib
+}, simplify=FALSE, USE.NAMES=TRUE)
+## "quadprog" needs manual author formatting
+Rbib$quadprog$author <- "Berwin A. Turlach"
+Rbib$quadprog$note <- paste0(Rbib$quadprog$note,
+    ", ported to \\proglang{R} by Andreas Weingessel")
+## write to bibfile
+.Rbibfile <- file("twinSIR-R.bib", "w", encoding = "latin1")
+cat(unlist(lapply(Rbib, toBibtex), use.names = FALSE),
+    file = .Rbibfile, sep = "\n")
+close(.Rbibfile)
+@
+
+\bibliography{references,twinSIR-R}
+
+
+
+%--------------
+% SESSION INFO
+%--------------
+
+\vfill
+\section*{\proglang{R} version and packages used for this vignette}
+
+<<sessionInfo, echo = FALSE, results = "asis", purl=FALSE>>=
+toLatex(sessionInfo(), locale=FALSE)
+@
+
+
+
+<<save-cache, include = FALSE, eval = COMPUTE, purl=FALSE>>=
+save(prof, file = "twinSIR-cache.RData")
+@ 
+
+\end{document}

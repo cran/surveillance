@@ -22,7 +22,7 @@ pairedbinCUSUM.runlength <- function(p,w1,w2,h1,h2,h11,h22, sparse=FALSE) {
   #Size of the sparse matrix -- assumption h1>h11 and h2>h22
   mw <- h1*h22+(h2-h22)*h11;
 
-  cat("g = ",mw+3,"\n")
+  cat("g =",mw+3,"\n")
     
   #build transition matrix; look at current state as an ordered pair (x1,x2)
   #the size of the matrix is determined by h1, h2, and h11 and h22
@@ -91,15 +91,14 @@ pairedbinCUSUM.runlength <- function(p,w1,w2,h1,h2,h11,h22, sparse=FALSE) {
   r <- transm[1:mw,1:mw]
 
   #find the average run length according to (8) in paper
-  id <- diag(rep(1,mw))# Diagonal(n=mw,x=1)
+  id <- diag(rep.int(1,mw))
 
   #Use sparse matrix computations (or just ordinary matrix
   #computations) for the averafe run-length
-  mom <- NULL
   mom <- if (!sparse) { # non-sparse computing
-    solve(id-r) %*% matrix(1,mw,1) 
+    .rowSums(solve(id-r), mw, mw)
   } else { #sparse-computing
-    Matrix::solve(Matrix(id-r)) %*% matrix(1,mw,1)
+    rowSums(solve(Matrix(id-r)))  # we import the required Matrix methods
   }
   arl <- mom[1]
   

@@ -29,7 +29,7 @@ pairedbinCUSUM.runlength(p,w1,w2,h1,h2,h11,h22, sparse=FALSE)
     }
   }
   \item{p}{Vector giving the probability of the four different
-    possibile states, i.e. c((death=0,near-miss=0),(death=1,near-miss=0),
+    possible states, i.e. c((death=0,near-miss=0),(death=1,near-miss=0),
        (death=0,near-miss=1),(death=1,near-miss=1)).}
   \item{w1}{The parameters \code{w1} and \code{w2} are the sample
     weights vectors for the two CUSUMs, see eqn. (2) in the paper. We

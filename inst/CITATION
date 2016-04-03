@@ -175,7 +175,7 @@ bibentry(
     title = "Monitoring Count Time Series in R: Aberration Detection in Public Health Surveillance",
     journal = "Journal of Statistical Software",
     year = "2016",
-    note = "Forthcoming. Preprint available at \\url{http://arxiv.org/abs/1411.1292}"
+    note = "Preprint available at \\url{http://arxiv.org/abs/1411.1292}"
 )
 
 bibentry(
@@ -185,7 +185,7 @@ bibentry(
     title = "Spatio-Temporal Analysis of Epidemic Phenomena Using the R Package surveillance",
     journal = "Journal of Statistical Software",
     year = "2016",
-    note = "Forthcoming. Preprint available at \\url{http://arxiv.org/abs/1411.0416}"
+    note = "Preprint available at \\url{http://arxiv.org/abs/1411.0416}"
 )
 
 

@@ -57,9 +57,11 @@ stsplot_spacetime(x, type, legend = NULL, opts.col = NULL, labels = TRUE,
   }
   \item{dev.printer}{Either \code{NULL}, which means that plotting is
     only to the screen otherwise a list with elements \code{device},
-    \code{extension}, \code{width} and \code{height}. This options is more
-    or less obsolete - nowadays it's better
-    to us the \code{animation} package to generate output to files.
+    \code{extension}, \code{width}, \code{height}, and \code{name}
+    (with defaults \code{png}, \code{".png"}, \code{640}, \code{480},
+    and \code{"Rplot"}, respectively).
+    This option is more or less obsolete since the \pkg{animation}
+    package provides better features for output to files.
   }
   \item{\dots}{Extra arguments sent to the plot function.
   }
@@ -92,17 +94,15 @@ plot(ha.sts[1:20,1:2], type=observed ~ 1 | unit)
 # space-time animation
 plot(aggregate(ha.sts,nfreq=13), type= observed ~ 1 | unit * time)
 
-#Configure a png device printer to save the frames
-dev.printer <- list(device=png, extension=".png", width=640, height=480,
-                    name=file.path(tempdir(),"berlin"))
-
-#Do the animation (without extra sleeping time between frames)
+#print the frames to a png device
+#and do the animation without extra sleeping between frames
+imgname <- file.path(tempdir(), "berlin")
 plot(aggregate(ha.sts,nfreq=13), type = observed ~ 1 | unit * time,
-     wait.ms=0, dev.printer=dev.printer)
+     wait.ms=0, dev.printer=list(name=imgname))
 
 #Use ImageMagick (you might have to adjust the path to 'convert')
-system(paste("convert -delay 50 ",dev.printer$name,
-           "*.png ", dev.printer$name, "-animated.gif",sep=""))
+system(paste0("convert -delay 50 ", imgname,
+              "*.png ", imgname, "-animated.gif"))
 }
 }
 

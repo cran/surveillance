@@ -5,9 +5,9 @@
 ###
 ### Plot-method(s) for fitted hhh4() models
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2012-2015 Sebastian Meyer
-### $Revision: 1519 $
-### $Date: 2015-11-20 15:20:41 +0100 (Fre, 20. Nov 2015) $
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2016 Sebastian Meyer
+### $Revision: 1687 $
+### $Date: 2016-04-01 21:40:25 +0200 (Fre, 01. Apr 2016) $
 ################################################################################
 
 
@@ -597,6 +597,9 @@ plotHHH4_season <- function (...,
                 c(list(seasons[[comp]], xlim=xlim, ylim=ylim[[comp]],
                        xlab=xlab, ylab=ylab[[comp]], main=main[[comp]]),
                   matplot.args))
+        if (is.list(refline.args) && !intercept && any(seasons[[comp]] != 1))
+            do.call("abline", modifyList(list(h=1, lty=3, col="grey"),
+                                         refline.args))
         if (match(comp, components) %in% legend)
             do.call("legend", legend.args)
     }
@@ -629,7 +632,7 @@ plotHHH4_season <- function (...,
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 getSeason <- function(x, component = c("end", "ar", "ne"), unit = 1)
 {
-    stopifnot(inherits(x, c("hhh4","ah4")))
+    stopifnot(inherits(x, "hhh4"))
     component <- match.arg(component)
     startseason <- getSeasonStart(x)
     freq <- x$stsObj@freq
@@ -680,7 +683,7 @@ getSeason <- function(x, component = c("end", "ar", "ne"), unit = 1)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 getMaxEV_season <- function (x)
 {
-    stopifnot(inherits(x, c("hhh4","ah4")))
+    stopifnot(inherits(x, "hhh4"))
     nUnits <- x$nUnit
     freq <- x$stsObj@freq
     components <- componentsHHH4(x)
@@ -814,7 +817,7 @@ getHHH4list <- function (..., .names = NA_character_)
 {
     objects <- list(...)
     if (length(objects) == 1L && is.list(objects[[1L]]) &&
-        inherits(objects[[1L]][[1L]], c("hhh4","ah4"))) {
+        inherits(objects[[1L]][[1L]], "hhh4")) {
         ## ... is a single list of fits
         objects <- objects[[1L]]
         if (is.null(names(objects))) names(objects) <- seq_along(objects)
@@ -823,7 +826,7 @@ getHHH4list <- function (..., .names = NA_character_)
             ifelse(nzchar(names(objects)), names(objects), .names)
         }
     }
-    if (!all(sapply(objects, inherits, what=c("hhh4","ah4"))))
+    if (!all(sapply(objects, inherits, what="hhh4")))
         stop("'...' must consist of hhh4()-fits only")
 
     ## check common epoch, start and frequency and append them as attributes

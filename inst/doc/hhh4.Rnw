@@ -64,11 +64,10 @@ University of Zurich, Zurich, Switzerland
 %%% Initial R code
 <<setup, echo=FALSE, results=hide>>=
 library("surveillance")  
-
 options(width=75)
 
-## create directory for plots if it does not exist
-if(!dir.exists("plots")) dir.create("plots")
+## create directory for plots
+dir.create("plots", showWarnings=FALSE)
 
 ######################################################
 ## Do we need to compute or can we just fetch results?
@@ -93,9 +92,9 @@ if(!compute) load("hhh4-cache.RData")
   \citet{paul-etal-2008}, \citet{paul-held-2011}, \citet{held.paul2012}, and
   \citet{meyer.held2013}. The implementation is illustrated using several
   built-in surveillance data sets.
-  The special case of \emph{spatio-temporal} \hhh\ models is covered
-  in greater detail in \citet[Section~5]{meyer.etal2014}.
-  %% the extra \code{vignette("hhh4\_spacetime")}
+  The special case of \emph{spatio-temporal} \hhh\ models is also covered
+  in \citet[Section~5]{meyer.etal2014},
+  which is available as the extra \verb+vignette("hhh4_spacetime")+.
 \end{abstract}
 
 
@@ -244,8 +243,8 @@ popfracs <- read.table(system.file("extdata/population_2001-12-31_BYBW.txt",
                                    package = "surveillance"),
                        header = TRUE)$popFrac
 # create sts object
-flu <- sts(observed = flu.counts, start = c(2001, 1), frequency = 52,
-           neighbourhood = nhood, population = popfracs)
+flu <- sts(flu.counts, start = c(2001, 1), frequency = 52,
+           population = popfracs, neighbourhood = nhood)
 @
 
 These data are already included as \code{data("fluBYBW")} in \surveillance.
@@ -602,6 +601,9 @@ parameters to account for regional heterogeneity is no longer feasible
 as estimation and identifiability problems may occur.
 Here we illustrate two approaches: region-specific random effects and
 region-specific covariates.
+For a more detailed illustration of areal \code{hhh4} models,
+see \verb+vignette("hhh4_spacetime")+, which uses
+\verb+data("measlesWeserEms")+ as an example.
 
 \subsubsection*{Influenza, Southern Germany, 2001--2008}
 

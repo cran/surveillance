@@ -80,7 +80,7 @@ siaf(f, F, Fcircle, effRange, deriv, Deriv, simulate, npars,
     spatial kernel (only required for the simulation of \code{twinstim}
     models).  Its first argument is the size of the sample to
     generate, next the parameter vector, an optional single event type,
-    and an optional upperbound for the radius within which to simulate
+    and an optional upper bound for the radius within which to simulate
     points. The function must return a two-column \emph{matrix} of the
     sampled locations. 
     Note that the simulation method actually samples only one location

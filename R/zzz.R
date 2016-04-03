@@ -98,32 +98,3 @@ hcl.colors <- function (ncolors=100, use.color=TRUE)
     
     return(rev(GYR))
 }
-
-
-
-
-###############################################################
-### backwards-compatibility for old class name "ah4" (<= 1.7-0)
-###############################################################
-
-local({
-    methods17 <- c("print", "summary", "print.summary", "terms", "logLik",
-                   "coef", "fixef", "ranef", "confint", "predict",
-                   "update", "plot", "simulate")
-    for (generic in methods17) {
-        methodname <- paste(generic, "hhh4", sep=".")
-        method <- get(methodname)
-        ## mark ah4-method as deprecated (as of next major release)
-        ## body(method) <- as.call(append(
-        ##     as.list(body(method)),
-        ##     substitute(
-        ##         .Deprecated(new,
-        ##                     msg=c(
-        ##                     "Since surveillance 1.8-0, hhh4()-results are of",
-        ##                     " class \"hhh4\" instead of \"ah4\".",
-        ##                     "\nOld \"ah4\"-methods will be removed.")),
-        ##         list(new=methodname)),
-        ##     after=1L))
-        assign(paste(generic, "ah4", sep="."), method, pos=parent.frame(2L))
-    }
-})

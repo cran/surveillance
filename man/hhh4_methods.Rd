@@ -26,7 +26,8 @@ Print, Summary and other Standard Methods for \code{"hhh4"} Objects
 Besides \code{print} and \code{summary} methods there are also some standard
 extraction methods defined for objects of class \code{"hhh4"} resulting
 from a call to \code{\link{hhh4}}.
-The implementation is illustrated in Meyer et al. (2016, Section 5).
+The implementation is illustrated in Meyer et al. (2016, Section 5),
+see \code{vignette("hhh4_spacetime")}.
 }
 
 \usage{

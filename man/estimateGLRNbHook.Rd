@@ -4,26 +4,24 @@
 
 \title{Hook function for in-control mean estimation}
 \description{
- Allows the user to specify his own estimation routine for the in-control mean of \code{algo.glrpois}
- Needs to work for GLRNbHook
+ Estimation routine for the in-control mean of \code{\link{algo.glrpois}}.
+ 
+ In \R < 2.14.0 and \pkg{surveillance} < 1.4 (i.e., without a package
+ namespace) users could customize this function simply by
+ defining a modified version in their workspace.
+ This is no longer supported.
 }
 \usage{
 estimateGLRNbHook()
 }
-%\arguments{
-%}
 \value{
   A list
   	\item{\code{mod}}{resulting model of a call of \code{glm.nb}}
     \item{\code{range}}{vector of length as \code{range} containing the predicted values} 
 
 }
-%
-\details{ 
- This hook function allows the user to customize the behaviour of the algorithm.
-}
 \seealso{
-\code{\link{algo.glrnb}} and \code{\link{algo.glrpois}}
+\code{\link{algo.glrnb}}
 }
 \author{M. Hoehle}
 \examples{
@@ -61,9 +59,4 @@ estimateGLRNbHook <- function() {
 }
 
 \keyword{regression}
-%\source{}
-
-
-
-
-
+\keyword{internal}

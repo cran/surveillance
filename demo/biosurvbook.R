@@ -129,7 +129,7 @@ nSims <- 10 #1000
 simone.TAleq65 <- function(sts, g) {
   observed(sts)[phase2,] <- rnbinom(length(mu0), mu=mu0, size=m$theta)
   one <- glrnb(sts, control=modifyList(control(s.nb), list(c.ARL=g)))
-  return(any(alarms(one)))
+  return(any(alarms(one) > 0))
 }
 
 #Determine run-length using 1000 Monte Carlo samples
@@ -198,8 +198,4 @@ plot(s.nb.01,dx.upperbound=0,legend.opts=NULL,ylab="No. of deaths",main="",xlab=
 lines(1:(nrow(s.far)+1)-0.5, c(mu0.far,tail(mu0.far,n=1)),lwd=3,col=1,lty=1,type="s")
 lines(1:(nrow(s.far)+1)-0.5, c(mu1,tail(mu1,n=1)),col=1,lty=3,lwd=3,type="s")
 legend(x="topright",c(expression(mu[0,t]),expression(mu[1,t]),"NNBA"),col=c(1,1,1),lty=c(1,3,1),horiz=TRUE,bg="white",lwd=c(3,3,1))
-
-
-## demo(biosurvbook)
-
 

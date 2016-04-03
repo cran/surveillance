@@ -5,9 +5,9 @@
 ###
 ### Simulate from a HHH4 model
 ###
-### Copyright (C) 2012 Michaela Paul, 2013-2015 Sebastian Meyer
-### $Revision: 1477 $
-### $Date: 2015-09-15 14:25:35 +0200 (Die, 15. Sep 2015) $
+### Copyright (C) 2012 Michaela Paul, 2013-2016 Sebastian Meyer
+### $Revision: 1635 $
+### $Date: 2016-03-16 12:11:48 +0100 (Mit, 16. Mär 2016) $
 ################################################################################
 
 
@@ -251,7 +251,7 @@ rowSumsBy.matrix <- function (x, by, na.rm = FALSE)
 rowSumsBy.sts <- function (x, by, na.rm = FALSE)
 {
     ## map, neighbourhood, upperbound, control get lost by aggregation of units
-    sts(epoch = x@epoch, freq = x@freq, start = x@start,
+    .sts(epoch = x@epoch, freq = x@freq, start = x@start,
         observed = rowSumsBy.matrix(x@observed, by, na.rm),
         state = rowSumsBy.matrix(x@state, by, na.rm) > 0,
         alarm = rowSumsBy.matrix(x@alarm, by, na.rm) > 0,

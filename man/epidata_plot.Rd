@@ -129,7 +129,7 @@ stateplot(x, id, ...)
   if no events have been observed for the individual in question (then the
   function always returns the initial state).  The vertical axis of
   \code{stateplot} can range from 1 to 3, where 1 corresponds to
-  \emph{S}uscepible, 2 to \emph{I}nfectious and 3 to \emph{R}emoved.
+  \emph{S}usceptible, 2 to \emph{I}nfectious and 3 to \emph{R}emoved.
 }
 
 \author{

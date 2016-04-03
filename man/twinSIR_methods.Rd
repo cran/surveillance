@@ -79,7 +79,7 @@ calculation of the so-called one-sided AIC (OSAIC).
   }
   \item{nsim}{
     when there are more than two epidemic covariates in the fit, the
-    weights in the OSAIC formula have to be deterimed by simulation. 
+    weights in the OSAIC formula have to be determined by simulation. 
     Default is to use 1000 samples. Note that package \pkg{quadprog} is
     additionally required in this case.
   }

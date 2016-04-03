@@ -18,7 +18,7 @@
 }
 
 \usage{
-stsplot_time(x, units=NULL, method=x@control$name, disease=x@control$data,
+stsplot_time(x, units=NULL,
              as.one=FALSE, same.scale=TRUE, par.list=list(), ...)
 
 stsplot_time1(x, k=1, ylim=NULL,
@@ -46,19 +46,14 @@ stsplot_alarm(x, lvl=rep(1,nrow(x)), ylim=NULL,
 \arguments{
   \item{x}{an object of class \code{"\linkS4class{sts}"}.}
   \item{units}{optional integer or character vector to select the units (=columns of
-    \code{observed(x)}) to plot. \code{stsplot_time1} is called
-    \code{for (k in units)}. The default is to plot all time series.
-    This argument is especially useful if \code{x} has a lot of units
-    which do not fit onto a single page altogether
-    (and produce the error message \dQuote{figure margins too large}).}
-  \item{method}{name of the surveillance method to be used in the main
-    title. Currently ignored.}
-  \item{disease}{name of the disease to be used in the main title.
-    Currently ignored.}
+    \code{observed(x)}) to plot. The default is to plot all time series.
+    If \code{as.one=FALSE}, \code{stsplot_time1} is called
+    \code{for (k in units)} with \code{mfrow} splitting (see \code{par.list}).
+    Note that if there are too many \code{units}, the default \code{mfrow}
+    setting might lead to the error \dQuote{figure margins too large}
+    (meaning that the units do not fit onto a single page).}
   \item{as.one}{logical indicating if all time series should be plotted
-    within the same frame. This is currently not implemented
-    for the \code{"sts"} class, but see \code{\link{plot.disProg}} and
-    \code{\link{sts2disProg}}.}
+    in a single frame (using \code{\link{matplot}}).}
   \item{same.scale}{logical indicating if all time series should be
     plotted with the same \code{ylim}. Default is to do so. Only
     relevant for multivariate plots (\code{ncol(x) > 1}).}
@@ -91,7 +86,7 @@ stsplot_alarm(x, lvl=rep(1,nrow(x)), ylim=NULL,
     border color, the 3rd element is the color of the \code{upperbound}
     plotting.}
   \item{lwd}{Vector of length 3 specifying the line width of the three
-    elements to plot. See also the \code{col} argment.}
+    elements to plot. See also the \code{col} argument.}
   \item{alarm.symbol}{a list with entries \code{pch}, \code{col},
     \code{cex} and \code{lwd} specifying the appearance of the outbreak
     symbol in the plot.}
@@ -115,15 +110,15 @@ stsplot_alarm(x, lvl=rep(1,nrow(x)), ylim=NULL,
   }
   \item{dx.upperbound}{horizontal change in the plotting of the
     upperbound line. Sometimes it can be convenient to offset this line
-    a little for better visiability.}
+    a little for better visibility.}
   \item{lvl}{A vector of length \code{ncol(x)}, which is used to
     specify the hierarchy level for each time series in the sts object
     for alarm plots.}
   \item{cex}{A numerical value giving the amount by which plotting text
     and symbols should be magnified relative to the default. See
-    \code{?par} for details.}
+    \code{\link{par}} for details.}
   \item{cex.yaxis}{The magnification to be used for y-axis annotation
-    relative to the current setting of 'cex'.}
+    relative to the current setting of \code{cex}.}
   \item{hookFunc}{a function that is called after all the basic plotting
     has be done, i.e., it is not possible to control formatting with
     this function. See Examples.}
@@ -136,7 +131,7 @@ stsplot_alarm(x, lvl=rep(1,nrow(x)), ylim=NULL,
 
 \details{
   The time series plot relies on the work-horse \code{stsplot_time1}.
-  Its arguments are (almost) similiar to \code{\link{plot.survRes}}.
+  Its arguments are (almost) similar to \code{\link{plot.survRes}}.
 }
 
 \value{
@@ -158,12 +153,19 @@ data("ha.sts")
 print(ha.sts)
 
 plot(ha.sts, type=observed ~ time | unit)  # default multivariate type
-plot(ha.sts, units = c("mitt", "pank"))    # selected units
+plot(ha.sts, units=c("mitt", "pank"))      # selected units
 plot(ha.sts, type=observed ~ time)         # aggregated over all districts
 
 ## Hook function example
 hookFunc <- function() grid(NA,NULL,lwd=1)
 plot(ha.sts, hookFunc=hookFunc)
+
+## another multivariate time series example plotted "as.one"
+data("measlesDE")
+plot(measlesDE, units=1:2, as.one=TRUE, legend.opts=list(cex=0.8))
+## more sophisticated plots are offered by package "xts"
+if (require("xts")) # need version > 0.9.7 for plots of multiple time series
+    plot(as.xts(measlesDE))
 
 ## Use ISO8601 date formatting (see ?strptime) and no legend
 data("salmNewport")

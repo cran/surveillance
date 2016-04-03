@@ -5,11 +5,10 @@
 ### code chunk number 1: setup
 ###################################################
 library("surveillance")  
-
 options(width=75)
 
-## create directory for plots if it does not exist
-if(!dir.exists("plots")) dir.create("plots")
+## create directory for plots
+dir.create("plots", showWarnings=FALSE)
 
 ######################################################
 ## Do we need to compute or can we just fetch results?
@@ -73,8 +72,8 @@ popfracs <- read.table(system.file("extdata/population_2001-12-31_BYBW.txt",
                                    package = "surveillance"),
                        header = TRUE)$popFrac
 # create sts object
-flu <- sts(observed = flu.counts, start = c(2001, 1), frequency = 52,
-           neighbourhood = nhood, population = popfracs)
+flu <- sts(flu.counts, start = c(2001, 1), frequency = 52,
+           population = popfracs, neighbourhood = nhood)
 
 
 ###################################################
@@ -89,7 +88,7 @@ grid::grid.text("Incidence [per 100'000 inhabitants]", x = 0.5, y = 0.02)
 
 
 ###################################################
-### code chunk number 9: hhh4.Rnw:272-277
+### code chunk number 9: hhh4.Rnw:271-276
 ###################################################
 # consistency check
 local({
@@ -162,7 +161,7 @@ result1 <- update(result0, family = "NegBin1")
 
 
 ###################################################
-### code chunk number 16: hhh4.Rnw:502-503
+### code chunk number 16: hhh4.Rnw:501-502
 ###################################################
 AIC(result0, result1)
 
@@ -175,7 +174,7 @@ result2 <- update(result1, ar = list(f = ~ 1))
 
 
 ###################################################
-### code chunk number 18: hhh4.Rnw:516-520
+### code chunk number 18: hhh4.Rnw:515-519
 ###################################################
 coef(result2, se = TRUE,    # also return standard errors
      amplitudeShift = TRUE, # transform sine/cosine coefficients
@@ -275,7 +274,7 @@ if(compute){
 
 
 ###################################################
-### code chunk number 27: hhh4.Rnw:664-665
+### code chunk number 27: hhh4.Rnw:666-667
 ###################################################
 s.B2
 
@@ -300,7 +299,7 @@ s.B2
 
 
 ###################################################
-### code chunk number 31: hhh4.Rnw:697-698
+### code chunk number 31: hhh4.Rnw:699-700
 ###################################################
 meanSc.B2[c("logs", "rps")]
 
@@ -322,7 +321,7 @@ colnames(vac0) <- colnames(measles2w)
 
 
 ###################################################
-### code chunk number 33: hhh4.Rnw:744-745
+### code chunk number 33: hhh4.Rnw:746-747
 ###################################################
 vac0[1:2, 1:6]
 

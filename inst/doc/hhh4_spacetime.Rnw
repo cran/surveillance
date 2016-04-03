@@ -1,0 +1,1044 @@
+%\VignetteIndexEntry{hhh4 (spatio-temporal): Endemic-epidemic modeling of areal count time series}
+%\VignetteEngine{knitr::knitr}
+%\VignetteDepends{surveillance, lattice, spdep, gsl, colorspace, animation, gridExtra, scales}
+
+<<setup, cache = FALSE, include = FALSE, purl = FALSE>>=
+## purl=FALSE => not included in the tangle'd R script
+knitr::opts_chunk$set(echo = TRUE, tidy = FALSE, results = 'markup',
+                      fig.path='plots/hhh4_spacetime-', fig.width = 8, fig.height = 4.5,
+                      fig.align = "center", fig.scap = NA, out.width = NULL,
+                      cache = FALSE, error = FALSE, message = FALSE)
+knitr::render_sweave()             # use Sweave environments
+knitr::set_header(highlight = '')  # no \usepackage{Sweave} (part of jss class)
+## R settings
+options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE)  # JSS
+options(width = 85, digits = 4)
+options(scipen = 1)  # so that 1e-4 gets printed as 0.0001
+## xtable settings
+options(xtable.booktabs = TRUE, xtable.size = "small",
+        xtable.sanitize.text.function = identity,
+        xtable.comment = FALSE)
+@ 
+
+<<include = FALSE>>=
+## load the "cool" package
+library("surveillance")
+
+## Compute everything or fetch cached results?
+message("Doing computations: ",
+        COMPUTE <- !file.exists("hhh4_spacetime-cache.RData"))
+if (!COMPUTE) load("hhh4_spacetime-cache.RData", verbose = TRUE)
+@ 
+
+
+\documentclass[nojss,nofooter,article]{jss}
+
+\title{%
+  \vspace{-1.5cm}
+  \fbox{\vbox{\normalfont\footnotesize
+      This introduction to spatio-temporal \code{hhh4} models implemented in the
+      \proglang{R}~package \pkg{surveillance} is based on a publication in the
+      \textit{Journal of Statistical Software} --
+      \citet[Section~5]{meyer.etal2014} -- which is the suggested reference
+      if you use the \code{hhh4} implementation in your own work.}}\\[1cm]
+  \code{hhh4}: Endemic-epidemic modeling\\of areal count time series}
+\Plaintitle{hhh4: Endemic-epidemic modeling of areal count time series}
+\Shorttitle{Endemic-epidemic modeling of areal count time series}
+
+\author{Sebastian Meyer\thanks{Author of correspondence: \email{Sebastian.Meyer@ifspm.uzh.ch}}\\University of Zurich \And
+        Leonhard Held\\University of Zurich \And
+        Michael H\"ohle\\Stockholm University}
+\Plainauthor{Sebastian Meyer, Leonhard Held, Michael H\"ohle}
+
+%% Basic packages
+\usepackage{lmodern}          % successor of CM -> searchable Umlauts (1 char)
+\usepackage[english]{babel}   % language of the manuscript is American English
+
+%% Math packages
+\usepackage{amsmath,amsfonts} % amsfonts defines \mathbb
+\usepackage{mathtools}        % tools for math typesetting + amsmath-bugfixes
+\usepackage{bm}               % \bm: alternative to \boldsymbol from amsfonts
+\usepackage{bbm}              % \mathbbm: alternative to \mathbb from amsfonts
+
+%% Packages for figures and tables
+\usepackage{booktabs}         % make tables look nicer
+\usepackage{subcaption}       % successor of subfig, which supersedes subfigure
+\newcommand{\subfloat}[2][need a sub-caption]{\subcaptionbox{#1}{#2}} % -> knitr
+
+%% Handy math commands
+\newcommand{\abs}[1]{\lvert#1\rvert}
+\newcommand{\norm}[1]{\lVert#1\rVert}
+\newcommand{\given}{\,\vert\,}
+\newcommand{\dif}{\,\mathrm{d}}
+\newcommand{\IR}{\mathbb{R}}
+\newcommand{\IN}{\mathbb{N}}
+\newcommand{\ind}{\mathbbm{1}}
+\DeclareMathOperator{\Po}{Po}
+\DeclareMathOperator{\NegBin}{NegBin}
+\DeclareMathOperator{\N}{N}
+
+%% Additional commands
+\newcommand{\class}[1]{\code{#1}}  % could use quotes (JSS does not like them)
+\newcommand{\CRANpkg}[1]{\href{https://CRAN.R-project.org/package=#1}{\pkg{#1}}}
+
+%% Reduce the font size of code input and output
+\DefineVerbatimEnvironment{Sinput}{Verbatim}{fontshape=sl, fontsize=\small}
+\DefineVerbatimEnvironment{Soutput}{Verbatim}{fontsize=\small}
+
+%% Abstract
+\Abstract{
+The availability of geocoded health data and the inherent temporal
+structure of communicable diseases have led to
+an increased interest in statistical models and software for
+spatio-temporal data with epidemic features.
+The \proglang{R}~package \pkg{surveillance} can handle
+various levels of aggregation at which infective events have been recorded.
+This vignette illustrates the analysis of area-level time series of counts using
+the endemic-epidemic multivariate time-series model ``\code{hhh4}''
+described in, e.g., \citet[Section~3]{meyer.held2013}.
+See \code{vignette("hhh4")} for a more general introduction to \code{hhh4}
+models, including the univariate and non-spatial bivariate case.
+%% (For other types of surveillance data, see
+%% \code{vignette("twinstim")} and \code{vignette("twinSIR")}.)
+We first describe the general modeling approach and then exemplify
+data handling, model fitting, visualization, and simulation methods
+for weekly counts of measles infections by district
+in the Weser-Ems region of Lower Saxony, Germany, 2001--2002.
+}
+
+\Keywords{%
+areal time series of counts,
+endemic-epidemic modeling,
+infectious disease epidemiology,
+branching process with immigration}
+
+
+
+\begin{document}
+
+%% \vfill
+%% {
+%%   \renewcommand{\abstractname}{Outline}  % local change
+%%   \begin{abstract}
+%%     We start by describing the general model class in Section~\ref{sec:hhh4:methods}.
+%%     Section~\ref{sec:hhh4:data} introduces the data and the associated \code{S4}-class
+%%     \class{sts} (``surveillance time series'').
+%%     In Section~\ref{sec:hhh4:fit}, a simple model for the measles data based on the
+%%     original analysis of \citet{held-etal-2005} is introduced,
+%%     which is then sequentially improved by suitable model extensions.
+%%     The final Section~\ref{sec:hhh4:simulation} illustrates simulation from fitted
+%%     \class{hhh4} models.
+%%   \end{abstract}
+%% }
+%% \vfill
+%% \newpage
+
+
+
+\section[Model class]{Model class: \code{hhh4}} \label{sec:hhh4:methods}
+
+An endemic-epidemic multivariate time-series model for infectious disease counts
+$Y_{it}$ from units $i=1,\dotsc,I$ during periods $t=1,\dotsc,T$
+was proposed by \citet{held-etal-2005} and was later extended in
+a series of papers
+\citep{paul-etal-2008,paul-held-2011,held.paul2012,meyer.held2013}.
+In its most general formulation, this so-called ``\code{hhh4}'' model assumes that, conditional on past
+observations, $Y_{it}$ has a negative binomial distribution with mean
+\begin{equation} \label{eqn:hhh4}
+  \mu_{it} = e_{it} \, \nu_{it} + \lambda_{it} \, Y_{i,t-1} +
+  \phi_{it} \sum_{j \ne i} w_{ji} \, Y_{j,t-1}
+\end{equation}
+and overdispersion parameters $\psi_i > 0$ such that the conditional
+variance of $Y_{it}$ is $\mu_{it} (1+\psi_i \mu_{it})$.
+Shared overdispersion parameters, e.g., $\psi_i\equiv\psi$, are supported
+as well as replacing the negative binomial by a Poisson distribution,
+which corresponds to the limit $\psi_i\equiv 0$.
+
+Similar to the point process models in \code{vignette("twinstim")}
+and \code{vignette("twinSIR")}, the mean~\eqref{eqn:hhh4} decomposes additively into
+endemic and epidemic components.
+The endemic mean is usually modeled proportional to an offset of expected
+counts~$e_{it}$. In spatial applications of the multivariate \code{hhh4} model
+as in this paper, the ``unit''~$i$ refers to a geographical region and we
+typically use (the fraction of) the population living in region~$i$ as the
+endemic offset.
+The observation-driven epidemic component splits up into
+autoregressive effects, i.e., reproduction of the disease within region~$i$,
+and neighborhood effects, i.e., transmission from other regions~$j$.
+Overall, Equation~\ref{eqn:hhh4} becomes a rich regression model by allowing for
+log-linear predictors in all three components:
+\begin{align} \label{eqn:hhh4:predictors}
+  \log(\nu_{it}) &= \alpha_i^{(\nu)} + {\bm{\beta}^{(\nu)}}^\top \bm{z}^{(\nu)}_{it} \:, \\
+  \log(\lambda_{it}) &= \alpha_i^{(\lambda)} + {\bm{\beta}^{(\lambda)}}^\top \bm{z}^{(\lambda)}_{it} \:, \\
+  \log(\phi_{it}) &= \alpha_i^{(\phi)} + {\bm{\beta}^{(\phi)}}^\top \bm{z}^{(\phi)}_{it} \:.
+\end{align}
+%% The superscripts in brackets distinguish the component-specific parameters.
+The intercepts of these predictors can be assumed identical
+across units, unit-specific, or random (and possibly correlated). %\citep{paul-held-2011}
+The regression terms often involve sine-cosine effects of time
+to reflect seasonally varying incidence, %\citep{held.paul2012}
+but may, e.g., also capture heterogeneous vaccination coverage
+\citep{herzog-etal-2010}.
+Data on infections imported from outside the study region may enter the endemic
+component \citep{geilhufe.etal2012}, which generally accounts for cases
+not directly linked to other observed cases, e.g., due to edge effects.
+
+For a single time series of counts $Y_t$, \code{hhh4} can be regarded as an
+extension of \code{glm.nb} from package \CRANpkg{MASS} \citep{R:MASS} to account for
+autoregression. See the \code{vignette("hhh4")} for examples of modeling
+univariate and bivariate count time series using \code{hhh4}.
+With multiple regions, spatio-temporal dependence is adopted by the third
+component in Equation~\ref{eqn:hhh4} with weights $w_{ji}$ reflecting the flow of
+infections from region $j$ to region $i$. These transmission weights may be
+informed by movement network data
+\citep{paul-etal-2008,geilhufe.etal2012},
+but may also be estimated parametrically.
+A suitable choice to reflect epidemiological coupling
+between regions \citep[Chapter~7]{Keeling.Rohani2008}
+is a power-law distance decay $w_{ji} = o_{ji}^{-d}$
+defined in terms of the adjacency order~$o_{ji}$ in the
+neighborhood graph of the regions \citep{meyer.held2013}.
+%% For instance, a second-order neighbor~$j$ of a region~$i$ ($o_{ji} = 2$) is a
+%% region adjacent to a first-order neighbor of $i$, but not itself directly
+%% adjacent to $i$.
+Note that we usually normalize the transmission weights such that
+$\sum_i w_{ji} = 1$, i.e., the $Y_{j,t-1}$ cases are distributed
+among the regions proportionally to the $j$'th row vector of the
+weight matrix $(w_{ji})$.
+
+Likelihood inference for the above multivariate time-series model
+has been established by \citet{paul-held-2011} with
+extensions for parametric neighborhood weights by \citet{meyer.held2013}.
+Supplied with the analytical score function and Fisher information, the function
+\code{hhh4} by default uses the quasi-Newton algorithm available through the
+\proglang{R} function \code{nlminb} to maximize the log-likelihood.
+Convergence is usually fast even for a large number of parameters.
+If the model contains random effects, the penalized and marginal log-likelihoods
+are maximized alternately until convergence.
+Computation of the marginal Fisher information is accelerated using the
+\CRANpkg{Matrix} package \citep{R:Matrix}.
+
+
+
+\section[Data structure]{Data structure: \class{sts}}  \label{sec:hhh4:data}
+
+
+<<measlesWeserEms_components, echo=FALSE>>=
+## extract components from measlesWeserEms to reconstruct
+data("measlesWeserEms")
+counts <- observed(measlesWeserEms)
+map <- measlesWeserEms@map
+populationFrac <- measlesWeserEms@populationFrac
+@ 
+
+In public health surveillance, routine reports of infections 
+to public health authorities give rise to spatio-temporal data,
+which are usually made available in the form of aggregated counts by region and period.
+The Robert Koch Institute (RKI) in Germany, for example, maintains a database of
+cases of notifiable diseases, which can be queried via the
+\emph{SurvStat@RKI}\footnote{\url{https://survstat.rki.de}} 
+online service.
+To exemplify area-level \code{hhh4} models in the remainder of this manuscript,
+we use weekly counts of measles infections by district in the
+Weser-Ems region of Lower Saxony, Germany, 2001--2002, downloaded from
+\emph{SurvStat@RKI} (as of Annual Report 2005)
+and already used as an example in the original \code{hhh4} model proposal
+\citep[Section~3.2]{held-etal-2005}.
+These data are contained in \pkg{surveillance} as
+\code{data("measlesWeserEms")} -- an object of the \code{S4}-class \class{sts}
+(``surveillance time series'') used for data input in \code{hhh4} models and
+briefly introduced below.
+See \citet{hoehle-mazick-2010} and \citet{salmon.etal2014}
+for more detailed descriptions of this class, which is also used for the
+prospective aberration detection facilities of the \pkg{surveillance} package.
+
+The epidemic modeling of multivariate count time series essentially involves three 
+data matrices: a $T \times I$ matrix of the observed counts, a corresponding
+matrix with potentially time-varying population numbers (or fractions), and an
+$I \times I$ neighborhood matrix quantifying the coupling between the
+$I$ units. In our example, the latter consists of the adjacency
+orders~$o_{ji}$ between the districts.
+A map of the districts in the form of a \code{SpatialPolygons} object (defined
+by the \CRANpkg{sp} package of \citealp{R:sp}) can be used to 
+derive the matrix of adjacency orders automatically using the functions
+\code{poly2adjmat} and \code{nbOrder},
+which wrap functionality of package \CRANpkg{spdep} \citep{R:spdep}:
+<<measlesWeserEms_neighbourhood>>=
+weserems_nbOrder <- nbOrder(poly2adjmat(map), maxlag = 10)
+@ 
+Given the aforementioned ingredients, the \class{sts} object
+\code{measlesWeserEms} has been constructed as follows:
+<<measlesWeserEms_construct>>=
+measlesWeserEms <- sts(counts, start = c(2001, 1), frequency = 52,
+  population = populationFrac, neighbourhood = weserems_nbOrder, map = map)
+@ 
+Here, \code{start} and \code{frequency} have the same meaning as for classical
+time-series objects of class \class{ts}, i.e., (year, sample number) of the
+first observation and the number of observations per year.
+Note that \code{data("measlesWeserEms")} constitutes a corrected version of
+\code{data("measles.weser")} originally analyzed by \citet{held-etal-2005}.
+Differences are documented on the associated help page.
+
+We can visualize such \class{sts} data in four ways: 
+individual time series, overall time series, map of accumulated counts by
+district, or animated maps.
+For instance, the two plots in Figure~\ref{fig:measlesWeserEms}
+have been generated by the following code:
+<<measlesWeserEms, fig.cap="Measles infections in the Weser-Ems region, 2001--2002.", fig.subcap=c("Time series of weekly counts.","Disease incidence (per 100\\,000 inhabitants)."), fig.width=5, fig.height=5, out.width="0.47\\linewidth", fig.pos="htb">>=
+plot(measlesWeserEms, type = observed ~ time)
+plot(measlesWeserEms, type = observed ~ unit,
+  population = measlesWeserEms@map$POPULATION / 100000,
+  labels = list(font = 2), colorkey = list(space = "right"),
+  sp.layout = layout.scalebar(measlesWeserEms@map, corner = c(0.05, 0.05),
+    scale = 50, labels = c("0", "50 km"), height = 0.03))
+@ 
+The overall time-series plot in Figure~\ref{fig:measlesWeserEms1} reveals strong
+seasonality in the data with slightly different patterns in the two years.
+The spatial plot in Figure~\ref{fig:measlesWeserEms2} is a tweaked \code{spplot}
+(package \CRANpkg{sp}) with colors from \CRANpkg{colorspace} \citep{R:colorspace} using
+$\sqrt{}$-equidistant cut points handled by package \CRANpkg{scales}
+\citep{R:scales}.
+
+The default plot \code{type} is \code{observed ~ time | unit}, which shows
+the district-specific time series (Figure~\ref{fig:measlesWeserEms15}):
+<<measlesWeserEms15, fig.cap=paste("Count time series of the", sum(colSums(observed(measlesWeserEms))>0), "affected districts."), out.width="\\linewidth", fig.width=10, fig.height=6, fig.pos="!h">>=
+plot(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
+@ 
+The districts
+\Sexpr{paste0(paste0(row.names(measlesWeserEms@map), " (", measlesWeserEms@map[["GEN"]], ")")[colSums(observed(measlesWeserEms)) == 0], collapse = " and ")}
+without any reported cases are excluded in Figure~\ref{fig:measlesWeserEms15}.
+Obviously, the districts have been affected by
+measles to a very heterogeneous extent during these two years.
+
+An animation of the data can be easily produced as well. We recommend to use
+converters of the \CRANpkg{animation} package \citep{R:animation},
+e.g., to watch the series of plots in a web browser.
+The following code will generate weekly disease maps during the year 2001 with
+the respective total number of cases shown in a legend and
+-- if package \CRANpkg{gridExtra} \citep{R:gridExtra} is available --
+an evolving time-series plot at the bottom:
+<<measlesWeserEms_animation, eval=FALSE>>=
+animation::saveHTML(
+  animate(measlesWeserEms, tps = 1:52, total.args = list()),
+  title = "Evolution of the measles epidemic in the Weser-Ems region, 2001",
+  ani.width = 500, ani.height = 600)
+@ 
+
+
+<<echo=FALSE, eval=FALSE>>=
+## to perform the following analysis using biweekly aggregated measles counts:
+measlesWeserEms <- aggregate(measlesWeserEms, by = "time", nfreq = 26)
+@ 
+
+
+
+\section{Modeling and inference}  \label{sec:hhh4:fit}
+
+
+For multivariate surveillance time series of counts such as the
+\code{measlesWeserEms} data, the function \code{hhh4} fits models of the
+form~\eqref{eqn:hhh4} via (penalized) maximum likelihood. 
+We start by modeling the measles counts in the Weser-Ems region by a slightly
+simplified version of the original negative binomial model used by \citet{held-etal-2005}.
+Instead of district-specific intercepts $\alpha_i^{(\nu)}$ in the endemic component, we
+first assume a common intercept $\alpha^{(\nu)}$ in order to not be forced to
+exclude the two districts without any reported cases of measles.
+After the estimation and illustration of this basic model, we will discuss the
+following sequential extensions: 
+covariates (district-specific vaccination coverage), 
+estimated transmission weights,
+and random effects to eventually account for
+unobserved heterogeneity of the districts.
+%epidemic seasonality, biweekly aggregation
+
+
+\subsection{Basic model}
+
+Our initial model has the following mean structure:
+\begin{align}
+\mu_{it} &= e_i \, \nu_t + \lambda \, Y_{i,t-1} + \phi \sum_{j \ne i} w_{ji} Y_{j,t-1}\:,\label{eqn:hhh4:basic}\\
+\log(\nu_t) &= \alpha^{(\nu)} + \beta_t t + \gamma \sin(\omega t) + \delta \cos(\omega t)\:. \label{eqn:hhh4:basic:end}
+\end{align}
+To account for temporal variation of disease incidence, the endemic log-linear
+predictor $\nu_t$ incorporates an overall trend and a sinusoidal wave of frequency
+$\omega=2\pi/52$. As a basic district-specific measure of disease incidence,
+the population fraction $e_i$ is included as a multiplicative offset.
+The epidemic parameters
+$\lambda = \exp(\alpha^{(\lambda)})$ and $\phi = \exp(\alpha^{(\phi)})$ are
+assumed homogeneous across districts and constant over time.
+Furthermore, we define $w_{ji} = \ind(j \sim i) = \ind(o_{ji} = 1)$ for the time being, which means that the
+epidemic can only arrive from directly adjacent districts. 
+This \class{hhh4} model transforms into the following list of \code{control} arguments:
+<<measlesModel_basic>>=
+measlesModel_basic <- list(
+  end = list(f = addSeason2formula(~1 + t, period = measlesWeserEms@freq),
+             offset = population(measlesWeserEms)),
+  ar = list(f = ~1),
+  ne = list(f = ~1, weights = neighbourhood(measlesWeserEms) == 1),
+  family = "NegBin1")
+@ 
+The formulae of the three predictors $\log\nu_t$, $\log\lambda$ and $\log\phi$
+are specified as element \code{f} of the \code{end}, \code{ar}, and \code{ne}
+lists, respectively. For the endemic formula we use the convenient function
+\code{addSeason2formula} to generate the sine-cosine terms, and we take the
+multiplicative \code{offset} of population fractions $e_i$ from the
+\code{measlesWeserEms} object.
+The autoregressive part only consists of the intercept $\alpha^{(\lambda)}$,
+whereas the neighborhood component specifies the intercept $\alpha^{(\phi)}$
+and also the matrix of transmission \code{weights} $(w_{ji})$ to use --
+here a simple indicator of first-order adjacency.
+The chosen \code{family} corresponds to a negative binomial model with a common
+overdispersion parameter $\psi$ for all districts. Alternatives are
+\code{"Poisson"}, \code{"NegBinM"} ($\psi_i$), or a factor determining
+which groups of districts share a common overdispersion parameter. 
+Together with the data, the complete list of control arguments is then fed into
+the \code{hhh4} function to estimate the model:
+
+<<measlesFit_basic>>=
+measlesFit_basic <- hhh4(stsObj = measlesWeserEms, control = measlesModel_basic)
+@ 
+
+The fitted model is summarized below:
+<<measlesFit_basic_summary>>=
+summary(measlesFit_basic, idx2Exp = TRUE, amplitudeShift = TRUE, maxEV = TRUE)
+@ 
+The \code{idx2Exp} argument of the \code{summary} method requests the estimates
+for $\lambda$, $\phi$, $\alpha^{(\nu)}$ and $\exp(\beta_t)$
+instead of their respective internal log-values.
+For instance, \code{exp(end.t)} represents the seasonality-adjusted factor by which
+the basic endemic incidence increases per week.
+The \code{amplitudeShift} argument transforms the internal
+coefficients $\gamma$ and $\delta$ of the sine-cosine terms to the amplitude $A$
+and phase shift $\varphi$ of the corresponding sinusoidal wave
+$A \sin(\omega t + \varphi)$ in $\log\nu_t$ \citep{paul-etal-2008}. 
+The resulting multiplicative effect of seasonality on $\nu_t$ is shown in
+Figure~\ref{fig:measlesFit_basic_endseason} produced by:
+<<measlesFit_basic_endseason, fig.width=6, fig.height=2.5, out.width=".6\\linewidth", fig.cap="Estimated multiplicative effect of seasonality on the endemic mean.", fig.pos="ht">>=
+plot(measlesFit_basic, type = "season", components = "end", main = "")
+@ 
+
+The epidemic potential of the process as determined by the parameters
+$\lambda$ and $\phi$ is best investigated by a combined measure:
+the dominant eigenvalue (\code{maxEV}) of the matrix $\bm{\Lambda}$ %$\Lambda_t$,
+%such that $\bm{\mu}_t = \bm{\nu}_t + \bm{\Lambda} \bm{Y}_{t-1}$
+which has the entries
+$(\Lambda)_{ii} = \lambda$ %$(\Lambda_t)_{ii} = \lambda_{it}$
+on the diagonal and
+$(\Lambda)_{ij} = \phi w_{ji}$ %$(\Lambda_t)_{ij} = \phi_{it} w_{ji}$
+for $j\ne i$ \citep{paul-etal-2008}.
+If the dominant eigenvalue is smaller than 1, it can be interpreted as the
+epidemic proportion of disease incidence. In the above model, the
+estimate is \Sexpr{round(100*getMaxEV(measlesFit_basic)[1])}\%.
+Another way to judge the relative importance of the three model
+components is via a plot of the fitted mean components along with the observed counts.
+Figure~\ref{fig:measlesFitted_basic} shows this for the six districts
+with more than 20 cases:
+<<measlesFitted_basic, fig.cap="Fitted components in the initial model \\code{measlesFit\\_basic} for the six districts with more than 20 cases. Dots are only drawn for positive weekly counts.", out.width="\\linewidth", fig.pos="htb">>=
+districts2plot <- which(colSums(observed(measlesWeserEms)) > 20)
+plot(measlesFit_basic, type = "fitted", units = districts2plot, hide0s = TRUE)
+@ 
+The largest portion of the fitted mean indeed results from the within-district
+autoregressive component with very little contribution of cases from adjacent
+districts and a rather small endemic incidence.
+
+The \code{overdisp} parameter from the model summary and its 95\% confidence interval
+<<>>=
+confint(measlesFit_basic, parm = "overdisp")
+@ 
+suggest that a negative binomial distribution with overdispersion is
+more adequate than a Poisson model corresponding to
+$\psi = 0$. We can underpin this finding by an AIC comparison, taking advantage
+of the convenient \code{update} method for \class{hhh4} fits:
+<<measlesFit_basic_Poisson>>=
+AIC(measlesFit_basic, update(measlesFit_basic, family = "Poisson"))
+@ 
+
+Other plot \code{type}s and methods for fitted \class{hhh4} models as listed in
+Table~\ref{tab:methods:hhh4} will be applied in the course of the following
+model extensions.
+
+<<hhh4-methods, echo=FALSE, results="asis", purl=FALSE>>=
+print(xtable(
+    surveillance:::functionTable("hhh4", functions=list(Other="oneStepAhead")),
+    caption="Generic and \\textit{non-generic} functions applicable to \\class{hhh4} objects.",
+    label="tab:methods:hhh4"), include.rownames = FALSE)
+@ 
+
+
+\subsection{Covariates}
+
+The \class{hhh4} model framework allows for covariate effects
+on the endemic or epidemic contributions to disease
+incidence. Covariates may vary over both regions and time and thus obey
+the same $T \times I$ matrix structure as the observed counts.
+For infectious disease models, the regional vaccination coverage is an important
+example of such a covariate, since it reflects the (remaining)
+susceptible population. 
+In a thorough analysis of measles occurrence in the German federal
+states, \citet{herzog-etal-2010} found vaccination coverage to be
+associated with outbreak size. We follow their approach of using the
+district-specific proportion $1-v_i$ of unvaccinated children just starting
+school as a proxy for the susceptible population. 
+As $v_i$ we use the proportion of children vaccinated with at least one dose
+among the ones presenting their vaccination card at school entry in district
+$i$ in the year 2004.\footnote{%
+  First year with data for all districts -- available from
+  the public health department of Lower Saxony
+  (\url{http://www.nlga.niedersachsen.de/portal/live.php?navigation_id=36791&article_id=135436&_psmand=20}).}
+  %% Note: districts are more heterogeneous in 2004 than in later years.
+  %% Data is based on abecedarians in 2004, i.e.\ born in 1998, recommended to
+  %% be twice vaccinated against Measles by the end of year 2000.
+This time-constant covariate needs to be transformed to the common
+matrix structure for incorporation in \code{hhh4}:
+<<Sprop>>=
+Sprop <- matrix(1 - measlesWeserEms@map@data$vacc1.2004,
+  nrow = nrow(measlesWeserEms), ncol = ncol(measlesWeserEms), byrow = TRUE)
+summary(Sprop[1, ])
+@ 
+
+There are several ways to account for the susceptible proportion in our model,
+among which the simplest is to update the endemic population offset $e_i$ by
+multiplication with $(1-v_i)$. 
+\citet{herzog-etal-2010} found that the susceptible proportion is best added as a
+covariate in the autoregressive component in the form
+\[ \lambda_i \, Y_{i,t-1} =
+\exp\big(\alpha^{(\lambda)} + \beta_s \log(1-v_i)\big) \, Y_{i,t-1} = 
+\exp\big(\alpha^{(\lambda)}\big) \, (1-v_i)^{\beta_s} \, Y_{i,t-1}
+\]
+according to the mass action principle \citep{Keeling.Rohani2008}.
+A higher proportion of susceptibles in district $i$ is expected to boost the
+generation of new infections, i.e., $\beta_s > 0$. Alternatively, this effect
+could be assumed as an offset, i.e., $\beta_s \equiv 1$.
+To choose between endemic and/or autoregressive effects, and multiplicative
+offset vs.\ covariate modeling, we perform AIC-based model selection.
+First, we set up a grid of possible component updates:
+<<SmodelGrid>>=
+Soptions <- c("unchanged", "Soffset", "Scovar")
+SmodelGrid <- expand.grid(end = Soptions, ar = Soptions)
+row.names(SmodelGrid) <- do.call("paste", c(SmodelGrid, list(sep = "|")))
+@ 
+Then we update the initial model \code{measlesFit_basic} according to each row of
+\code{SmodelGrid}:
+<<measlesFits_vacc, eval=COMPUTE>>=
+measlesFits_vacc <- apply(X = SmodelGrid, MARGIN = 1, FUN = function (options) {
+  updatecomp <- function (comp, option) switch(option, "unchanged" = list(),
+    "Soffset" = list(offset = comp$offset * Sprop),
+    "Scovar" = list(f = update(comp$f, ~. + log(Sprop))))
+  update(measlesFit_basic,
+    end = updatecomp(measlesFit_basic$control$end, options[1]),
+    ar = updatecomp(measlesFit_basic$control$ar, options[2]),
+    data = list(Sprop = Sprop))
+  })
+@ 
+The resulting object \code{measlesFits_vacc} is a list of
+\Sexpr{nrow(SmodelGrid)} \class{hhh4} fits, which are named according to
+the corresponding \code{Soptions} used for the endemic and autoregressive
+components. 
+We construct a call of the function \code{AIC} taking all list elements as
+arguments:
+<<aics_vacc, eval=COMPUTE>>=
+aics_vacc <- do.call(AIC, lapply(names(measlesFits_vacc), as.name),
+  envir = as.environment(measlesFits_vacc))
+@ 
+<<>>=
+aics_vacc[order(aics_vacc[, "AIC"]), ]
+@ 
+<<echo=FALSE, eval=COMPUTE, purl=FALSE>>=
+if (AIC(measlesFits_vacc[["Scovar|unchanged"]]) > min(aics_vacc[,"AIC"]))
+  stop("`Scovar|unchanged` is not the AIC-minimal vaccination model")
+@ 
+
+Hence, AIC increases if the susceptible proportion is only added to the autoregressive
+component, but we see a remarkable improvement when adding it to the
+endemic component. The best model is obtained by leaving the autoregressive
+component unchanged ($\lambda$) and adding the term $\beta_s \log(1-v_i)$ to
+the endemic predictor in Equation~\ref{eqn:hhh4:basic:end}.
+
+<<measlesFit_vacc>>=
+measlesFit_vacc <- update(measlesFit_basic,
+  end = list(f = update(formula(measlesFit_basic)$end, ~. + log(Sprop))),
+  data = list(Sprop = Sprop))
+coef(measlesFit_vacc, se = TRUE)["end.log(Sprop)", ]
+@ 
+The estimated exponent $\hat{\beta}_s$ is
+both clearly positive and different from the offset assumption.
+In other words, if a district's fraction of susceptibles is doubled,
+the endemic measles incidence is estimated to multiply by $2^{\hat{\beta}_s}$:
+<<>>=
+2^cbind("Estimate" = coef(measlesFit_vacc),
+  confint(measlesFit_vacc))["end.log(Sprop)",]
+@ 
+
+
+
+\subsection{Spatial interaction}
+
+
+Up to now, the model assumed that the epidemic can only arrive from directly
+adjacent districts ($w_{ji} = \ind(j\sim i)$),
+and that all districts have the same ability $\phi$ to import cases from
+neighboring regions.
+Given that humans travel further and preferrably to metropolitan
+areas, both assumptions seem overly simplistic
+and should be tuned toward a ``gravity'' model for human interaction.
+First, to reflect commuter-driven spread %\citep[Section~6.3.3.1]{Keeling.Rohani2008}
+in our model, we scale the district's susceptibility with respect to its
+population fraction by multiplying $\phi$ with $e_i^{\beta_{pop}}$:
+<<measlesFit_nepop>>=
+measlesFit_nepop <- update(measlesFit_vacc,
+  ne = list(f = ~log(pop)), data = list(pop = population(measlesWeserEms)))
+@ 
+As in a similar analyses of influenza
+\citep{geilhufe.etal2012,meyer.held2013}, we find strong evidence for such an agglomeration
+effect: AIC decreases from
+\Sexpr{round(AIC(measlesFit_vacc))} to \Sexpr{round(AIC(measlesFit_nepop))}
+and the estimated exponent $\hat{\beta}_{pop}$ is
+<<>>=
+cbind("Estimate" = coef(measlesFit_nepop),
+  confint(measlesFit_nepop))["ne.log(pop)",]
+@ 
+
+Second, to account for long-range transmission of cases, \citet{meyer.held2013} proposed
+to estimate the weights $w_{ji}$ as a function of the adjacency order
+$o_{ji}$ between the districts. For instance, a power-law model
+assumes the form $w_{ji} = o_{ji}^{-d}$, for $j\ne i$ and $w_{jj}=0$,
+where the decay parameter $d$ is to be estimated.
+Normalization to $w_{ji} / \sum_k w_{jk}$ is recommended and applied by default
+when choosing \code{W_powerlaw} as weights in the neighborhood component:
+<<measlesFit_powerlaw>>=
+measlesFit_powerlaw <- update(measlesFit_nepop,
+  ne = list(weights = W_powerlaw(maxlag = 5)))
+@ 
+The argument \code{maxlag} sets an upper bound for spatial interaction in
+terms of adjacency order. Here we set no limit since
+\code{max(neighbourhood(measlesWeserEms))}
+is \Sexpr{max(neighbourhood(measlesWeserEms))}.
+The decay parameter $d$ is estimated to be
+<<>>=
+cbind("Estimate" = coef(measlesFit_powerlaw),
+  confint(measlesFit_powerlaw))["neweights.d",]
+@ 
+which represents a strong decay of spatial interaction for higher-order neighbors.
+As an alternative to the parametric power law, unconstrained weights up to
+\code{maxlag} can be estimated by using \code{W_np} instead of \code{W_powerlaw}.
+For instance, \code{W_np(maxlag = 2)} corresponds to a second-order model, i.e.,
+\mbox{$w_{ji} = 1 \cdot \ind(o_{ji} = 1) + e^{\omega_2} \cdot \ind(o_{ji} = 2)$},
+which is also row-normalized by default:
+<<measlesFit_np>>=
+measlesFit_np2 <- update(measlesFit_nepop,
+  ne = list(weights = W_np(maxlag = 2)))
+@ 
+
+Figure~\ref{fig:measlesFit_neweights2} shows both the power-law model
+$o^{-\hat{d}}$ and the second-order model. %, where $e^{\hat{\omega}_2}$ is
+Alternatively, the plot \code{type = "neweights"} for \class{hhh4} fits
+can produce a \code{stripplot} \citep{R:lattice} of $w_{ji}$ against $o_{ji}$ as shown in
+Figure~\ref{fig:measlesFit_neweights1} for the power-law model:
+<<measlesFit_neweights, fig.width=5, fig.height=3.5, fig.cap="Estimated weights as a function of adjacency order.", out.width="0.47\\linewidth", fig.subcap=c("Normalized power-law weights.", "Non-normalized weights with 95\\% CIs."), echo=c(1,4)>>=
+library("lattice")
+trellis.par.set("reference.line", list(lwd=3, col="gray"))
+trellis.par.set("fontsize", list(text=14))
+plot(measlesFit_powerlaw, type = "neweights", plotter = stripplot,
+  panel = function (...) {panel.stripplot(...); panel.average(...)},
+  jitter.data = TRUE, xlab = expression(o[ji]), ylab = expression(w[ji]))
+## non-normalized weights (power law and unconstrained second-order weight)
+local({
+    colPL <- "#0080ff"
+    ogrid <- 1:5
+    par(mar=c(3.6,4,2.2,2), mgp=c(2.1,0.8,0))
+    plot(ogrid, ogrid^-coef(measlesFit_powerlaw)["neweights.d"], col=colPL,
+         xlab="Adjacency order", ylab="Non-normalized weight", type="b", lwd=2)
+    matlines(t(sapply(ogrid, function (x)
+                      x^-confint(measlesFit_powerlaw, parm="neweights.d"))),
+             type="l", lty=2, col=colPL)
+    w2 <- exp(c(coef(measlesFit_np2)["neweights.d"],
+                 confint(measlesFit_np2, parm="neweights.d")))
+    lines(ogrid, c(1,w2[1],0,0,0), type="b", pch=19, lwd=2)
+    arrows(x0=2, y0=w2[2], y1=w2[3], length=0.1, angle=90, code=3, lty=2)
+    legend("topright", col=c(colPL, 1), pch=c(1,19), lwd=2, bty="n", inset=0.1, y.intersp=1.5,
+           legend=c("Power-law model", "Second-order model"))
+})
+@ 
+Note that only horizontal jitter is added in this case.
+Because of normalization, the weight $w_{ji}$ for transmission from district $j$ to
+district $i$ is determined not only by the districts' neighborhood $o_{ji}$ but
+also by the total amount of neighborhood of district $j$ in the form of
+$\sum_{k\ne j} o_{jk}^{-d}$, which causes some variation of the weights for a
+specific order of adjacency.
+
+An AIC comparison of the different models for the transmission weights yields:
+<<>>=
+AIC(measlesFit_nepop, measlesFit_powerlaw, measlesFit_np2)
+@ 
+AIC improves when accounting for transmission from higher-order neighbors
+by a power law or a second-order model.
+In spite of the latter resulting in a slightly better fit, we will
+use the power-law model as a basis for further model extensions since the
+stand-alone second-order effect is not always identifiable in more complex
+models and is scientifically implausible.
+
+
+\subsection{Random effects}
+
+\citet{paul-held-2011} introduced random effects for \class{hhh4} models,
+which are useful if the districts exhibit heterogeneous incidence levels not
+explained by observed covariates, and especially if the number of districts is
+large. For infectious disease surveillance data, a typical example of
+unobserved heterogeneity is underreporting.
+Our measles data even contain two districts
+without any reported cases, while the district with the
+smallest population (03402, SK Emden) had the second-largest number of cases
+reported and the highest overall incidence 
+(see Figures~\ref{fig:measlesWeserEms2} and~\ref{fig:measlesWeserEms15}).
+Hence, allowing for district-specific intercepts in the endemic or epidemic
+components is expected to improve the model fit.
+For independent random effects
+$\alpha_i^{(\nu)} \stackrel{iid}{\sim} \N(\alpha^{(\nu)}, \sigma_\nu^2)$,
+$\alpha_i^{(\lambda)} \stackrel{iid}{\sim} \N(\alpha^{(\lambda)}, \sigma_\lambda^2)$, and
+$\alpha_i^{(\phi)} \stackrel{iid}{\sim} \N(\alpha^{(\phi)}, \sigma_\phi^2)$
+in all three components, we update the corresponding formulae as follows:
+<<measlesFit_ri, results="hide">>=
+measlesFit_ri <- update(measlesFit_powerlaw,
+  end = list(f = update(formula(measlesFit_powerlaw)$end, ~. + ri() - 1)),
+  ar  = list(f = update(formula(measlesFit_powerlaw)$ar,  ~. + ri() - 1)),
+  ne  = list(f = update(formula(measlesFit_powerlaw)$ne,  ~. + ri() - 1)))
+@ 
+
+<<measlesFit_ri_summary_echo, eval=FALSE>>=
+summary(measlesFit_ri, amplitudeShift = TRUE, maxEV = TRUE)
+@ 
+<<measlesFit_ri_summary, echo=FALSE, purl=FALSE>>=
+## strip leading and trailing empty lines
+writeLines(tail(head(capture.output({
+<<measlesFit_ri_summary_echo>>
+}), -1), -1))
+@ 
+The summary now contains an extra section with the
+estimated variance components $\sigma_\lambda^2$, $\sigma_\phi^2$, and
+$\sigma_\nu^2$.
+We did not assume correlation between the three random intercepts, but this is
+possible by specifying \code{ri(corr = "all")} in the component formulae.
+The implementation also supports a conditional autoregressive
+formulation for spatially correlated intercepts via
+\code{ri(type = "car")}.
+The estimated random effects can be extracted by the
+\code{ranef}-method:
+<<>>=
+head(ranef(measlesFit_ri, tomatrix = TRUE), n = 3)
+@ 
+They can also be visualized in a map by the plot \code{type = "ri"}
+(Figure~\ref{fig:measlesFit_ri_map}):
+<<measlesFit_ri_map, out.width="0.31\\linewidth", fig.width=3.5, fig.height=3.7, fig.pos="htb", fig.cap="Maps of the estimated random intercepts.", fig.subcap=c("Autoregressive $\\alpha_i^{(\\lambda)}$", "Spatio-temporal $\\alpha_i^{(\\phi)}$", "Endemic $\\alpha_i^{(\\nu)}$"), echo=-1>>=
+stopifnot(ranef(measlesFit_ri) > -1.6, ranef(measlesFit_ri) < 1.6)
+for (comp in c("ar", "ne", "end")) {
+  print(plot(measlesFit_ri, type = "ri", component = comp,
+    col.regions = cm.colors(14), labels = list(cex = 0.6),
+    at = seq(-1.6, 1.6, length.out = 15)))
+}
+@ 
+
+For the autoregressive component in Figure~\ref{fig:measlesFit_ri_map1}, we see
+a pronounced heterogeneity between the three western districts in blue and the
+remaining districts. These three districts have been affected by large local
+outbreaks and are also the ones with the highest overall numbers of cases.
+In contrast, the city of Oldenburg (03403) is estimated with a relatively low
+autoregressive factor $\lambda_i = \exp(\alpha^{(\lambda)} + \alpha_i^{(\lambda)}) =
+\Sexpr{exp(fixef(measlesFit_ri)[1]+ranef(measlesFit_ri, tomatrix=TRUE)["03403",1])}$,
+but it seems to import more cases from other districts than explained by its
+population (Figure~\ref{fig:measlesFit_ri_map2}).
+In Figure~\ref{fig:measlesFit_ri_map3}, the two districts without any reported
+measles cases (03401 and 03405) appear in dark pink, which means that they
+exhibit a relatively low endemic incidence after adjusting for the
+population and susceptible proportion.
+Such districts could be suspected of a larger amount of underreporting.
+
+Note that the extra flexiblility of the random effects model comes at a price. 
+First, the estimation runtime increases considerably from
+\Sexpr{round(measlesFit_powerlaw[["runtime"]]["elapsed"], 1)} seconds for the
+previous power-law model \code{measlesFit_powerlaw} to 
+\Sexpr{round(measlesFit_ri[["runtime"]]["elapsed"], 1)} seconds with additional
+random effects. Furthermore, we no longer obtain AIC values in the model
+summary, since random effects invalidate simple AIC-based model comparisons.
+Of course we can plot the fitted values %(Figure~\ref{fig:measlesFitted_ri})
+and visually compare their quality
+with the initial fit shown in Figure~\ref{fig:measlesFitted_basic}:
+<<measlesFitted_ri, out.width="0.93\\linewidth", fig.pos="htb", fig.cap="Fitted components in the random effects model \\code{measlesFit\\_ri} for the six districts with more than 20 cases. Compare to Figure~\\ref{fig:measlesFitted_basic}.">>=
+plot(measlesFit_ri, type = "fitted", units = districts2plot, hide0s = TRUE)
+@ 
+For some of these districts, a great amount of cases is now explained via transmission from
+neighboring regions while others are mainly influenced by the local
+autoregression. Note that the decomposition of the estimated mean by district
+can also be seen from the related plot \code{type = "maps"}
+(Figure~\ref{fig:measlesFitted_maps}):
+<<measlesFitted_maps, fig.cap="Maps of the fitted component proportions averaged over all weeks.", fig.pos="hbt", fig.width=10, fig.height=3.7, out.width="0.93\\linewidth">>=
+plot(measlesFit_ri, type = "maps",
+  which = c("epi.own", "epi.neighbours", "endemic"),
+  prop = TRUE, labels = list(cex = 0.6))
+@ 
+
+However, for quantitative comparisons of model performance we have to resort to
+more sophisticated techniques presented in the next section.
+
+
+\subsection{Predictive model assessment}
+
+\citet{paul-held-2011} suggest to evaluate one-step-ahead forecasts from 
+competing models by proper scoring rules for count data \citep{czado-etal-2009}.
+These scores measure the discrepancy between the predictive distribution $P$
+from a fitted model and the later observed value $y$.
+A well-known example is the squared error score (``ses'') $(y-\mu_P)^2$,
+which is usually averaged over a suitable set of forecasts to obtain the mean
+squared error. More elaborate scoring rules such as the logarithmic score
+(``logs'') or the ranked probability score (``rps'') take into account the whole
+predictive distribution to assess calibration and sharpness simultaneously.
+The so-called Dawid-Sebastiani score (``dss'') is another option.
+Lower scores correspond to better predictions. 
+
+In the \class{hhh4} framework, predictive model assessment is made available by
+the functions \code{oneStepAhead}, \code{scores}, \code{pit}, and
+\code{calibrationTest}.
+We will use the second quarter of 2002 as the test period, and compare
+the basic model, the power-law model, and the random effects model. 
+First, we use the \code{"final"} fits on the complete time series to
+compute the predictions, which then simply correspond to the fitted values
+during the test period:
+<<measlesPreds1>>=
+tp <- c(65, 77)
+models2compare <- paste0("measlesFit_", c("basic", "powerlaw", "ri"))
+measlesPreds1 <- lapply(mget(models2compare), oneStepAhead,
+  tp = tp, type = "final")
+@ 
+<<echo=FALSE>>=
+stopifnot(all.equal(measlesPreds1$measlesFit_powerlaw$pred,
+                    fitted(measlesFit_powerlaw)[tp[1]:tp[2],],
+                    check.attributes = FALSE))
+@ 
+
+Note that in this case, the log-score for a model's prediction in
+district $i$ in week $t$ equals the associated negative log-likelihood
+contribution. Comparing the mean scores from different models is thus
+essentially a goodness-of-fit assessment:
+<<echo=FALSE>>=
+stopifnot(all.equal(
+    measlesFit_powerlaw$loglikelihood,
+    -sum(scores(oneStepAhead(measlesFit_powerlaw, tp = 1, type = "final"),
+                which = "logs", individual = TRUE))))
+@ 
+<<measlesScores1>>=
+SCORES <- c("logs", "rps", "dss", "ses")
+measlesScores1 <- lapply(measlesPreds1, scores, which = SCORES, individual = TRUE)
+t(sapply(measlesScores1, colMeans, dims = 2))
+@ 
+
+All scoring rules claim that the random effects model gives the best fit during
+the second quarter of 2002. 
+Now we turn to true one-week-ahead predictions of \code{type = "rolling"},
+which means that we always refit the model up to week $t$ to get
+predictions for week $t+1$:
+<<measlesPreds2, eval=COMPUTE>>=
+measlesPreds2 <- lapply(mget(models2compare), oneStepAhead,
+  tp = tp, type = "rolling", which.start = "final")
+@ 
+<<measlesScores2>>=
+measlesScores2 <- lapply(measlesPreds2, scores, which = SCORES, individual = TRUE)
+t(sapply(measlesScores2, colMeans, dims = 2))
+@ 
+
+Thus, the most parsimonious initial model \code{measlesFit_basic}
+gives the best one-week-ahead predictions in terms of overall mean scores.
+Statistical significance of the differences in mean scores can be investigated
+by a \code{permutationTest} for paired data or a paired t-test:
+<<measlesScores_test>>=
+set.seed(321)
+sapply(SCORES, function (score) permutationTest(
+  measlesScores2$measlesFit_ri[, , score],
+  measlesScores2$measlesFit_basic[, , score],
+  nPermutation = 999))
+@ 
+
+<<measlesPreds2_plot, echo=FALSE, eval=FALSE, purl=FALSE>>=
+## plot observed counts and one-week-ahead predictions for selected districts
+par(mfrow=c(2,1))
+local(for (unit in c("03401", "03454")) {
+    y <- measlesPreds2[[1]]$observed
+    weeks <- as.integer(rownames(y))
+    plot(weeks, y[,unit], type="h", ylab="No. infected", xlab="Week",
+         ylim=c(0,1.05*max(y[,unit])))
+    matlines(weeks, sapply(measlesPreds2, function (preds) preds$pred[,unit]),
+             type="l", col=2:6, lty=c(2,1,2,1,1))
+    legend("top", ncol=5, legend=sub("^measlesFit_", "", names(measlesPreds2)),
+           col=2:6, lty=c(2,1,2,1,1), bty="n", cex=0.9)
+})
+@ 
+
+Hence, there is no clear evidence for a difference between the basic and the
+random effects model with regard to predictive performance during the test
+period.
+
+Whether predictions of a particular model are well calibrated can be formally
+investigated by \code{calibrationTest}s for count data as recently 
+proposed by \citet{wei.held2013}. For example:
+<<measlesPreds2_calibrationTest_echo, eval=FALSE>>=
+calibrationTest(measlesPreds2[["measlesFit_ri"]], which = "rps")
+@ 
+<<measlesPreds2_calibrationTest, R.options=list(digits=7), echo=FALSE, purl=FALSE>>=
+## strip leading and trailing empty lines
+writeLines(tail(head(capture.output({
+<<measlesPreds2_calibrationTest_echo>>
+}), -1), -1))
+@ 
+Thus, there is no evidence of miscalibrated predictions from the random effects
+model. \citet{czado-etal-2009} describe an alternative informal approach to
+assess calibration: probability integral transform
+(PIT) histograms for count data (Figure~\ref{fig:measlesPreds2_pit}). 
+<<measlesPreds2_pit, fig.width=8, fig.height=3, out.width="0.93\\linewidth", fig.cap="PIT histograms of competing models to check calibration of the one-week-ahead predictions during the second quarter of 2002.", echo=-1, fig.pos="hbt">>=
+par(mfrow = sort(n2mfrow(length(measlesPreds2))), mar = c(4.5,4.5,2,1))
+for (m in models2compare)
+  pit(measlesPreds2[[m]], plot = list(ylim = c(0, 1.25), main = m))
+@ 
+
+Under the hypothesis of calibration, i.e., 
+$y_{it} \sim P_{it}$ for all predictive distributions $P_{it}$ in the test period, the PIT histogram
+is uniform. Underdispersed predictions lead to U-shaped histograms,
+and bias causes skewness.
+In this aggregate view of the predictions
+over all districts and weeks of the test period, predictive performance is
+comparable between the models, and there is no evidence of badly dispersed
+predictions. However, the right-hand decay in all histograms suggests that all
+models tend to predict higher counts than observed. This is most likely related
+to the seasonal shift between the years 2001 and 2002. In 2001, the peak of the
+epidemic was in the second quarter, while it already occured in the first
+quarter in 2002 (cp.\ Figure~\ref{fig:measlesWeserEms1}).
+
+
+\subsection{Further modeling options}
+
+In the previous sections we extended our model for measles in the Weser-Ems
+region with respect to spatial variation of the counts and their interaction.
+Temporal variation was only accounted for in the endemic component,
+which included a long-term trend and a sinusoidal wave on the
+log-scale. \citet{held.paul2012} suggest to also allow seasonal
+variation of the epidemic force by adding a superposition of $S$ harmonic waves
+of fundamental frequency~$\omega$,
+$\sum_{s=1}^S \left\{ \gamma_s \sin(s\,\omega t) + \delta_s \cos(s\,\omega t) \right\}$,
+to the log-linear predictors of the autoregressive and/or neighborhood component --
+just like for $\log\nu_t$ in Equation~\ref{eqn:hhh4:basic:end} with $S=1$.
+However, given only two years of measles surveillance and the apparent shift of
+seasonality with regard to the start of the outbreak in 2002 compared to 2001,
+more complex seasonal models are likely to overfit the data. 
+Concerning the coding in \proglang{R}, sine-cosine terms can be added to the
+epidemic components without difficulties by again using the convenient function
+\code{addSeason2formula}.
+Updating a previous model for different numbers of harmonics is even simpler,
+since the \code{update}-method has a corresponding argument \code{S}.
+The plots of \code{type = "season"} and \code{type = "maxEV"} for \class{hhh4} fits
+can visualize the estimated component seasonality.
+
+All of our models for the measles surveillance data incorporated an
+epidemic effect of the counts from the local district and its neighbors.
+Without further notice, we thereby assumed a lag equal to the observation
+interval of one week. However, the generation time of measles is around 10 days,
+which is why \citet{herzog-etal-2010} aggregated their weekly measles
+surveillance data into biweekly intervals.
+We can perform a sensitivity analysis by running the whole code of the
+current section based on \code{aggregate(measlesWeserEms, nfreq = 26)}.
+Doing so, the parameter estimates of the various models retain their order of
+magnitude and conclusions remain the same. However, with the number of time
+points halved, the complex random effects model would not always be identifiable
+when calculating one-week-ahead predictions during
+the test period.
+%% basic model: same epidemic parameters and dominant eigenvalue (0.78), same overdispersion (1.94)
+%% vaccination: the exponent $\beta_s$ for the susceptible proportion in the
+%% extended model \code{"Scovar|unchanged"} is closer to 1 (1.24), which is why
+%% \code{"Soffset|unchanged"} is selected by AIC. 
+%% random effects: less variance, but similar pattern
+
+We have shown several options to account for the spatio-temporal dynamics of
+infectious disease spread. However, for directly transmitted human diseases, 
+the social phenomenon of ``like seeks like'' results in contact patterns
+between subgroups of a population, which extend the pure distance decay
+of interaction.
+Especially for school children, social contacts are highly age-dependent.
+A useful epidemic model should therefore be additionally stratified by age group
+and take the inherent contact structure into account.
+How this extension can be incorporated in the spatio-temporal endemic-epidemic
+modeling framework \class{hhh4} has recently been investigated by
+\citet{meyer.held2015}.
+
+
+
+\section{Simulation}  \label{sec:hhh4:simulation}
+
+
+Simulation from fitted \class{hhh4} models is enabled by an associated
+\code{simulate}-method. Compared to the point process models described in
+\code{vignette("twinstim")} and \code{vignette("twinSIR")}, simulation is less complex
+since it essentially consists of sequential calls of \code{rnbinom} (or
+\code{rpois}). At each time point $t$,
+the mean $\mu_{it}$ is determined by plugging in the parameter estimates and the
+counts $Y_{i,t-1}$ simulated at the previous time point. In addition to a model
+fit, we thus need to specify an initial vector of counts \code{y.start}.
+As an example, we simulate 100 realizations of the evolution of measles during
+the year 2002 based on the fitted random effects model and the counts of the
+last week of the year 2001 in the 17 districts:
+<<measlesFit_ri_simulate>>=
+(y.start <- observed(measlesWeserEms)[52, ])
+measlesSim <- simulate(measlesFit_ri,
+  nsim = 100, seed = 1, subset = 53:104, y.start = y.start)
+@ 
+The simulated counts are returned as a
+$52\times 17\times 100$ array instead of a list of 100 \class{sts} objects.
+We can, e.g., look at the final size distribution of the simulations:
+<<>>=
+summary(colSums(measlesSim, dims = 2))
+@ 
+A few large outbreaks have been simulated, but the mean size
+is below the observed number of \code{sum(observed(measlesWeserEms)[53:104, ])}
+$= \Sexpr{sum(observed(measlesWeserEms)[53:104,])}$ cases in the year 2002.
+Using the \code{plot}-method associated with such \code{hhh4} simulations,
+Figure~\ref{fig:measlesSim_plot_time} shows the weekly number of observed cases
+compared to the long-term forecast:
+<<measlesSim_plot_time, fig.cap="Simulation-based long-term forecast starting from the last week in 2001 (vertical bar on the left), showing the counts aggregated over all districts. The weekly mean of the simulations is represented by dots and the dashed lines correspond to the pointwise 2.5\\% and 97.5\\% quantiles. The actually observed counts are shown in the background.", fig.pos="htb", echo=-1>>=
+par(las = 1, mar = c(4,4,0,0)+.5)
+plot(measlesSim, "time", ylim = c(0, 100))
+@ 
+We refer to \code{help("simulate.hhh4")} and \code{help("plot.hhh4sims")}
+for further examples.
+
+
+
+%--------------
+% BIBLIOGRAPHY
+%--------------
+
+<<Rbib, include = FALSE, purl = FALSE>>=
+## create automatic references for R packages
+.Rbibfile <- file("hhh4_spacetime-R.bib", "w", encoding = "latin1")
+knitr::write_bib(
+    c("MASS", "Matrix", "spdep", "colorspace", "scales", "gridExtra", "lattice", "sp", "animation"),
+    file = .Rbibfile, tweak = FALSE, prefix = "R:")
+close(.Rbibfile)
+@
+
+\bibliography{references,hhh4_spacetime-R}
+
+
+
+%--------------
+% SESSION INFO
+%--------------
+
+\vfill
+\section*{\proglang{R} version and packages used for this vignette}
+
+<<sessionInfo, echo = FALSE, results = "asis", purl=FALSE>>=
+toLatex(sessionInfo(), locale=FALSE)
+@
+
+
+
+<<save-cache, include = FALSE, eval = COMPUTE, purl=FALSE>>=
+save(aics_vacc, measlesPreds2, file = "hhh4_spacetime-cache.RData")
+@ 
+
+\end{document}

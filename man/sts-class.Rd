@@ -41,11 +41,52 @@
 
 \description{
 
-  This is a lightweight S4 class to implement multivariate time
-  series of counts used for public health surveillance data. The class
-  captures the time series data as well as the spatial layout of the
-  regions, where the data originate from.
+  This is a lightweight S4 class to implement (multivariate) time
+  series of counts, typically from public health surveillance.
+  For areal time series, the class can also capture the spatial layout
+  of the regions, where the data originate from.
+  The constructor function \code{sts} can be used to setup an
+  \code{"sts"} object. Conversion of simple time-series objects
+  (of class \code{"\link{ts}"}) is also possible.
+  The slots of the \code{"sts"} class and available methods are
+  described below.
 
+}
+
+\usage{
+sts(observed, start = c(2000, 1), frequency = 52,
+    population = NULL, ...)
+}
+
+\arguments{
+  \item{observed}{a vector (for a single time series) or matrix (one
+    time series per column) of counts. A purely numeric data frame will
+    also do (transformed via \code{as.matrix}). This argument sets the
+    \code{observed} slot, which is the core element of the resulting
+    \code{"sts"} object. It determines the dimensions and colnames for
+    several other slots. The columns (\dQuote{units}) typically
+    correspond to different regions, diseases, or age groups.}
+  \item{start,frequency}{basic characteristics of the time series data
+    just like for simple \code{"\link{ts}"} objects. The (historical)
+    default values correspond to weekly data starting in the first week
+    of 2000.}
+  \item{population}{a vector of length the number of columns in
+    \code{observed} or a matrix of the same dimension as
+    \code{observed}. Especially for multivariate time series, the
+    population numbers (or fractions) underlying the counts in each unit
+    are relevant for visualization and statistical inference. The
+    \code{population} argument is an alias for the corresponding slot
+    \code{populationFrac}. The default \code{NULL} value sets
+    equal population fractions across all units.}
+  \item{\dots}{further named arguments with names corresponding to slot
+    names (see the list below). For instance, the \code{epoch} slot is
+    used to store the observation time, either as an integer sequence
+    (default) or as the numeric representation of \code{Date}s (if also
+    \code{epochAsDate=TRUE}). In the public health surveillance context,
+    the \code{state} slot is used to indicate outbreaks (default:
+    \code{FALSE} for all observations). For areal time series data, the
+    \code{map} and \code{neighbourhood} slots are used to store the
+    spatial structure of the observation region.}
 }
 
 \section{Slots}{
@@ -73,14 +114,15 @@
       outbreak in the region}
     \item{\code{alarm}:}{Matrix with the same dimension as
       \code{observed} specifying whether an outbreak detection algorithm
-      declared a specific time point in the region as having an alarm. If
-      the object containins just observations then this slot is null. }
+      declared a specific time point in the region as having an alarm.}
     \item{\code{upperbound}:}{Matrix with upper bound values }
     \item{\code{neighbourhood}:}{Symmetric matrix of size
       \eqn{(number of regions)^2} describing the neighbourhood structure. It
-      may either be a binary adjacency matrix or contain neighbourhood orders.}
+      may either be a binary adjacency matrix or contain neighbourhood orders
+      (see the Examples for how to infer the latter from the \code{map}).}
     \item{\code{populationFrac}:}{A \code{matrix} of population 
-      fractions (with dimensions \code{dim(observed)}).}
+      fractions or absolute numbers (see \code{multinomialTS} below)
+      with dimensions \code{dim(observed)}.}
     \item{\code{map}:}{Object of class \code{SpatialPolygonsDataFrame}
       providing a shape of the areas which are monitored. }
     \item{\code{control}:}{Object of class \code{list}, this is a
@@ -99,10 +141,11 @@
 \section{Methods}{
   \describe{ 
     \item{dim}{\code{signature(x = "sts")}: extract matrix dimensions of
-      \code{observed} using \code{\link{dim}}.}
+      \code{observed}.}
+    \item{dimnames}{\code{signature(x="sts")}: extract the \code{\link{dimnames}} of the \code{observed} matrix.}
     \item{observed}{\code{signature(x = "sts")}: extract the \code{observed}
       slot of an \code{sts} object.}
-    \item{population}{\code{signature(x = "sts")}: extract the \code{population}
+    \item{population}{\code{signature(x = "sts")}: extract the \code{populationFrac}
       slot of an \code{sts} object.}
     \item{multinomialTS}{\code{signature(x = "sts")}: extract the
       \code{multinomialTS} slot of an \code{sts} object.}
@@ -119,9 +162,9 @@
       returned object is of class \code{Date}.}
     \item{epochInYear}{\code{signature(x = "sts")}: Returns the epoch
       number within the year of the \code{epoch} slot.}
-    \item{dimnames}{\code{signature(x="sts")}: extract the \code{\link{dimnames}} of the \code{observed} matrix.}
     \item{initialize}{\code{signature(x="sts")}: the internal function
       \code{init.sts} is called, which assigns all slots.  }
+    \item{[}{subsetting \code{"sts"} objects, see \code{\link{[,sts-method}}.}
     \item{aggregate}{\code{signature(x="sts")}: see
       \code{\link{aggregate,sts-method}}}
     \item{year}{\code{signature(x = "sts")}:
@@ -138,53 +181,46 @@
       specified using a formula \code{type}.
       See \code{\link{stsplot}} for details.
     }
+    \item{animate}{see \code{\link{animate.sts}}.}
+    \item{coerce}{\code{signature(from="sts", to="ts")} (can also be
+      called via the S3 generic \code{as.ts}) and the reverse
+      \code{signature(from="ts", to="sts")}.}
+    \item{toLatex}{see \code{\link{toLatex,sts-method}}.}
   }
 }
 
-\author{M. \enc{Höhle}{Hoehle}}
-\examples{
-if (requireNamespace("maptools")) {
-    # load disProg-object "ha" and convert to S4-class "sts"
-    data("ha")
-    shpfile <- system.file("shapes/berlin.shp",package="surveillance")
-    ha.sts <- disProg2sts(ha, map=maptools::readShapePoly(shpfile,IDvar="SNAME"))
-} else {
-    data("ha.sts")
-    # is almost identical to the above except that German umlauts
-    # have been replaced in 'ha.sts@map@data$BEZIRK' for compatibility reasons
-}
+\author{Michael \enc{Höhle}{Hoehle} and Sebastian Meyer}
 
-ha.sts
-plot(ha.sts, type = observed ~ 1 | unit)
+\examples{
+## A typical dataset with weekly counts of measles from several districts
+data("measlesWeserEms")
+measlesWeserEms
+
+## reconstruct data("measlesWeserEms") from its components
+counts <- observed(measlesWeserEms)
+map <- measlesWeserEms@map
+populationFrac <- population(measlesWeserEms)
+weserems_nbOrder <- neighbourhood(measlesWeserEms)
+## orders of adjacency can also be determined from the map
+if (requireNamespace("spdep")) {
+    stopifnot(identical(weserems_nbOrder,
+                        nbOrder(poly2adjmat(map), maxlag = 10)))
+}
+mymeasles <- sts(counts, start = c(2001, 1), frequency = 52,
+                 population = populationFrac,
+                 neighbourhood = weserems_nbOrder, map = map)
+stopifnot(identical(mymeasles, measlesWeserEms))
 
 ## convert ts/mts object to sts
 z <- ts(matrix(rpois(300,10), 100, 3), start = c(1961, 1), frequency = 12)
 z.sts <- as(z, "sts")
 plot(z.sts)
 
-## conversion to the quasi-standard "xts" class is also possible
-## -> enables interactive time series plots using package "dygraphs"
+## conversion of "sts" objects to the quasi-standard "xts" class
 if (require("xts")) {
     z.xts <- as.xts(z.sts)
     plot(z.xts)
 }
-
-## reconstruct 'measlesWeserEms' from its components
-data("measlesWeserEms")
-measlesWeserEms
-counts <- observed(measlesWeserEms)
-map <- measlesWeserEms@map
-populationFrac <- measlesWeserEms@populationFrac
-weserems_nbOrder <- if(requireNamespace("spdep")) {
-    # determine adjacency orders from the map
-    nbOrder(poly2adjmat(map), maxlag = 10)
-} else {
-    # use the stored neighbourhood structure
-    neighbourhood(measlesWeserEms)
-}
-mymeasles <- sts(observed = counts, start = c(2001, 1), frequency = 52,
-    neighbourhood = weserems_nbOrder, map = map, population = populationFrac)
-stopifnot(identical(mymeasles, measlesWeserEms))
 }
 
 \keyword{classes}

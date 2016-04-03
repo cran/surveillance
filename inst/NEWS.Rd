@@ -1,9 +1,92 @@
-\newcommand{\CRANpkg}{\href{http://CRAN.R-project.org/package=#1}{\pkg{#1}}}
+\newcommand{\CRANpkg}{\href{https://CRAN.R-project.org/package=#1}{\pkg{#1}}}
 %% some pre-defined commands: \R, \code, \acronym, \url, \file, \pkg
 
 \name{NEWS}
 \title{News for Package 'surveillance'}
 \encoding{latin1}
+
+
+\section{Changes in surveillance version 1.12.0 (2016-04-02)}{
+
+\subsection{DOCUMENTATION}{
+  \itemize{
+    \item Several new vignettes illustrate \emph{endemic-epidemic}
+    modeling frameworks for spatio-temporal surveillance data:
+    \describe{
+      \item{\code{vignette("twinstim")}}{describes a spatio-temporal
+        point process regression model.}
+      \item{\code{vignette("twinSIR")}}{describes a multivariate
+        temporal point process regression model.}
+      \item{\code{vignette("hhh4_spacetime")}}{describes an areal
+        time-series model for infectious disease counts.}
+    }
+    These vignettes are based on a recently accepted manuscript
+    for the \emph{Journal of Statistical Software}
+    (Meyer, Held, and \enc{Höhle}{Hoehle}, 2016).
+    \item Improved the documentation on various help pages.
+    \item The \code{hhh4()}-based analysis of \code{data("fluBYBW")}
+    has been moved to a separate demo script \file{fluBYBW.R}. Due to
+    the abundance of models and the relatively long runtime, we
+    recommend to open the script in an editor rather than running
+    all the code at once using \code{demo("fluBYBW")}.
+  }
+}
+
+\subsection{NEW FEATURES}{
+  \itemize{
+    \item Overhaul of the \code{"sts"} implementation. This mostly
+    affects package-internal code, which is simpler, cleaner and better
+    tested now, but requires \R >= 3.2.0 (due to \code{callNextMethod()}
+    bugs in older versions of \R).
+    Beyond that, the user-level constructor function \code{sts()} now
+    has explicit arguments for clarity and convenience.
+    For instance, its first argument sets the \code{observed} slot and
+    no longer needs to be named, i.e.,
+    \code{sts(mycounts, start=c(2016,3), frequency=12)}
+    works just like for the classical \code{ts()} function.
+
+    \item \code{stsplot_time(..., as.one=TRUE)} is now implemented
+    (yielding a simple \code{matplot} of multiple time series).
+  }
+}
+
+\subsection{MINOR CHANGES}{
+  \itemize{
+    \item \code{plotHHH4_season()} now by default draws a horizontal
+    reference line at unity if the multiplicative effect of component
+    seasonality is shown (i.e., if \code{intercept=FALSE}).
+
+    \item Since \pkg{surveillance} 1.8-0, \code{hhh4()} results are of
+    class \code{"hhh4"} instead of \code{"ah4"} (renamed).
+    Legacy methods for the old class name \code{"ah4"} have been removed.
+
+    \item The internal model preparation in \code{twinstim()} is more
+    efficient (the distance matrix of the events is only computed if
+    event sources actually need to be updated).
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item \code{stsplot_spacetime()} now recognizes its \code{opts.col}
+    argument.
+    
+    \item Conversion from \code{"ts"} to \code{"sts"} using
+    \code{as(ts, "sts")} could set a wrong start time. For instance,
+    \code{as(ts(1:10, start=c(1959,2), frequency=4), "sts")@start} was
+    \code{c(1959,1)}.
+
+    \item \code{algo.twins()} now also accepts \code{"sts"} input and
+    the automatic legend in the first plot of \code{plot.atwins()} works
+    again.
+
+    \item The experimental \code{profile}-method for \code{"twinstim"}
+    objects did not work if embedded \code{twinstim()} fits issued warnings.
+  }
+}
+
+}
+
 
 
 \section{Changes in surveillance version 1.11.0 (2016-02-08)}{
