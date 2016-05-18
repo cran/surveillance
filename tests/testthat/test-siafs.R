@@ -6,19 +6,19 @@ context("Spatial interaction functions")
 myexpectation <- function (siaf, intrfr, intrderivr, pargrid, type = 1, ...)
 {
     ## check analytical intrfr specification against numerical approximation
-    if (!missing(intrfr)) apply(pargrid, 1, function (pars) expect_that(
+    if (!missing(intrfr)) apply(pargrid, 1, function (pars) expect_warning(
         polyCub::checkintrfr(intrfr, siaf$f, pars, type, center=c(0,0),
                               rs=c(1,2,5,10,20,50)),
-        not(gives_warning()), label = "polyCub::checkintrfr()"))
+        NA, label = "polyCub::checkintrfr()"))
     
     ## also check intrfr for deriv
     if (!missing(intrderivr)) for (paridx in seq_along(intrderivr))
-        apply(pargrid, 1, function (pars) expect_that(
+        apply(pargrid, 1, function (pars) expect_warning(
             polyCub::checkintrfr(intrderivr[[paridx]],
                                   function (...) siaf$deriv(...)[,paridx],
                                   pars, type, center=c(0,0),
                                   rs=c(1,2,5,10,20,50)),
-            not(gives_warning()),
+            NA,
             label = paste0("polyCub::checkintrfr() for deriv[,",paridx,"]")))
 
     ## check deriv, F, Deriv against numerical approximations

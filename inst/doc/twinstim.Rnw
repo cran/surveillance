@@ -1156,17 +1156,4 @@ close(.Rbibfile)
 
 
 
-%--------------
-% SESSION INFO
-%--------------
-
-\vfill
-\section*{\proglang{R} version and packages used for this vignette}
-
-<<sessionInfo, echo = FALSE, results = "asis", purl=FALSE>>=
-toLatex(sessionInfo(), locale=FALSE)
-@
-
-
-
 \end{document}

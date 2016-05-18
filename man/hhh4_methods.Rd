@@ -7,8 +7,6 @@
 \alias{logLik.hhh4}
 \alias{coef.hhh4}
 \alias{vcov.hhh4}
-\alias{ranef}
-\alias{fixef}
 \alias{fixef.hhh4}
 \alias{ranef.hhh4}
 \alias{coeflist.hhh4}

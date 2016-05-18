@@ -33,7 +33,7 @@ test_that("Step kernel of a single type agrees with numerical approximations",
                                  
      })
 
-test_that("Step kernel with maxRange=eps.t is equivalent to maxRange=Inf",
+test_that("Step kernel with maxRange>max(eps.t) is equivalent to maxRange=Inf",
       {
           data("imdepi", package="surveillance")
           imdfit_steptiafInf <- twinstim(
@@ -46,8 +46,8 @@ test_that("Step kernel with maxRange=eps.t is equivalent to maxRange=Inf",
               imdfit_steptiafInf,
               tiaf = tiaf.step(c(7,20), maxRange=maxepst+0.1))
           coefs <- c(-20, -0.05, -15, -0.5, 0.2, -1)
-          stopifnot(identical(imdfit_steptiafInf$ll(coefs),
-                              imdfit_steptiaf30$ll(coefs)),
-                    identical(imdfit_steptiafInf$sc(coefs),
-                              imdfit_steptiaf30$sc(coefs)))
+          expect_identical(imdfit_steptiafInf$ll(coefs),
+                           imdfit_steptiaf30$ll(coefs))
+          expect_identical(imdfit_steptiafInf$sc(coefs),
+                           imdfit_steptiaf30$sc(coefs))
       })

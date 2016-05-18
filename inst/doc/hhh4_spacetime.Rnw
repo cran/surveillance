@@ -1024,19 +1024,6 @@ close(.Rbibfile)
 
 
 
-%--------------
-% SESSION INFO
-%--------------
-
-\vfill
-\section*{\proglang{R} version and packages used for this vignette}
-
-<<sessionInfo, echo = FALSE, results = "asis", purl=FALSE>>=
-toLatex(sessionInfo(), locale=FALSE)
-@
-
-
-
 <<save-cache, include = FALSE, eval = COMPUTE, purl=FALSE>>=
 save(aics_vacc, measlesPreds2, file = "hhh4_spacetime-cache.RData")
 @ 

@@ -135,8 +135,8 @@ necessary.
 \references{
   Meyer, S., Elias, J. and H\enc{ö}{oe}hle, M. (2012):
   A space-time conditional intensity model for invasive meningococcal
-  disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.\cr
-  DOI-Link: \url{http://dx.doi.org/10.1111/j.1541-0420.2011.01684.x}
+  disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.
+  \doi{10.1111/j.1541-0420.2011.01684.x}
 }
 
 \author{Sebastian Meyer}

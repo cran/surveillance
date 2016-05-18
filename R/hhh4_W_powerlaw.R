@@ -5,9 +5,9 @@
 ###
 ### Parametric power-law specification for neighbourhood weights in hhh4()
 ###
-### Copyright (C) 2012-2015 Sebastian Meyer
-### $Revision: 1353 $
-### $Date: 2015-06-03 21:46:45 +0200 (Mit, 03. Jun 2015) $
+### Copyright (C) 2012-2016 Sebastian Meyer
+### $Revision: 1699 $
+### $Date: 2016-04-06 15:50:15 +0200 (Mit, 06. Apr 2016) $
 ################################################################################
 
 
@@ -60,7 +60,7 @@ W_powerlaw <- function (maxlag, normalize = TRUE, log = FALSE,
     weights.call <- call("zetaweights",
                          quote(nbmat), quote(d), maxlag, normalize)
     weights <- as.function(c(alist(d=, nbmat=, ...=), call("{", weights.call)),
-                           envir=.GlobalEnv)
+                           envir=getNamespace("surveillance"))
     if (log) { # the parameter d is interpreted on log-scale
         ## we prepend the necessary conversion d <- exp(d)
         body(weights) <- as.call(append(as.list(body(weights)),
@@ -69,7 +69,7 @@ W_powerlaw <- function (maxlag, normalize = TRUE, log = FALSE,
     
     ## construct derivatives with respect to "d" (or log(d), respectively)
     dweights <- d2weights <- as.function(c(alist(d=, nbmat=, ...=), quote({})),
-                                         envir=.GlobalEnv)
+                                         envir=getNamespace("surveillance"))
     weights.call[[5L]] <- FALSE         # normalize separately
     header <- c(
         if (log) quote(d <- exp(d)),    # such that d is again on original scale

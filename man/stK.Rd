@@ -9,7 +9,7 @@ Diggle et al (1995) K-function test for space-time clustering
 The function \code{stKtest} wraps functions in package \pkg{splancs} to
 perform the K-function based Monte Carlo permutation test for space-time
 clustering (Diggle et al, 1995) for \code{"epidataCS"}.
-The implementation is due to Meyer et al. (2015).
+The implementation is due to Meyer et al. (2016).
 }
 
 \usage{
@@ -92,11 +92,12 @@ stKtest(object, eps.s = NULL, eps.t = NULL, B = 199,
   Second-order analysis of space-time clustering
   \emph{Statistical Methods in Medical Research}, \bold{4}, 124-136.
 
-  Meyer, S., Warnke, I., R\enc{ö}{oe}ssler, W. and Held, L. (2015):
+  Meyer, S., Warnke, I., R\enc{ö}{oe}ssler, W. and Held, L. (2016):
   Model-based testing for space-time interaction using point processes:
   An application to psychiatric hospital admissions in an urban area.
-  \emph{Spatial and Spatio-temporal Epidemiology}. In revision.\cr
-  Preprint available at \url{http://arxiv.org/abs/1512.09052}
+  \emph{Spatial and Spatio-temporal Epidemiology}, \bold{17}, 15-25.
+  \doi{10.1016/j.sste.2016.03.002}.
+  Eprint: \url{http://arxiv.org/abs/1512.09052}.
 }
 
 \author{

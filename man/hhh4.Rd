@@ -477,8 +477,8 @@ range(plot(fluFit, type = "maxEV"))
     
   Meyer, S. and Held, L. (2014):
     Power-law models for infectious disease spread.
-    \emph{The Annals of Applied Statistics}, \bold{8} (3), 1612-1639.\cr
-    DOI-Link: \url{http://dx.doi.org/10.1214/14-AOAS743}
+    \emph{The Annals of Applied Statistics}, \bold{8} (3), 1612-1639.
+    \doi{10.1214/14-AOAS743}
 
   Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
   Spatio-temporal analysis of epidemic phenomena using the \R package

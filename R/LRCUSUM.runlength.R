@@ -138,10 +138,8 @@ LRCUSUM.runlength <- function(mu,mu0,mu1,h,dfun, n, g=5,outcomeFun=NULL,...) {
   #If the Markov chain is homogenous then compute ARL by inverting
   if (length(t) == 1) {
     R <- P[,1:g,1:g]
-    I <- diag(rep(1,g))
-    mom <- solve(I-R) %*% matrix(1,g,1) #-- no sparse computing
-    #Alternative using sparse 
-    #mom <- solve(Matrix(id-r)) %*% matrix(1,mw,1)
+    I <- diag(nrow=g)
+    mom <- rowSums(solve(I-R))
   }
        
   return(list(P=P,pmf=pRL,cdf=alarmUntilTime,arl=mom[1]))

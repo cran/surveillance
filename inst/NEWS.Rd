@@ -1,9 +1,58 @@
-\newcommand{\CRANpkg}{\href{https://CRAN.R-project.org/package=#1}{\pkg{#1}}}
-%% some pre-defined commands: \R, \code, \acronym, \url, \file, \pkg
+%% Some pre-defined commands: \R, \code, \acronym, \url, \file, \pkg
+%% Since R 3.2.0, additional system Rd macros are available,
+%% e.g., \CRANpkg and \doi. See the definitions in the file
+%% file.path(R.home("share"), "Rd", "macros", "system.Rd")
 
 \name{NEWS}
 \title{News for Package 'surveillance'}
 \encoding{latin1}
+
+
+\section{Changes in surveillance version 1.12.1 (2016-05-18)}{
+
+\subsection{DOCUMENTATION}{
+  \itemize{
+    \item The new \code{vignette("monitoringCounts")} illustrates the
+    monitoring of count time series in \R with a particular focus on
+    aberration detection in public health surveillance.
+    This vignette corresponds to a recently accepted manuscript
+    for the \emph{Journal of Statistical Software}
+    (Salmon, Schumacher, and \enc{Höhle}{Hoehle}, 2016).
+  }
+}
+  
+\subsection{MINOR CHANGES}{
+  \itemize{
+    \item Non-convergent \code{hhh4()} fits now obey the structure of
+    standard \code{"hhh4"} objects. In particular, such fits now also
+    contain the \code{control} and \code{stsObj} elements, allowing
+    for model \code{update()}s of non-convergent fits.
+
+    \item \code{knox()} warns about symmetric input matrices.
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item The code of \code{boda()} (with \code{samplingMethod="joint"})
+    and \code{bodaDelay()} (with \code{inferenceMethod="INLA"})
+    has been adjusted to a change of arguments of \pkg{INLA}'s
+    \code{inla.posterior.sample} function. Accordingly, the minimum
+    \pkg{INLA} version required to run \code{boda()} and
+    \code{bodaDelay()} is 0.0-1458166556.
+
+    \item The functions returned by \code{W_powerlaw()} now have the
+    package namespace as their environment to support situations where
+    the package is not attached.
+
+    \item Attaching package \CRANpkg{nlme} after \pkg{surveillance} no
+    longer masks \code{"hhh4"}'s \code{ranef}-method. (We now import the
+    \code{fixef} and \code{ranef} generics from \pkg{nlme}.)
+  }
+}
+
+}
+
 
 
 \section{Changes in surveillance version 1.12.0 (2016-04-02)}{
@@ -1695,7 +1744,7 @@
     \itemize{
       \item Support for \code{"twinSIR"} models (with associated
             \code{"epidata"} objects) as described
-            in \cite{Höhle (2009)} has been moved from package
+            in \enc{Höhle}{Hoehle} (2009) has been moved from package
 	    \pkg{RLadyBug} to \pkg{surveillance}.
             That means continuous-time discrete-space \acronym{SIR} models.
       \item Support for \code{"twinstim"} models as described in
@@ -1750,7 +1799,7 @@
   \itemize{
     \item A few minor bug fixes
     \item Small improvements in the C-implementation of the \code{twins()}
-      function by Daniel Sabanés Bové fixing the segmentation fault
+      function by Daniel Saban\enc{é}{e}s Bov\enc{é}{e} fixing the segmentation fault
       issue on 64-bit architectures.
   }
 }
@@ -1819,7 +1868,7 @@
       binomial cusum can be run by calling
            \code{rogerson( x, control(..., distribution="binomial"))}
     \item An experimental implementation of the twins model documented in
-      Held, L., Hofmann, M., Höhle, M. and Schmid V. (2006) A two-component
+      Held, L., Hofmann, M., \enc{Höhle}{Hoehle}, M. and Schmid V. (2006). A two-component
       model for counts of infectious diseases, Biostatistics, 7, pp.
       422--437 is now available as algo.twins.
   }

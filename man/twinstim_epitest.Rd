@@ -11,7 +11,7 @@
   model component is statistically significant. A permutation test is
   performed by default, which is only valid if the endemic intensity is
   space-time separable.
-  The approach is described in detail in Meyer et al. (2015),
+  The approach is described in detail in Meyer et al. (2016),
   where it is also compared to alternative global tests for clustering
   such as the \code{\link{knox}} test.
 }
@@ -165,11 +165,12 @@ epitest(model, data, tiles, method = "time", B = 199,
 }
 
 \references{
-  Meyer, S., Warnke, I., R\enc{ö}{oe}ssler, W. and Held, L. (2015):
+  Meyer, S., Warnke, I., R\enc{ö}{oe}ssler, W. and Held, L. (2016):
   Model-based testing for space-time interaction using point processes:
   An application to psychiatric hospital admissions in an urban area.
-  \emph{Spatial and Spatio-temporal Epidemiology}. In revision.\cr
-  Preprint available at \url{http://arxiv.org/abs/1512.09052}
+  \emph{Spatial and Spatio-temporal Epidemiology}, \bold{17}, 15-25.
+  \doi{10.1016/j.sste.2016.03.002}.
+  Eprint: \url{http://arxiv.org/abs/1512.09052}.
 }
 
 \author{

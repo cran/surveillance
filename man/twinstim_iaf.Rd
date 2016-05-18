@@ -243,13 +243,13 @@ tiaf.exponential(nTypes = 1, validpars = NULL)
 
   Meyer, S., Elias, J. and H\enc{ö}{oe}hle, M. (2012):
   A space-time conditional intensity model for invasive meningococcal
-  disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.\cr
-  DOI-Link: \url{http://dx.doi.org/10.1111/j.1541-0420.2011.01684.x}
+  disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.
+  \doi{10.1111/j.1541-0420.2011.01684.x}
 
   Meyer, S. and Held, L. (2014):
   Power-law models for infectious disease spread.
-  \emph{The Annals of Applied Statistics}, \bold{8} (3), 1612-1639.\cr
-  DOI-Link: \url{http://dx.doi.org/10.1214/14-AOAS743}
+  \emph{The Annals of Applied Statistics}, \bold{8} (3), 1612-1639.
+  \doi{10.1214/14-AOAS743}
 
   Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
   Spatio-temporal analysis of epidemic phenomena using the \R package

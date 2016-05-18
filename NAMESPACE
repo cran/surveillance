@@ -62,17 +62,16 @@ importFrom(MASS, glm.nb)   # for algo.glrnb
 importFrom(MASS, ginv, negative.binomial)
 importFrom(Matrix, Matrix)
 importClassesFrom(Matrix, ddiMatrix)
-importMethodsFrom(Matrix, coerce, diag, forceSymmetric, solve)
+importMethodsFrom(Matrix, coerce, forceSymmetric)
 ## sparse matrix methods provide a significant speed-up in marFisher
+importFrom(nlme, fixef, ranef)
+export(fixef, ranef)  # we define corresponding methods for "hhh4" models
 
 
 ### twinSIR-specific
 
 # for use in computing OSAIC weights by simulation
 #importFrom(quadprog, solve.QP)   # moved to "Suggests"
-
-# for update.epidata() if 'D' is a "Matrix"
-importMethodsFrom(Matrix, rowSums)
 
 
 ### twinstim-specific
@@ -106,8 +105,6 @@ export(surveillance.options, reset.surveillance.options)
 export(animate)          # new S3-generic
 export(R0)               # new S3-generic
 export(intensityplot)    # new S3-generic
-export(fixef)            # new S3-generic (same meaning as in package nlme)
-export(ranef)            # new S3-generic (same meaning as in package nlme)
 export(formatPval)       # yapf -- yet another p-value formatter
 export(anscombe.residuals)
 export(magic.dim, primeFactors, bestCombination)   # similar to n2mfrow

@@ -1,3 +1,3 @@
-if (require("testthat") && packageVersion("testthat") >= "0.10.0") {
+if (require("testthat")) {
     test_check("surveillance")
 }

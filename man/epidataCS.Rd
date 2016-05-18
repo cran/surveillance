@@ -303,13 +303,13 @@ getSourceDists(object, dimension = c("space", "time"))
 
   Harrower, M. and Bloch, M. (2006):
   MapShaper.org: A Map Generalization Web Service.
-  \emph{IEEE Computer Graphics and Applications}, \bold{26}(4), 22-27.\cr
-  DOI-Link: \url{http://dx.doi.org/10.1109/MCG.2006.85}
+  \emph{IEEE Computer Graphics and Applications}, \bold{26}(4), 22-27.
+  \doi{10.1109/MCG.2006.85}
 
   Meyer, S., Elias, J. and H\enc{ö}{oe}hle, M. (2012):
   A space-time conditional intensity model for invasive meningococcal
-  disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.\cr
-  DOI-Link: \url{http://dx.doi.org/10.1111/j.1541-0420.2011.01684.x}
+  disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.
+  \doi{10.1111/j.1541-0420.2011.01684.x}
 
   Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
   Spatio-temporal analysis of epidemic phenomena using the \R package

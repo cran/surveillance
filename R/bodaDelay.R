@@ -361,7 +361,7 @@ bodaDelay.threshold <- function(model, mc.munu,mc.y,alpha,
   if (inferenceMethod=="INLA"){
     E <- max(0,mean(dataGLM$response, na.rm=TRUE))
     # Sample from the posterior
-    jointSample <- INLA::inla.posterior.sample(mc.munu,model,hyper.user.scale = FALSE)
+    jointSample <- INLA::inla.posterior.sample(mc.munu,model, intern = TRUE)
     
     # take variation in size hyperprior into account by also sampling from it
     theta <- t(sapply(jointSample, function(x) x$hyperpar))

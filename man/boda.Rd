@@ -109,6 +109,6 @@ boda(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE,
 
   Salmon, M., Schumacher, D. and \enc{Höhle}{Hoehle}, M. (2016):
   Monitoring count time series in \R: Aberration detection in public
-  health surveillance. \emph{Journal of Statistical Software}. In press.\cr
-  Preprint available at \url{http://arxiv.org/abs/1411.1292}
+  health surveillance. \emph{Journal of Statistical Software},
+  \bold{70} (10), 1-35. \doi{10.18637/jss.v070.i10}
 }

@@ -168,7 +168,7 @@ nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
 \references{
   \enc{Höhle}{Hoehle} M and an der Heiden M (2014), Bayesian Nowcasting
   during the STEC O104:H4 Outbreak in Germany, 2011, Biometrics,
-  70(4):993-1002. \url{http://dx.doi.org/10.1111/biom.12194}.
+  70(4):993-1002. \doi{10.1111/biom.12194}.\cr
   A preprint is available as
   \url{http://people.su.se/~mhh/pubs/hoehle_anderheiden2014-preprint.pdf}.
 }

@@ -10,12 +10,13 @@
 
 \usage{
 \method{update}{hhh4}(object, ..., S = NULL, subset.upper = NULL,
-       use.estimates = TRUE, evaluate = TRUE)
+       use.estimates = object$convergence, evaluate = TRUE)
 }
 
 \arguments{
   \item{object}{
     a fitted \code{"hhh4"} model.
+    Non-convergent fits can be updated as well.
   }
   \item{\dots}{
     components modifying the original control list for
@@ -44,7 +45,8 @@
   \item{use.estimates}{
     logical specifying if \code{coef(object)} should be used as
     starting values for the new fit (which is the new default since
-    \pkg{surveillance} 1.8-2). This works by matching names
+    \pkg{surveillance} 1.8-2, in case the original fit has converged).
+    This works by matching names
     against the coefficients of the new model. Extra coefficients no
     longer in the model are silently ignored. Setting
     \code{use.estimates = FALSE} means to re-use the previous start

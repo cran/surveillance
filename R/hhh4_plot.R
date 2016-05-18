@@ -6,8 +6,8 @@
 ### Plot-method(s) for fitted hhh4() models
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2016 Sebastian Meyer
-### $Revision: 1687 $
-### $Date: 2016-04-01 21:40:25 +0200 (Fre, 01. Apr 2016) $
+### $Revision: 1715 $
+### $Date: 2016-05-17 10:01:28 +0200 (Die, 17. Mai 2016) $
 ################################################################################
 
 
@@ -333,7 +333,7 @@ plotHHH4_ri <- function (x, component, labels = FALSE, sp.layout = NULL,
                          gpar.missing = list(col="darkgrey", lty=2, lwd=2),
                          ...)
 {
-    ranefmatrix <- ranef(x, tomatrix=TRUE)
+    ranefmatrix <- ranef.hhh4(x, tomatrix=TRUE)
     if (is.null(ranefmatrix)) stop("model has no random effects")
     stopifnot(length(component) == 1L)
     if (is.na(comp <- pmatch(component, colnames(ranefmatrix))))
@@ -643,7 +643,7 @@ getSeason <- function(x, component = c("end", "ar", "ne"), unit = 1)
         return(list(intercept=-Inf, season=rep.int(-Inf, freq)))
 
     ## get the intercept
-    est <- fixef(x, reparamPsi=FALSE)
+    est <- fixef.hhh4(x, reparamPsi=FALSE)
     intercept <- unname(est[grep(paste0("^", component, "\\.(1|ri)"), names(est))])
     if (length(intercept) == 0) {
         intercept <- 0 # no intercept (not standard)
@@ -709,7 +709,7 @@ getMaxEV_season <- function (x)
     s2.phi <- getSeason(x, "ne")
     
     ## unit-specific intercepts
-    ris <- ranef(x, tomatrix=TRUE)
+    ris <- ranef.hhh4(x, tomatrix=TRUE)
     ri.lambda <- ris[,pmatch("ar.ri", colnames(ris), nomatch=0L),drop=TRUE]
     if (length(ri.lambda) == 0L) ri.lambda <- rep.int(0, nUnits)
     ri.phi <- ris[,pmatch("ne.ri", colnames(ris), nomatch=0L),drop=TRUE]

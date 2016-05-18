@@ -258,8 +258,8 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
 \references{
   Held, L. and Paul, M. (2012): Modeling seasonality in space-time
   infectious disease surveillance data.
-  \emph{Biometrical Journal}, \bold{54}, 824-843.\cr
-  DOI-Link: \url{http://dx.doi.org/10.1002/bimj.201200037}
+  \emph{Biometrical Journal}, \bold{54}, 824-843.
+  \doi{10.1002/bimj.201200037}
 
   Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
   Spatio-temporal analysis of epidemic phenomena using the \R package

@@ -1,8 +1,8 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.12.0
-Date: 2016-04-02
+Version: 1.12.1
+Date: 2016-05-18
 Authors@R: c(MH = person("Michael", "Höhle",
                   email = "hoehle@math.su.se",
                   role = c("aut", "ths")),
@@ -37,13 +37,14 @@ Author: Michael Höhle [aut, ths], Sebastian Meyer [aut, cre],
         (A few code segments are modified versions of code from base R)
 Maintainer: Sebastian Meyer <Sebastian.Meyer@ifspm.uzh.ch>
 Depends: R (>= 3.2.0), methods, grDevices, graphics, stats, utils, sp
-        (>= 1.0-15), xtable, polyCub (>= 0.4-3)
-Imports: Rcpp (>= 0.11.0), MASS, Matrix, spatstat (>= 1.36-0)
+        (>= 1.0-15), xtable (>= 1.7-0), polyCub (>= 0.4-3)
+Imports: Rcpp (>= 0.11.0), MASS, Matrix, nlme, spatstat (>= 1.36-0)
 LinkingTo: Rcpp
 Suggests: parallel, grid, xts, gridExtra, lattice, colorspace, scales,
         animation, msm, spc, quadprog, memoise, polyclip, rgeos,
         gpclib, maptools, intervals, spdep, numDeriv, maxLik, gsl,
-        testthat, coda, splancs, gamlss, INLA, runjags, knitr
+        testthat (>= 0.11.0), coda, splancs, gamlss, INLA (>=
+        0.0-1458166556), runjags, ggplot2, MGLM, knitr
 Description: Statistical methods for the modeling and monitoring of time series
         of counts, proportions and categorical data, as well as for the modeling
         of continuous-time point processes of epidemic phenomena.
@@ -59,7 +60,7 @@ Description: Statistical methods for the modeling and monitoring of time series
         sets, the ability to simulate outbreak data, and to visualize the
         results of the monitoring in a temporal, spatial or spatio-temporal
         fashion. A recent overview of the available monitoring procedures is
-        given by Salmon et al. (2014) <http://arxiv.org/abs/1411.1292>.
+        given by Salmon et al. (2016) <doi:10.18637/jss.v070.i10>.
         For the retrospective analysis of epidemic spread, the package provides
         three endemic-epidemic modeling frameworks with tools for visualization,
         likelihood inference, and simulation. 'hhh4' estimates models for
@@ -82,6 +83,6 @@ BugReports: https://r-forge.r-project.org/tracker/?group_id=45
 Encoding: latin1
 VignetteBuilder: utils, knitr
 NeedsCompilation: yes
-Packaged: 2016-04-02 21:08:27 UTC; sebastian
+Packaged: 2016-05-17 22:48:20 UTC; sebastian
 Repository: CRAN
-Date/Publication: 2016-04-03 16:40:04
+Date/Publication: 2016-05-18 06:53:12

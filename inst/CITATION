@@ -108,6 +108,20 @@ bibentry(
     doi = "10.1111/j.1541-0420.2011.01684.x"
 )
 
+bibentry(
+    bibtype = "Article",
+    header = "If knox() or epitest() is used, cite:",
+    author = c(authors["SM"], person("Ingeborg", "Warnke"),
+               person("Wulf", "Rössler"), authors["LH"]),
+    title = "Model-based testing for space-time interaction using point processes: An application to psychiatric hospital admissions in an urban area",
+    journal = "Spatial and Spatio-temporal Epidemiology",
+    issn = "1877-5845",
+    year = "2016",
+    volume = "17",
+    pages = "15--25",
+    doi = "10.1016/j.sste.2016.03.002"
+)
+
 
 ##############
 ### algo.* ###
@@ -172,10 +186,13 @@ bibentry(
     bibtype = "Article",
     header = "As a general software reference for the monitoring functionality, please cite:",
     author = authors[c("MS", "DS", "MH")],
-    title = "Monitoring Count Time Series in R: Aberration Detection in Public Health Surveillance",
+    title = "Monitoring Count Time Series in {R}: Aberration Detection in Public Health Surveillance",
     journal = "Journal of Statistical Software",
     year = "2016",
-    note = "Preprint available at \\url{http://arxiv.org/abs/1411.1292}"
+    volume = "70",
+    number = "10",
+    pages = "1--35",
+    doi = "10.18637/jss.v070.i10"
 )
 
 bibentry(

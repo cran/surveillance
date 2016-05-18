@@ -6,8 +6,8 @@
 ### Standard methods for hhh4-fits
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2016 Sebastian Meyer
-### $Revision: 1618 $
-### $Date: 2016-03-11 09:53:42 +0100 (Fre, 11. Mär 2016) $
+### $Revision: 1697 $
+### $Date: 2016-04-06 14:21:54 +0200 (Mit, 06. Apr 2016) $
 ################################################################################
 
 ## NOTE: we also apply print.hhh4 in print.summary.hhh4()
@@ -320,7 +320,7 @@ predict.hhh4 <- function(object, newSubset = object$control$subset,
 ## use.estimates: use fitted parameters as new start values
 
 update.hhh4 <- function (object, ..., S = NULL, subset.upper = NULL,
-                         use.estimates = TRUE, evaluate = TRUE)
+                         use.estimates = object$convergence, evaluate = TRUE)
 {
     control <- object$control
 

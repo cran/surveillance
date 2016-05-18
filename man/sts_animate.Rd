@@ -84,8 +84,8 @@
 \references{
   Meyer, S. and Held, L. (2014):
   Power-law models for infectious disease spread.
-  \emph{The Annals of Applied Statistics}, \bold{8} (3), 1612-1639.\cr
-  DOI-Link: \url{http://dx.doi.org/10.1214/14-AOAS743}\cr
+  \emph{The Annals of Applied Statistics}, \bold{8} (3), 1612-1639.
+  \doi{10.1214/14-AOAS743}.\cr
   Supplement A is available from
   \url{http://www.biostat.uzh.ch/static/powerlaw/}.
 }

@@ -14,7 +14,8 @@ approximation or by a Monte Carlo permutation approach (Mantel, 1967)
 with support for parallel computation via \code{\link{plapply}}.
 There is a simple \code{plot}-method showing a \code{\link{truehist}} of
 the simulated null distribution together with the expected and observed
-values. This implementation is due to Meyer et al. (2015).
+values.
+This implementation of the Knox test is due to Meyer et al. (2016).
 }
 
 \usage{
@@ -25,10 +26,16 @@ knox(dt, ds, eps.t, eps.s, simulate.p.value = TRUE, B = 999, ...)
 
 \arguments{
   \item{dt,ds}{
-    numeric vectors of length \eqn{n*(n-1)/2} containing the pairwise
-    temporal and spatial distances of \eqn{n} events.
+    numeric vectors containing temporal and spatial distances, respectively.
     Logical vectors indicating temporal/spatial closeness may also be
     supplied, in which case \code{eps.t}/\code{eps.s} is ignored.
+    To test for space-time interaction in a single point pattern of \eqn{n}
+    events, these vectors should be of length \eqn{n*(n-1)/2} and
+    contain the pairwise event distances (e.g., the lower triangle of
+    the distance matrix, such as in \code{"\link{dist}"} objects).
+    Note that there is no special handling of matrix input, i.e.,
+    if \code{dt} or \code{ds} are matrices, all elements are used
+    (but a warning is given if a symmetric matrix is detected).
   }
   \item{eps.t,eps.s}{
     Critical distances defining closeness in time and space,
@@ -122,11 +129,12 @@ knox(dt, ds, eps.t, eps.s, simulate.p.value = TRUE, B = 999, ...)
   The detection of disease clustering and a generalized regression approach.
   \emph{Cancer Research}, \bold{27}, 209-220.
 
-  Meyer, S., Warnke, I., R\enc{ö}{oe}ssler, W. and Held, L. (2015):
+  Meyer, S., Warnke, I., R\enc{ö}{oe}ssler, W. and Held, L. (2016):
   Model-based testing for space-time interaction using point processes:
   An application to psychiatric hospital admissions in an urban area.
-  \emph{Spatial and Spatio-temporal Epidemiology}. In revision.\cr
-  Preprint available at \url{http://arxiv.org/abs/1512.09052}
+  \emph{Spatial and Spatio-temporal Epidemiology}, \bold{17}, 15-25.
+  \doi{10.1016/j.sste.2016.03.002}.
+  Eprint: \url{http://arxiv.org/abs/1512.09052}.
 }
 
 \examples{
