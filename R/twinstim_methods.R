@@ -8,7 +8,7 @@
 ###
 ### Copyright (C) 2009-2016 Sebastian Meyer
 ### $Revision: 1692 $
-### $Date: 2016-04-02 16:24:21 +0200 (Sam, 02. Apr 2016) $
+### $Date: 2016-04-02 16:24:21 +0200 (Sat, 02. Apr 2016) $
 ################################################################################
 
 ## extract the link function used for the epidemic predictor (default: log-link)

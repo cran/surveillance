@@ -7,16 +7,18 @@
 \alias{reportingTriangle,stsNC-method}
 \alias{delayCDF}
 \alias{delayCDF,stsNC-method}
-\alias{score} 
-\alias{score,stsNC-method} 
+\alias{score}
+\alias{score,stsNC-method}
+\alias{predint}
+\alias{predint,stsNC-method}
 %Coerce method to convert to sts object
 \alias{coerce,sts,stsNC-method}
 
 \encoding{latin1}
 
 \title{Class "stsNC" -- a class inheriting from class \code{sts} which
-  allows the user to store the results of back-projecting 
-  surveillance time series} 
+  allows the user to store the results of back-projecting
+  surveillance time series}
 
 \description{
   A class inheriting from class \code{sts}, but with additional slots
@@ -24,9 +26,9 @@
 }
 
 \section{Slots}{
-  The slots are as for \code{"\linkS4class{sts}"}. However, a number of 
+  The slots are as for \code{"\linkS4class{sts}"}. However, a number of
   additional slots exists.
-  
+
   \describe{
     \item{\code{reportingTriangle}:}{An array containing the upper and lower limit
       of the confidence interval.}
@@ -56,6 +58,9 @@
     }
     \item{score}{\code{signature(x = "stsNC")}: extract the
       scoring rules result slot of an \code{stsNC} object.
+    }
+    \item{predint}{\code{signature(x = "stsNC")}: extract the
+      prediction interval slot of an \code{stsNC} object.
     }
 }
 } %end section methods.

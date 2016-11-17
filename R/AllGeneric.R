@@ -52,7 +52,7 @@ setGeneric("dimnames")
 # Conversion to and from sts objects
 ######################################################################
 
-#setGeneric("as.sts") 
+#setGeneric("as.sts")
 setGeneric("as.data.frame")
 
 
@@ -148,7 +148,7 @@ setReplaceMethod("multinomialTS", "sts", function(x, value) {
  x
 })
 
-### neighbourhood matrix slot 
+### neighbourhood matrix slot
 setGeneric("neighbourhood", function(x) standardGeneric("neighbourhood"))
 setMethod("neighbourhood", "sts", function(x) {
   return(x@neighbourhood)
@@ -172,20 +172,26 @@ setGeneric("year", function(x, ...) standardGeneric("year"))
 # For stsNC class
 ######################################################################
 
-### access function for repotringTriangle slot 
+### access function for repotringTriangle slot
 setGeneric("reportingTriangle", function(x) standardGeneric("reportingTriangle"))
 setMethod("reportingTriangle", "stsNC", function(x) {
   return(x@reportingTriangle)
 })
 
-### access function for delayCDF slot 
+### access function for delayCDF slot
 setGeneric("delayCDF", function(x) standardGeneric("delayCDF"))
 setMethod("delayCDF", "stsNC", function(x) {
   return(x@delayCDF)
 })
 
-### access function for SR slot 
+### access function for SR slot
 setGeneric("score", function(x) standardGeneric("score"))
 setMethod("score", "stsNC", function(x) {
   return(x@SR)
+})
+
+### access function for prediction interval slot
+setGeneric("predint", function(x) standardGeneric("predint"))
+setMethod("predint", "stsNC", function(x) {
+  return(x@pi)
 })

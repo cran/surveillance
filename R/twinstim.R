@@ -7,8 +7,8 @@
 ### model described in Meyer et al (2012), DOI: 10.1111/j.1541-0420.2011.01684.x
 ###
 ### Copyright (C) 2009-2016 Sebastian Meyer
-### $Revision: 1617 $
-### $Date: 2016-03-10 14:31:43 +0100 (Don, 10. Mär 2016) $
+### $Revision: 1750 $
+### $Date: 2016-06-06 20:29:40 +0200 (Mon, 06. Jun 2016) $
 ################################################################################
 
 
@@ -42,7 +42,7 @@ twinstim <- function (
 
     ## Clean the model environment when exiting the function
     on.exit(suppressWarnings(rm(cl, cumCIF, cumCIF.pb, data, doHessian,
-        eventDists, eventsData, finetune, neghess, fisherinfo, fit, fixed,
+        eventsData, finetune, neghess, fisherinfo, fit, fixed,
         functions, globalEndemicIntercept, h.Intercept, inmfe, initpars,
         ll, negll, loglik, msgConvergence, msgNotConverged,
         mfe, mfhEvents, mfhGrid, model, my.na.action, na.action, namesOptimUser,
@@ -211,13 +211,10 @@ twinstim <- function (
         eventSources <- if (N == nobs(data) && identical(qmatrix, data$qmatrix)) {
             data$events@data$.sources
         } else { # re-determine because subsetting has invalidated row indexes
-            ## if (verbose && N > 6000)
-            ##     cat("calculating distance matrix of", N, "events ...\n")
-            eventDists <- as.matrix(dist(eventCoords, method = "euclidean"))
             if (verbose) cat("updating list of potential sources ...\n")
-            lapply(seq_len(N), function (i)
-                determineSources(i, eventTimes, removalTimes, eventDists[i,],
-                                 eps.s, eventTypes, qmatrix))
+            determineSources(eventTimes = eventTimes, eps.t = eps.t,
+                             eventCoords = eventCoords, eps.s = eps.s,
+                             eventTypes = eventTypes, qmatrix = qmatrix)
         }
         ## calculate sum_{k=1}^K q_{kappa_j,k} for all j = 1:N
         qSum <- unname(rowSums(qmatrix)[eventTypes])   # N-vector
@@ -872,7 +869,7 @@ twinstim <- function (
                 siafInt <- do.call("..siafInt", .siafInt.args) # N-vector
                 gs <- gammapred * siafInt # N-vector
                 sapply(includes, function (i) {
-                    timeSources <- determineSources(i, eventTimes, removalTimes,
+                    timeSources <- determineSources1(i, eventTimes, removalTimes,
                         0, Inf, NULL)
                     nSources <- length(timeSources)
                     if (nSources == 0L) 0 else {

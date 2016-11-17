@@ -7,8 +7,8 @@
 ### The function allows the incorporation of random effects and covariates.
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2016 Sebastian Meyer
-### $Revision: 1706 $
-### $Date: 2016-05-03 16:09:49 +0200 (Die, 03. Mai 2016) $
+### $Revision: 1752 $
+### $Date: 2016-06-23 15:12:40 +0200 (Thu, 23. Jun 2016) $
 ################################################################################
 
 ## Error message issued in loglik, score and fisher functions upon NA parameters
@@ -125,7 +125,10 @@ hhh4 <- function (stsObj, control = list(
           thetastring <- strwrap(thetastring, exdent=10, prefix="\n", initial="")
           cat("theta = (", thetastring, ")\n")
       }
-      warning("Results are not reliable!", ADVICEONERROR)
+      warning("Results are not reliable!",
+              if (any(splitParams(thetahat, model)$overdisp > 10)) { # FALSE for Poisson
+                  "\n  Overdispersion parameter close to zero; maybe try a Poisson model.\n"
+              } else ADVICEONERROR)
   }
 
   ## gather results in a list -> "hhh4" object

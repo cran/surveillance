@@ -21,7 +21,7 @@ import(methods, grDevices, graphics, stats)
 import(sp)
 
 ## we define own methods for generating xtable()'s, which we want to be useable
-import(xtable) 
+import(xtable)
 
 
 ### required generics for own methods (that's why we "Depend" on these packages)
@@ -109,7 +109,7 @@ export(formatPval)       # yapf -- yet another p-value formatter
 export(anscombe.residuals)
 export(magic.dim, primeFactors, bestCombination)   # similar to n2mfrow
 export(isoWeekYear) #extract ISO 8601 date
-export(formatDate)  #ISO 8601 compatible %G and %V format( ) function. 
+export(formatDate)  #ISO 8601 compatible %G and %V format( ) function.
 export(refvalIdxByDate)
 export(ks.plot.unif)
 export(checkResidualProcess)       # for twinstim and twinSIR
@@ -179,11 +179,12 @@ export(calibrationTest.default)
 export(dss, logs, rps)  # ses, nses
 
 
-### sts(BP)-specific
+### sts(BP|NC)-specific
 
 export(sts)
 exportClasses(sts, stsBP)
 export(linelist2sts)
+export(animate_nowcasts)
 
 # conversion of "sts" objects
 S3method(as.ts, sts)
@@ -200,7 +201,7 @@ exportMethods(as.data.frame)
 exportMethods(epoch,observed,alarms,upperbound,population,control,multinomialTS,neighbourhood)
 exportMethods("epoch<-","observed<-","alarms<-","upperbound<-","population<-","control<-","multinomialTS<-","neighbourhood<-")
 # methods for accessing/replacing slots of an stsNC object
-exportMethods(reportingTriangle,delayCDF,score)
+exportMethods(reportingTriangle,delayCDF,score,predint)
 
 # plot variants
 export(stsplot_space)
@@ -433,7 +434,7 @@ S3method(simHHH, ah)
 ### hhh4-specific
 
 ## main functions
-export(hhh4) 
+export(hhh4)
 export(addSeason2formula)
 export(zetaweights, W_powerlaw)
 export(W_np)

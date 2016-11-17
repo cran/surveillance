@@ -215,6 +215,10 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   # Do preprocessing of the data
   ######################################################################
 
+  hasNADates <- is.na(data[,dEventCol]) | is.na(data[,dReportCol])
+  data <- data[!hasNADates,]
+  message(paste0("Removed ",sum(hasNADates), " records due to NA dates."))
+
   #Create a column containing the reporting delay using the timeDelay
   #function
   data$delay <- timeDelay(data[,dEventCol],data[,dReportCol])
@@ -989,7 +993,11 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   sts@control$yt.support <-  sts@control$N.tInf.support
   sts@control$y.prior.max <- sts@control$N.tInf.max
 
-  #Done
+  ##Store the call options
+  theCall <- list(now=now,when=when,data=data,dEventCol=dEventCol,dReportCol=dReportCol,method=method,aggregate.by=aggregate.by,D=D, m=m)
+  sts@control$call <- theCall
+
+  ##Done
   return(sts)
 }
 

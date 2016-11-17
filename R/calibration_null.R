@@ -8,7 +8,7 @@
 ###
 ### Copyright (C) 2013-2014 Wei Wei, 2015 Sebastian Meyer
 ### $Revision: 1512 $
-### $Date: 2015-11-05 10:11:03 +0100 (Don, 05. Nov 2015) $
+### $Date: 2015-11-05 10:11:03 +0100 (Thu, 05. Nov 2015) $
 ################################################################################
 
 ## wrapper function calling the necessary "EV" function for the selected score

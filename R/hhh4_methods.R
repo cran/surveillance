@@ -7,7 +7,7 @@
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2016 Sebastian Meyer
 ### $Revision: 1697 $
-### $Date: 2016-04-06 14:21:54 +0200 (Mit, 06. Apr 2016) $
+### $Date: 2016-04-06 14:21:54 +0200 (Wed, 06. Apr 2016) $
 ################################################################################
 
 ## NOTE: we also apply print.hhh4 in print.summary.hhh4()

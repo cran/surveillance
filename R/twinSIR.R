@@ -9,7 +9,7 @@
 ###
 ### Copyright (C) 2008-2009 Michael Hoehle, 2008-2009, 2014 Sebastian Meyer
 ### $Revision: 1079 $
-### $Date: 2014-10-18 01:26:00 +0200 (Sam, 18. Okt 2014) $
+### $Date: 2014-10-18 01:26:00 +0200 (Sat, 18. Oct 2014) $
 ################################################################################
 
 ## ATTENTION: the .loglik and .score functions assume atRiskY == 1 data

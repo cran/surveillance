@@ -7,7 +7,7 @@
 ###
 ### Copyright (C) 2010 Michaela Paul, 2013-2015 Sebastian Meyer
 ### $Revision: 1299 $
-### $Date: 2015-03-27 14:19:29 +0100 (Fre, 27. Mär 2015) $
+### $Date: 2015-03-27 14:19:29 +0100 (Fri, 27. Mar 2015) $
 ################################################################################
 
 ## for S = 1, 'sin(2*pi * t/period) + cos(2*pi * t/period)' is added to 'f'

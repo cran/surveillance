@@ -77,7 +77,7 @@ data("measlesWeserEms")
 
 \source{
   Measles counts were obtained from the public SurvStat database of the
-  Robert Koch institute: \url{http://www3.rki.de/SurvStat}.
+  Robert Koch institute: \url{https://survstat.rki.de/}.
 
   A shapefile of Germany's districts as of 01/01/2009 was obtained from
   the Service Center (\url{www.geodatenzentrum.de}) of the German
@@ -89,14 +89,14 @@ data("measlesWeserEms")
 
   Population numbers were obtained from the Federal Statistical Office of
   Lower Saxony (\acronym{LSN}):
-  \url{http://www.statistik.niedersachsen.de/portal/live.php?navigation_id=25688&article_id=87679&_psmand=40}
+  \url{http://www.statistik.niedersachsen.de/startseite/themenbereiche/bevoelkerung/themenbereich-bevoelkerung---statistische-berichte-87679.html}
 
   Vaccination coverage was obtained from the public health department of
   Lower Saxony:
   Nieders\enc{ä}{ae}chsisches Landesgesundheitsamt (2005): Impfreport --
   Durchimpfung von Kindern im Einschulungsalter in Niedersachsen im
   Erhebungsjahrgang 2004. Online available from
-  \url{http://www.nlga.niedersachsen.de/portal/live.php?navigation_id=27093&article_id=19385&_psmand=20},
+  \url{http://www.nlga.niedersachsen.de/gesundheitsberichterstattung/gesundheitsberichte/impfreport/basisberichte-19385.html},
   also as an interactive version.
 }
 

@@ -442,15 +442,7 @@ xPeriods <- c(15,67,117,15+26,67+26)
 ################################################################################
 p <- ggplot() +
 # white
-theme(axis.line = element_blank(),
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    panel.border =element_blank(),
-    panel.background =element_blank(),
-    axis.line =element_blank(),
-    axis.ticks = element_blank(),
-    axis.title=element_blank(),
-    axis.text=element_blank())+  
+theme_void() +
 geom_segment(aes(x = 0, y = -20, xend = 200, yend = 10), size=2,
               arrow = arrow(length = unit(0.5, "cm")), colour ='white')   +
 # time arrow
@@ -704,7 +696,8 @@ seasonality and a simple linear trend.
 rangeBoda <- which(epoch(cam.sts) >= as.Date("2007-01-01"))
 control.boda <- list(range = rangeBoda, X = NULL, trend = TRUE,
                      season = TRUE, prior = "iid", alpha = 0.025, 
-                     mc.munu = 10000, mc.y = 1000)
+                     mc.munu = 10000, mc.y = 1000,
+                     samplingMethod = "marginals")
 boda <- boda(cam.sts, control = control.boda)
 @
 
@@ -714,7 +707,8 @@ if (computeALL) {
 library("INLA")
 control.boda <- list(range=rangeBoda, X=NULL, trend=TRUE,
                      season=TRUE, prior='rw1', alpha=0.025, 
-                     mc.munu=10000, mc.y=1000)
+                     mc.munu=10000, mc.y=1000,
+                     samplingMethod = "marginals")
 # boda without covariates: trend + spline + periodic spline
 boda <- boda(cam.sts, control=control.boda)
 save(boda, file = "monitoringCounts-cache/boda.RData")

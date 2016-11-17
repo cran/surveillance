@@ -67,19 +67,19 @@ nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     methods here, e.g., in order to compare score evaluations. Details of
     the methods are described in \enc{Höhle}{Hoehle} and an der Heiden (2014).
     \describe{
-      \item{code{"unif"}}{}
-      \item{code{"bayes.notrunc"}}{A Bayesian procedure ignoring
+      \item{\code{"unif"}}{}
+      \item{\code{"bayes.notrunc"}}{A Bayesian procedure ignoring
 	truncation.}
-      \item{code{"bayes.notrunc.bnb"}}{A fast Bayesian procedure ignoring
+      \item{\code{"bayes.notrunc.bnb"}}{A fast Bayesian procedure ignoring
 	truncation and which calculates the adjustment per-time
 	(i.e. ignoring other delays) using the negative binomial.}
-      \item{code{"lawless"}}{A discretized version of the Gaussian
+      \item{\code{"lawless"}}{A discretized version of the Gaussian
 	predictive distribution suggested in Lawless (1994).}
-      \item{code{"bayes.trunc"}}{Bayesian method based on the generalized
+      \item{\code{"bayes.trunc"}}{Bayesian method based on the generalized
 	Dirichlet distribution, which is the conjugate prior-posterior for the
 	delay distribution PMF under right-truncated sampling as shown in HadH
 	(2014).}
-      \item{code{"bayes.trunc.ddcp"}}{Fully Bayesian method allowing for
+      \item{\code{"bayes.trunc.ddcp"}}{Fully Bayesian method allowing for
 	change-points in the delay distribution, e.g., due to speed-ups
 	in the reporting process. A discrete-survival
 	model is used for the delay distribution. Details of
@@ -93,8 +93,10 @@ nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   information.}
   \item{D}{Maximum possible or maximum relevant delay (unit:
     \code{aggregate.by}). Default: 15.}
-  \item{m}{Moving window for the estimation of the delay
-    distribution. Default: \code{NULL}, i.e. take all values at all times.}
+  \item{m}{Size of the moving window for the estimation of the delay
+    distribution. Default: \code{NULL}, i.e. take all values at all
+  times. Otherwise: an integer such that values from \code{(now-m):now}
+  are used.}
   \item{control}{A list with named arguments controlling the
     functionality of the nowcasting.
     \describe{

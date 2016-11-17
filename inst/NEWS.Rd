@@ -8,6 +8,53 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.12.2 (2016-11-14)}{
+
+\subsection{NEW FEATURES}{
+  \itemize{
+    \item The internal auxiliary function, which determines the sets of
+    potential source events in \code{"epidataCS"} has been implemented
+    in \samp{C++}, which accelerates \code{as.epidataCS()},
+    \code{permute.epidataCS()}, and therefore \code{epitest()}.
+    This is only really relevant for \code{"epidataCS"} with a large
+    number of events (>1000, say).
+
+    \item Negative-binomial \code{hhh4()} models may not converge for
+    non-overdispersed data (try, e.g.,
+    \code{set.seed(1); hhh4(sts(rpois(104, 10)), list(family="NegBin1"))}).
+    The resulting non-convergence warning message now mentions low
+    overdispersion if this is detected. [suggested by Johannes Bracher]
+
+    \item An additional \code{type="delay"} option was added to the
+    \code{plot} method of \code{stsNC} objects. Furthermore, an
+    \code{animate_nowcasts} function allows one to animate a sequence of
+    nowcasts.
+
+  }
+}
+
+\subsection{MINOR CHANGES}{
+  \itemize{
+    \item In the \code{animate}-method for \code{"sts"} objects,
+    the default top padding of \pkg{lattice} plots is now disabled for the
+    bottom \code{timeplot} to reduce the space between the panels.
+    Furthermore, the new option \code{fill} can be used to make the
+    panel of the \code{timeplot} as large as possible.
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item \code{bodaDelay()}: fixed spurious warnings from \code{rnbinom()}.
+    \item \code{vignette("monitoringCounts")}: fixed \code{boda}-related
+    code and cache to obtain same results as in corresponding JSS paper.
+  }
+}
+
+}
+
+
+
 \section{Changes in surveillance version 1.12.1 (2016-05-18)}{
 
 \subsection{DOCUMENTATION}{
@@ -20,7 +67,7 @@
     (Salmon, Schumacher, and \enc{Höhle}{Hoehle}, 2016).
   }
 }
-  
+
 \subsection{MINOR CHANGES}{
   \itemize{
     \item Non-convergent \code{hhh4()} fits now obey the structure of
@@ -119,7 +166,7 @@
   \itemize{
     \item \code{stsplot_spacetime()} now recognizes its \code{opts.col}
     argument.
-    
+
     \item Conversion from \code{"ts"} to \code{"sts"} using
     \code{as(ts, "sts")} could set a wrong start time. For instance,
     \code{as(ts(1:10, start=c(1959,2), frequency=4), "sts")@start} was
@@ -145,7 +192,7 @@
     \item \code{update.epidata()} can now handle a distance matrix
     \code{D} in the form of a classed \code{"Matrix"}
     (suggested by George Wood).
-    
+
     \item \code{glrnb()} can now handle \code{ret="cases"} for the
     generalized likelihood ratio detector based on the negative binomial
     distribution. It's based on a brute-force search and hence might be
@@ -177,17 +224,17 @@
     generated for the last time point in \code{range}. Furthermore, the
     exact computation in case of returns of the type \code{"value"} for
     the binomial are now checked through an attribute.
-    
+
     \item Fixed bug in the \code{estimateGLRNbHook} function of
     \code{algo.glrnb}, which ignored potential fixed \code{alpha}
     values. If \code{alpha} is fixed this is now taken into consideration
     while fitting the negative binomial function. See revised help files
     for the details.
-    
+
     \item Made a hot-fix such that the \code{algo.quality} function now
     also works for \code{sts} objects and if the \code{state} or
     \code{alarm} slots consists of TRUE/FALSE instead of 0/1.
-    
+
     \item \code{intensity.twinstim()} did not work for non-endemic models.
 
     \item A parallelized \code{epitest()} could fail with a strange

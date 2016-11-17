@@ -22,7 +22,7 @@
 \usage{
 \method{animate}{sts}(object, tps = NULL, cumulative = FALSE,
         population = NULL, at = 10, ...,
-        timeplot = list(height = 0.3),
+        timeplot = list(height = 0.3, fill = FALSE),
         sleep = 0.5, verbose = interactive(), draw = TRUE)
 }
 
@@ -50,7 +50,9 @@
     a time series chart of the counts along
     the selected time points \code{tps} will be plotted below the map.
     The argument \code{height} gives the relative height of the time
-    series plot (default: 0.3), and the arguments \code{inactive} and
+    series plot (default: 0.3), the logical value \code{fill} indicates
+    whether to make the panel as big as possible (default: FALSE),
+    and the arguments \code{inactive} and
     \code{active} are lists of graphical parameters (e.g., \code{col})
     determining the appearance of the bars (e.g., default color is grey
     when inactive and black when active).

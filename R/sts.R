@@ -41,7 +41,7 @@ sts <- function (observed,
             warning("'population' takes precedence over 'populationFrac'")
         slots$populationFrac <- population
     } # else "populationFrac" is a possible element of ...
-    
+
     ## call the standard generator function with explicitly set slots
     isNULL <- vapply(X = slots, FUN = is.null,
                      FUN.VALUE = FALSE, USE.NAMES = FALSE)
@@ -74,7 +74,7 @@ init.sts <- function(.Object, ..., # also for slots of classes extending "sts"
 {
     if (nargs() < 2) # nothing to do
         return(.Object)
-    
+
     if (missing(observed)) { # use default initialize-method
         ## such that, e.g., initialize(stsObj, map=newMap) will set a new map
         ## and copy other slots from stsObj instead of (re-)setting to defaults,
@@ -89,7 +89,7 @@ init.sts <- function(.Object, ..., # also for slots of classes extending "sts"
         .Object <- fix.dimnames(.Object)
         return(.Object)
     }
-    
+
     ## Ensure matrix form (auto-conversion is useful for single time series)
     observed <- as.matrix(observed)
     nUnit <- ncol(observed)
@@ -97,13 +97,13 @@ init.sts <- function(.Object, ..., # also for slots of classes extending "sts"
     state <- as.matrix(state)
     alarm <- as.matrix(alarm)
     upperbound <- as.matrix(upperbound)
-    
+
     ## clear rownames and set colnames for the matrix of observed counts
     if (is.null(namesObs <- colnames(observed))){
         namesObs <- paste0("observed", seq_len(nUnit))
     }
     dimnames(observed) <- list(NULL, namesObs)
-    
+
     ## if there is only one state-vector for more than one area, repeat it
     if (nUnit > 1 && ncol(state) == 1 && length(state) == nTime) {
         state <- rep.int(state, nUnit)
@@ -120,7 +120,7 @@ init.sts <- function(.Object, ..., # also for slots of classes extending "sts"
     ## next would coerce a "SpatialPolygonsDataFrame" to "SpatialPolygons"
     if (!missing(map))
         .Object@map <- map
-    
+
     ## set all other slots (including for classes extending this class)
     ## using the default initialize-method
     .Object <- callNextMethod(.Object, ...,
@@ -129,10 +129,10 @@ init.sts <- function(.Object, ..., # also for slots of classes extending "sts"
                               neighbourhood=neighbourhood,
                               populationFrac=populationFrac)
     ## this also checks validObject(.Object)
-    
+
     ## make sure all arrays have the same dimnames
     .Object <- fix.dimnames(.Object)
-    
+
     return(.Object)
 }
 
@@ -174,7 +174,7 @@ sts2disProg <- function(sts) {
 #The other alternative is to aggregate all units.
 #
 # Note: The function is not 100% consistent with what the generic
-#       aggregate does. 
+#       aggregate does.
 #
 # Warning: In case the aggregation is by unit the upperbound slot is set
 #          to NA. Furthermore the MAP object is left as.is, but
@@ -187,8 +187,8 @@ sts2disProg <- function(sts) {
 ###########################################################################
 
 setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...) {
-  
- #Action of aggregation for populationFrac depends on the type 
+
+ #Action of aggregation for populationFrac depends on the type
  binaryTS <- sum( x@populationFrac > 1 ) > 1  # FIXME: x@multinomialTS?
 
   #Aggregate time
@@ -202,13 +202,13 @@ setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...)
       if (howmany - ceiling(howmany) != 0)
           stop("nfreq has to be a multiple of x@freq.")
     }
-    
+
     n <- dim(x@observed)[1]
     m <- ceiling(n/howmany)
     new <- rep(1:m,each=howmany)[1:n]
     x@freq <- ifelse(nfreq == "all", howmany, nfreq)
     x@epoch <- 1:m
-    
+
     x@observed <- as.matrix(aggregate(x@observed,by=list(new),sum)[,-1])
     x@state <- as.matrix(aggregate(x@state,by=list(new),sum)[,-1])>0
     x@alarm <- as.matrix(aggregate(x@alarm,by=list(new),sum)[,-1]) # number of alarms
@@ -238,7 +238,7 @@ setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...)
 
   return(x)
 })
-  
+
 
 #####################################################################
 # Miscellaneous access methods
@@ -264,7 +264,7 @@ setMethod("year", "sts", function(x,...) {
   if (x@epochAsDate) {
     return(as.numeric(formatDate(epoch(x),"%G")))
   } else {
-    ((x@epoch-1 + x@start[2]-1) + (x@freq*x@start[1])) %/% x@freq 
+    ((x@epoch-1 + x@start[2]-1) + (x@freq*x@start[1])) %/% x@freq
   }
 })
 
@@ -288,7 +288,7 @@ setMethod("[", "sts", function(x, i, j, ..., drop) {
   binaryTS <- sum( x@populationFrac > 1 ) > 1 # FIXME @ Michael: x@multinomialTS
   if (!binaryTS) {
     x@populationFrac <- x@populationFrac / apply(x@populationFrac,MARGIN=1,sum)
-   }  
+   }
   x@upperbound <- x@upperbound[i,j,drop=FALSE]
 
   #Neighbourhood matrix
@@ -309,16 +309,16 @@ setMethod("[", "sts", function(x, i, j, ..., drop) {
   }
   start <- x@start
   new.sampleNo <- start[2] + i.min - 1
-  start.year <- start[1] + (new.sampleNo - 1) %/% x@freq 
+  start.year <- start[1] + (new.sampleNo - 1) %/% x@freq
   start.sampleNo <- (new.sampleNo - 1) %% x@freq + 1
   x@start <- c(start.year,start.sampleNo)
   ## If !epochAsDate, we also have to update epoch since it is relative to start
   if (!x@epochAsDate) x@epoch <- x@epoch - i.min + 1
-                                                     
+
   ## Note: We do not automatically subset the map according to j, since
   ##       identical(row.names(map), colnames(observed))
   ##       is not a property of the sts-class; Unmonitored regions are allowed.
-  
+
   #Done
   return(x)
 })
@@ -327,7 +327,7 @@ setMethod("[", "sts", function(x, i, j, ..., drop) {
 #########################################################################
 ## Plot method ... the type argument specifies what type of plot to make
 ##
-## plot as multivariate time series:  type = observed ~ time | unit 
+## plot as multivariate time series:  type = observed ~ time | unit
 ## plot as map object aggregated over time: type = observed ~ 1 | unit
 ## new map implementation via: type = observed ~ unit
 ## the specific plot functions are in separate files (stsplot_*.R)
@@ -335,7 +335,7 @@ setMethod("[", "sts", function(x, i, j, ..., drop) {
 
 setMethod("plot", signature(x="sts", y="missing"),
           function (x, type = observed ~ time | unit, ...) {
-  
+
   # catch new implementation of time-aggregate map plot
   if (isTRUE(all.equal(observed ~ unit, type)))
       return(stsplot_space(x, ...))
@@ -412,3 +412,5 @@ setMethod( "show", "sts", function( object ){
       print( head(object@neighbourhood,n))
   }
 } )
+
+

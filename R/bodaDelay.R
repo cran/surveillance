@@ -438,19 +438,17 @@ bodaDelay.threshold <- function(model, mc.munu,mc.y,alpha,
     }
     
   }
+
+  # can only use positive theta (mu_Tt is positive anyway)
+  mu_Tt <- mu_Tt[theta>0]
+  theta <- theta[theta>0]
   
   if(quantileMethod=="MC"){
     N_Tt <- rnbinom(n=mc.y*mc.munu,size=theta,mu=E*mu_Tt)
-    # We have to ditch the na values (values for which theta was negative)
-    N_Tt <- N_Tt[is.na(N_Tt)==FALSE]
     
     qi <- quantile(N_Tt, probs=(1-alpha), type=3, na.rm=TRUE)
   }
   if(quantileMethod=="MM"){
-    mu_Tt <- mu_Tt[mu_Tt>=0&theta>0]
-    
-    theta <- theta[mu_Tt>=0&theta>0]
-    
     minBracket <- qnbinom(p=(1-alpha), 
                           mu=E*min(mu_Tt),
                           size=max(theta))
@@ -461,9 +459,6 @@ bodaDelay.threshold <- function(model, mc.munu,mc.y,alpha,
     
     qi <- qmix(p=(1-alpha), mu=E*mu_Tt, size=theta,
                bracket=c(minBracket, maxBracket))
-    
-
-    
   }
   
   

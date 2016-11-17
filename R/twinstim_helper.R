@@ -5,9 +5,9 @@
 ###
 ### Some internal helper functions for "twinstim".
 ###
-### Copyright (C) 2009-2015 Sebastian Meyer
-### $Revision: 1285 $
-### $Date: 2015-03-24 15:26:51 +0100 (Die, 24. Mär 2015) $
+### Copyright (C) 2009-2016 Sebastian Meyer
+### $Revision: 1750 $
+### $Date: 2016-06-06 20:29:40 +0200 (Mon, 06. Jun 2016) $
 ################################################################################
 
 
@@ -17,7 +17,7 @@
 ## all arguments but i and qmatrix are nEvents-vectors
 ## -> determine potential sources for eventTimes[i], eventsTypes[i] with
 ## distances distvec_j = ||s_i - s_j||
-determineSources <- function (i, eventTimes, removalTimes, distvec, eps.s,
+determineSources1 <- function (i, eventTimes, removalTimes, distvec, eps.s,
     eventTypes = NULL, qmatrix)
 {
     tp <- eventTimes[i]
@@ -37,18 +37,52 @@ determineSources <- function (i, eventTimes, removalTimes, distvec, eps.s,
     unname(sources)
 }
 
-## determine the .sources for an epidataCS object, i.e.
-## lapply the previous function to all of object$events
-determineSources.epidataCS <- function (object)
+## interface to new C++ implementation (including a loop over all events)
+determineSources <- function (eventTimes, eps.t,
+                              eventCoords, eps.s,
+                              eventTypes, qmatrix)
 {
-    eventTimes <- object$events@data$time
-    removalTimes <- eventTimes + object$events@data$eps.t
-    eventDists <- as.matrix(dist(object$events@coords, method = "euclidean"))
-    lapply(seq_along(eventTimes), function (i) {
-        determineSources(i, eventTimes, removalTimes, eventDists[i,],
-                         object$events@data$eps.s, object$events@data$type,
-                         object$qmatrix) 
-    })
+    ## check inputs
+    stopifnot(is.vector(eventTimes, mode = "numeric"),
+              is.vector(eps.t, mode = "numeric"),
+              is.matrix(eventCoords), is.numeric(eventCoords),
+              ncol(eventCoords) == 2L, is.vector(eps.s, mode = "numeric"),
+              is.matrix(qmatrix), is.logical(qmatrix),
+              nrow(qmatrix) == ncol(qmatrix))
+    N <- length(eventTimes)
+    stopifnot(nrow(eventCoords) == N, length(eventTypes) == N)
+    if (is.factor(eventTypes)) {
+        stopifnot(nlevels(eventTypes) <= nrow(qmatrix))
+    } else {
+        stopifnot(is.vector(eventTypes, mode = "integer"),
+                  max(eventTypes) <= nrow(qmatrix))
+    }
+
+    ## call C++ function (wrapper)
+    determineSourcesC(eventTimes = eventTimes, eps_t = rep_len(eps.t, N),
+                      eventCoords = eventCoords, eps_s = rep_len(eps.s, N),
+                      eventTypes = as.integer(eventTypes), qmatrix = qmatrix)
+}
+
+## determine the .sources for an epidataCS object
+determineSources.epidataCS <- function (object, method = c("C", "R"))
+{
+    method <- match.arg(method)
+    if (method == "R") {
+        ## lapply determineSources1() to all of object$events
+        eventTimes <- object$events@data$time
+        removalTimes <- eventTimes + object$events@data$eps.t
+        eventDists <- as.matrix(dist(object$events@coords, method = "euclidean"))
+        lapply(seq_along(eventTimes), function (i) {
+            determineSources1(i, eventTimes, removalTimes, eventDists[i,],
+                              object$events@data$eps.s, object$events@data$type,
+                              object$qmatrix) 
+        })
+    } else {
+        determineSources(eventTimes = object$events$time, eps.t = object$events$eps.t,
+                         eventCoords = coordinates(object$events), eps.s = object$events$eps.s,
+                         eventTypes = object$events$type, qmatrix = object$qmatrix)
+    }
 }
 
 
