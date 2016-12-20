@@ -6,8 +6,8 @@
 ### Animated map (and time series chart) of an sts-object (or matrix of counts)
 ###
 ### Copyright (C) 2013-2016 Sebastian Meyer
-### $Revision: 1761 $
-### $Date: 2016-07-27 04:16:06 +0200 (Wed, 27. Jul 2016) $
+### $Revision: 1802 $
+### $Date: 2016-12-01 15:11:02 +0100 (Thu, 01. Dec 2016) $
 ################################################################################
 
 
@@ -25,8 +25,15 @@ animate.sts <- function (object, tps = NULL, cumulative = FALSE,
         message("Advice: use facilities of the \"animation\" package, e.g.,\n",
                 "        saveHTML() to view the animation in a web browser.")
 
+    if (is.null(tps))
+        tps <- seq_len(nrow(object))
+    if (!is.null(population)) { # get population matrix
+        population <- parse_population_argument(population, object)
+    }
+
     ## determine color breaks (checkat() is defined in stsplot_space.R)
-    at <- checkat(at, data=.rangeOfDataToPlot(object, tps, cumulative, population))
+    at <- checkat(at, data=.rangeOfDataToPlot(object, tps, cumulative, population),
+                  counts=is.null(population))
 
     ## style of the additional temporal plot
     if (is.list(timeplot)) {
@@ -37,8 +44,6 @@ animate.sts <- function (object, tps = NULL, cumulative = FALSE,
         stopifnot(timeplot_height > 0, timeplot_height < 1)
     }
 
-    if (is.null(tps))
-        tps <- seq_len(nrow(object))
     if (verbose)
         pb <- txtProgressBar(min=0, max=length(tps), initial=0, style=3)
     grobs <- vector(mode = "list", length = length(tps))
@@ -100,7 +105,8 @@ animate.sts <- function (object, tps = NULL, cumulative = FALSE,
 
 stsplot_timeSimple <- function (x, tps = NULL, highlight = integer(0),
                                 inactive = list(col="gray", lwd=1),
-                                active = list(col=1, lwd=4), ...)
+                                active = list(col=1, lwd=4),
+                                as.Date = x@epochAsDate, ...)
 {
     observed <- if (inherits(x, "sts")) observed(x) else x
     if (is.null(tps)) {
@@ -108,6 +114,10 @@ stsplot_timeSimple <- function (x, tps = NULL, highlight = integer(0),
     } else {
         observed <- observed[tps,,drop=FALSE]
     }
+    epoch <- if (inherits(x, "sts")) epoch(x, as.Date = as.Date)[tps] else tps
+
+    if (anyNA(observed))
+        warning("ignoring NA counts in time series plot")
 
     ## build highlight-specific style vectors (col, lwd, ...)
     stopifnot(is.list(inactive), is.list(active))
@@ -124,7 +134,8 @@ stsplot_timeSimple <- function (x, tps = NULL, highlight = integer(0),
                               key.axis.padding = 0)
     )
     xyplot.args <- modifyList(
-        c(list(x=rowSums(observed) ~ tps, type="h", ylab="", xlab="",
+        c(list(x = rowSums(observed, na.rm = TRUE) ~ epoch,
+               type = "h", ylab = "", xlab = "",
                par.settings = par_no_top_padding),
           styleargs),
         list(...))
@@ -134,17 +145,18 @@ stsplot_timeSimple <- function (x, tps = NULL, highlight = integer(0),
 
 ### determine data range for automatic color breaks 'at'
 
-.rangeOfDataToPlot <- function (object, tps = NULL, cumulative = FALSE,
+.rangeOfDataToPlot <- function (object, tps, cumulative = FALSE,
                                 population = NULL)
 {
     observed <- if (inherits(object, "sts")) observed(object) else object
-    if (!is.null(tps)) {
-        observed <- observed[tps,,drop=FALSE]
+    observed <- observed[tps,,drop=FALSE]
+    if (!is.null(population)) { # compute (cumulative) incidence
+        observed <- if (cumulative) {
+            observed / rep(population[tps[1L],], each = nrow(observed))
+        } else {
+            observed / population[tps,,drop=FALSE]
+        }
     }
-    if (!is.null(population)) { # compute prevalence
-        stopifnot(is.vector(population, mode="numeric"),
-                  length(population) == ncol(object))
-        observed <- observed / rep(population, each=nrow(observed))
-    }
-    range(if (cumulative) c(observed[1L,], colSums(observed)) else observed)
+    range(if (cumulative) c(observed[1L,], colSums(observed)) else observed,
+          na.rm = TRUE)
 }

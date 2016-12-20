@@ -46,9 +46,12 @@ if (FALSE) { # check derivatives
 }
 
 
+## fit a model with unit-specific overdispersion parameters using "NegBinM",
+## equal to family = factor(colnames(fluBWsub), levels=colnames(fluBWsub))
+fluFitM <- hhh4(stsObj = fluBWsub, control = c(fluModel, list(
+    family = "NegBinM")))
+
 test_that("\"NegBinM\" fit is invariant to the ordering of the overdispersion parameters", {
-    fluFitM <- hhh4(stsObj = fluBWsub, control = c(fluModel, list(
-        family = "NegBinM"))) # identical to factor(colnames(fluBWsub), levels=colnames(fluBWsub))
     fluFitM_reordered <- hhh4(stsObj = fluBWsub, control = c(fluModel, list(
         family = factor(colnames(fluBWsub), levels=rev(colnames(fluBWsub))))))
     expect_equal(fluFitM_reordered$loglikelihood,
@@ -108,4 +111,16 @@ test_that("calibrationTest.oneStepAhead() works and \"final\" is equivalent to f
     idx <- 3:5  # ignore "method" and "data.name" in calibrationTest() output
     expect_equal(calibrationTest(osa_final, which = "dss")[idx], 
                  calibrationTest(fluFitShared, which = "dss", subset = mysubset)[idx])
+})
+
+test_that("simulation correctly uses shared overdispersion parameters", {
+    fluSimShared <- simulate(fluFitShared, seed = 1)
+    ## simulate from the NegBinM model using the estimates from the shared fit
+    psiShared <- coeflist(fluFitShared)$fixed$overdisp
+    psiByUnit <- psiShared[fluFitShared$control$family]
+    names(psiByUnit) <- paste0("overdisp.", names(fluFitShared$control$family))
+    coefsM <- c(coef(fluFitShared), psiByUnit)[names(coef(fluFitM))]
+    fluSimSharedM <- simulate(fluFitM, seed = 1, coefs = coefsM)
+    expect_identical(observed(fluSimShared), observed(fluSimSharedM))
+    ## fails for surveillance 1.12.2
 })

@@ -93,12 +93,17 @@ if (require("gamlss")) {
 
   #Fit beta-binomial model using GAMLSS
   abattoir.df <- as.data.frame(abattoir)
-  colnames(abattoir.df) <- c("y","t","state","alarm","n")
+
+  #Replace the observed and epoch column names to something more convenient
+  dict <- c("observed"="y", "epoch"="t", "population"="n")
+  replace <- dict[colnames(abattoir.df)]
+  colnames(abattoir.df)[!is.na(replace)] <- replace[!is.na(replace)]
+
   m.bbin <- gamlss( cbind(y,n-y) ~ 1 + t +
-		    + sin(2*pi/52*t) + cos(2*pi/52*t) +
-		    + sin(4*pi/52*t) + cos(4*pi/52*t), sigma.formula=~1,
-		    family=BB(sigma.link="log"),
-		    data=abattoir.df[phase1,c("n","y","t")])
+                      + sin(2*pi/52*t) + cos(2*pi/52*t) +
+                      + sin(4*pi/52*t) + cos(4*pi/52*t), sigma.formula=~1,
+                   family=BB(sigma.link="log"),
+                   data=abattoir.df[phase1,c("n","y","t")])
 
   #CUSUM parameters
   R <- 2 #detect a doubling of the odds for a test being positive

@@ -10,7 +10,7 @@
 \newcommand{\NB}{\operatorname{NB}}
 
 %% almost as usual
-\author{Ma\"elle Salmon\\Robert Koch Institute \And 
+\author{Ma\"elle Salmon\\Robert Koch Institute \And
         Dirk Schumacher\\Robert Koch Institute \And
         Michael H\"ohle\\ Stockholm University,\\Robert Koch Institute }
 \title{
@@ -65,7 +65,7 @@
   E-mail: \email{maelle.salmon@yahoo.se}, \email{mail@dirk-schumacher.net}\\
   URL: \url{https://masalmon.github.io/}\\
   \phantom{URL: }\url{http://www.dirk-schumacher.net/}\\
-  
+
   Michael H\"{o}hle\\
   Department of Mathematics\\
   Stockholm University\\
@@ -101,43 +101,43 @@ options(width=77)
 ## create directories for plots and cache
 dir.create("plots", showWarnings=FALSE)
 dir.create("monitoringCounts-cache", showWarnings=FALSE)
-@ 
+@
 \SweaveOpts{prefix.string=plots/monitoringCounts}
 \label{sec:1}
 
-The package provides a central S4 data class \code{sts} to capture multivariate or univariate time series. All further methods use objects of this class as an input. 
+The package provides a central S4 data class \code{sts} to capture multivariate or univariate time series. All further methods use objects of this class as an input.
 Therefore we first describe how to use the \code{sts} class and then,
 as all monitoring methods of the package conform to the same syntax, a typical call of a function for aberration detection will be presented. Furthermore, the visualization of time series and of the results of their monitoring is depicted.
 
 \subsection{How to store time series and related information}
 
-In \pkg{surveillance}, time series of counts and related information are encoded in a specific S4-class called \code{sts} (\textit{surveillance time series}) that represents 
+In \pkg{surveillance}, time series of counts and related information are encoded in a specific S4-class called \code{sts} (\textit{surveillance time series}) that represents
 possibly multivariate time series of counts. Denote the counts as $\left( y_{it} ; i = 1, \ldots,m, t = 1,  \ldots, n \right)$,
 where $n$ is the length of the time series and $m$ is the number of entities, e.g., geographical regions, hospitals or age groups,
 being
-monitored. An example which we shall look at in more details is a time series representing the weekly counts of cases of infection with \textit{Salmonella Newport} in all 16 federal states of Germany 
+monitored. An example which we shall look at in more details is a time series representing the weekly counts of cases of infection with \textit{Salmonella Newport} in all 16 federal states of Germany
 from 2004 to 2013 with $n=525$ weeks and $m=16$ geographical units. Infections with \textit{Salmonella Newport}, a subtype of \textit{Salmonella}, can trigger gastroenteritis, prompting
 the seek of medical care. Infections with \textit{Salmonella} are notifiable in Germany since 2001 with data being forwarded to the RKI by federal states health authorities on behalf of the local health authorities.
- 
+
 \subsubsection[Slots of the class sts]{Slots of the class \texttt{sts}}
 The key slots of the \code{sts} class are those describing the observed counts and the corresponding time periods of the aggregation. The observed counts $\left(y_{it}\right)$ are stored in the $n \times m$ matrix  \code{observed}.
-A number of other slots characterize time. First, \code{epoch} denotes the corresponding time period of the aggregation. If the Boolean \code{epochAsDate} is \code{TRUE}, 
-\code{epoch} is the numeric representation of \code{Date} objects corresponding to each observation in \code{observed}. If the Boolean \code{epochAsDate} is \code{FALSE}, 
+A number of other slots characterize time. First, \code{epoch} denotes the corresponding time period of the aggregation. If the Boolean \code{epochAsDate} is \code{TRUE},
+\code{epoch} is the numeric representation of \code{Date} objects corresponding to each observation in \code{observed}. If the Boolean \code{epochAsDate} is \code{FALSE},
 \code{epoch} is the time index $1 \leq t \leq n$ of each of these observations. Then, \code{freq} is the number of observations per year: 365 for
-daily data, 52 for weekly data and 12 for monthly data. 
+daily data, 52 for weekly data and 12 for monthly data.
 Finally, \code{start} is a vector representing the origin of the time series with two values that are the year and the epoch within
 that year for the first observation of the time series -- \code{c(2014, 1)} for a weekly time series starting on the first week of 2014 for instance.
 
 Other slots enable the storage of additional information. Known aberrations are recorded in the Boolean slot \code{state} of the same dimensions as \code{observed}
- with \code{TRUE} indicating an outbreak and \code{FALSE} indicating the absence of any known aberration. The monitored population in each of the units is stored in 
- slot \code{populationFrac}, which gives either proportions or numbers. The geography of the zone under surveillance is accessible through slot \code{map} 
+ with \code{TRUE} indicating an outbreak and \code{FALSE} indicating the absence of any known aberration. The monitored population in each of the units is stored in
+ slot \code{populationFrac}, which gives either proportions or numbers. The geography of the zone under surveillance is accessible through slot \code{map}
  which is an object of class \code{SpatialPolygonsDataFrame}~\citep{sp1,sp2} providing a shape of the $m$ areas which are monitored
 and slot \code{neighbourhood}, which is a symmetric matrix of Booleans size $m^2$ stating the neighborhood
-matrix. Slot \code{map} is pertinent when units are geographical units, whereas \code{neighbourhood} could be useful in any case, e.g., for storing a contact matrix between age groups for modeling purposes. 
+matrix. Slot \code{map} is pertinent when units are geographical units, whereas \code{neighbourhood} could be useful in any case, e.g., for storing a contact matrix between age groups for modeling purposes.
  Finally, if monitoring has been performed on the data the information on its control arguments and its results are stored in \code{control}, \code{upperbound} and \code{alarm} presented in Section~\ref{sec:howto}.
 
 \subsubsection[Creation of an object of class sts]{Creation of an object of class \texttt{sts}}
-The creation of a \code{sts} object is straightforward, requiring a call to the function \code{new} together with the slots to be assigned as arguments. The input of data from external files is one possibility for getting the counts 
+The creation of a \code{sts} object is straightforward, requiring a call to the function \code{new} together with the slots to be assigned as arguments. The input of data from external files is one possibility for getting the counts
 as it is described in \citet{hoehle-mazick-2010}.
 To exemplify the process we shall use weekly counts of \textit{Salmonella Newport} in Germany loaded using \code{data("salmNewport")}. Alternatively, one can use coercion methods to convert between the \texttt{ts} class and the \texttt{sts} class. Note that this only converts the content of the slot \texttt{observed}, that is,
 
@@ -172,9 +172,9 @@ cex.lab <-  cex.text
 cex.leg <- cex.text
 line.lwd <- 2#1
 stsPlotCol <- c("mediumblue","mediumblue","red2")
-alarm.symbol <- list(pch=17, col="red2", cex=2,lwd=3) 
+alarm.symbol <- list(pch=17, col="red2", cex=2,lwd=3)
 #Define list with arguments to use with do.call("legend", legOpts)
-legOpts <- list(x="topleft",legend=c(expression(U[t])),bty="n",lty=1,lwd=line.lwd,col=alarm.symbol$col,horiz=TRUE,cex=cex.leg)    
+legOpts <- list(x="topleft",legend=c(expression(U[t])),bty="n",lty=1,lwd=line.lwd,col=alarm.symbol$col,horiz=TRUE,cex=cex.leg)
 #How should the par of each plot look?
 par.list <- list(mar=c(6,5,5,5),family="Times")
 #Do this once
@@ -186,17 +186,17 @@ plotOpts <- list(col=stsPlotCol,ylim=c(0,y.max),
                  ylab="No. of reports", xlab="Time (weeks)",lty=c(1,1,1),
                  legend.opts=legOpts,alarm.symbol=alarm.symbol,
                  xaxis.tickFreq=list("%V"=atChange,"%m"=atChange,"%G"=atChange),
-                 xaxis.labelFreq=list("%Y"=atMedian), 
+                 xaxis.labelFreq=list("%Y"=atMedian),
                  xaxis.labelFormat="%Y",
                  par.list=par.list,hookFunc=hookFunc)
-			 
+
 @
 <<stsLoad, echo = F,include = F, results=tex>>=
-# Load data 
+# Load data
 data("salmNewport")
 @
-<<NewportstsPlot, fig=FALSE, echo = FALSE, label=NewportPlot,include = F,results=tex, width=7.5, height=3.5>>= 
-# Plot 
+<<NewportstsPlot, fig=FALSE, echo = FALSE, label=NewportPlot,include = F,results=tex, width=7.5, height=3.5>>=
+# Plot
 y.max <- max(aggregate(salmNewport,by="unit")@observed,na.rm=TRUE)
 plotOpts2 <- modifyList(plotOpts,list(x=salmNewport,legend.opts=NULL,ylim=c(0,y.max),type = observed ~ time),keep.null=TRUE)
 plotOpts2$par.list <- list(mar=c(6,5,0,5),family="Times")
@@ -205,7 +205,7 @@ do.call("plot",plotOpts2)
 @
  \setkeys{Gin}{height=7cm, width=15cm}
 \begin{figure}
-\begin{center}  
+\begin{center}
 <<label=NewportPlot,fig=TRUE, width=10, height=4.66667, echo=FALSE>>=
 <<NewportPlot>>
 @
@@ -227,30 +227,30 @@ plot(salmNewport, type = observed ~ time,
 @
 which is shown in Figure~\ref{fig:Newport}. Here, the \code{atChange} and \code{atMedian} functions are small helper functions and the  respective tick lengths are controlled by the \pkg{surveillance} specific option \code{surveillance.options("stsTickFactors")}. Actually \code{sts} objects
 can be plotted using different options: \code{type = observed ~ time} produces the time series for whole Germany as shown in Figure~\ref{fig:Newport}, whereas \code{type = observed ~ time | unit}
-is a panelled graph with each panel representing the time series of counts of a federal state as seen in Figure~\ref{fig:unit}. 
+is a panelled graph with each panel representing the time series of counts of a federal state as seen in Figure~\ref{fig:unit}.
  \setkeys{Gin}{height=7cm, width=9cm}
 \begin{figure}
 %\begin{center}
 %\hspace*{\fill}%
 \hspace{-1em}
 \subfloat[]{
-<<unitPlot1, fig=TRUE, echo = FALSE, label=unitPlot1,include = F,results=hide, width=6, height=4.6667>>= 
+<<unitPlot1, fig=TRUE, echo = FALSE, label=unitPlot1,include = F,results=hide, width=6, height=4.6667>>=
 y.max <- max(observed(salmNewport[,2]),observed(salmNewport[,3]),na.rm=TRUE)
 plotOpts2 <- modifyList(plotOpts,list(x=salmNewport[,2],legend.opts=NULL,ylim=c(0,y.max)),keep.null=TRUE)
 plotOpts2$xaxis.tickFreq <- list("%G"=atChange)
 do.call("plot",plotOpts2)
 
 @
- 
+
 \includegraphics[width=9cm]{plots/monitoringCounts-unitPlot1.pdf}
 }\hspace{-3em}%
 \subfloat[]{
-<<unitPlot2, fig=TRUE, echo = FALSE, label=unitPlot2,include = F,results=hide, width=6, height=4.6667>>= 
+<<unitPlot2, fig=TRUE, echo = FALSE, label=unitPlot2,include = F,results=hide, width=6, height=4.6667>>=
 # Plot with special function
 plotOpts2 <- modifyList(plotOpts,list(x=salmNewport[,3],legend.opts=NULL,ylim=c(0,y.max)),keep.null=TRUE)
 plotOpts2$xaxis.tickFreq <- list("%G"=atChange)
 do.call("plot",plotOpts2)
-@ 
+@
 \includegraphics[width=9cm]{plots/monitoringCounts-unitPlot2.pdf}
 }
 %\hspace*{\fill}%
@@ -259,8 +259,8 @@ do.call("plot",plotOpts2)
 %\end{center}
 \end{figure}
 
-Once created one can use typical subset operations on a \code{sts} object: for instance \code{salmNewport[} \code{1:10, "Berlin"]} is a new \code{sts} object 
-with weekly counts for Berlin during the 10 first weeks of the initial dataset; \code{salmNewport[isoWeekYear(epoch(salmNewport))\$ISOYear<=2010,]} uses the \code{surveillance}'s \code{isoWeekYear()} 
+Once created one can use typical subset operations on a \code{sts} object: for instance \code{salmNewport[} \code{1:10, "Berlin"]} is a new \code{sts} object
+with weekly counts for Berlin during the 10 first weeks of the initial dataset; \code{salmNewport[isoWeekYear(epoch(salmNewport))\$ISOYear<=2010,]} uses the \code{surveillance}'s \code{isoWeekYear()}
 function to get a \code{sts} object with weekly counts for all federal states up to 2010. Moreover, one can take advantage of the \proglang{R} function \code{aggregate()}. For instance,  \code{aggregate(salmNewport,by="unit")} returns a \code{sts} object representing weekly counts of
 \textit{Salmonella Newport} in Germany as a whole, whereas \code{aggregate(salmNewport, by = "time")} corresponds to the total count of cases in each federal state over the whole period.
 
@@ -272,7 +272,7 @@ Monitoring algorithms of the package operate on objects of the class \code{sts} 
 \subsubsection{Statistical framework for aberration detection}
 We introduce the framework for aberration detection on an
 univariate time series of counts $\left\{y_t,\> t=1,2,\ldots\right\}$. Surveillance aims
-at detecting an \textit{aberration}, that is to say, an important change in the process occurring at an unknown time $\tau$. 
+at detecting an \textit{aberration}, that is to say, an important change in the process occurring at an unknown time $\tau$.
 This change can be a step increase of the counts of cases or a more gradual change~\citep{Sonesson2003}.
 
 Based on the possibility of such a change, for each time $t$ we want to differentiate between the two states \textit{in-control} and \textit{out-of-control}. At any timepoint $t_0\geq 1$, the available information -- i.e., past counts -- is defined as $\bm{y}_{t_0} = \left\{
@@ -281,9 +281,9 @@ y_t\>;\> t\leq t_0\right\}$. Detection is based on a statistic $r(\cdot)$ with r
 Functions for aberration detection thus use past data to estimate $r(\bm{y}_{t_0})$, and compare it to the threshold $g$,
 above which the current count can be considered as suspicious and thus doomed as \textit{out-of-control}.
 
-Threshold values and alarm Booleans for each timepoint of the monitored range are 
-saved in the slots \code{upperbound} and \code{alarm}, of the same dimensions as \code{observed}, while the method parameters used for computing the threshold values 
-and alarm Booleans 
+Threshold values and alarm Booleans for each timepoint of the monitored range are
+saved in the slots \code{upperbound} and \code{alarm}, of the same dimensions as \code{observed}, while the method parameters used for computing the threshold values
+and alarm Booleans
 are stored in the slot \code{control}.
 
 \subsubsection{Aberration detection in the package}
@@ -296,27 +296,27 @@ is especially convenient in situations when little historic information is avail
 
 Here we shall expand on C1 for which the baseline are the 7 timepoints before the assessed timepoint $t_0$, that is to say
  $\left(y_{t_0-7},\ldots,y_{t_0-1}\right)$. The expected value is the mean of the baseline. The method is based on a statistic called $C_{t_0}$ defined as
-$C_{t_0}= \frac{(y_{t_0}-\bar{y}_{t_0})}{s_{t_0}}$, where $$\bar{y}_{t_0}= \frac{1}{7} \cdot\sum_{i=t_0-7}^{t_0-1} y_i  \textnormal{ and } s_{t_0}^2= \frac{1}{7-1} \cdot\sum_{i=t_0-7}^{t_0-1} \left(y_i - \bar{y}_{t_0}\right)^2.$$ 
+$C_{t_0}= \frac{(y_{t_0}-\bar{y}_{t_0})}{s_{t_0}}$, where $$\bar{y}_{t_0}= \frac{1}{7} \cdot\sum_{i=t_0-7}^{t_0-1} y_i  \textnormal{ and } s_{t_0}^2= \frac{1}{7-1} \cdot\sum_{i=t_0-7}^{t_0-1} \left(y_i - \bar{y}_{t_0}\right)^2.$$
 Under the null hypothesis of no outbreak, it is assumed that $C_{t_0} \stackrel{H_0}{\sim} {N}(0,1)$. The upperbound $U_{t_0}$ is found by assuming that $y_t$ is normal,
 estimating parameters by plug-in and then taking the $(1-\alpha)$-th
 quantile of this distribution, i.e.  $U_{t_0}= \bar{y}_{t_0} +
 z_{1-\alpha}s_{t_0}$, where $z_{1-\alpha}$ is the
 $(1-\alpha)$-quantile of the standard normal distribution. An alarm is raised if $y_{t_0} > U_{t_0}$.
 
- The output of the algorithm is a \code{sts} object that contains subsets of slots \code{observed}, \code{population} and \code{state} defined by the range of timepoints specified in the input -- 
+ The output of the algorithm is a \code{sts} object that contains subsets of slots \code{observed}, \code{population} and \code{state} defined by the range of timepoints specified in the input --
 \textit{e.g} the last 20 timepoints of the time series,
-and with the slots \code{upperbound} and \code{alarm} filled by the output of the algorithm. 
-Information relative to the \code{range} of data to be monitored 
-and to the parameters of the algorithm, such as \code{alpha} for \code{earsC}, has to be formulated in the slot \code{control}. 
-This information is also stored in the slot \code{control} of the returned \code{sts} object for later inspection. 
+and with the slots \code{upperbound} and \code{alarm} filled by the output of the algorithm.
+Information relative to the \code{range} of data to be monitored
+and to the parameters of the algorithm, such as \code{alpha} for \code{earsC}, has to be formulated in the slot \code{control}.
+This information is also stored in the slot \code{control} of the returned \code{sts} object for later inspection.
 <<EARS, echo = T,include = F,numeric.dollar=F,results=hide,keep.source=TRUE>>=
 in2011 <- which(isoWeekYear(epoch(salmNewport))$ISOYear == 2011)
 salmNewportGermany <- aggregate(salmNewport, by = "unit")
 control <- list(range = in2011, method = "C1", alpha = 0.05)
-surv <- earsC(salmNewportGermany, control = control)		  
+surv <- earsC(salmNewportGermany, control = control)
 plot(surv)
 @
-<<EARSPlot, fig=FALSE, echo = FALSE, label=EARSPlot,include = F,results=hide>>= 
+<<EARSPlot, fig=FALSE, echo = FALSE, label=EARSPlot,include = F,results=hide>>=
 # Range for the monitoring
 in2011 <- which(isoWeekYear(epoch(salmNewport))$ISOYear==2011)
 # Aggregate counts over Germany
@@ -325,7 +325,7 @@ salmNewportGermany <- aggregate(salmNewport,by="unit")
 control <- list(range = in2011, method="C1", alpha=0.05)
 # Apply earsC function
 surv <- earsC(salmNewportGermany, control=control)
-# Plot the results			  
+# Plot the results
 #plot(surv)
 # Plot
 y.max <- max(observed(surv),upperbound(surv),na.rm=TRUE)
@@ -333,8 +333,8 @@ do.call("plot",modifyList(plotOpts,list(x=surv,ylim=c(0,y.max)),keep.null=TRUE))
 @
  \setkeys{Gin}{height=7cm, width=15cm}
 \begin{figure}
-\begin{center}  
-  
+\begin{center}
+
 <<label=EARSPlot,fig=TRUE, width=10, height=4.666667, echo=FALSE>>=
 <<EARSPlot>>
 @
@@ -347,7 +347,7 @@ the timepoints where the observed number of counts is higher than the upperbound
 \end{figure}
 
 The \code{sts} object is easily visualized
-using the function \code{plot} as depicted in Figure~\ref{fig:NewportEARS}, which shows the upperbound as a solid line and the alarms -- timepoints 
+using the function \code{plot} as depicted in Figure~\ref{fig:NewportEARS}, which shows the upperbound as a solid line and the alarms -- timepoints
 where the upperbound has been exceeded -- as triangles. The four last alarms
 correspond to a known outbreak in 2011 due to sprouts~\citep{Newport2011}. One sees that the upperbound right after the outbreak
 is affected by the outbreak: it is very high, so that a smaller outbreak would not be detected.
@@ -357,8 +357,8 @@ or when one expects the count to be fairly constant. However, data from the less
 account when estimating the expected count and the associated threshold. For instance, ignoring an increasing time trend could decrease sensitivity. Inversely, overlooking
 an annual surge in counts during the summer could decrease specificity.
  Therefore, it is advisable to use detection methods whose underlying models incorporate essential characteristics of time series of disease count data
-such as overdispersion, seasonality, time trend and presence of past outbreaks in the records~\citep{Unkel2012,Shmueli2010}. Moreover, the EARS methods do not compute a proper prediction interval for the 
-current count. Sounder statistical methods will be reviewed in the next section. 
+such as overdispersion, seasonality, time trend and presence of past outbreaks in the records~\citep{Unkel2012,Shmueli2010}. Moreover, the EARS methods do not compute a proper prediction interval for the
+current count. Sounder statistical methods will be reviewed in the next section.
 
 \section[Using surveillance in selected contexts]{Using \pkg{surveillance} in selected contexts}
 
@@ -367,7 +367,7 @@ current count. Sounder statistical methods will be reviewed in the next section.
 
 More than a dozen algorithms for aberration detection are implemented in the package. Among those,
 this section presents a set of representative algorithms, which are already in routine application at several public health institutions or which we think have the potential to become so.
-First we describe the Farrington method introduced by~\citet{farrington96} together with the improvements proposed by~\citet{Noufaily2012}.  
+First we describe the Farrington method introduced by~\citet{farrington96} together with the improvements proposed by~\citet{Noufaily2012}.
 As a Bayesian counterpart to these methods we present the BODA method published by~\citet{Manitz2013} which allows
 the easy integration of covariates. All these methods perform one-timepoint detection in that they detect aberrations only when the count at
 the currently monitored timepoint is above the threshold. Hence, no accumulation of evidence takes place. As an extension, we introduce an implementation of the negative binomial cumulative sum (CUSUM) of~\citet{hoehle.paul2008} that allows the detection
@@ -375,10 +375,10 @@ of sustained shifts by accumulating evidence over several timepoints. Finally, w
 
 \subsection{One size fits them all for count data}
 Two implementations of the Farrington method, which is currently \textit{the} method of choice at European public health institutes \citep{hulth_etal2010}, exist in the package. First, the original method as described in \citet{farrington96} is implemented as the function \code{farrington}. Its use was already described in \citet{hoehle-mazick-2010}.
-Now, the newly implemented function \code{farringtonFlexible} supports the use of this \textit{original method} as well as of the \textit{improved method} built on suggestions made by~\citet{Noufaily2012} for improving the specificity without reducing the sensitivity. 
+Now, the newly implemented function \code{farringtonFlexible} supports the use of this \textit{original method} as well as of the \textit{improved method} built on suggestions made by~\citet{Noufaily2012} for improving the specificity without reducing the sensitivity.
 
-In the function \code{farringtonFlexible} one can choose to use the original method or the improved method by specification of appropriate \code{control} arguments. 
-Which variant of the algorithm is to be used is determined by the contents of the \code{control} slot. 
+In the function \code{farringtonFlexible} one can choose to use the original method or the improved method by specification of appropriate \code{control} arguments.
+Which variant of the algorithm is to be used is determined by the contents of the \code{control} slot.
 In the example below, \code{control1} corresponds to the use of the original method and \code{control2} indicates the options for the improved method.
 <<farHead, echo = F, include = F>>=
 # Control slot for the original method
@@ -386,7 +386,7 @@ control1 <-  list(range=in2011,noPeriods=1,
                   b=4,w=3,weightsThreshold=1,pastWeeksNotIncluded=3,
                   pThresholdTrend=0.05,thresholdMethod="delta",alpha=0.05,
 				  limit54=c(0,50))
-# Control slot for the improved method				  
+# Control slot for the improved method
 control2 <- list(range=in2011,noPeriods=10,
                  b=4,w=3,weightsThreshold=2.58,pastWeeksNotIncluded=26,
                  pThresholdTrend=1,thresholdMethod="nbPlugin",alpha=0.05,
@@ -404,22 +404,22 @@ control2 <- list(range = in2011, noPeriods = 10,
 @
 
 In both cases the steps of the algorithm are the same. In a first step, an overdispersed Poisson generalized linear model with log link is fitted to the reference data $\bm{y}_{t_0} \subseteq \left\{
-y_t\>;\> t\leq t_0\right\}$, where $\E(y_t)=\mu_t$  with $\log \mu_t = \alpha + \beta t$ and $\Var(y_t)=\phi\cdot\mu_t$ and where $\phi\geq1$ is ensured.              
+y_t\>;\> t\leq t_0\right\}$, where $\E(y_t)=\mu_t$  with $\log \mu_t = \alpha + \beta t$ and $\Var(y_t)=\phi\cdot\mu_t$ and where $\phi\geq1$ is ensured.
 
 The original method took seasonality into account by using a subset of the available data as reference data for fitting the GLM: \code{w} timepoints
 centred around the timepoint located $1,2,\ldots,b$ years before $t_0$, amounting to a total $b \cdot (2w+1)$ reference values.
 However, it was shown in~\citet{Noufaily2012} that the algorithm performs better when using more historical data. In order to do do so without disregarding seasonality, the authors
 introduced a zero order spline with 11 knots, which can be conveniently represented as a 10-level factor. We have extended this idea in our implementation so that one can choose an arbitrary number of periods
-in each year. Thus, $\log \mu_t = \alpha + \beta t +\gamma_{c(t)}$ where $\gamma_{c(t)}$ are the coefficients of a zero order spline with $\mathtt{noPeriods}+1$ knots, which can be conveniently represented as a $\mathtt{noPeriods}$-level factor that reflects seasonality. Here, $c(t)$ is a function indicating in which season or period of the year $t$ belongs to. 
-The algorithm uses \code{w}, \code{b} and \texttt{noPeriods} to deduce the length of periods so they have 
-the same length up to rounding. An exception is the reference window centred around $t_0$. Figure~\ref{fig:fPlot} shows a minimal example, where each character corresponds to a different period. Note that setting $\mathtt{noPeriods} = 1$ corresponds to using the original method with only a subset of the data: 
+in each year. Thus, $\log \mu_t = \alpha + \beta t +\gamma_{c(t)}$ where $\gamma_{c(t)}$ are the coefficients of a zero order spline with $\mathtt{noPeriods}+1$ knots, which can be conveniently represented as a $\mathtt{noPeriods}$-level factor that reflects seasonality. Here, $c(t)$ is a function indicating in which season or period of the year $t$ belongs to.
+The algorithm uses \code{w}, \code{b} and \texttt{noPeriods} to deduce the length of periods so they have
+the same length up to rounding. An exception is the reference window centred around $t_0$. Figure~\ref{fig:fPlot} shows a minimal example, where each character corresponds to a different period. Note that setting $\mathtt{noPeriods} = 1$ corresponds to using the original method with only a subset of the data:
 there is only one period defined per year, the reference window around $t_0$ and other timepoints are not included in the model.
 
 
  \setkeys{Gin}{height=3cm, width=7cm}
 \begin{figure}
 \subfloat[$\texttt{noPeriods}=2$]{
-<<fPlot1, fig=TRUE, echo = FALSE, label=fPlot1,include = F,results=hide, width=7, height=3>>= 
+<<fPlot1, fig=TRUE, echo = FALSE, label=fPlot1,include = F,results=hide, width=7, height=3>>=
 library(ggplot2)
 library(grid)
 # for rectanges
@@ -456,20 +456,20 @@ geom_segment(aes(x = xBigTicks, y = yTicksBigStart, xend = xBigTicks, yend = yTi
 annotate("text", label = "Time", x = 170, y = 0, size = 8, colour = "black",
         family="serif") +
 # ticks labels
-annotate('text',label=c("t[0]-2 %.% freq","t[0]-freq","t[0]"),x = xTicks, 
-        y = yTicksEnd - 10, size = 8,family="serif",parse=T)  
+annotate('text',label=c("t[0]-2 %.% freq","t[0]-freq","t[0]"),x = xTicks,
+        y = yTicksEnd - 10, size = 8,family="serif",parse=T)
 p+
 # periods labels
 
-annotate('text',label=c("A","A","A","B","B"),x = xPeriods, 
-        y = rep(6,5), size = 8,family="serif",parse=T)  
+annotate('text',label=c("A","A","A","B","B"),x = xPeriods,
+        y = rep(6,5), size = 8,family="serif",parse=T)
 @
 
 \includegraphics[width=0.45\textwidth]{plots/monitoringCounts-fPlot1.pdf}
 }
 \qquad
 \subfloat[$\texttt{noPeriods}=3$]{
-<<fPlot2, fig=TRUE, echo = FALSE, label=fPlot2,include = F,results=hide, width=7, height=3>>= 
+<<fPlot2, fig=TRUE, echo = FALSE, label=fPlot2,include = F,results=hide, width=7, height=3>>=
 yTicksBigEnd2 <- rep(0,4)
 yTicksBigStart2 <- rep(heightTick,4)
 newX <- c(xTicks[1:2]+widthRectangles/2+52-widthRectangles,xTicks[1:2]+52/2)
@@ -477,63 +477,63 @@ xPeriods <- c(15,67,117,15+16,67+16,15+35,67+35)
 p + geom_segment(aes(x = newX, y = yTicksBigStart2, xend = newX, yend = yTicksBigEnd2), size=1)+
 # periods labels
 
-annotate('text',label=c("A","A","A","B","B","C","C"),x = xPeriods, 
-        y = rep(6,7), size = 8,family="serif",parse=T)  
+annotate('text',label=c("A","A","A","B","B","C","C"),x = xPeriods,
+        y = rep(6,7), size = 8,family="serif",parse=T)
 @
 \includegraphics[width=0.45\textwidth]{plots/monitoringCounts-fPlot2.pdf}
 }
 
-\caption{Construction of the noPeriods-level factor to account for seasonality, depending on the value of the half-window size $w$ and of the freq of the 
-data. Here the number of years to go back in the past $b$ is 2. 
-Each level of the factor variable corresponds to a period delimited by ticks and is denoted by a character. The windows around $t_0$ are respectively of size $2w+1$,~$2w+1$ 
-and $w+1$. The segments between them are divided into the other periods so that they 
+\caption{Construction of the noPeriods-level factor to account for seasonality, depending on the value of the half-window size $w$ and of the freq of the
+data. Here the number of years to go back in the past $b$ is 2.
+Each level of the factor variable corresponds to a period delimited by ticks and is denoted by a character. The windows around $t_0$ are respectively of size $2w+1$,~$2w+1$
+and $w+1$. The segments between them are divided into the other periods so that they
 have the same length up to rounding.}
 \label{fig:fPlot}
 \end{figure}
 
-Moreover, it was shown in \citet{Noufaily2012} that it is better to exclude the last 26 weeks before $t_0$ from the baseline 
-in order to avoid reducing sensitivity when an outbreak has started recently before $t_0$. In the \code{farringtonFlexible} function, one controls this by specifying \code{pastWeeksNotIncluded}, which is 
+Moreover, it was shown in \citet{Noufaily2012} that it is better to exclude the last 26 weeks before $t_0$ from the baseline
+in order to avoid reducing sensitivity when an outbreak has started recently before $t_0$. In the \code{farringtonFlexible} function, one controls this by specifying \code{pastWeeksNotIncluded}, which is
 the number of last timepoints before $t_0$ that are not to be used. The default value is 26.
 
 Lastly, in the new implementation a population offset can be included in the GLM by setting \code{populationBool} to \code{TRUE} and supplying the possibly time-varying population size in the \code{population} slot of the \code{sts} object, but this will not be discussed further here.
 
 In a second step, the expected number of counts $\mu_{t_0}$ is predicted for the current timepoint $t_0$ using this GLM. An upperbound $U_{t_0}$ is calculated based on this predicted value and its variance. The two versions of the algorithm make different assumptions for this calculation.
-The 
+The
 original method assumes that a transformation of the prediction error $g\left(y_{t_0}-\hat{\mu}_{t_0}\right)$ is normally distributed, for instance when using the identity transformation $g(x)=x$ one obtains
 $$y_{t_0} - \hat{\mu}_0 \sim \mathcal{N}(0,\Var(y_{t_0}-\hat{\mu}_0))\cdot$$
-The upperbound of the prediction interval is then calculated 
+The upperbound of the prediction interval is then calculated
 based on this distribution. First we have that
 $$ \Var(y_{t_0}-\hat{\mu}_{t_0}) = \Var(\hat{y}_{t_0}) + \Var(\hat{\mu}_{t_0})=\phi\mu_0+\Var(\hat{\mu}_{t_0}) $$
  with $\Var(\hat{y}_{t_0})$ being the variance of an observation and $\Var(\hat{\mu}_{t_0})$ being the variance of the estimate. The threshold, defined as the upperbound of a one-sided $(1-\alpha)\cdot 100\%$ prediction interval, is then
 $$U_{t_0} = \hat{\mu}_0 + z_{1-\alpha}\widehat{\Var}(y_{t_0}-\hat{\mu}_{t_0})\cdot$$
 
 This method can be used by setting the control option \code{thresholdMethod} equal to "\code{delta}".
- However, a weakness 
-of this procedure is the normality assumption itself, so that an alternative was presented in \citet{Noufaily2012} and implemented as \code{thresholdMethod="Noufaily"}.  
-The central assumption of this approach is that 
+ However, a weakness
+of this procedure is the normality assumption itself, so that an alternative was presented in \citet{Noufaily2012} and implemented as \code{thresholdMethod="Noufaily"}.
+The central assumption of this approach is that
 $y_{t_0} \sim \NB\left(\mu_{t_0},\nu\right)$,
-with $\mu_{t_0}$ the mean of the distribution and $\nu=\frac{\mu_{t_0}}{\phi-1}$ its overdispersion parameter. In this parameterization, we still have $\E(y_t)=\mu_t$ and $\Var(y_t)=\phi\cdot\mu_t$ with $\phi>1$ -- otherwise a Poisson distribution is assumed for the 
-observed count. 
+with $\mu_{t_0}$ the mean of the distribution and $\nu=\frac{\mu_{t_0}}{\phi-1}$ its overdispersion parameter. In this parameterization, we still have $\E(y_t)=\mu_t$ and $\Var(y_t)=\phi\cdot\mu_t$ with $\phi>1$ -- otherwise a Poisson distribution is assumed for the
+observed count.
 The threshold is defined as a quantile of the negative binomial distribution with
 plug-in estimates $\hat{\mu}_{t_0}$ and $\hat{\phi}$. Note that this disregards the estimation uncertainty in $\hat{\mu}_{t_0}$ and $\hat{\phi}$. As a consequence, the method "\code{muan}" (\textit{mu} for $\mu$ and \textit{an} for asymptotic normal) tries to solve the problem by
 using the asymptotic normal distribution of $(\hat{\alpha},\hat{\beta})$ to derive the upper $(1-\alpha)\cdot 100\%$ quantile of the asymptotic normal distribution of $\hat{\mu}_{t_0}=\hat{\alpha}+\hat{\beta}t_0$. Note that this does not reflect all
  estimation uncertainty because it disregards the estimation uncertainty of $\hat{\phi}$.
-Note also that for time series where the variance of the estimator is large, the upperbound also ends up being very large. 
+Note also that for time series where the variance of the estimator is large, the upperbound also ends up being very large.
 Thus, the method "\code{nbPlugin}" seems to provide information that is easier to interpret by epidemiologists but with "\code{muan}" being more statistically correct.
 
 In a last step, the observed count $y_{t_0}$ is compared to the upperbound $U_{t_0}$ and an alarm is raised if $y_{t_0} > U_{t_0}$.
-In both cases the fitting of the GLM involves three important steps. First, the algorithm performs an optional power-transformation for skewness correction and variance stabilisation, 
+In both cases the fitting of the GLM involves three important steps. First, the algorithm performs an optional power-transformation for skewness correction and variance stabilisation,
 depending on the value of the parameter \code{powertrans} in the \code{control} slot. Then, the significance of the time trend is checked. The time trend is included only when significant at a chosen level \code{pThresholdTrend}, when
 there are more than three years reference data and if no overextrapolation occurs because of the time trend. Lastly, past outbreaks are reweighted based on their Anscombe residuals. In \code{farringtonFlexible} the limit for reweighting past counts, \code{weightsThreshold},
 can be specified by the user. If the Anscombe residual of a count is higher than \code{weightsThreshold} it is reweighted accordingly in a second fitting of the GLM. \citet{farrington96} used a value of $1$
-whereas \citet{Noufaily2012} advise a value of $2.56$ so that the reweighting procedure is less drastic, because it also shrinks the variance of the observations.  
+whereas \citet{Noufaily2012} advise a value of $2.56$ so that the reweighting procedure is less drastic, because it also shrinks the variance of the observations.
 
 The original method is widely used in public health surveillance~\citep{hulth_etal2010}. The reason for its success is primarily
- that it does not need to be fine-tuned for each specific pathogen. It is hence easy to implement it for scanning data for many different pathogens. Furthermore, it does tackle classical issues of surveillance data: overdispersion, presence of past outbreaks that are reweighted, 
+ that it does not need to be fine-tuned for each specific pathogen. It is hence easy to implement it for scanning data for many different pathogens. Furthermore, it does tackle classical issues of surveillance data: overdispersion, presence of past outbreaks that are reweighted,
 seasonality that is taken into account differently in the two methods.
 An example of use of the function is shown in Figure~\ref{fig:newportFar} with the code below.
 <<oldVsNewprep, echo = T, include = F,keep.source=TRUE>>=
-salm.farrington <- farringtonFlexible(salmNewportGermany, control1)								  
+salm.farrington <- farringtonFlexible(salmNewportGermany, control1)
 salm.noufaily <- farringtonFlexible(salmNewportGermany, control2)
 @
 
@@ -544,23 +544,23 @@ salm.noufaily <- farringtonFlexible(salmNewportGermany, control2)
 \hspace{-1em}
 %\begin{center}
 \subfloat[]{
-<<farPlot1, fig=TRUE, echo = FALSE, label=farPlot1,include = F,results=hide, width=6, height=4.6667>>= 
+<<farPlot1, fig=TRUE, echo = FALSE, label=farPlot1,include = F,results=hide, width=6, height=4.6667>>=
 # Plot
 y.max <- max(observed(salm.farrington),upperbound(salm.farrington),observed(salm.noufaily),upperbound(salm.noufaily),na.rm=TRUE)
 do.call("plot",modifyList(plotOpts,list(x=salm.farrington,ylim=c(0,y.max))))
 @
- 
+
 \includegraphics[width=9cm]{plots/monitoringCounts-farPlot1.pdf}
 }
 \hspace{-3em}
 \subfloat[]{
-<<farPlot2, fig=TRUE, echo = FALSE, label=farPlot2,include = F,results=hide, width=6, height=4.6667>>= 
+<<farPlot2, fig=TRUE, echo = FALSE, label=farPlot2,include = F,results=hide, width=6, height=4.6667>>=
 # Plot
 do.call("plot",modifyList(plotOpts,list(x=salm.noufaily,ylim=c(0,y.max))))
-@ 
+@
 \includegraphics[width=9cm]{plots/monitoringCounts-farPlot2.pdf}
 }
-\caption{S. Newport in Germany in 2011 monitored by (a) the original method and (b) the improved method. 
+\caption{S. Newport in Germany in 2011 monitored by (a) the original method and (b) the improved method.
 For the figure we turned off the option that the threshold is only computed if there were more than 5 cases during the 4 last timepoints including $t_0$.
 One gets less alarms with the most recent method and still does not miss the outbreak in the summer. Simulations
 on more time series support the use of the improved method instead of the original method.}
@@ -571,48 +571,48 @@ With our implementation of the improvements presented in \citet{Noufaily2012} we
 
 \subsubsection{Similar methods in the package}
 The package also contains further methods based on a subset of the historical data: \code{bayes}, \code{rki} and \code{cdc}.
-See Table~\ref{table:ref} for the corresponding references. Here, \code{bayes} uses a simple conjugate prior-posterior approach and computes the parameters of a 
+See Table~\ref{table:ref} for the corresponding references. Here, \code{bayes} uses a simple conjugate prior-posterior approach and computes the parameters of a
   negative binomial distribution based on past values. The procedure \code{rki} makes either the assumption of a normal or a Poisson distribution based on the mean of past counts. Finally, \code{cdc} aggregates weekly data into 4-week-counts and computes a normal distribution based upper confidence interval. None of these methods offer the inclusion of a linear trend, down-weighting of past outbreaks or power transformation of the data.
  Although these methods are good to have at hand, we personally recommend the use of the improved method implemented in the function \code{farringtonFlexible} because it is rather fast and makes use of more historical data than the other methods.
 
 \subsection{A Bayesian refinement}
-The \code{farringtonFlexible} function described previously 
+The \code{farringtonFlexible} function described previously
 was a first indication that the \textit{monitoring} of surveillance time
 series requires a good \textit{modeling} of the time series before assessing
 aberrations. Generalized linear models (GLMs) and generalized additive models
 (GAMs) are well-established and powerful modeling frameworks for handling the
-count data nature and trends of time series in a regression context. 
+count data nature and trends of time series in a regression context.
 The \code{boda}  procedure~\citep{Manitz2013} continues this line of
 thinking by extending the simple GLMs used in the \code{farrington} and
 \code{farringtonFlexible} procedures to a fully fledged Bayesian GAM allowing
-for penalized splines, e.g., to describe trends and seasonality, while 
+for penalized splines, e.g., to describe trends and seasonality, while
 simultaneously adjusting for previous outbreaks or concurrent
 processes influencing the case counts.
 A particular advantage of the Bayesian approach is that it constitutes a seamless
-framework for performing both estimation and subsequent prediction: the 
+framework for performing both estimation and subsequent prediction: the
 uncertainty in parameter estimation is directly carried forward to the predictive
 posterior distribution. No asymptotic normal approximations nor plug-in inference
-is needed. For fast approximate Bayesian inference we use the \pkg{INLA} \proglang{R} 
-package~\citep{INLA} to fit the Bayesian GAM. 
+is needed. For fast approximate Bayesian inference we use the \pkg{INLA} \proglang{R}
+package~\citep{INLA} to fit the Bayesian GAM.
 
-Still, monitoring with 
+Still, monitoring with
 \code{boda} is substantially slower than using the Farrington procedures.
 Furthermore, detailed regression modeling is only meaningful if the time series
 is known to be subject to external influences on which information is available.
-Hence, the typical use at a public health institution would be the 
+Hence, the typical use at a public health institution would be the
 detailed analysis of a few selected time series, e.g., critical ones or those
-with known trend character. 
+with known trend character.
 
 
 As an example,
 \citet{Manitz2013} studied the influence of absolute
-humidity on the occurence of weekly reported campylobacter cases in Germany. 
+humidity on the occurence of weekly reported campylobacter cases in Germany.
 
 <<campyDE, fig=FALSE, echo = FALSE, label=campyDE,include = F,results=tex>>=
 # Load data and create \code{sts}-object
 data("campyDE")
-cam.sts <- new("sts",epoch=as.numeric(campyDE$date), 
-               observed=campyDE$case,  state=campyDE$state, 
+cam.sts <- new("sts",epoch=as.numeric(campyDE$date),
+               observed=campyDE$case,  state=campyDE$state,
                epochAsDate=TRUE)
 par(las=1)
 # Plot
@@ -622,21 +622,21 @@ plotOpts3$xaxis.tickFreq <- list("%m"=atChange,"%G"=atChange)
 do.call("plot",plotOpts3)
 par(las=0)
 #mtext(side=2,text="No. of reports",
-     # las=0,line=3, cex=cex.text,family="Times")	
+     # las=0,line=3, cex=cex.text,family="Times")
 	 par(family="Times")
-text(-20, 2600, "No. of\n reports", pos = 3, xpd = T,cex=cex.text)	  
+text(-20, 2600, "No. of\n reports", pos = 3, xpd = T,cex=cex.text)
 text(510, 2900, "Absolute humidity", pos = 3, xpd = T,cex=cex.text)
 text(510, 2550, expression(paste("[",g/m^3,"]", sep='')), pos = 3, xpd = T,cex=cex.text)
-lines(campyDE$hum*50, col="white", lwd=2)	   
+lines(campyDE$hum*50, col="white", lwd=2)
 axis(side=4, at=seq(0,2500,by=500),labels=seq(0,50,by=10),las=1,cex.lab=cex.text, cex=cex.text,cex.axis=cex.text,pos=length(epoch(cam.sts))+20)
 #mtext(side=4,text=expression(paste("Absolute humidity [ ",g/m^3,"]", sep='')),
-     # las=0,line=1, cex=cex.text,family="Times")	   
+     # las=0,line=1, cex=cex.text,family="Times")
 
 @
 
 \setkeys{Gin}{height=7cm, width=15cm}
 \begin{figure}
-\begin{center}  
+\begin{center}
 
 <<label=campyDE,fig=TRUE, width=10, height=4.6667, echo=FALSE>>=
 <<campyDE>>
@@ -652,27 +652,27 @@ axis(side=4, at=seq(0,2500,by=500),labels=seq(0,50,by=10),las=1,cex.lab=cex.text
 data("campyDE")
 cam.sts <- new("sts", epoch = as.numeric(campyDE$date),
                observed = campyDE$case, state = campyDE$state,
-               epochAsDate = TRUE)		   
+               epochAsDate = TRUE)
 plot(cam.sts, legend = NULL, xlab = "time [weeks]", ylab = "No. reported",
      col = "gray", cex = 2, cex.axis = 2, cex.lab = 2)
 lines(campyDE$hum * 50, col = "darkblue", lwd = 2)
 @
 
 The corresponding plot of the weekly time series is shown in
-Figure~\ref{fig:campyDE}. We observe a strong association between humidity 
-and case numbers - an 
+Figure~\ref{fig:campyDE}. We observe a strong association between humidity
+and case numbers - an
 association which is stronger than with, e.g., temperature or relative humidity.
 As noted in \citet{Manitz2013} the excess in cases in 2007 is thus partly explained by the high atmospheric humidity.
- Furthermore, an increase in case numbers during the 2011 STEC O104:H4 outbreak is observed, which is explained by increased awareness and testing of many gastroenteritits pathogens during that period. The hypothesis is thus that there is no actual increased disease 
-activity~\citep{bernard_etal2014}. 
-Unfortunately, the German reporting system only records positive test results without keeping track of the 
-number of actual tests performed -- otherwise this would have been a natural adjustment variable. Altogether, the series contains several artefacts which 
+ Furthermore, an increase in case numbers during the 2011 STEC O104:H4 outbreak is observed, which is explained by increased awareness and testing of many gastroenteritits pathogens during that period. The hypothesis is thus that there is no actual increased disease
+activity~\citep{bernard_etal2014}.
+Unfortunately, the German reporting system only records positive test results without keeping track of the
+number of actual tests performed -- otherwise this would have been a natural adjustment variable. Altogether, the series contains several artefacts which
 appear prudent to address when monitoring the campylobacteriosis series.
 
-The GAM in \code{boda} is based on the negative binomial distribution with time-varying expectation and time constant overdispersion parameter, i.e., 
+The GAM in \code{boda} is based on the negative binomial distribution with time-varying expectation and time constant overdispersion parameter, i.e.,
 \begin{align*}
-y_t  &\sim \operatorname{NB}(\mu_t,\nu) 
-\end{align*} 
+y_t  &\sim \operatorname{NB}(\mu_t,\nu)
+\end{align*}
 with $\mu_{t}$ the mean of the distribution and $\nu$ the dispersion parameter~\citep{lawless1987}. Hence, we have $\E(y_t)=\mu_t$ and $\Var(y_t)=\mu_t\cdot(1+\mu_t/\nu)$. The linear predictor is given by
 \begin{align*}
 \log(\mu_t) &=  \alpha_{0t} + \beta t + \gamma_t + \bm{x}_t^\top \bm{\delta} + \xi z_t, \quad t=1,\ldots,t_0.
@@ -680,22 +680,22 @@ with $\mu_{t}$ the mean of the distribution and $\nu$ the dispersion parameter~\
 
 Here, the time-varying intercept $\alpha_{0t}$ is described by a penalized spline
 (e.g., first or second order random walk) and $\gamma_t$ denotes a periodic penalized
-spline (as implemented in \code{INLA}) with period equal to the periodicity 
+spline (as implemented in \code{INLA}) with period equal to the periodicity
 of the data. Furthermore, $\beta$ characterizes the effect of a possible linear
 trend (on the log-scale) and $\xi$ is the effect of previous outbreaks. Typically, $z_t$ is
-a zero-one process denoting if there was an outbreak in week $t$, but more involved adaptive and non-binary forms are imaginable. Finally, 
+a zero-one process denoting if there was an outbreak in week $t$, but more involved adaptive and non-binary forms are imaginable. Finally,
 $\bm{x}_t$ denotes a vector of possibly time-varying covariates, which
 influence the expected number of cases. Data from timepoints $1,\ldots,t_0-1$ are now used to determine the posterior distribution of all model parameters and subsequently the posterior predictive distribution of $y_{t_0}$ is computed. If the actual observed value of $y_{t_0}$ is above the $(1-\alpha)\cdot 100\%$ quantile of the predictive posterior distribution an alarm is flagged for $t_0$.
 
-Below we illustrate the use 
+Below we illustrate the use
 of \code{boda} to monitor the campylobacterioris time series from 2007.
-In the first case we include in the model for $\log\left(\mu_t\right)$ penalized splines for trend and 
+In the first case we include in the model for $\log\left(\mu_t\right)$ penalized splines for trend and
 seasonality and a simple linear trend.
 <<NICELOOKINGboda,eval=FALSE,echo=TRUE>>=
 
 rangeBoda <- which(epoch(cam.sts) >= as.Date("2007-01-01"))
 control.boda <- list(range = rangeBoda, X = NULL, trend = TRUE,
-                     season = TRUE, prior = "iid", alpha = 0.025, 
+                     season = TRUE, prior = "iid", alpha = 0.025,
                      mc.munu = 10000, mc.y = 1000,
                      samplingMethod = "marginals")
 boda <- boda(cam.sts, control = control.boda)
@@ -706,7 +706,7 @@ rangeBoda <- which(epoch(cam.sts)>=as.Date("2007-01-01"))
 if (computeALL) {
 library("INLA")
 control.boda <- list(range=rangeBoda, X=NULL, trend=TRUE,
-                     season=TRUE, prior='rw1', alpha=0.025, 
+                     season=TRUE, prior='rw1', alpha=0.025,
                      mc.munu=10000, mc.y=1000,
                      samplingMethod = "marginals")
 # boda without covariates: trend + spline + periodic spline
@@ -719,18 +719,18 @@ save(boda, file = "monitoringCounts-cache/boda.RData")
 
 In the second case we instead use only penalized and linear trend components, and,
 furthermore, include as covariates lags 1--4 of the absolute humidity as well
-as zero-one indicators for $t_0$ belonging to the last two weeks 
+as zero-one indicators for $t_0$ belonging to the last two weeks
 (\code{christmas}) or first two weeks (\code{newyears}) of the year,
-respectively. The later two variables are needed, because there is a 
+respectively. The later two variables are needed, because there is a
 systematically changed reporting behavior at the turn of the year (c.f.\ Figure~\ref{fig:campyDE}). Finally, \code{O104period} is an indicator variable on
 whether the reporting week belongs to the W21--W30 2011 period of increased awareness
 during the O104:H4 STEC outbreak. No additional correction for past outbreaks is
 made.
 
 <<NICELOOKINGboda2,eval=FALSE,echo=TRUE>>=
-covarNames <- c("l1.hum", "l2.hum", "l3.hum", "l4.hum", 
+covarNames <- c("l1.hum", "l2.hum", "l3.hum", "l4.hum",
                 "newyears", "christmas", "O104period")
-control.boda2 <- modifyList(control.boda, 
+control.boda2 <- modifyList(control.boda,
                             list(X = campyDE[, covarNames], season = FALSE))
 boda.covars <- boda(cam.sts, control = control.boda2)
 @
@@ -739,7 +739,7 @@ if (computeALL) {
 # boda with covariates: trend + spline + lagged hum + indicator variables
 covarNames <- c(paste("l",1:4,".hum",sep=""),"newyears","christmas",
                 "O104period")
-control.boda2 <- modifyList(control.boda, 
+control.boda2 <- modifyList(control.boda,
                             list(X=campyDE[,covarNames],season=FALSE))
 boda.covars <- boda(cam.sts, control=control.boda2)
 save(boda.covars, file = "monitoringCounts-cache/boda.covars.RData")
@@ -748,25 +748,25 @@ save(boda.covars, file = "monitoringCounts-cache/boda.covars.RData")
 }
 @
 
-We plot \code{boda.covars} in Figure~\ref{fig:b} and compare the output of the two boda calls with the output of 
-\code{farrington},  \code{farringtonFlexible} and \code{bayes} in 
-Figure~\ref{fig:alarmplot}. 
+We plot \code{boda.covars} in Figure~\ref{fig:b} and compare the output of the two boda calls with the output of
+\code{farrington},  \code{farringtonFlexible} and \code{bayes} in
+Figure~\ref{fig:alarmplot}.
 
 <<alarmplot2, fig=FALSE, echo = TRUE, eval=FALSE, label=alarmplot2,include = F,results=tex>>=
 cam.surv <- combineSTS(list(boda.covars=boda.covars,boda=boda,bayes=bayes,
-                            farrington=far,farringtonFlexible=farflex))                      
+                            farrington=far,farringtonFlexible=farflex))
 plot(cam.surv,type = alarm ~ time)
 @
 
 Note here that the \code{bayes}
 procedure is not really useful as the adjustment for seasonality only works
-poorly. Moreover, we think that this method produces many false alarms for this time series because it disregards the increasing time trend in number of 
+poorly. Moreover, we think that this method produces many false alarms for this time series because it disregards the increasing time trend in number of
 reported cases. Furthermore, it becomes clear that the improved Farrington procedure acts
 similar to the original procedure, but the improved reweighting and trend
 inclusion produces fewer alarms.
 
 The \code{boda} method is to be seen as a step towards more Bayesian thinking in aberration detection. However, besides its time demands for a detailed modeling, the speed of the procedure is also prohibitive as regards routine application. As a response~\citet{Maelle} introduce a method which has two advantages: it allows to adjust outbreak detection for reporting delays and includes an approximate inference method much faster than the INLA inference method. However, its linear predictor is more in the style of~\citet{Noufaily2012} not allowing for additionnal covariates or penalized options for the intercept.
-<<bPlot, fig=FALSE, echo = FALSE, label=bPlot,include = F,results=hide>>= 
+<<bPlot, fig=FALSE, echo = FALSE, label=bPlot,include = F,results=hide>>=
 # Plot with special function
 y.max <- max(observed(boda.covars),upperbound(boda.covars),na.rm=TRUE)
 plotOpts2 <- modifyList(plotOpts,list(x=boda.covars,ylim=c(0,y.max)),keep.null=TRUE)
@@ -775,8 +775,8 @@ do.call("plot",plotOpts2)
 @
  \setkeys{Gin}{height=7cm, width=15cm}
 \begin{figure}
-\begin{center}  
-  
+\begin{center}
+
 <<label=bPlot,fig=TRUE, width=10, height=4.6667, echo=FALSE>>=
 <<bPlot>>
 @
@@ -820,7 +820,7 @@ combineSTS <- function(stsList) {
 
 cam.surv <- combineSTS(list(boda.covars=boda.covars,boda=boda,bayes=bayes,
                             farrington=far,farringtonFlexible=farflex))
-par(mar=c(4,8,2.1,2),family="Times")                       
+par(mar=c(4,8,2.1,2),family="Times")
 plot(cam.surv,type = alarm ~ time,lvl=rep(1,ncol(cam.surv)),
      alarm.symbol=list(pch=17, col="red2", cex=1,lwd=3),
      cex.axis=1,xlab="Time (weeks)",cex.lab=1,xaxis.tickFreq=list("%m"=atChange,"%G"=atChange),xaxis.labelFreq=list("%G"=at2ndChange),
@@ -829,8 +829,8 @@ plot(cam.surv,type = alarm ~ time,lvl=rep(1,ncol(cam.surv)),
 
 \setkeys{Gin}{height=7cm, width=16cm}
 \begin{figure}
-\begin{center}  
-  
+\begin{center}
+
 <<label=alarmplot,fig=TRUE, width=8, height=3.5, echo=FALSE>>=
 <<alarmplot>>
 
@@ -841,33 +841,33 @@ plot(cam.surv,type = alarm ~ time,lvl=rep(1,ncol(cam.surv)),
 \end{figure}
 \subsection{Beyond one-timepoint detection}
 
-GLMs as used in the Farrington method are suitable for the purpose of aberration detection since they allow a regression approach for adjusting counts for known phenomena such as trend or seasonality in surveillance data. 
-Nevertheless, the Farrington method only performs one-timepoint detection. In some contexts it can be more relevant 
-to detect sustained shifts early, e.g., an outbreak could be characterized at first by counts slightly higher than usual 
-in subsequent weeks without each weekly count being flagged by one-timepoint detection methods. Control charts inspired by statistical process control (SPC) 
-e.g., cumulative sums would allow the detection of sustained shifts. Yet they were not tailored to the specific characteristics of surveillance data such as overdispersion or seasonality. 
+GLMs as used in the Farrington method are suitable for the purpose of aberration detection since they allow a regression approach for adjusting counts for known phenomena such as trend or seasonality in surveillance data.
+Nevertheless, the Farrington method only performs one-timepoint detection. In some contexts it can be more relevant
+to detect sustained shifts early, e.g., an outbreak could be characterized at first by counts slightly higher than usual
+in subsequent weeks without each weekly count being flagged by one-timepoint detection methods. Control charts inspired by statistical process control (SPC)
+e.g., cumulative sums would allow the detection of sustained shifts. Yet they were not tailored to the specific characteristics of surveillance data such as overdispersion or seasonality.
 The method presented in \citet{hoehle.paul2008} conducts a synthesis of both worlds, i.e., traditional surveillance methods and SPC. The method is implemented in the package as the function
 \code{glrnb}, whose use is explained here.
 
 \subsubsection{Definition of the control chart}
 
 For the control chart, two distributions are defined, one for each of the two states \textit{in-control} and \textit{out-of-control}, whose likelihoods are compared at each time step. The \textit{in-control} distribution
-$f_{\bm{\theta}_0}(y_t|\bm{z}_t)$ with the covariates $\bm{z}_t$ is estimated by a GLM of the Poisson or negative binomial family with a log link, depending on the overdispersion of the data. 
+$f_{\bm{\theta}_0}(y_t|\bm{z}_t)$ with the covariates $\bm{z}_t$ is estimated by a GLM of the Poisson or negative binomial family with a log link, depending on the overdispersion of the data.
 In this context, the standard model for the \textit{in-control} mean is
-$$\log \mu_{0,t}=\beta_0+\beta_1t+\sum_{s=1}^S\left[\beta_{2s}\cos \left(\frac{2\pi s t}{\mathtt{Period}}\right)+\beta_{2s+1}\sin \left(\frac{2\pi s t}{\mathtt{Period}}\right)\right] $$ 
-where $S$ is the number of harmonic waves to use and \texttt{Period} is the period of the data as indicated in the \code{control} slot, for instance 52 for weekly data. 
-However, more flexible linear predictors, e.g., containing splines, concurrent covariates 
-or an offset could be used on the right hand-side of the equation. 
+$$\log \mu_{0,t}=\beta_0+\beta_1t+\sum_{s=1}^S\left[\beta_{2s}\cos \left(\frac{2\pi s t}{\mathtt{Period}}\right)+\beta_{2s+1}\sin \left(\frac{2\pi s t}{\mathtt{Period}}\right)\right] $$
+where $S$ is the number of harmonic waves to use and \texttt{Period} is the period of the data as indicated in the \code{control} slot, for instance 52 for weekly data.
+However, more flexible linear predictors, e.g., containing splines, concurrent covariates
+or an offset could be used on the right hand-side of the equation.
 The GLM could therefore be made very similar
-to the one used by~\citet{Noufaily2012}, with reweighting of past outbreaks and various criteria for including the time trend. 
- 
-The parameters of the \textit{in-control} and \textit{out-of-control} models 
+to the one used by~\citet{Noufaily2012}, with reweighting of past outbreaks and various criteria for including the time trend.
+
+The parameters of the \textit{in-control} and \textit{out-of-control} models
 are respectively given by $\bm{\theta}_0$ and $\bm{\theta}_1$.
-The \textit{out-of-control} mean is defined as a function of the \textit{in-control} mean, either with a multiplicative shift (additive on the log-scale) whose size $\kappa$ can be given as an input 
+The \textit{out-of-control} mean is defined as a function of the \textit{in-control} mean, either with a multiplicative shift (additive on the log-scale) whose size $\kappa$ can be given as an input
 or reestimated at each timepoint $t>1$, $\mu_{1,t}=\mu_{0,t}\cdot \exp(\kappa)$, or with an unknown autoregressive component as in \citet{held-etal-2005}, $\mu_{1,t}=\mu_{0,t}+\lambda y_{t-1}$
 with unknown $\lambda>0$.
 
-In \code{glrnb}, timepoints are divided into two intervals: phase 1 and phase 2. The \textit{in-control} mean and overdispersion are estimated with a GLM fitted on phase 1 data, whereas surveillance operates on phase 2 data. 
+In \code{glrnb}, timepoints are divided into two intervals: phase 1 and phase 2. The \textit{in-control} mean and overdispersion are estimated with a GLM fitted on phase 1 data, whereas surveillance operates on phase 2 data.
 When $\lambda$ is fixed, one uses a likelihood-ratio (LR) and
 defines the stopping time for alarm as
 $$N=\min \left\{ t_0 \geq 1 : \max_{1\leq t \leq t_0} \left[ \sum_{s=t}^{t_0} \log\left\{ \frac{f_{\bm{\theta}_1}(y_s|\bm{z}_s)}{f_{\bm{\theta}_0}(y_s|\bm{z}_s)} \right\} \right] \geq \mathtt{c.ARL} \right\},$$
@@ -882,24 +882,24 @@ Thus, one does not make any hypothesis about the specific value of the change to
 For using \code{glrnb} one has two choices to make. First, one has to choose an \textit{in-control} model that will be fitted on phase 1 data. One can either provide the
 predictions for the vector of \textit{in-control} means \code{mu0} and the overdispersion parameter \code{alpha} by relying on an external fit, or use the built-in GLM estimator,
 that will use all data before the beginning of the surveillance range to fit a GLM with the number of harmonics \code{S} and a time trend if \code{trend} is \code{TRUE}.
-The choice of the exact \textit{in-control} model depends on the data under surveillance. Performing model selection is a compulsory step in practical applications. Then, one needs to tune the surveillance function itself, for one of the two possible change forms, \code{intercept}~or~\code{epi}.~One~can choose either to set \code{theta} to a given value and thus perform LR instead of GLR. The value of \code{theta} has to be adapted to 
-the specific context in which the algorithm is applied: how big are shifts one wants to detect optimally? Is it better not to specify any and use GLR instead? 
+The choice of the exact \textit{in-control} model depends on the data under surveillance. Performing model selection is a compulsory step in practical applications. Then, one needs to tune the surveillance function itself, for one of the two possible change forms, \code{intercept}~or~\code{epi}.~One~can choose either to set \code{theta} to a given value and thus perform LR instead of GLR. The value of \code{theta} has to be adapted to
+the specific context in which the algorithm is applied: how big are shifts one wants to detect optimally? Is it better not to specify any and use GLR instead?
 
 The threshold \texttt{c.ARL} also has to be specified by the user. As explained in \citet{hoehle-mazick-2010} one can compute the threshold for
 a desired run-length in control through direct Monte Carlo simulation or a Markov chain approximation. Lastly, as mentioned in
-\citet{hoehle.paul2008}, a window-limited approach of surveillance, instead of looking at all the timepoints until the first observation, can make computation faster. 
+\citet{hoehle.paul2008}, a window-limited approach of surveillance, instead of looking at all the timepoints until the first observation, can make computation faster.
 
-Here we apply \code{glrnb} to the time series of report counts of \textit{Salmonella Newport} in Germany by assuming a known multiplicative shift of factor $2$ and by using the built-in estimator to fit an \textit{in-control} model with one harmonic for 
-seasonality and a trend. This model will be refitted after each alarm, but first we use data from the years before 2011 as reference or \code{phase1}, 
-and the data from 2011 as data to be monitored or \code{phase2}. The threshold \texttt{c.ARL} was chosen to be 4 as we found with the same approach as \citet{hoehle-mazick-2010} that it made the probability of a false alarm within one year 
+Here we apply \code{glrnb} to the time series of report counts of \textit{Salmonella Newport} in Germany by assuming a known multiplicative shift of factor $2$ and by using the built-in estimator to fit an \textit{in-control} model with one harmonic for
+seasonality and a trend. This model will be refitted after each alarm, but first we use data from the years before 2011 as reference or \code{phase1},
+and the data from 2011 as data to be monitored or \code{phase2}. The threshold \texttt{c.ARL} was chosen to be 4 as we found with the same approach as \citet{hoehle-mazick-2010} that it made the probability of a false alarm within one year
 smaller than 0.1. Figure~\ref{fig:glrnb}~shows the results of this monitoring.
 
 
-<<glrnblongVersion, echo = T, eval =F, include = F,keep.source=TRUE>>=	
+<<glrnblongVersion, echo = T, eval =F, include = F,keep.source=TRUE>>=
 phase1 <- which(isoWeekYear(epoch(salmNewportGermany))$ISOYear < 2011)
 phase2 <- in2011
 control = list(range = phase2, c.ARL = 4, theta = log(2), ret = "cases",
-               mu0 = list(S = 1, trend = TRUE, refit = FALSE))		 
+               mu0 = list(S = 1, trend = TRUE, refit = FALSE))
 salmGlrnb <- glrnb(salmNewportGermany, control = control)
 @
 <<glrnb, echo = F, include = F, results = hide>>=
@@ -912,18 +912,18 @@ control=list(range=phase2,mu0=list(
 								trend=TRUE,
 								refit=FALSE),c.ARL = 4,
              theta=log(2),ret="cases")
-# Perform monitoring with glrnb			 
+# Perform monitoring with glrnb
 salmGlrnb <- glrnb(salmNewportGermany,control=control)
 @
-<<glrnbPlot, fig=FALSE, echo = FALSE, label=glrnbPlot,include = F,results=hide>>= 
+<<glrnbPlot, fig=FALSE, echo = FALSE, label=glrnbPlot,include = F,results=hide>>=
 # Plot
 y.max <- max(observed(salmGlrnb),upperbound(salmGlrnb),na.rm=TRUE)
-do.call("plot",modifyList(plotOpts,list(x=salmGlrnb,ylim=c(0,y.max)))) 
+do.call("plot",modifyList(plotOpts,list(x=salmGlrnb,ylim=c(0,y.max))))
 @
  \setkeys{Gin}{height=7cm, width=15cm}
 \begin{figure}
-\begin{center}  
-  
+\begin{center}
+
 <<label=glrnbPlot,fig=TRUE, width=10, height=4.6667, echo=FALSE>>=
 <<glrnbPlot>>
 
@@ -934,16 +934,16 @@ do.call("plot",modifyList(plotOpts,list(x=salmGlrnb,ylim=c(0,y.max))))
 \label{fig:glrnb}
 \end{figure}
 
-The implementation of \code{glrnb} on individual time series was already thoroughly explained in \citet{hoehle-mazick-2010}. Our objective in the present document is rather to provide practical tips 
-for the implementation of this function on huge amounts of data in public health surveillance applications. Issues of computational speed become very significant in such a context. Our proposal 
-to reduce the computational burden incurred by this algorithm is 
-to compute the \textit{in-control} model for each time serie (pathogen, subtype, subtype in a given location, etc.) only once a year and to use this estimation for the computation of a threshold for each time series. 
- An idea to avoid starting with an initial value of zero in the CUSUM is to use either $\left(\frac{1}{2}\right)\cdot\mathtt{c.ARL}$ as a starting value (fast initial response 
- CUSUM as presented in~\citet{lucas1982fast}) or to let surveillance run with the new \textit{in-control} model during 
+The implementation of \code{glrnb} on individual time series was already thoroughly explained in \citet{hoehle-mazick-2010}. Our objective in the present document is rather to provide practical tips
+for the implementation of this function on huge amounts of data in public health surveillance applications. Issues of computational speed become very significant in such a context. Our proposal
+to reduce the computational burden incurred by this algorithm is
+to compute the \textit{in-control} model for each time serie (pathogen, subtype, subtype in a given location, etc.) only once a year and to use this estimation for the computation of a threshold for each time series.
+ An idea to avoid starting with an initial value of zero in the CUSUM is to use either $\left(\frac{1}{2}\right)\cdot\mathtt{c.ARL}$ as a starting value (fast initial response
+ CUSUM as presented in~\citet{lucas1982fast}) or to let surveillance run with the new \textit{in-control} model during
  a buffer period and use the resulting CUSUM as an initial value. One could also choose the maximum of these two possible starting values as a starting value.
- During the buffer period alarms would be generated with the old model. Lastly, using GLR is much more computationally intensive than using LR, 
- whereas LR performs reasonably well on shifts different from the one indicated by \code{theta} as seen in the simulation studies of~\citet{hoehle.paul2008}. Our advice would therefore be to use LR with a reasonable predefined \code{theta}. 
- The amount of historical data used each year to update the model, the length of the buffer period and the value of \code{theta} have to be fixed for each specific application, e.g., using simulations and/or 
+ During the buffer period alarms would be generated with the old model. Lastly, using GLR is much more computationally intensive than using LR,
+ whereas LR performs reasonably well on shifts different from the one indicated by \code{theta} as seen in the simulation studies of~\citet{hoehle.paul2008}. Our advice would therefore be to use LR with a reasonable predefined \code{theta}.
+ The amount of historical data used each year to update the model, the length of the buffer period and the value of \code{theta} have to be fixed for each specific application, e.g., using simulations and/or
  discussion with experts.
 
 \subsubsection{Similar methods in the package}
@@ -953,33 +953,33 @@ Other CUSUM methods for count data are found in the package: \code{cusum} and \c
 The package also includes a semi-parametric method \code{outbreakP} that aims at detecting changes from a constant level to a monotonically increasing incidence, for instance the beginning of the influenza season. See Table~\ref{table:ref} for the corresponding references.
 
 \subsection{A method for monitoring categorical data}
-All monitoring methods presented up to now have been methods for analysing count data. Nevertheless, in public health surveillance one also encounters categorical time series 
-which are time series where the response variable obtains one of $k\geq2$ different categories (nominal or ordinal). When $k=2$ the time series is binary, for instance representing 
-a specific outcome in cases such as hospitalization, death or a positive result to some diagnostic test. One can also think of applications with 
-$k>2$ if one studies, e.g., the age groups of the cases in the context of monitoring a vaccination program: vaccination targeted at children could induce a shift towards older cases which one wants to detect 
+All monitoring methods presented up to now have been methods for analysing count data. Nevertheless, in public health surveillance one also encounters categorical time series
+which are time series where the response variable obtains one of $k\geq2$ different categories (nominal or ordinal). When $k=2$ the time series is binary, for instance representing
+a specific outcome in cases such as hospitalization, death or a positive result to some diagnostic test. One can also think of applications with
+$k>2$ if one studies, e.g., the age groups of the cases in the context of monitoring a vaccination program: vaccination targeted at children could induce a shift towards older cases which one wants to detect
 as quickly as possible -- this will be explained thorougly with an example.
 
-The developments of prospective surveillance methods for such categorical time series were up to recently limited to CUSUM-based approaches for 
-binary data such as those explained in~\citet{Chen1978},~\citet{Reynolds2000} and~\citet{rogerson_yamada2004}. Other than being only suitable for binary data these methods have the drawback of not handling 
-overdispersion. A method improving on these two limitations while casting the problem into a more comprehending GLM regression framework for categorical data was 
+The developments of prospective surveillance methods for such categorical time series were up to recently limited to CUSUM-based approaches for
+binary data such as those explained in~\citet{Chen1978},~\citet{Reynolds2000} and~\citet{rogerson_yamada2004}. Other than being only suitable for binary data these methods have the drawback of not handling
+overdispersion. A method improving on these two limitations while casting the problem into a more comprehending GLM regression framework for categorical data was
 presented in~\citet{hoehle2010}. It is implemented as the function
  \code{categoricalCUSUM}.
- 
+
 The way \code{categoricalCUSUM} operates is very similar to what \code{glrnb} does with fixed \textit{out-of-control} parameter.
-First, the parameters in a multivariate GLM for the \textit{in-control} distribution are estimated from the historical data. Then the \textit{out-of-control} distribution is defined by a given 
-change in the parameters of this GLM, e.g., an intercept change, as explained later. Lastly, prospective monitoring is performed on 
-current data using a likelihood ratio detector which compares the likelihood of the response under the \textit{in-control} and \textit{out-of-control} distributions. 
+First, the parameters in a multivariate GLM for the \textit{in-control} distribution are estimated from the historical data. Then the \textit{out-of-control} distribution is defined by a given
+change in the parameters of this GLM, e.g., an intercept change, as explained later. Lastly, prospective monitoring is performed on
+current data using a likelihood ratio detector which compares the likelihood of the response under the \textit{in-control} and \textit{out-of-control} distributions.
 
 \subsubsection{Categorical CUSUM for binomial models}
-The challenge when performing these steps with categorical data from surveillance systems 
-is finding an appropriate model. Binary GLMs as presented in Chapter~6 of \citet{Fahrmeir.etal2013} could be a solution but they do not tackle well the inherent overdispersion in the binomial time series. 
-Of course one could choose a quasi family but these are not proper statistical distributions making many issues such as prediction complicated. A better alternative 
-is offered by the use of \textit{generalized additive models for location, scale and shape} \citep[GAMLSS,][]{Rigby2005},  that support distributions such as the beta-binomial distribution, suitable for overdispersed binary data. With GAMLSS one can model the dependency of the mean -- \textit{location}  -- 
-upon explanatory variables but the regression modeling is also extended to other parameters of the distribution, e.g., scale. Moreover any modelled parameter can be put under surveillance, be it the mean (as in the example later developed) 
+The challenge when performing these steps with categorical data from surveillance systems
+is finding an appropriate model. Binary GLMs as presented in Chapter~6 of \citet{Fahrmeir.etal2013} could be a solution but they do not tackle well the inherent overdispersion in the binomial time series.
+Of course one could choose a quasi family but these are not proper statistical distributions making many issues such as prediction complicated. A better alternative
+is offered by the use of \textit{generalized additive models for location, scale and shape} \citep[GAMLSS,][]{Rigby2005},  that support distributions such as the beta-binomial distribution, suitable for overdispersed binary data. With GAMLSS one can model the dependency of the mean -- \textit{location}  --
+upon explanatory variables but the regression modeling is also extended to other parameters of the distribution, e.g., scale. Moreover any modelled parameter can be put under surveillance, be it the mean (as in the example later developed)
 or the time trend in the linear predictor of the mean. This very flexible modeling framework is implemented in \proglang{R} through the \pkg{gamlss} package~\citep{StasJSS}.
 
 As an example we consider the time series of the weekly number of hospitalized cases among all \textit{Salmonella} cases in Germany in Jan 2004--Jan 2014, depicted in
-Figure~\ref{fig:cat1}. We use 2004--2012 data to estimate the \textit{in-control} parameters and then perform surveillance on the data from 2013 and early 2014. We start by preprocessing the data. 
+Figure~\ref{fig:cat1}. We use 2004--2012 data to estimate the \textit{in-control} parameters and then perform surveillance on the data from 2013 and early 2014. We start by preprocessing the data.
 <<catlongVersion, eval = FALSE, echo = T, include = F,keep.source=TRUE>>=
 data("salmHospitalized")
 isoWeekYearData <- isoWeekYear(epoch(salmHospitalized))
@@ -988,13 +988,13 @@ dataBefore2013 <- which(isoWeekYearData$ISOYear < 2013)
 data2013 <- which(isoWeekYearData$ISOYear == 2013)
 dataEarly2014 <- which(isoWeekYearData$ISOYear == 2014
                       & isoWeekYearData$ISOWeek <= 4)
-					  
+
 phase1 <- dataBefore2013
 phase2 <- c(data2013, dataEarly2014)
 
 weekNumbers <- isoWeekYearData$ISOWeek
 salmHospitalized.df <- cbind(as.data.frame(salmHospitalized), weekNumbers)
-colnames(salmHospitalized.df) <- c("y", "t", "state", "alarm", "n",
+colnames(salmHospitalized.df) <- c("y", "t", "state", "alarm", "upperbound","n",
                                    "freq", "epochInPeriod", "weekNumber")
 @
 <<cat, echo = F, include = F>>=
@@ -1008,52 +1008,52 @@ phase2 <- c(which(isoWeekYear(epoch(salmHospitalized))$ISOYear==2013),
 # Prepare data for fitting the model
 weekNumber <-  isoWeekYear(epoch(salmHospitalized))$ISOWeek
 salmHospitalized.df <- cbind(as.data.frame(salmHospitalized),weekNumber)
-colnames(salmHospitalized.df) <- c("y","t","state","alarm","n","freq",
+colnames(salmHospitalized.df) <- c("y","t","state","alarm","upperbound","n","freq",
                                    "epochInPeriod","weekNumber")
 @
 
 We assume that the number of hospitalized cases follows a beta-binomial distribution, i.e.,
-$ y_t \sim \BetaBin(n_t,\pi_t,\sigma_t)$ with $n_t$ the total number of reported cases at time $t$, $\pi_t$ the proportion of these cases that were hospitalized and $\sigma$ the dispersion parameter. In this 
+$ y_t \sim \BetaBin(n_t,\pi_t,\sigma_t)$ with $n_t$ the total number of reported cases at time $t$, $\pi_t$ the proportion of these cases that were hospitalized and $\sigma$ the dispersion parameter. In this
 parametrization, $$E(y_t)=n_t \pi_t,\quad \text{and}$$ $$\Var(y_t)=n_t \pi_t(1-\pi_t)\left( 1 + \frac{\sigma(n_t-1)}{\sigma+1} \right)\cdot$$
 We choose to model the expectation $n_t \pi_t$ using a beta-binomial model with a logit-link which is a special case of a GAMLSS, i.e.,
 $$\logit(\pi_t)=\bm{z}_t^\top\bm{\beta}$$
 where $\bm{z}_t$ is a vector of possibly time-varying covariates and $\bm{\beta}$ a vector of covariate effects in our example.
 
 
-The proportion of hospitalized cases 
-varies throughout the year as seen in Figure~\ref{fig:cat1}.  
-One observes that in the summer the proportion of hospitalized cases is smaller than in other seasons. However, over the holidays in December the proportion of hospitalized cases increases.  
- Note that the number of non-hospitalized cases drops while the number of hospitalized cases remains constant (data not shown): this might be explained by the fact that cases that are not serious enough to go to the hospital are not seen by general practitioners because sick workers do not need 
- a sick note during the holidays. Therefore, the \textit{in-control} model should contain these elements, as well as the fact that there is an 
+The proportion of hospitalized cases
+varies throughout the year as seen in Figure~\ref{fig:cat1}.
+One observes that in the summer the proportion of hospitalized cases is smaller than in other seasons. However, over the holidays in December the proportion of hospitalized cases increases.
+ Note that the number of non-hospitalized cases drops while the number of hospitalized cases remains constant (data not shown): this might be explained by the fact that cases that are not serious enough to go to the hospital are not seen by general practitioners because sick workers do not need
+ a sick note during the holidays. Therefore, the \textit{in-control} model should contain these elements, as well as the fact that there is an
 increasing trend of the proportion because GPs prescribe less and less stool diagnoses so that more diagnoses are done on hospitalized cases.
 
-We choose a model with an intercept, a time trend, two harmonic terms and a factor variable for the first two weeks of 
-each year. The variable \code{epochInPeriod} takes into account the fact that not all years have 52 weeks. 
+We choose a model with an intercept, a time trend, two harmonic terms and a factor variable for the first two weeks of
+each year. The variable \code{epochInPeriod} takes into account the fact that not all years have 52 weeks.
 
 
 <<catbis, echo = T, include = F, results = hide>>=
 vars <- c( "y", "n", "t", "epochInPeriod", "weekNumber")
 m.bbin <- gamlss(cbind(y, n-y) ~ 1 + t
-                 + sin(2 * pi * epochInPeriod) + cos(2 * pi * epochInPeriod) 
+                 + sin(2 * pi * epochInPeriod) + cos(2 * pi * epochInPeriod)
                  + sin(4 * pi * epochInPeriod) + cos(4 * pi * epochInPeriod)
-                 + I(weekNumber == 1) + I(weekNumber == 2), 
+                 + I(weekNumber == 1) + I(weekNumber == 2),
                  sigma.formula =~ 1,
                  family = BB(sigma.link = "log"),
                  data = salmHospitalized.df[phase1, vars])
 @
 
-The change we aim to detect is defined by a multiplicative change of odds, from $\frac{\pi_t^0}{(1-\pi_t^0)}$ to $R\cdot\frac{\pi_t^0}{(1-\pi_t^0)}$ with $R>0$, similar to what was done in~\citet{Steiner1999} for the logistic regression model. 
+The change we aim to detect is defined by a multiplicative change of odds, from $\frac{\pi_t^0}{(1-\pi_t^0)}$ to $R\cdot\frac{\pi_t^0}{(1-\pi_t^0)}$ with $R>0$, similar to what was done in~\citet{Steiner1999} for the logistic regression model.
 This is equivalent to an additive change of the log-odds,
 $$\logit(\pi_t^1)=\logit(\pi_t^0)+\log R$$
 with $\pi_t^0$ being the \textit{in-control} proportion and $\pi_t^1$ the \textit{out-of-control} distribution. The likelihood ratio based CUSUM statistic is now defined as
 $$C_{t_0}=\max_{1\leq t \leq {t_0}}\left( \sum_{s=t}^{t_0} \log \left( \frac{f(y_s;\bm{z}_s,\bm{\theta}_1)}{f(y_s;\bm{z}_s,\bm{\theta}_0)} \right) \right)$$
-with $\bm{\theta}_0$ and $\bm{\theta}_1$ being the vector in- and \textit{out-of-control} parameters, respectively. Given a threshold \code{h}, an alarm is sounded at the first time when $C_{t_0}>\mathtt{h}$. 
+with $\bm{\theta}_0$ and $\bm{\theta}_1$ being the vector in- and \textit{out-of-control} parameters, respectively. Given a threshold \code{h}, an alarm is sounded at the first time when $C_{t_0}>\mathtt{h}$.
 
-We set the parameters of the \code{categoricalCUSUM} to optimally detect a doubling of the odds in 2013 and 2014, i.e., $R=2$. Furthermore, we for now set the threshold of the CUSUM at $h=2$. 
+We set the parameters of the \code{categoricalCUSUM} to optimally detect a doubling of the odds in 2013 and 2014, i.e., $R=2$. Furthermore, we for now set the threshold of the CUSUM at $h=2$.
 We use the GAMLSS to predict the mean of the \textit{in-control} and \textit{out-of-control} distributions and store them into matrices with two columns among which the second one represents the reference category.
 
 <<cat2longVersion, eval = FALSE, echo = T, include = F>>=
-R <- 2 
+R <- 2
 h <- 2
 pi0 <- predict(m.bbin, newdata = salmHospitalized.df[phase2, vars],
                type = "response")
@@ -1064,7 +1064,7 @@ pi1m <- rbind(pi1, 1 - pi1)
 <<cat2, echo = F, include = F>>=
 # CUSUM parameters
 R <- 2 #detect a doubling of the odds for a salmHospitalized being positive
-h <- 2 #threshold of the cusum 
+h <- 2 #threshold of the cusum
 # Compute \textit{in-control} and out of control mean
 pi0 <- predict(m.bbin,newdata=salmHospitalized.df[phase2,vars],
                type="response")
@@ -1074,15 +1074,15 @@ pi1 <- plogis(qlogis(pi0) + log(R))
 pi0m <- rbind(pi0, 1-pi0)
 pi1m <- rbind(pi1, 1-pi1)
 @
-Note that the \code{categoricalCUSUM} function is constructed to operate on the observed slot of \code{sts}-objects 
-which have as columns the number of cases in each category at each timepoint, \textit{i.e.}, each row of the observed slot contains the elements 
-$(y_{t1},...,y_{tk})$. 
+Note that the \code{categoricalCUSUM} function is constructed to operate on the observed slot of \code{sts}-objects
+which have as columns the number of cases in each category at each timepoint, \textit{i.e.}, each row of the observed slot contains the elements
+$(y_{t1},...,y_{tk})$.
 
 <<cat2bislongVersion, eval = FALSE, echo = T, include = F,keep.source=TRUE>>=
-populationHosp <- cbind(population(salmHospitalized), 
+populationHosp <- cbind(population(salmHospitalized),
                         population(salmHospitalized))
-observedHosp <- cbind(observed(salmHospitalized), 
-                      population(salmHospitalized) - 
+observedHosp <- cbind(observed(salmHospitalized),
+                      population(salmHospitalized) -
 					  observed(salmHospitalized))
 nrowHosp <- nrow(salmHospitalized)
 salmHospitalized.multi <- new("sts", freq = 52, start = c(2004, 1),
@@ -1090,7 +1090,7 @@ salmHospitalized.multi <- new("sts", freq = 52, start = c(2004, 1),
                               epochAsDate = TRUE,
                               observed = observedHosp,
                               populationFrac = populationHosp,
-                              state = matrix(0, nrow = nrowHosp, ncol = 2), 
+                              state = matrix(0, nrow = nrowHosp, ncol = 2),
                               multinomialTS = TRUE)
 @
 <<cat2bis, echo = F, include = F>>=
@@ -1105,71 +1105,71 @@ salmHospitalized.multi <- new("sts", freq=52, start=c(2004,1),
                               populationFrac = cbind(population,
                                                      population),
                               state=matrix(0, nrow=nrow(salmHospitalized),
-                                           ncol = 2), 
+                                           ncol = 2),
                               multinomialTS=TRUE)
 @
-Furthermore, one needs to define a wrapper for the distribution function in order to have a argument named \code{"mu"} in the function. 
+Furthermore, one needs to define a wrapper for the distribution function in order to have a argument named \code{"mu"} in the function.
 
-<<cat2terdisplay, eval = FALSE, echo = T, include = F>>=							  
+<<cat2terdisplay, eval = FALSE, echo = T, include = F>>=
 dBB.cusum <- function(y, mu, sigma, size, log = FALSE) {
-	 return(dBB(if (is.matrix(y)) y[1,] else y, 
+	 return(dBB(if (is.matrix(y)) y[1,] else y,
 				if (is.matrix(y)) mu[1,] else mu,
-				sigma = sigma, bd = size, log = log)) 
+				sigma = sigma, bd = size, log = log))
 }
 @
-<<cat2ter, echo = F, include = F>>=							  
-# Function to use as dfun in the categoricalCUSUM 
+<<cat2ter, echo = F, include = F>>=
+# Function to use as dfun in the categoricalCUSUM
 dBB.cusum <- function(y, mu, sigma, size, log = FALSE) {
  return(dBB( if (is.matrix(y)) y[1,] else y, if (is.matrix(y)) mu[1,] else mu,
- sigma = sigma, bd = size, log = log)) 
+ sigma = sigma, bd = size, log = log))
 }
 @
 
 After these preliminary steps, the monitoring can be performed.
 
 <<cat3display, eval = FALSE, echo = T, include = F>>=
-controlCat <- list(range = phase2, h = 2, pi0 = pi0m, pi1 = pi1m, 
+controlCat <- list(range = phase2, h = 2, pi0 = pi0m, pi1 = pi1m,
                 ret = "cases", dfun = dBB.cusum)
-salmHospitalizedCat <- categoricalCUSUM(salmHospitalized.multi, 
+salmHospitalizedCat <- categoricalCUSUM(salmHospitalized.multi,
                                         control = controlCat,
-                                        sigma = exp(m.bbin$sigma.coef))									
+                                        sigma = exp(m.bbin$sigma.coef))
 @
 <<cat3, echo = F, include = F>>=
 # Monitoring
 controlCat <- list(range = phase2,h = 2,pi0 = pi0m, pi1 = pi1m, ret = "cases",
 dfun = dBB.cusum)
-salmHospitalizedCat <- categoricalCUSUM(salmHospitalized.multi, 
+salmHospitalizedCat <- categoricalCUSUM(salmHospitalized.multi,
                                         control = controlCat,
-                                        sigma = exp(m.bbin$sigma.coef))									
+                                        sigma = exp(m.bbin$sigma.coef))
 @
 
-The results can be seen in Figure~\ref{fig:catDouble}(a). With the given settings, there are alarms at week 
-16 in 2004 
-and at week 3 in 2004. 
-The one in 2014 corresponds to the usual peak of the beginning of the year, which was larger than expected this year, maybe because the 
+The results can be seen in Figure~\ref{fig:catDouble}(a). With the given settings, there are alarms at week
+16 in 2004
+and at week 3 in 2004.
+The one in 2014 corresponds to the usual peak of the beginning of the year, which was larger than expected this year, maybe because the
 weekdays of the holidays were particularly worker-friendly so that sick notes were even less needed.
 
 
-<<catPlot1, fig=FALSE, echo = FALSE, label=catPlot1,include = F,results=hide>>= 
+<<catPlot1, fig=FALSE, echo = FALSE, label=catPlot1,include = F,results=hide>>=
 y.max <- max(observed(salmHospitalized)/population(salmHospitalized),upperbound(salmHospitalized)/population(salmHospitalized),na.rm=TRUE)
 plotOpts2 <- modifyList(plotOpts,list(x=salmHospitalized,legend.opts=NULL,ylab="",ylim=c(0,y.max)),keep.null=TRUE)
 plotOpts2$xaxis.tickFreq <- list("%G"=atChange,"%m"=atChange)
 plotOpts2$par.list <- list(mar=c(6,5,5,5),family="Times",las=1)
 do.call("plot",plotOpts2)
 lines(salmHospitalized@populationFrac/4000,col="grey80",lwd=2)
-lines(campyDE$hum*50, col="white", lwd=2)	   
+lines(campyDE$hum*50, col="white", lwd=2)
 axis(side=4, at=seq(0,2000,by=500)/4000,labels=as.character(seq(0,2000,by=500)),las=1, cex=2,cex.axis=1.5,pos=length(observed(salmHospitalized))+20)
 par(family="Times")
-text(-20, 0.6, "Proportion", pos = 3, xpd = T,cex=cex.text)	  
+text(-20, 0.6, "Proportion", pos = 3, xpd = T,cex=cex.text)
 text(520, 0.6, "Total number of \n reported cases", pos = 3, xpd = T,cex=cex.text)
 
 #mtext(side=4,text=expression(paste("Total number of reported cases (thousands)", sep='')),
-      #las=0,line=1, cex=cex.text)	 
+      #las=0,line=1, cex=cex.text)
 
 @
 \begin{figure}
-\begin{center}  
-  
+\begin{center}
+
 <<label=catPlot1,fig=TRUE, width=10, height=4.6667, echo=FALSE>>=
 <<catPlot1>>
 
@@ -1179,33 +1179,33 @@ text(520, 0.6, "Total number of \n reported cases", pos = 3, xpd = T,cex=cex.tex
 \caption{Weekly proportion of Salmonella cases that were hospitalized in Germany 2004-2014. In addition the corresponding number of reported cases is shown as a light curve.}
 \label{fig:cat1}
 \end{figure}
-<<catPlot, fig=FALSE, echo = FALSE, label=catPlot,include = F,results=hide>>= 
+<<catPlot, fig=FALSE, echo = FALSE, label=catPlot,include = F,results=hide>>=
 
 @
 
 
 
-The value for the threshold \code{h} can be determined following the procedures presented in \citet{hoehle-mazick-2010} for count data, and as in the code exhibited below. Two methods can be used for 
-determining the probability of a false alarm within a pre-specified number of steps for a given value of the threshold \code{h}: a Monte Carlo method relying on, e.g., 1000 simulations and a Markov Chain approximation of the CUSUM. The former is much more computationally intensive than the latter: 
+The value for the threshold \code{h} can be determined following the procedures presented in \citet{hoehle-mazick-2010} for count data, and as in the code exhibited below. Two methods can be used for
+determining the probability of a false alarm within a pre-specified number of steps for a given value of the threshold \code{h}: a Monte Carlo method relying on, e.g., 1000 simulations and a Markov Chain approximation of the CUSUM. The former is much more computationally intensive than the latter:
 with the code below, the Monte Carlo method needed approximately 300 times more time than the Markov Chain method.
-Since both results are close we recommend the Markov Chain approximation for practical use. The Monte Carlo method works by sampling observed values from the estimated 
-distribution and performing monitoring with \code{categoricalCUSUM} on this \code{sts} object. As observed values are estimated from the \textit{in-control} distribution every alarm thus obtained is a 
-false alarm so that the simulations allow to estimate the probability of a false alarm when monitoring \textit{in-control} data over the timepoints of \code{phase2}. The Markov Chain approximation introduced by \citet{brook_evans1972} is implemented as \code{LRCUSUM.runlength} 
+Since both results are close we recommend the Markov Chain approximation for practical use. The Monte Carlo method works by sampling observed values from the estimated
+distribution and performing monitoring with \code{categoricalCUSUM} on this \code{sts} object. As observed values are estimated from the \textit{in-control} distribution every alarm thus obtained is a
+false alarm so that the simulations allow to estimate the probability of a false alarm when monitoring \textit{in-control} data over the timepoints of \code{phase2}. The Markov Chain approximation introduced by \citet{brook_evans1972} is implemented as \code{LRCUSUM.runlength}
 which is already used for \code{glrnb}. Results from both methods can be seen in Figure~\ref{fig:catDouble}(b). We chose a value of 2 for \code{h} so that the probability of a false alarm within the 56 timepoints of \code{phase2} is less than $0.1$.
 
-One first has to set the values of the threshold to be investigated and to prepare the function used for simulation, that draws observed values from the 
-\textit{in-control} distribution and performs monitoring on the corresponding time series, then indicating if there was at least one alarm. Then 1000 simulations were 
-performed with a fixed seed value for the sake of reproducibility. Afterwards, we tested the Markov Chain approximation using the function \code{LRCUSUM.runlength} over the same grid 
+One first has to set the values of the threshold to be investigated and to prepare the function used for simulation, that draws observed values from the
+\textit{in-control} distribution and performs monitoring on the corresponding time series, then indicating if there was at least one alarm. Then 1000 simulations were
+performed with a fixed seed value for the sake of reproducibility. Afterwards, we tested the Markov Chain approximation using the function \code{LRCUSUM.runlength} over the same grid
 of values for the threshold.
 
 <<NICELOOKING,eval=FALSE,echo=TRUE>>=
-h.grid <- seq(1, 10, by = 0.5)			
+h.grid <- seq(1, 10, by = 0.5)
 
 simone <- function(sts, h) {
   y <- rBB(length(phase2), mu = pi0m[1, , drop = FALSE],
 			 bd = population(sts)[phase2, ],
 	         sigma = exp(m.bbin$sigma.coef))
-  observed(sts)[phase2, ] <- cbind(y, sts@populationFrac[phase2, 1] - y) 
+  observed(sts)[phase2, ] <- cbind(y, sts@populationFrac[phase2, 1] - y)
   one.surv <- categoricalCUSUM(sts, modifyList(controlCat, list(h = h)),
 	                           sigma = exp(m.bbin$sigma.coef))
   return(any(alarms(one.surv)[, 1]))
@@ -1214,13 +1214,13 @@ set.seed(123)
 
 nSims <- 1000
 
-pMC <- sapply(h.grid, function(h) { 
-	mean(replicate(nSims, simone(salmHospitalized.multi, h))) 
+pMC <- sapply(h.grid, function(h) {
+	mean(replicate(nSims, simone(salmHospitalized.multi, h)))
 })
 
 pMarkovChain <- sapply( h.grid, function(h) {
-  TA <- LRCUSUM.runlength(mu = pi0m[1,, drop = FALSE], 
-                          mu0 = pi0m[1,, drop = FALSE], 
+  TA <- LRCUSUM.runlength(mu = pi0m[1,, drop = FALSE],
+                          mu0 = pi0m[1,, drop = FALSE],
                           mu1 = pi1m[1,, drop = FALSE],
                           n = population(salmHospitalized.multi)[phase2, ],
                           h = h, dfun = dBB.cusum,
@@ -1228,10 +1228,10 @@ pMarkovChain <- sapply( h.grid, function(h) {
   return(tail(TA$cdf, n = 1))
 })
 @
-<<cath, echo = F, include = F>>=									  
+<<cath, echo = F, include = F>>=
 # Values of the threshold to be investigated
-h.grid <- seq(1,10,by=0.5)			
-							
+h.grid <- seq(1,10,by=0.5)
+
 # Prepare function for simulations
  simone <- function(sts, h) {
 # Draw observed values from the \textit{in-control} distribution
@@ -1239,7 +1239,7 @@ h.grid <- seq(1,10,by=0.5)
            bd=population(sts)[phase2,],
 		   sigma=exp(m.bbin$sigma.coef))
   observed(sts)[phase2,] <- cbind(y,sts@populationFrac[phase2,1] - y)
-# Perform monitoring  
+# Perform monitoring
   one.surv <- categoricalCUSUM(sts, control=modifyList(controlCat, list(h=h)),
                                sigma=exp(m.bbin$sigma.coef))
 # Return 1 if there was at least one alarm
@@ -1251,17 +1251,17 @@ if (computeALL) {
 # Number of simulations
 nSims=1000
 # Simulations over the possible h values
-pMC <- sapply(h.grid, function(h) { 
+pMC <- sapply(h.grid, function(h) {
   h <- h
-  mean(replicate(nSims, simone(salmHospitalized.multi,h))) 
+  mean(replicate(nSims, simone(salmHospitalized.multi,h)))
 })
 # Distribution function to be used by LRCUSUM.runlength
 dBB.rl <- function(y, mu, sigma, size, log = FALSE) {
-  dBB(y, mu = mu, sigma = sigma, bd = size, log = log) 
+  dBB(y, mu = mu, sigma = sigma, bd = size, log = log)
 }
 # Markov Chain approximation over h.grid
 pMarkovChain <- sapply( h.grid, function(h) {
-  TA <- LRCUSUM.runlength(mu=pi0m[1,,drop=FALSE], mu0=pi0m[1,,drop=FALSE], 
+  TA <- LRCUSUM.runlength(mu=pi0m[1,,drop=FALSE], mu0=pi0m[1,,drop=FALSE],
                          mu1=pi1m[1,,drop=FALSE],
                          n=population(salmHospitalized.multi)[phase2,],
                          h=h, dfun=dBB.rl, sigma=exp(m.bbin$sigma.coef))
@@ -1283,7 +1283,7 @@ load("monitoringCounts-cache/pMarkovChain.RData")
 \hspace{-1em}
 \subfloat[]{
 
-<<catF, fig=TRUE, echo = FALSE, label=catF,include = F,results=hide, width=6, height=4.6667>>= 
+<<catF, fig=TRUE, echo = FALSE, label=catF,include = F,results=hide, width=6, height=4.6667>>=
 y.max <- max(observed(salmHospitalizedCat[,1])/population(salmHospitalizedCat[,1]),upperbound(salmHospitalizedCat[,1])/population(salmHospitalizedCat[,1]),na.rm=TRUE)
 plotOpts3 <- modifyList(plotOpts,list(x=salmHospitalizedCat[,1],ylab="Proportion",ylim=c(0,y.max)))
 plotOpts3$legend.opts <- list(x="top",bty="n",legend=c(expression(U[t])),lty=1,lwd=line.lwd,col=alarm.symbol$col,horiz=TRUE,cex=cex.leg)
@@ -1293,12 +1293,12 @@ do.call("plot",plotOpts3)
 @
 
 
- 
+
 \includegraphics[width=9cm]{plots/monitoringCounts-catF.pdf}
 }
 \hspace{-3em}
 \subfloat[]{
-<<catARL, fig=TRUE, echo = FALSE, label=catARL,include = F,results=hide, width=6, height=4.6667>>= 
+<<catARL, fig=TRUE, echo = FALSE, label=catARL,include = F,results=hide, width=6, height=4.6667>>=
 par(mar=c(6,5,5,5),family="Times")
 matplot(h.grid, cbind(pMC,pMarkovChain),type="l",ylab=expression(P(T[A] <= 56 * "|" * tau * "=" * infinity)),xlab="Threshold h",col=1,cex=cex.text,
 cex.axis =cex.text,cex.lab=cex.text)
@@ -1308,18 +1308,18 @@ axis(2,at=prob,las=1,cex.axis=0.7,labels=FALSE)
 par(family="Times")
 legend(4,0.08,c("Monte Carlo","Markov chain"), lty=1:2,col=1,cex=cex.text,bty="n")
 
-@ 
+@
 \includegraphics[width=9cm]{plots/monitoringCounts-catARL.pdf}
 }
-\caption{(a) Results of the monitoring with categoricalCUSUM of the proportion of Salmonella cases that were hospitalized in Germany in Jan 2013 - Jan 2014. (b) 
+\caption{(a) Results of the monitoring with categoricalCUSUM of the proportion of Salmonella cases that were hospitalized in Germany in Jan 2013 - Jan 2014. (b)
 Probability of a false alarm within the 56 timepoints of the monitoring as a function of the threshold $h$.}
 \label{fig:catDouble}
 
 \end{figure}
 
-The procedure for using the function for multicategorical variables follows the same steps (as illustrated later). Moreover, one could expand the approach 
-to utilize the multiple regression possibilities offered by GAMLSS. Here we chose to try to detect a change in the mean of the distribution of counts but as GAMLSS provides more general regression tools 
-than GLM we could also aim at detecting a change in the time trend included in the model for the mean. 
+The procedure for using the function for multicategorical variables follows the same steps (as illustrated later). Moreover, one could expand the approach
+to utilize the multiple regression possibilities offered by GAMLSS. Here we chose to try to detect a change in the mean of the distribution of counts but as GAMLSS provides more general regression tools
+than GLM we could also aim at detecting a change in the time trend included in the model for the mean.
 
 \subsubsection{Categorical CUSUM for multinomial models}
 
@@ -1335,7 +1335,7 @@ coverage of these vaccination has steadily increased and interest is to detect p
 
 <<ROTAPLOT,eval=FALSE,echo=TRUE>>=
 data("rotaBB")
-plot(rotaBB, xlab = "Time (months)", 
+plot(rotaBB, xlab = "Time (months)",
      ylab = "Proportion of reported cases")
 @
 
@@ -1371,7 +1371,7 @@ plotTS <- function(prop=TRUE) {
       fun(epoch(rotaBB),observed(rotaBB)[,i],type="l",xlab="Time (months)",ylab="Reported cases",ylim=c(0,max(observed(rotaBB))),col=pal[i],lwd=2)
     } else {
       fun(epoch(rotaBB),observed(rotaBB)[,i,drop=FALSE]/rowSums(observed(rotaBB)),type="l",xlab="Time (months)",ylab="Proportion of reported cases",ylim=c(0,max(observed(rotaBB)/rowSums(observed(rotaBB)))),col=pal[i],lwd=2)
-    } 
+    }
   }
   # Add legend
   axis(1,at=as.numeric(epoch(rotaBB)),label=NA,tck=-0.01)
@@ -1388,35 +1388,35 @@ plot(rotaBB.copy)
 
 @
 Hence, our interest is in prospectively detecting a possible age-shift. Since the vaccine was recommended for routine vaccination in Brandenburg in 2009 we choose to start
-the monitoring at that time point. We do so by fitting a multinomial logit-model containing a trend as well as one harmonic wave and use the age group 0--4 years as reference category, 
+the monitoring at that time point. We do so by fitting a multinomial logit-model containing a trend as well as one harmonic wave and use the age group 0--4 years as reference category,
 to the data from the years 2002-2008. Different \proglang{R} packages implement such type of modeling, but we shall use the \pkg{MGLM} package~\citep{MGLM}, because it also offers the fitting of extended multinomial regression models allowing for extra dispersion.
 
 <<echo=TRUE,eval=FALSE>>=
 rotaBB.df <- as.data.frame(rotaBB)
- 
+
 X <- with(rotaBB.df, cbind(intercept = 1, epoch,
-                           sin1 = sin(2 * pi * epochInPeriod), 
+                           sin1 = sin(2 * pi * epochInPeriod),
                            cos1 = cos(2 * pi * epochInPeriod)))
 
-phase1 <- epoch(rotaBB) < as.Date("2009-01-01") 
+phase1 <- epoch(rotaBB) < as.Date("2009-01-01")
 phase2 <- !phase1
 
 order <- c(2:5, 1); reorder <- c(5, 1:4)
 
 library("MGLM")
-m0 <- MGLMreg(as.matrix(rotaBB.df[phase1, order]) ~ -1 + X[phase1, ], 
-              dist = "MN")               
+m0 <- MGLMreg(as.matrix(rotaBB.df[phase1, order]) ~ -1 + X[phase1, ],
+              dist = "MN")
 @
 <<echo=FALSE>>=
 # Convert sts object to data.frame useful for regression modelling
 rotaBB.df <- as.data.frame(rotaBB)
 
-# Create matrix 
+# Create matrix
 X <- with(rotaBB.df,cbind(intercept=1,epoch,
           sin1=sin(2*pi*epochInPeriod),cos1=cos(2*pi*epochInPeriod)))
 
 # Fit model to 2002-2009 data
-phase1 <- epoch(rotaBB) < as.Date("2009-01-01") 
+phase1 <- epoch(rotaBB) < as.Date("2009-01-01")
 phase2 <- !phase1
 
 # MGLMreg automatically takes the last class as ref so we reorder
@@ -1424,13 +1424,13 @@ order <- c(2:5, 1); reorder <- c(5, 1:4)
 
 # Fit multinomial logit model (i.e. dist="MN") to phase1 data
 library("MGLM")
-m0 <- MGLMreg(as.matrix(rotaBB.df[phase1,order])~ -1 + X[phase1,], dist="MN")               
+m0 <- MGLMreg(as.matrix(rotaBB.df[phase1,order])~ -1 + X[phase1,], dist="MN")
 @
 <<>>=
 # Set threshold and option object
 h <- 2
 @
-As described in \citet{hoehle2010} we can try to detect a specific shift in the intercept coefficients of the model. For example, a multiplicative shift of factor 7 in the example below, in the odds of each of the four age categories against the reference category is modelled by changing the intercept value of each category. 
+As described in \citet{hoehle2010} we can try to detect a specific shift in the intercept coefficients of the model. For example, a multiplicative shift of factor 7 in the example below, in the odds of each of the four age categories against the reference category is modelled by changing the intercept value of each category.
 Based on this, the \textit{in-control} and \textit{out-of-control} proportions are easily computed using the \code{predict} function for \code{MGLMreg} objects.
 
 <<echo=TRUE,eval=FALSE>>=
@@ -1443,7 +1443,7 @@ pi1 <- t(predict(m1, newdata = X[phase2,])[, reorder])
 @
 <<echo=FALSE>>=
 m1 <- m0
-# Out-of control model: shift in all intercept coeffs 
+# Out-of control model: shift in all intercept coeffs
 m1$coefficients[1,] <- m0$coefficients[1,] + log(2)
 # Proportion over time for phase2 based on fitted model (re-order back)
 pi0 <- t(predict(m0, newdata=X[phase2,])[,reorder])
@@ -1452,13 +1452,13 @@ pi1 <-  t(predict(m1, newdata=X[phase2,])[,reorder])
 
 For applying the \code{categoricalCUSUM} function one needs to define a compatible wrapper function for the multinomial as in the binomial example.
 
-With $\bm{\pi}^0$ and $\bm{\pi}^1$ in place one only needs to define a wrapper function, which defines the PMF of the sampling distribution -- in this case the multinomial -- in a \code{categoricalCUSUM} compatible way. 
+With $\bm{\pi}^0$ and $\bm{\pi}^1$ in place one only needs to define a wrapper function, which defines the PMF of the sampling distribution -- in this case the multinomial -- in a \code{categoricalCUSUM} compatible way.
 <<CATCUSUM,echo=false,eval=true>>=
 dfun <- function(y, size, mu, log = FALSE) {
 	return(dmultinom(x = y, size = size, prob = mu, log = log))
 }
 
-control <- list(range = seq(nrow(rotaBB))[phase2], h = h, pi0 = pi0, 
+control <- list(range = seq(nrow(rotaBB))[phase2], h = h, pi0 = pi0,
 				pi1 = pi1, ret = "value", dfun = dfun)
 surv <- categoricalCUSUM(rotaBB,control=control)
 @
@@ -1466,7 +1466,7 @@ surv <- categoricalCUSUM(rotaBB,control=control)
 #Number of MC samples
 nSamples <- 1e4
 
-#Do MC 
+#Do MC
 simone.stop <- function(sts, control) {
   phase2Times <- seq(nrow(sts))[phase2]
   #Generate new phase2 data from the fitted in control model
@@ -1495,68 +1495,68 @@ format(alarmDates,"%b %Y")
 @
 
 
-With $\bm{\pi}^0$ and $\bm{\pi}^1$ in place one only needs to define a wrapper function, which defines the PMF of the sampling distribution -- in this case the multinomial -- in a \code{categoricalCUSUM} compatible way. 
+With $\bm{\pi}^0$ and $\bm{\pi}^1$ in place one only needs to define a wrapper function, which defines the PMF of the sampling distribution -- in this case the multinomial -- in a \code{categoricalCUSUM} compatible way.
 <<echo=TRUE,eval=FALSE>>=
 <<CATCUSUM>>
 @
 
 The resulting CUSUM statistic $C_t$ as a function of time is shown in Figure~\ref{fig:ct}(a). The first time an aberration is detected is July 2009. Using 10000 Monte Carlo simulations we estimate that with the chosen threshold $h=2$ the probability for a false alarm within the 60 time points of \code{phase2} is 0.02.
 
-As the above example shows, the LR based categorical CUSUM is rather flexible in handling any type of multivariate GLM modeling to specify the \textit{in-control} and \textit{out-of-control} proportions. However, it requires a direction of the change to be specified -- for which detection is optimal. One sensitive part of such monitoring is the fit of the multinomial distribution to a multivariate time series of proportions, which usually exhibit extra dispersion when compared to the multinomial. For example comparing the AIC between the multinomial logit-model and a Dirichlet-multinomial model with $\alpha_{ti} = \exp(\bm{x}_t^\top\bm{\beta})$~\citep{MGLM} shows that overdispersion is present. 
-The Dirichlet distribution is the multicategorical equivalent of the beta-binomial distribution. We exemplify its use in the code below. 
+As the above example shows, the LR based categorical CUSUM is rather flexible in handling any type of multivariate GLM modeling to specify the \textit{in-control} and \textit{out-of-control} proportions. However, it requires a direction of the change to be specified -- for which detection is optimal. One sensitive part of such monitoring is the fit of the multinomial distribution to a multivariate time series of proportions, which usually exhibit extra dispersion when compared to the multinomial. For example comparing the AIC between the multinomial logit-model and a Dirichlet-multinomial model with $\alpha_{ti} = \exp(\bm{x}_t^\top\bm{\beta})$~\citep{MGLM} shows that overdispersion is present.
+The Dirichlet distribution is the multicategorical equivalent of the beta-binomial distribution. We exemplify its use in the code below.
 
 <<echo=TRUE,results=verbatim>>=
-m0.dm <- MGLMreg(as.matrix(rotaBB.df[phase1, 1:5]) ~ -1 + X[phase1, ], 
+m0.dm <- MGLMreg(as.matrix(rotaBB.df[phase1, 1:5]) ~ -1 + X[phase1, ],
                 dist = "DM")
 
 c(m0$AIC, m0.dm$AIC)
 @
 Hence, the above estimated false alarm probability might be too low for the actual monitoring problem, because the variation in the time series is larger than implied by the multinomial. Hence, it appears prudent to repeat the analysis using the more flexible  Dirichlet-multinomial model. This is straightforward with \code{categoricalCUSUM} once the \textit{out-of-control} proportions are specified in terms of the model. Such a specification is, however, hampered by the fact that the two models use different parametrizations.
 
-For performing monitoring in this new setting we first need to calculate the $\alpha$'s of the multinomial-Dirichlet for the \textit{in-control} and \textit{out-of-control} 
+For performing monitoring in this new setting we first need to calculate the $\alpha$'s of the multinomial-Dirichlet for the \textit{in-control} and \textit{out-of-control}
 distributions.
 
 
 <<echo=TRUE,eval=FALSE>>=
 delta <- 2
-m1.dm <- m0.dm 
-m1.dm$coefficients[1, ] <- m0.dm$coefficients[1, ] + 
+m1.dm <- m0.dm
+m1.dm$coefficients[1, ] <- m0.dm$coefficients[1, ] +
                            c(-delta, rep(delta/4, 4))
 
 alpha0 <- exp(X[phase2,] %*% m0.dm$coefficients)
 alpha1 <- exp(X[phase2,] %*% m1.dm$coefficients)
- 
+
 dfun <- function(y, size, mu, log = FALSE) {
 	dLog <- ddirm(t(y), t(mu))
-	if (log) { return(dLog) } else { return(exp(dLog)) } 
+	if (log) { return(dLog) } else { return(exp(dLog)) }
 }
 
 h <- 2
-control <- list(range = seq(nrow(rotaBB))[phase2], h = h, 
-                pi0 = t(alpha0), pi1 = t(alpha1), 
+control <- list(range = seq(nrow(rotaBB))[phase2], h = h,
+                pi0 = t(alpha0), pi1 = t(alpha1),
                 ret = "value", dfun = dfun)
 surv.dm <- categoricalCUSUM(rotaBB, control = control)
 @
 <<echo=FALSE>>=
 # Change intercept in the first class (for DM all 5 classes are modeled)
 delta <- 2
-m1.dm <- m0.dm 
-m1.dm$coefficients[1,] <- m0.dm$coefficients[1,] + 
+m1.dm <- m0.dm
+m1.dm$coefficients[1,] <- m0.dm$coefficients[1,] +
                            c(-delta,rep(delta/4,4))
 # Calculate the alphas of the multinomial-Dirichlet in the two cases
 alpha0 <- exp(X[phase2,] %*% m0.dm$coefficients)
 alpha1 <- exp(X[phase2,] %*% m1.dm$coefficients)
-  
+
 # Use alpha vector as mu magnitude
 # (not possible to compute it from mu and size)
 dfun <- function(y, size, mu, log=FALSE) {
 	dLog <- ddirm(t(y), t(mu))
-	if (log) { return(dLog) } else {return(exp(dLog))} 
+	if (log) { return(dLog) } else {return(exp(dLog))}
 }
 
 # Threshold
 h <- 2
-control <- list(range=seq(nrow(rotaBB))[phase2],h=h,pi0=t(alpha0), 
+control <- list(range=seq(nrow(rotaBB))[phase2],h=h,pi0=t(alpha0),
                 pi1=t(alpha1), ret="value",dfun=dfun)
 surv.dm <- categoricalCUSUM(rotaBB,control=control)
 @
@@ -1572,7 +1572,7 @@ matlines(alpha1/rowSums(alpha1),type="l",lwd=1,lty=2)
 \hspace{-1em}
 \subfloat[]{
 
-<<ctPlot1, fig=TRUE, echo = FALSE, label=ctPlot1,include = F,results=hide, width=6, height=4.6667>>= 
+<<ctPlot1, fig=TRUE, echo = FALSE, label=ctPlot1,include = F,results=hide, width=6, height=4.6667>>=
 surv@observed[,1] <- 0
 surv@multinomialTS <- FALSE
 surv.dm@observed[,1] <- 0
@@ -1580,29 +1580,29 @@ surv.dm@multinomialTS <- FALSE
 y.max <- max(observed(surv.dm[,1]),upperbound(surv.dm[,1]),observed(surv[,1]),upperbound(surv[,1]),na.rm=TRUE)
 plotOpts3 <- modifyList(plotOpts,list(x=surv[,1],ylim=c(0,y.max),ylab=expression(C[t]),xlab=""))
 plotOpts3$legend.opts <- list(x="topleft",bty="n",legend="R",lty=1,lwd=line.lwd,col=alarm.symbol$col,horiz=TRUE,cex=cex.leg)
-do.call("plot",plotOpts3) 
+do.call("plot",plotOpts3)
 lines( c(0,1e99), rep(h,2),lwd=2,col="darkgray",lty=1)
 par(family="Times")
 mtext(side=1,text="Time (weeks)",
-      las=0,line=3, cex=cex.text)	  
+      las=0,line=3, cex=cex.text)
 @
 
 
- 
+
 \includegraphics[width=9cm]{plots/monitoringCounts-ctPlot1.pdf}
 }
 \hspace{-3em}
 \subfloat[]{
-<<ctPlot2, fig=TRUE, echo = FALSE, label=ctPlot2,include = F,results=hide, width=6, height=4.6667>>= 
+<<ctPlot2, fig=TRUE, echo = FALSE, label=ctPlot2,include = F,results=hide, width=6, height=4.6667>>=
 plotOpts3 <- modifyList(plotOpts,list(x=surv.dm[,1],ylim=c(0,y.max),ylab=expression(C[t]),xlab=""))
 plotOpts3$legend.opts <- list(x="topleft",bty="n",legend="R",lty=1,lwd=line.lwd,col=alarm.symbol$col,horiz=TRUE,cex=cex.text)
 y.max <- max(observed(surv.dm[,1]),upperbound(surv.dm[,1]),observed(surv[,1]),upperbound(surv[,1]),na.rm=TRUE)
-do.call("plot",plotOpts3) 
+do.call("plot",plotOpts3)
 lines( c(0,1e99), rep(h,2),lwd=2,col="darkgray",lty=1)
 par(family="Times")
 mtext(side=1,text="Time (weeks)",
-      las=0,line=3, cex=cex.text)	
-@ 
+      las=0,line=3, cex=cex.text)
+@
 \includegraphics[width=9cm]{plots/monitoringCounts-ctPlot2.pdf}
 }
 \caption{Categorical CUSUM statistic $C_t$. Once $C_t>\Sexpr{h}$ an alarm is sounded and the statistic is reset. In (a) surveillance uses the multinomial distribution and in (b) surveillance uses the Dirichlet-multinomial distribution.}
@@ -1610,33 +1610,33 @@ mtext(side=1,text="Time (weeks)",
 
 \end{figure}
 
-The resulting CUSUM statistic $C_t$ using the Dirichlet multinomial distribution is shown in Figure~\ref{fig:ct}(b). 
-We notice a rather similar behavior even though the shift-type specified by this model is slightly different than in the model of Figure~\ref{fig:ct}(a).   
+The resulting CUSUM statistic $C_t$ using the Dirichlet multinomial distribution is shown in Figure~\ref{fig:ct}(b).
+We notice a rather similar behavior even though the shift-type specified by this model is slightly different than in the model of Figure~\ref{fig:ct}(a).
 
 \subsubsection{Categorical data in routine surveillance}
 
-The multidimensionality of data available in public health surveillance creates many opportunities for the application of categorical time series: one could, e.g., look at the sex ratio of cases of a given disease, at the age group distribution, 
-at the regions sending data, etc. If one is interested in monitoring with respect to a categorical variable, a choice has to be made between monitoring each time series individually, 
-for instance a time series of \textit{Salmonella} cases for each age category, or to monitor the distribution of cases with respect to that factor jointly \textit{via} \code{categoricalCUSUM}. A downside of the latter 
-solution is that one has to specify the change parameter \code{R} in advance, which can be quite a hurdle if one has no pre-conceived idea of what could happen for, say, the age shift after the introduction of a vaccine. Alternatively, one could employ an ensemble of monitors or monitor an aggregate. However, more straightforward applications could be found in the (binomial) surveillance of positive diagnostics if one were to obtain data about tests performed by laboratories and not only about confirmed cases. An alternative would be to apply 
+The multidimensionality of data available in public health surveillance creates many opportunities for the application of categorical time series: one could, e.g., look at the sex ratio of cases of a given disease, at the age group distribution,
+at the regions sending data, etc. If one is interested in monitoring with respect to a categorical variable, a choice has to be made between monitoring each time series individually,
+for instance a time series of \textit{Salmonella} cases for each age category, or to monitor the distribution of cases with respect to that factor jointly \textit{via} \code{categoricalCUSUM}. A downside of the latter
+solution is that one has to specify the change parameter \code{R} in advance, which can be quite a hurdle if one has no pre-conceived idea of what could happen for, say, the age shift after the introduction of a vaccine. Alternatively, one could employ an ensemble of monitors or monitor an aggregate. However, more straightforward applications could be found in the (binomial) surveillance of positive diagnostics if one were to obtain data about tests performed by laboratories and not only about confirmed cases. An alternative would be to apply
 \code{farringtonFlexible} while using the number of tests as \code{populationOffset}.
 
 \subsubsection{Similar methods in the package}
 The package also offers another CUSUM method suitable for binary data, \code{pairedbinCUSUM} that implements the method introduced by~\citet{Steiner1999}, which does not, however, take overdispersion into account as well as \code{glrnb}. The algorithm \code{rogerson} also supports the analysis of binomial data. See Table~\ref{table:ref} for the corresponding references.
 
 \subsection{Other algorithms implemented in the package}
-We conclude this description of surveillance methods by giving an overview of all algorithms implemented in the package with the corresponding references in Table~\ref{table:ref}. 
+We conclude this description of surveillance methods by giving an overview of all algorithms implemented in the package with the corresponding references in Table~\ref{table:ref}.
 One can refer to the relative reference articles and to the reference
  manual of the package for more information about each method.
- 
+
  Criteria
 for choosing a method in practice are numerous. First one needs to ponder on the amount of historical data at hand -- for instance the EARS methods only need data for the last
-timepoints whereas the Farrington methods use data up to $b$ years in the past. Then one should consider the amount of past data used by the algorithm -- historical reference methods use only a subset of the past data, namely 
+timepoints whereas the Farrington methods use data up to $b$ years in the past. Then one should consider the amount of past data used by the algorithm -- historical reference methods use only a subset of the past data, namely
 the timepoints located around the same timepoint in the past years, whereas other methods use all past data included in the reference data.
 This can be a criterion of choice since one can prefer using all available data. It is also important to decide whether one wants to detect one-timepoint aberration or more prolonged shifts.
-And lastly, an important criterion is how much work needs to be done for finetuning the algorithm for each specific time series. 
+And lastly, an important criterion is how much work needs to be done for finetuning the algorithm for each specific time series.
 
-The package on the one hand provides the means for analysing nearly all type of surveillance data 
+The package on the one hand provides the means for analysing nearly all type of surveillance data
 and on the other hand makes the comparison of algorithms possible. This is useful in practical applications when those algorithms are implemented into routine use, which
 will be the topic of Section~\ref{sec:routine}.
 
@@ -1674,21 +1674,21 @@ Function & References \\
 \label{sec:3}
 
 Combining \pkg{surveillance} with other \proglang{R} packages and programs is easy, allowing the integration of
-the aberration detection into a comprehensive surveillance system to be used in routine practice. In our opinion, such a surveillance system has to at least support the following process: loading data from local databases, analysing them within \pkg{surveillance} 
-and sending the results of this analysis to the end-user who is typically an epidemiologist in charge of the specific pathogen. This section exemplifies the integration of the package 
+the aberration detection into a comprehensive surveillance system to be used in routine practice. In our opinion, such a surveillance system has to at least support the following process: loading data from local databases, analysing them within \pkg{surveillance}
+and sending the results of this analysis to the end-user who is typically an epidemiologist in charge of the specific pathogen. This section exemplifies the integration of the package
 into a whole analysis stack, first through the introduction of a simple workflow from data query to a \code{Sweave}~\citep{sweave} or \pkg{knitr}~\citep{knitr} report of signals, and
  secondly through the presentation of the more elaborate system in use at the German Robert Koch Institute.
 
 \subsection{A simple surveillance system}
 Suppose you have a database with surveillance time series but little resources to build a surveillance system encompassing all the above stages. Using \proglang{R} and \code{Sweave} or \code{knitr} for \LaTeX~you can still set up
- a simple surveillance analysis without having to do everything by hand. You only need to input the data into \proglang{R} and create \code{sts} objects for each time series of interest 
- as explained thoroughly in~\citet{hoehle-mazick-2010}. Then, after choosing a surveillance algorithm, say \code{farringtonFlexible}, and 
- feeding it with the appropriate \code{control} argument, you can get a \code{sts} object with upperbounds and alarms for each of your time series of interest over the \code{range} 
- supplied in \code{control}. For defining the range automatically one could use the \proglang{R} function \code{Sys.Date()} to get today's date. 
- These steps can be introduced as a code chunk in a \code{Sweave} or \code{knitr} code that will translate it into a report that you can send to the epidemiologists in charge of the respective pathogen whose cases are monitored. 
- 
- Below is an example of a short code segment showing the analysis of the \textit{S. Newport} weekly counts of cases in the German federal states Baden-W\"{u}rttemberg and North Rhine-Westphalia 
-with the improved method implemented in \code{farringtonFlexible}. The package provides a \code{toLatex} method for \code{sts} objects that produces a table with the observed number of counts and upperbound for each column in 
+ a simple surveillance analysis without having to do everything by hand. You only need to input the data into \proglang{R} and create \code{sts} objects for each time series of interest
+ as explained thoroughly in~\citet{hoehle-mazick-2010}. Then, after choosing a surveillance algorithm, say \code{farringtonFlexible}, and
+ feeding it with the appropriate \code{control} argument, you can get a \code{sts} object with upperbounds and alarms for each of your time series of interest over the \code{range}
+ supplied in \code{control}. For defining the range automatically one could use the \proglang{R} function \code{Sys.Date()} to get today's date.
+ These steps can be introduced as a code chunk in a \code{Sweave} or \code{knitr} code that will translate it into a report that you can send to the epidemiologists in charge of the respective pathogen whose cases are monitored.
+
+ Below is an example of a short code segment showing the analysis of the \textit{S. Newport} weekly counts of cases in the German federal states Baden-W\"{u}rttemberg and North Rhine-Westphalia
+with the improved method implemented in \code{farringtonFlexible}. The package provides a \code{toLatex} method for \code{sts} objects that produces a table with the observed number of counts and upperbound for each column in
 \code{observed}, where alarms can be highlighted by for instance bold text. The resulting table is shown in Table~\ref{tableResults}.
 <<NICELOOKING,eval=FALSE,echo=TRUE>>=
 data("salmNewport")
@@ -1696,7 +1696,7 @@ today <- which(epoch(salmNewport) == as.Date("2013-12-23"))
 rangeAnalysis <- (today - 4):today
 in2013 <- which(isoWeekYear(epoch(salmNewport))$ISOYear == 2013)
 
-algoParameters <- list(range = rangeAnalysis, noPeriods = 10, 
+algoParameters <- list(range = rangeAnalysis, noPeriods = 10,
                        populationBool = FALSE,
                        b = 4, w = 3, weightsThreshold = 2.58,
                        pastWeeksNotIncluded = 26, pThresholdTrend = 1,
@@ -1709,21 +1709,21 @@ results <- farringtonFlexible(salmNewport[, c("Baden.Wuerttemberg",
 
 start <- isoWeekYear(epoch(salmNewport)[range(range)[1]])
 end <- isoWeekYear(epoch(salmNewport)[range(range)[2]])
-caption <- paste("Results of the analysis of reported S. Newport 
+caption <- paste("Results of the analysis of reported S. Newport
                  counts in two German federal states for the weeks W-",
                  start$ISOWeek, "-", start$ISOYear, " - W-", end$ISOWeek,
                  "-", end$ISOYear, " performed on ", Sys.Date(),
-                 ". Bold upperbounds (UB) indicate weeks with alarms.", 
+                 ". Bold upperbounds (UB) indicate weeks with alarms.",
                  sep="")
 toLatex(results, caption = caption)
 @
 <<testLabel, echo = FALSE, results = tex>>=
 # In this example the sts-object already exists.
-# Supply the code with the date of a Monday and look for the 
+# Supply the code with the date of a Monday and look for the
 # corresponding index in the sts-object
 today <- which(epoch(salmNewport)==as.Date("2013-12-23"))
-# The analysis will be performed for the given week 
-# and the 4 previous ones 
+# The analysis will be performed for the given week
+# and the 4 previous ones
 range <- (today-4):today
 in2013 <- which(isoWeekYear(epoch(salmNewport))$ISOYear==2013)
 # Control argument for using the improved method
@@ -1738,11 +1738,11 @@ results <- farringtonFlexible(salmNewport[,c("Baden.Wuerttemberg",
 # Export the results as a tex table
 start <- isoWeekYear(epoch(salmNewport)[range(range)[1]])
 end <- isoWeekYear(epoch(salmNewport)[range(range)[2]])
-caption <- paste("Results of the analysis of reported S. Newport 
+caption <- paste("Results of the analysis of reported S. Newport
                  counts in two German federal states for the weeks W-",
 				 start$ISOWeek," ",start$ISOYear," - W-",end$ISOWeek,
 				 " ",end$ISOYear," performed on ",Sys.Date(),
-				 ". Bold upperbounds (thresholds) indicate weeks with alarms.", 
+				 ". Bold upperbounds (thresholds) indicate weeks with alarms.",
 				 sep="")
 toLatex(results, table.placement="h", size = "normalsize",
         sanitize.text.function = identity,
@@ -1753,21 +1753,21 @@ toLatex(results, table.placement="h", size = "normalsize",
         caption=caption,label="tableResults")
 @
 
-The advantage of this approach is that it can be made automatic. The downside of such a system is that the report is not interactive, for instance one cannot click on the cases and get the linelist. Nevertheless, this is a workable solution in 
-many cases -- especially when human and financial resources are narrow. 
+The advantage of this approach is that it can be made automatic. The downside of such a system is that the report is not interactive, for instance one cannot click on the cases and get the linelist. Nevertheless, this is a workable solution in
+many cases -- especially when human and financial resources are narrow.
 In the next section, we present a more advanced surveillance system built on the package.
 
 \subsection{Automatic detection of outbreaks at the Robert Koch Institute}
 \label{sec:RKI}
 
 The package \pkg{surveillance} was used as a core building block for designing and implementing the automated outbreak detection system at the RKI in Germany~\citep{Dirk}. The text below describes the system as it was in early 2014.
-Due to the Infection Protection Act (IfSG) the RKI daily receives over 1,000 notifiable disease reports. The system analyses about half a million time series per day to identify possible aberrations in the reported number of cases. 
+Due to the Infection Protection Act (IfSG) the RKI daily receives over 1,000 notifiable disease reports. The system analyses about half a million time series per day to identify possible aberrations in the reported number of cases.
 Structurally, it consists of two components: an analytical process written in \proglang{R} that daily monitors the data and a reporting component that compiles and communicates the results to the epidemiologists.
 
 The analysis task in the described version of the system relied on \pkg{surveillance} and three other \proglang{R} packages, namely \pkg{data.table}, \pkg{RODBC} and \pkg{testthat} as described in the following. The data-backend is an OLAP-system~\citep{SSAS} and relational databases, which are queried using \pkg{RODBC}~\citep{rodbc2013}.
 The case reports are then rapidly aggregated into univariate time series using \pkg{data.table}~\citep{datatable2013}. To each time series we apply the \code{farringtonFlexible} algorithm on univariate \code{sts} objects and store the analysis results in another SQL-database.
 We make intensive use of \pkg{testthat}~\citep{testthat2013} for automatic testing of the component.
-Although \proglang{R} is not the typical language to write bigger software components for production, choosing \proglang{R} in combination with \pkg{surveillance} enabled us to quickly develop the analysis workflow. We can hence report positive experience using \proglang{R} also for larger software components in production. 
+Although \proglang{R} is not the typical language to write bigger software components for production, choosing \proglang{R} in combination with \pkg{surveillance} enabled us to quickly develop the analysis workflow. We can hence report positive experience using \proglang{R} also for larger software components in production.
 
 The reporting component was realized using Microsoft Reporting Services~\citep{SSRS}, because this technology is widely used within the RKI.
 It allows quick development of reports and works well with existing Microsoft Office tools, which the end-user, the epidemiologist, is used to. For example, one major requirement by the epidemiologists was to have the results compiled as Excel documents.
@@ -1801,7 +1801,7 @@ Code contributions to the package are very welcome as well as feedback and sugge
 
 \section*{Acknowledgments}
 
-The authors would like to express their gratitude to all contributors to the package, in particular 
+The authors would like to express their gratitude to all contributors to the package, in particular
 Juliane Manitz, University of G\"{o}ttingen, Germany, for her work on the \texttt{boda} code and Angela Noufaily, The Open University, Milton Keynes, UK, for providing us the code used in her article that we extended for \texttt{farringtonFlexible}. The work of M. Salmon was financed by a PhD grant of the RKI.
 
 \bibliography{monitoringCounts,references}

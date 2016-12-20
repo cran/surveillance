@@ -22,10 +22,10 @@
 # it defines an upperbound based on this value and on the variability
 # of past values
 # and then it compares the observed value with the upperbound.
-# If the observed value is greater than the upperbound 
+# If the observed value is greater than the upperbound
 # then an alert is flagged.
 # Three methods are implemented.
-# They do not use the same amount of past data 
+# They do not use the same amount of past data
 # and are expected to have different specificity and sensibility
 # from C1 to C3
 # the amount of past data used increases,
@@ -50,37 +50,53 @@
 ######################################################################
 
 earsC <- function(sts, control = list(range = NULL, method = "C1",
-                                      alpha = 0.001)) { 
+                                      baseline = 7, minSigma = 0,
+                                      alpha = 0.001)) {
 
 ######################################################################
   #Handle I/O
   ######################################################################
-  
   #If list elements are empty fill them!
+  if (is.null(control[["baseline", exact = TRUE]])) {
+    control$baseline <- 7
+  }
+
+  if (is.null(control[["minSigma", exact = TRUE]])) {
+    control$minSigma <- 0
+  }
+  baseline <- control$baseline
+  minSigma <- control$minSigma
+
+  if(minSigma < 0) {
+    stop("The minimum sigma parameter (minSigma) needs to be positive")
+  }
+  if (baseline < 3) {
+    stop("Minimum baseline to use is 3.")
+  }
 
   # Method
-  if (is.null(control[["method",exact=TRUE]])) {
+  if (is.null(control[["method", exact = TRUE]])) {
     control$method <- "C1"
   }
-  
+
   # Extracting the method
   method <- match.arg( control$method, c("C1","C2","C3"),several.ok=FALSE)
-  
+
   # Range
   # By default it will take all possible weeks
   # which is not the same depending on the method
   if (is.null(control[["range",exact=TRUE]])) {
     if (method == "C1"){
-      control$range <- c(8:dim(sts@observed)[1])
+      control$range <- seq(from=baseline+1, to=dim(sts@observed)[1],by=1)
     }
     if (method == "C2"){
-      control$range <- c(10:dim(sts@observed)[1])
+      control$range <- seq(from=baseline+3, to=dim(sts@observed)[1],by=1)
     }
     if (method == "C3"){
-      control$range <- c(12:dim(sts@observed)[1])
-    }    
+      control$range <- seq(from=baseline+5, to=dim(sts@observed)[1],by=1)
+    }
   }
-  
+
   # zAlpha
   if (is.null(control[["alpha",exact=TRUE]])) {
     # C1 and C2: Risk of 1st type error of 10-3
@@ -97,13 +113,13 @@ earsC <- function(sts, control = list(range = NULL, method = "C1",
 
   # Calculating the threshold zAlpha
   zAlpha <- qnorm((1-control$alpha))
- 
-  
+
+
   #Deduce necessary amount of data from method
-  maxLag <- switch(method, C1=7, C2=9, C3=11)
-  
+  maxLag <- switch(method, C1 = baseline, C2 = baseline+2, C3 = baseline+4)
+
   # Order range in case it was not given in the right order
-  control$range = sort (control$range)
+  control$range = sort(control$range)
 
   ######################################################################
   #Loop over all columns in the sts object
@@ -112,58 +128,63 @@ earsC <- function(sts, control = list(range = NULL, method = "C1",
    for (j in 1:ncol(sts)) {
 
      # check if the vector observed includes all necessary data: maxLag values.
-     if((control$range[1] - maxLag) < 1) { 
+     if((control$range[1] - maxLag) < 1) {
        stop("The vector of observed is too short!")
-     }      
+     }
 
      ######################################################################
      # Method C1 or C2
      ######################################################################
-     if (method %in% c("C1","C2")) {
+     if(method == "C1"){
+       # construct the matrix for calculations
+       ndx <- as.vector(outer(control$range,
+                              baseline:1, FUN = "-"))
+       refVals <- matrix(observed(sts)[,j][ndx], ncol = baseline)
 
-       # Create a matrix with time-lagged vectors
-       refVals <- NULL
-       for (lag in maxLag:(maxLag-6)) {
-         refVals <- cbind(refVals, observed(sts)[(control$range-lag),j])
-       }
-
-       # calculate the upperbound 
-       sts@upperbound[control$range,j] <- apply(refVals,1,mean)+
-        zAlpha*apply(refVals,1,sd)
+       sts@upperbound[control$range, j] <- apply(refVals,1, mean) +
+         zAlpha * pmax(apply(refVals, 1, sd), minSigma)
      }
-          
-     if (method=="C3") {
-       # Create a matrix with time-lagged vectors
-       refVals <- NULL
-       rangeC2 = ((min(control$range) - 2) : max(control$range))
-       for (lag in 9:3) {
-         refVals <- cbind(refVals, observed(sts)[(rangeC2-lag),j])
-       }
 
-       # Calculate C2
-       C2 <- (observed(sts)[rangeC2,j] - apply(refVals,1,mean)) / apply(refVals,1,sd)
-       # Calculate the upperbound
-       # first calculate the parts of the formula with the maximum of C2 and 0 for     # two time lags.
-       partUpperboundLag2 =  pmax(rep(0,length=length(C2)-2),C2[1:(length(C2)-2)]-1)
-       partUpperboundLag1 =  pmax(rep(0,length=length(C2)-2),C2[2:(length(C2)-1)]-1)
-     
-       sts@upperbound[control$range,j] <- observed(sts)[control$range,j] +
-         apply(as.matrix(refVals[3:length(C2),]),1,sd)*(zAlpha - (partUpperboundLag2 + partUpperboundLag1))
+     if (method == "C2") {
+      # construct the matrix for calculations
+       ndx <- as.vector(outer(control$range,
+                              (baseline + 2):3, FUN = "-"))
+       refVals <- matrix(observed(sts)[,j][ndx], ncol = baseline)
 
-       # Upperbound must be superior to 0 which is not always the case
-       #with this formula
-       sts@upperbound[control$range,j] = pmax(rep(0,length(control$range)),sts@upperbound[control$range,j])     
-     }  # end of loop over j
-   } #end of loop over cols in sts
+       sts@upperbound[control$range, j] <- apply(refVals,1, mean) +
+         zAlpha * pmax(apply(refVals, 1, sd), minSigma)
+     }
 
-  #Make sts return object
-  control$name <- paste("EARS_",method,sep="")
+     if (method == "C3") {
+       # refVals <- NULL
+       rangeC2 = ((min(control$range) - 2):max(control$range))
+       ##HB replacing loop:
+       ndx <- as.vector(outer(rangeC2, (baseline + 2):3, FUN = "-"))
+       refVals <- matrix(observed(sts)[,j][ndx], ncol = baseline)
+
+       ##HB using argument 'minSigma' to avoid dividing by zero, huge zscores:
+       C2 <- (observed(sts)[rangeC2, j] -
+                apply(refVals, 1, mean))/
+         pmax(apply(refVals, 1, sd), minSigma)
+
+       partUpperboundLag2 <- pmax(rep(0, length = length(C2) - 2),
+                                  C2[1:(length(C2) - 2)] - 1)
+
+       partUpperboundLag1 <- pmax(rep(0, length = length(C2) - 2),
+                                  C2[2:(length(C2) - 1)] - 1)
+       ##HB using argument 'minSigma' to avoid alerting threshold that is zero or too small
+       sts@upperbound[control$range, j] <- observed(sts)[control$range, j] +
+         pmax(apply(as.matrix(refVals[3:length(C2), ]),1, sd),minSigma) *
+         (zAlpha - (partUpperboundLag2 + partUpperboundLag1))
+       sts@upperbound[control$range, j] = pmax(rep(0, length(control$range)),
+                                               sts@upperbound[control$range, j])
+     }
+   }
+
+  #Copy administrative information
+  control$name <- paste("EARS_", method, sep = "")
   control$data <- paste(deparse(substitute(sts)))
   sts@control <- control
-  #Where are the alarms?
-  sts@alarm[control$range,] <- matrix(observed(sts)[control$range,]>upperbound(sts)[control$range,] )
-  
-  #Done
-  return(sts[control$range,])
+  sts@alarm[control$range, ] <- matrix(observed(sts)[control$range, ] > upperbound(sts)[control$range, ])
+  return(sts[control$range, ])
 }
-

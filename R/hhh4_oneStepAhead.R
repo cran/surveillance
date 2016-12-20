@@ -6,8 +6,8 @@
 ### Compute one-step-ahead predictions (means) at a series of time points
 ###
 ### Copyright (C) 2011-2012 Michaela Paul, 2012-2016 Sebastian Meyer
-### $Revision: 1687 $
-### $Date: 2016-04-01 21:40:25 +0200 (Fri, 01. Apr 2016) $
+### $Revision: 1816 $
+### $Date: 2016-12-13 16:53:46 +0100 (Tue, 13. Dec 2016) $
 ################################################################################
 
 
@@ -37,18 +37,23 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
     model <- result[["terms"]]
     if (is.null(model))
         model <- result$terms <- with(result, interpretControl(control, stsObj))
-    nTime <- model$nTime
-    nUnits <- model$nUnits
+    nTime <- model$nTime   # = nrow(result$stsObj)
+    nUnits <- model$nUnits # = ncol(result$stsObj)
     dimPsi <- model$nOverdisp
     withPsi <- dimPsi > 0L
     psiIdx <- model$nFE + model$nd + seq_len(dimPsi)
     
     ## check that tp is within the time period of the data
-    maxlag <- if (is.null(result$lags) || all(is.na(result$lags)))
-        1L else max(result$lags, na.rm=TRUE)
-    stopifnot(tp %in% seq.int(maxlag,nTime-1L), length(tp) %in% 1:2)
-    if (length(tp) == 1) tp <- c(tp, max(model$subset)-1)
-    tps <- tp[1]:tp[2]
+    stopifnot(length(tp) %in% 1:2)
+    tpRange <- c(min(model$subset), max(model$subset)-1L) # supported range
+    if (type == "final") { # no re-fitting necessary
+        stopifnot(tp >= 0, tp <= nTime-1L)
+    } else if (any(tp < tpRange[1L] | tp > tpRange[2L])) {
+        stop("the time range defined by 'tp' must be a subset of ",
+             tpRange[1L], ":", tpRange[2L]) # because of how subset.upper works
+    }
+    if (length(tp) == 1) tp <- c(tp, tpRange[2L])
+    tps <- tp[1L]:tp[2L]
     ntps <- length(tps)
     observed <- model$response[tps+1,,drop=FALSE]
     rownames(observed) <- tps+1
@@ -178,7 +183,7 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
 
     ## with shared overdispersion parameters we need to expand psi to ncol(pred)
     if (dimPsi > 1L && dimPsi != nUnits) {
-        psi <- psi[,model$indexPsi]
+        psi <- psi[,model$indexPsi,drop=FALSE]
     }
     
     ## done

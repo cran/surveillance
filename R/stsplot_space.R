@@ -6,23 +6,22 @@
 ### Snapshot map (spplot) of an sts-object or matrix of counts
 ###
 ### Copyright (C) 2013-2014,2016 Sebastian Meyer
-### $Revision: 1642 $
-### $Date: 2016-03-16 13:37:42 +0100 (Wed, 16. Mar 2016) $
+### $Revision: 1802 $
+### $Date: 2016-12-01 15:11:02 +0100 (Thu, 01. Dec 2016) $
 ################################################################################
 
 ## x: "sts" or (simulated) matrix of counts
 ## tps: one or more time points. The unit-specific _sum_ of time points "tps" is
 ##      plotted. tps=NULL means cumulation over all time points in x.
 ## at: number of levels for the grouped counts or specific break points to
-##     use, or list(n, data, trafo) passed to getCountIntervals(),
+##     use, or list(n, data, trafo) passed to getPrettyIntervals(),
 ##     where data and trafo are optional.
 ##     CAVE: intervals are closed on the left and open to the right.
 ##     From panel.levelplot: zcol[z >= at[i] & z < at[i + 1]] <- i
 ##     i.e. at=0:1 will have NA (=also white) for counts=1, thus we have to
 ##     ensure max(at) > max(counts)
 
-stsplot_space <- function (x, tps = NULL, map = x@map,
-                           population = NULL, # nUnits-vector of population counts
+stsplot_space <- function (x, tps = NULL, map = x@map, population = NULL,
                            main = NULL, labels = FALSE,
                            at = 10, col.regions = NULL,
                            colorkey = list(space="bottom", labels=list(at=at)),
@@ -32,20 +31,22 @@ stsplot_space <- function (x, tps = NULL, map = x@map,
                            xlim = bbox(map)[1, ], ylim = bbox(map)[2, ], ...)
 {
     counts <- if (inherits(x, "sts")) observed(x) else x
+    if (is.null(tps))
+        tps <- seq_len(nrow(counts))
     if (length(map) == 0L) stop("no map")
     if (is.null(colnames(counts)))
         stop("need 'colnames(x)' (to be matched against 'row.names(map)')")
     if (!all(colnames(counts) %in% row.names(map)))
         stop("incomplete 'map'; ensure that 'all(colnames(x) %in% row.names(map))'")
-    
+
     ## compute data to plot
     ncases <- getCumCounts(counts, tps)
     total <- sum(ncases)
-    if (!is.null(population)) { # plot prevalence
-        stopifnot(is.vector(population, mode="numeric"),
-                  length(population) == length(ncases))
-        ncases <- ncases / population
-        total <- total / sum(population)
+    if (!is.null(population)) { # divide counts by region-specific population
+        population <- parse_population_argument(population, x)  # pop matrix
+        populationByRegion <- population[tps[1L],] # pop at first time point
+        ncases <- ncases / populationByRegion  # (cumulative) incidence by region
+        total <- total / sum(populationByRegion)
     }
 
     ## add ncases to map@data
@@ -58,10 +59,10 @@ stsplot_space <- function (x, tps = NULL, map = x@map,
         main <- stsTimeRange2text(x, tps)
 
     ## check/determine color break points 'at'
-    at <- checkat(at, ncases)
+    at <- checkat(at, ncases, counts = is.null(population))
     ## default color palette
     if (is.null(col.regions)) {
-        separate0 <- at[1] == 0 & at[2] <= 1
+        separate0 <- is.null(population) && at[1] == 0 && at[2] <= 1
         col.regions <- c(
             if (separate0) "white",
             hcl.colors(ncolors=length(at)-1-separate0,
@@ -108,38 +109,65 @@ stsplot_space <- function (x, tps = NULL, map = x@map,
 
 ## sum of counts by unit over time points "tps"
 ## the resulting vector has no names
-getCumCounts <- function (counts, tps=NULL, nUnits=ncol(counts))
+getCumCounts <- function (counts, tps)
 {
-    if (!is.null(tps)) counts <- counts[tps,,drop=FALSE]
-    ntps <- nrow(counts)
-    if (ntps == 1) c(counts) else .colSums(counts, ntps, nUnits)
+    ntps <- length(tps)
+    if (ntps == 1) {
+        counts[tps,]
+    } else {
+        .colSums(counts[tps,,drop=FALSE], ntps, ncol(counts))
+    }
 }
 
-checkat <- function (at, data) { # "data" should be on the original scale
+parse_population_argument <- function (population, x)
+{
+    if (is.matrix(population)) {
+        if (!identical(dim(population), dim(x)))
+            stop("'dim(population)' does not match the data dimensions")
+    } else if (isScalar(population)) { # a unit, e.g., per 1000 inhabitants
+        if (!inherits(x, "sts"))
+            stop("'", deparse(substitute(x)), "' is no \"sts\" object; ",
+                 "population numbers must be supplied")
+        population <- population(x) / population
+    } else { # region-specific population numbers (as in surveillance <= 1.12.2)
+        stopifnot(is.vector(population, mode = "numeric"))
+        if (length(population) != ncol(x))
+            stop("'length(population)' does not match the number of data columns")
+        population <- rep(population, each = nrow(x))
+        dim(population) <- dim(x)
+    }
+    population
+}
+
+checkat <- function (at, data, counts = TRUE) { # for non-transformed "data"
+    data_range <- range(data, na.rm = TRUE)
     if (isScalar(at))
         at <- list(n=at)
     at <- if (is.list(at)) {
-        at <- modifyList(list(n=10, data=data), at)
-        do.call("getCountIntervals", at)
+        at <- modifyList(list(n=10, data=data, counts=counts), at)
+        do.call("getPrettyIntervals", at)
     } else sort(at) 
     if (any(data >= max(at) | data < min(at), na.rm=TRUE))
         stop("'at' (right-open!) does not cover the data (range: ",
-             paste0(format(range(data)), collapse=" - "), ")")
+             paste0(format(data_range), collapse=" - "), ")")
     structure(at, checked=TRUE)
 }
 
-getCountIntervals <- function (nInt, data, trafo=scales::sqrt_trans(), ...) {
+getPrettyIntervals <- function (nInt, data, trafo=scales::sqrt_trans(), counts=TRUE, ...) {
     maxcount <- max(data, na.rm=TRUE)
-    if (maxcount < nInt) { # no aggregation of counts necessary
+    if (counts && maxcount < nInt) { # no aggregation of counts necessary
         at <- 0:ceiling(maxcount+sqrt(.Machine$double.eps)) # max(at) > maxcount
     } else {
         at <- if (requireNamespace("scales", quietly=TRUE)) {
             scales::trans_breaks(trafo$trans, trafo$inv, n=nInt+1, ...)(data)
         } else pretty(sqrt(data), n=nInt+1, ...)^2
-        if (at[1] == 0 & at[2] > 1) # we want 0 counts separately ("white")
+        ## { # alternative: quantile-based scale (esp. for incidence plots)
+        ##     quantile(data, probs=seq(0,1,length.out=nInt+1), na.rm=TRUE)
+        ## }
+        if (counts && at[1] == 0 && at[2] > 1) # we want 0 counts separately ("white")
             at <- sort(c(1, at))
-        if (at[length(at)] == maxcount) # ensure max(at) > maxcount
-            at[length(at)] <- at[length(at)] + 1
+        if (at[length(at)] == maxcount) # ensure max(at) > max(data)
+            at[length(at)] <- at[length(at)] + if (counts) 1 else 0.001*diff(range(at))
     }
     at
 }
@@ -148,9 +176,8 @@ stsTime2text <- function (stsObj, tps=TRUE, fmt="%i/%i") {
     sprintf(fmt, year(stsObj)[tps], epochInYear(stsObj)[tps])
 }
 
-stsTimeRange2text <- function (stsObj, tps=NULL, fmt="%i/%i", sep=" - ")
+stsTimeRange2text <- function (stsObj, tps, fmt="%i/%i", sep=" - ")
 {
-    tpsRange <- if (is.null(tps)) c(1, nrow(stsObj)) else range(tps)
-    tpsRangeYW <- stsTime2text(stsObj, tps=tpsRange, fmt=fmt)
+    tpsRangeYW <- stsTime2text(stsObj, tps=range(tps), fmt=fmt)
     paste0(unique(tpsRangeYW), collapse=sep)
 }

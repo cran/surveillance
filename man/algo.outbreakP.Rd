@@ -76,7 +76,7 @@
  The code is an extended R port of the Java code by Marianne
  \enc{Frisén}{Frisen} and Linus \enc{Schiöler}{Schioeler} from the
  CASE project available under the GNU GPL License v3. See
- \url{http://case.folkhalsomyndigheten.se/} for further details on the CASE
+ \url{https://case.folkhalsomyndigheten.se/} for further details on the CASE
  project. A manual on how to use an Excel implementation of the method
  is available at \url{http://economics.handels.gu.se/english/Units+and+Centra/statistical_research_unit/software}.
 

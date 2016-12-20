@@ -48,9 +48,9 @@ cex.lab <-  cex.text
 cex.leg <- cex.text
 line.lwd <- 2#1
 stsPlotCol <- c("mediumblue","mediumblue","red2")
-alarm.symbol <- list(pch=17, col="red2", cex=2,lwd=3) 
+alarm.symbol <- list(pch=17, col="red2", cex=2,lwd=3)
 #Define list with arguments to use with do.call("legend", legOpts)
-legOpts <- list(x="topleft",legend=c(expression(U[t])),bty="n",lty=1,lwd=line.lwd,col=alarm.symbol$col,horiz=TRUE,cex=cex.leg)    
+legOpts <- list(x="topleft",legend=c(expression(U[t])),bty="n",lty=1,lwd=line.lwd,col=alarm.symbol$col,horiz=TRUE,cex=cex.leg)
 #How should the par of each plot look?
 par.list <- list(mar=c(6,5,5,5),family="Times")
 #Do this once
@@ -62,23 +62,23 @@ plotOpts <- list(col=stsPlotCol,ylim=c(0,y.max),
                  ylab="No. of reports", xlab="Time (weeks)",lty=c(1,1,1),
                  legend.opts=legOpts,alarm.symbol=alarm.symbol,
                  xaxis.tickFreq=list("%V"=atChange,"%m"=atChange,"%G"=atChange),
-                 xaxis.labelFreq=list("%Y"=atMedian), 
+                 xaxis.labelFreq=list("%Y"=atMedian),
                  xaxis.labelFormat="%Y",
                  par.list=par.list,hookFunc=hookFunc)
-			 
+
 
 
 ###################################################
 ### code chunk number 6: stsLoad
 ###################################################
-# Load data 
+# Load data
 data("salmNewport")
 
 
 ###################################################
 ### code chunk number 7: NewportPlot
 ###################################################
-# Plot 
+# Plot
 y.max <- max(aggregate(salmNewport,by="unit")@observed,na.rm=TRUE)
 plotOpts2 <- modifyList(plotOpts,list(x=salmNewport,legend.opts=NULL,ylim=c(0,y.max),type = observed ~ time),keep.null=TRUE)
 plotOpts2$par.list <- list(mar=c(6,5,0,5),family="Times")
@@ -90,7 +90,7 @@ do.call("plot",plotOpts2)
 ### code chunk number 8: NewportPlot
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
-# Plot 
+# Plot
 y.max <- max(aggregate(salmNewport,by="unit")@observed,na.rm=TRUE)
 plotOpts2 <- modifyList(plotOpts,list(x=salmNewport,legend.opts=NULL,ylim=c(0,y.max),type = observed ~ time),keep.null=TRUE)
 plotOpts2$par.list <- list(mar=c(6,5,0,5),family="Times")
@@ -133,7 +133,7 @@ do.call("plot",plotOpts2)
 in2011 <- which(isoWeekYear(epoch(salmNewport))$ISOYear == 2011)
 salmNewportGermany <- aggregate(salmNewport, by = "unit")
 control <- list(range = in2011, method = "C1", alpha = 0.05)
-surv <- earsC(salmNewportGermany, control = control)		  
+surv <- earsC(salmNewportGermany, control = control)
 plot(surv)
 
 
@@ -148,7 +148,7 @@ salmNewportGermany <- aggregate(salmNewport,by="unit")
 control <- list(range = in2011, method="C1", alpha=0.05)
 # Apply earsC function
 surv <- earsC(salmNewportGermany, control=control)
-# Plot the results			  
+# Plot the results
 #plot(surv)
 # Plot
 y.max <- max(observed(surv),upperbound(surv),na.rm=TRUE)
@@ -167,7 +167,7 @@ salmNewportGermany <- aggregate(salmNewport,by="unit")
 control <- list(range = in2011, method="C1", alpha=0.05)
 # Apply earsC function
 surv <- earsC(salmNewportGermany, control=control)
-# Plot the results			  
+# Plot the results
 #plot(surv)
 # Plot
 y.max <- max(observed(surv),upperbound(surv),na.rm=TRUE)
@@ -182,7 +182,7 @@ control1 <-  list(range=in2011,noPeriods=1,
                   b=4,w=3,weightsThreshold=1,pastWeeksNotIncluded=3,
                   pThresholdTrend=0.05,thresholdMethod="delta",alpha=0.05,
 				  limit54=c(0,50))
-# Control slot for the improved method				  
+# Control slot for the improved method
 control2 <- list(range=in2011,noPeriods=10,
                  b=4,w=3,weightsThreshold=2.58,pastWeeksNotIncluded=26,
                  pThresholdTrend=1,thresholdMethod="nbPlugin",alpha=0.05,
@@ -242,13 +242,13 @@ geom_segment(aes(x = xBigTicks, y = yTicksBigStart, xend = xBigTicks, yend = yTi
 annotate("text", label = "Time", x = 170, y = 0, size = 8, colour = "black",
         family="serif") +
 # ticks labels
-annotate('text',label=c("t[0]-2 %.% freq","t[0]-freq","t[0]"),x = xTicks, 
-        y = yTicksEnd - 10, size = 8,family="serif",parse=T)  
+annotate('text',label=c("t[0]-2 %.% freq","t[0]-freq","t[0]"),x = xTicks,
+        y = yTicksEnd - 10, size = 8,family="serif",parse=T)
 p+
 # periods labels
 
-annotate('text',label=c("A","A","A","B","B"),x = xPeriods, 
-        y = rep(6,5), size = 8,family="serif",parse=T)  
+annotate('text',label=c("A","A","A","B","B"),x = xPeriods,
+        y = rep(6,5), size = 8,family="serif",parse=T)
 
 
 ###################################################
@@ -262,14 +262,14 @@ xPeriods <- c(15,67,117,15+16,67+16,15+35,67+35)
 p + geom_segment(aes(x = newX, y = yTicksBigStart2, xend = newX, yend = yTicksBigEnd2), size=1)+
 # periods labels
 
-annotate('text',label=c("A","A","A","B","B","C","C"),x = xPeriods, 
-        y = rep(6,7), size = 8,family="serif",parse=T)  
+annotate('text',label=c("A","A","A","B","B","C","C"),x = xPeriods,
+        y = rep(6,7), size = 8,family="serif",parse=T)
 
 
 ###################################################
 ### code chunk number 19: oldVsNewprep
 ###################################################
-salm.farrington <- farringtonFlexible(salmNewportGermany, control1)								  
+salm.farrington <- farringtonFlexible(salmNewportGermany, control1)
 salm.noufaily <- farringtonFlexible(salmNewportGermany, control2)
 
 
@@ -295,8 +295,8 @@ do.call("plot",modifyList(plotOpts,list(x=salm.noufaily,ylim=c(0,y.max))))
 ###################################################
 # Load data and create \code{sts}-object
 data("campyDE")
-cam.sts <- new("sts",epoch=as.numeric(campyDE$date), 
-               observed=campyDE$case,  state=campyDE$state, 
+cam.sts <- new("sts",epoch=as.numeric(campyDE$date),
+               observed=campyDE$case,  state=campyDE$state,
                epochAsDate=TRUE)
 par(las=1)
 # Plot
@@ -306,15 +306,15 @@ plotOpts3$xaxis.tickFreq <- list("%m"=atChange,"%G"=atChange)
 do.call("plot",plotOpts3)
 par(las=0)
 #mtext(side=2,text="No. of reports",
-     # las=0,line=3, cex=cex.text,family="Times")	
+     # las=0,line=3, cex=cex.text,family="Times")
 	 par(family="Times")
-text(-20, 2600, "No. of\n reports", pos = 3, xpd = T,cex=cex.text)	  
+text(-20, 2600, "No. of\n reports", pos = 3, xpd = T,cex=cex.text)
 text(510, 2900, "Absolute humidity", pos = 3, xpd = T,cex=cex.text)
 text(510, 2550, expression(paste("[",g/m^3,"]", sep='')), pos = 3, xpd = T,cex=cex.text)
-lines(campyDE$hum*50, col="white", lwd=2)	   
+lines(campyDE$hum*50, col="white", lwd=2)
 axis(side=4, at=seq(0,2500,by=500),labels=seq(0,50,by=10),las=1,cex.lab=cex.text, cex=cex.text,cex.axis=cex.text,pos=length(epoch(cam.sts))+20)
 #mtext(side=4,text=expression(paste("Absolute humidity [ ",g/m^3,"]", sep='')),
-     # las=0,line=1, cex=cex.text,family="Times")	   
+     # las=0,line=1, cex=cex.text,family="Times")
 
 
 
@@ -324,8 +324,8 @@ axis(side=4, at=seq(0,2500,by=500),labels=seq(0,50,by=10),las=1,cex.lab=cex.text
 getOption("SweaveHooks")[["fig"]]()
 # Load data and create \code{sts}-object
 data("campyDE")
-cam.sts <- new("sts",epoch=as.numeric(campyDE$date), 
-               observed=campyDE$case,  state=campyDE$state, 
+cam.sts <- new("sts",epoch=as.numeric(campyDE$date),
+               observed=campyDE$case,  state=campyDE$state,
                epochAsDate=TRUE)
 par(las=1)
 # Plot
@@ -335,15 +335,15 @@ plotOpts3$xaxis.tickFreq <- list("%m"=atChange,"%G"=atChange)
 do.call("plot",plotOpts3)
 par(las=0)
 #mtext(side=2,text="No. of reports",
-     # las=0,line=3, cex=cex.text,family="Times")	
+     # las=0,line=3, cex=cex.text,family="Times")
 	 par(family="Times")
-text(-20, 2600, "No. of\n reports", pos = 3, xpd = T,cex=cex.text)	  
+text(-20, 2600, "No. of\n reports", pos = 3, xpd = T,cex=cex.text)
 text(510, 2900, "Absolute humidity", pos = 3, xpd = T,cex=cex.text)
 text(510, 2550, expression(paste("[",g/m^3,"]", sep='')), pos = 3, xpd = T,cex=cex.text)
-lines(campyDE$hum*50, col="white", lwd=2)	   
+lines(campyDE$hum*50, col="white", lwd=2)
 axis(side=4, at=seq(0,2500,by=500),labels=seq(0,50,by=10),las=1,cex.lab=cex.text, cex=cex.text,cex.axis=cex.text,pos=length(epoch(cam.sts))+20)
 #mtext(side=4,text=expression(paste("Absolute humidity [ ",g/m^3,"]", sep='')),
-     # las=0,line=1, cex=cex.text,family="Times")	   
+     # las=0,line=1, cex=cex.text,family="Times")
 
 
 
@@ -354,7 +354,7 @@ axis(side=4, at=seq(0,2500,by=500),labels=seq(0,50,by=10),las=1,cex.lab=cex.text
 ## data("campyDE")
 ## cam.sts <- new("sts", epoch = as.numeric(campyDE$date),
 ##                observed = campyDE$case, state = campyDE$state,
-##                epochAsDate = TRUE)		   
+##                epochAsDate = TRUE)
 ## plot(cam.sts, legend = NULL, xlab = "time [weeks]", ylab = "No. reported",
 ##      col = "gray", cex = 2, cex.axis = 2, cex.lab = 2)
 ## lines(campyDE$hum * 50, col = "darkblue", lwd = 2)
@@ -366,7 +366,7 @@ axis(side=4, at=seq(0,2500,by=500),labels=seq(0,50,by=10),las=1,cex.lab=cex.text
 ## 
 ## rangeBoda <- which(epoch(cam.sts) >= as.Date("2007-01-01"))
 ## control.boda <- list(range = rangeBoda, X = NULL, trend = TRUE,
-##                      season = TRUE, prior = "iid", alpha = 0.025, 
+##                      season = TRUE, prior = "iid", alpha = 0.025,
 ##                      mc.munu = 10000, mc.y = 1000,
 ##                      samplingMethod = "marginals")
 ## boda <- boda(cam.sts, control = control.boda)
@@ -379,7 +379,7 @@ rangeBoda <- which(epoch(cam.sts)>=as.Date("2007-01-01"))
 if (computeALL) {
 library("INLA")
 control.boda <- list(range=rangeBoda, X=NULL, trend=TRUE,
-                     season=TRUE, prior='rw1', alpha=0.025, 
+                     season=TRUE, prior='rw1', alpha=0.025,
                      mc.munu=10000, mc.y=1000,
                      samplingMethod = "marginals")
 # boda without covariates: trend + spline + periodic spline
@@ -393,9 +393,9 @@ save(boda, file = "monitoringCounts-cache/boda.RData")
 ###################################################
 ### code chunk number 27: NICELOOKINGboda2 (eval = FALSE)
 ###################################################
-## covarNames <- c("l1.hum", "l2.hum", "l3.hum", "l4.hum", 
+## covarNames <- c("l1.hum", "l2.hum", "l3.hum", "l4.hum",
 ##                 "newyears", "christmas", "O104period")
-## control.boda2 <- modifyList(control.boda, 
+## control.boda2 <- modifyList(control.boda,
 ##                             list(X = campyDE[, covarNames], season = FALSE))
 ## boda.covars <- boda(cam.sts, control = control.boda2)
 
@@ -407,7 +407,7 @@ if (computeALL) {
 # boda with covariates: trend + spline + lagged hum + indicator variables
 covarNames <- c(paste("l",1:4,".hum",sep=""),"newyears","christmas",
                 "O104period")
-control.boda2 <- modifyList(control.boda, 
+control.boda2 <- modifyList(control.boda,
                             list(X=campyDE[,covarNames],season=FALSE))
 boda.covars <- boda(cam.sts, control=control.boda2)
 save(boda.covars, file = "monitoringCounts-cache/boda.covars.RData")
@@ -420,7 +420,7 @@ save(boda.covars, file = "monitoringCounts-cache/boda.covars.RData")
 ### code chunk number 29: alarmplot2 (eval = FALSE)
 ###################################################
 ## cam.surv <- combineSTS(list(boda.covars=boda.covars,boda=boda,bayes=bayes,
-##                             farrington=far,farringtonFlexible=farflex))                      
+##                             farrington=far,farringtonFlexible=farflex))
 ## plot(cam.surv,type = alarm ~ time)
 
 
@@ -483,7 +483,7 @@ combineSTS <- function(stsList) {
 
 cam.surv <- combineSTS(list(boda.covars=boda.covars,boda=boda,bayes=bayes,
                             farrington=far,farringtonFlexible=farflex))
-par(mar=c(4,8,2.1,2),family="Times")                       
+par(mar=c(4,8,2.1,2),family="Times")
 plot(cam.surv,type = alarm ~ time,lvl=rep(1,ncol(cam.surv)),
      alarm.symbol=list(pch=17, col="red2", cex=1,lwd=3),
      cex.axis=1,xlab="Time (weeks)",cex.lab=1,xaxis.tickFreq=list("%m"=atChange,"%G"=atChange),xaxis.labelFreq=list("%G"=at2ndChange),
@@ -499,7 +499,7 @@ getOption("SweaveHooks")[["fig"]]()
 
 cam.surv <- combineSTS(list(boda.covars=boda.covars,boda=boda,bayes=bayes,
                             farrington=far,farringtonFlexible=farflex))
-par(mar=c(4,8,2.1,2),family="Times")                       
+par(mar=c(4,8,2.1,2),family="Times")
 plot(cam.surv,type = alarm ~ time,lvl=rep(1,ncol(cam.surv)),
      alarm.symbol=list(pch=17, col="red2", cex=1,lwd=3),
      cex.axis=1,xlab="Time (weeks)",cex.lab=1,xaxis.tickFreq=list("%m"=atChange,"%G"=atChange),xaxis.labelFreq=list("%G"=at2ndChange),
@@ -513,7 +513,7 @@ plot(cam.surv,type = alarm ~ time,lvl=rep(1,ncol(cam.surv)),
 ## phase1 <- which(isoWeekYear(epoch(salmNewportGermany))$ISOYear < 2011)
 ## phase2 <- in2011
 ## control = list(range = phase2, c.ARL = 4, theta = log(2), ret = "cases",
-##                mu0 = list(S = 1, trend = TRUE, refit = FALSE))		 
+##                mu0 = list(S = 1, trend = TRUE, refit = FALSE))
 ## salmGlrnb <- glrnb(salmNewportGermany, control = control)
 
 
@@ -529,7 +529,7 @@ control=list(range=phase2,mu0=list(
 								trend=TRUE,
 								refit=FALSE),c.ARL = 4,
              theta=log(2),ret="cases")
-# Perform monitoring with glrnb			 
+# Perform monitoring with glrnb
 salmGlrnb <- glrnb(salmNewportGermany,control=control)
 
 
@@ -538,7 +538,7 @@ salmGlrnb <- glrnb(salmNewportGermany,control=control)
 ###################################################
 # Plot
 y.max <- max(observed(salmGlrnb),upperbound(salmGlrnb),na.rm=TRUE)
-do.call("plot",modifyList(plotOpts,list(x=salmGlrnb,ylim=c(0,y.max)))) 
+do.call("plot",modifyList(plotOpts,list(x=salmGlrnb,ylim=c(0,y.max))))
 
 
 ###################################################
@@ -547,7 +547,7 @@ do.call("plot",modifyList(plotOpts,list(x=salmGlrnb,ylim=c(0,y.max))))
 getOption("SweaveHooks")[["fig"]]()
 # Plot
 y.max <- max(observed(salmGlrnb),upperbound(salmGlrnb),na.rm=TRUE)
-do.call("plot",modifyList(plotOpts,list(x=salmGlrnb,ylim=c(0,y.max)))) 
+do.call("plot",modifyList(plotOpts,list(x=salmGlrnb,ylim=c(0,y.max))))
 
 
 
@@ -561,13 +561,13 @@ do.call("plot",modifyList(plotOpts,list(x=salmGlrnb,ylim=c(0,y.max))))
 ## data2013 <- which(isoWeekYearData$ISOYear == 2013)
 ## dataEarly2014 <- which(isoWeekYearData$ISOYear == 2014
 ##                       & isoWeekYearData$ISOWeek <= 4)
-## 					  
+## 
 ## phase1 <- dataBefore2013
 ## phase2 <- c(data2013, dataEarly2014)
 ## 
 ## weekNumbers <- isoWeekYearData$ISOWeek
 ## salmHospitalized.df <- cbind(as.data.frame(salmHospitalized), weekNumbers)
-## colnames(salmHospitalized.df) <- c("y", "t", "state", "alarm", "n",
+## colnames(salmHospitalized.df) <- c("y", "t", "state", "alarm", "upperbound","n",
 ##                                    "freq", "epochInPeriod", "weekNumber")
 
 
@@ -584,7 +584,7 @@ phase2 <- c(which(isoWeekYear(epoch(salmHospitalized))$ISOYear==2013),
 # Prepare data for fitting the model
 weekNumber <-  isoWeekYear(epoch(salmHospitalized))$ISOWeek
 salmHospitalized.df <- cbind(as.data.frame(salmHospitalized),weekNumber)
-colnames(salmHospitalized.df) <- c("y","t","state","alarm","n","freq",
+colnames(salmHospitalized.df) <- c("y","t","state","alarm","upperbound","n","freq",
                                    "epochInPeriod","weekNumber")
 
 
@@ -593,9 +593,9 @@ colnames(salmHospitalized.df) <- c("y","t","state","alarm","n","freq",
 ###################################################
 vars <- c( "y", "n", "t", "epochInPeriod", "weekNumber")
 m.bbin <- gamlss(cbind(y, n-y) ~ 1 + t
-                 + sin(2 * pi * epochInPeriod) + cos(2 * pi * epochInPeriod) 
+                 + sin(2 * pi * epochInPeriod) + cos(2 * pi * epochInPeriod)
                  + sin(4 * pi * epochInPeriod) + cos(4 * pi * epochInPeriod)
-                 + I(weekNumber == 1) + I(weekNumber == 2), 
+                 + I(weekNumber == 1) + I(weekNumber == 2),
                  sigma.formula =~ 1,
                  family = BB(sigma.link = "log"),
                  data = salmHospitalized.df[phase1, vars])
@@ -604,7 +604,7 @@ m.bbin <- gamlss(cbind(y, n-y) ~ 1 + t
 ###################################################
 ### code chunk number 43: cat2longVersion (eval = FALSE)
 ###################################################
-## R <- 2 
+## R <- 2
 ## h <- 2
 ## pi0 <- predict(m.bbin, newdata = salmHospitalized.df[phase2, vars],
 ##                type = "response")
@@ -618,7 +618,7 @@ m.bbin <- gamlss(cbind(y, n-y) ~ 1 + t
 ###################################################
 # CUSUM parameters
 R <- 2 #detect a doubling of the odds for a salmHospitalized being positive
-h <- 2 #threshold of the cusum 
+h <- 2 #threshold of the cusum
 # Compute \textit{in-control} and out of control mean
 pi0 <- predict(m.bbin,newdata=salmHospitalized.df[phase2,vars],
                type="response")
@@ -632,10 +632,10 @@ pi1m <- rbind(pi1, 1-pi1)
 ###################################################
 ### code chunk number 45: cat2bislongVersion (eval = FALSE)
 ###################################################
-## populationHosp <- cbind(population(salmHospitalized), 
+## populationHosp <- cbind(population(salmHospitalized),
 ##                         population(salmHospitalized))
-## observedHosp <- cbind(observed(salmHospitalized), 
-##                       population(salmHospitalized) - 
+## observedHosp <- cbind(observed(salmHospitalized),
+##                       population(salmHospitalized) -
 ## 					  observed(salmHospitalized))
 ## nrowHosp <- nrow(salmHospitalized)
 ## salmHospitalized.multi <- new("sts", freq = 52, start = c(2004, 1),
@@ -643,7 +643,7 @@ pi1m <- rbind(pi1, 1-pi1)
 ##                               epochAsDate = TRUE,
 ##                               observed = observedHosp,
 ##                               populationFrac = populationHosp,
-##                               state = matrix(0, nrow = nrowHosp, ncol = 2), 
+##                               state = matrix(0, nrow = nrowHosp, ncol = 2),
 ##                               multinomialTS = TRUE)
 
 
@@ -661,7 +661,7 @@ salmHospitalized.multi <- new("sts", freq=52, start=c(2004,1),
                               populationFrac = cbind(population,
                                                      population),
                               state=matrix(0, nrow=nrow(salmHospitalized),
-                                           ncol = 2), 
+                                           ncol = 2),
                               multinomialTS=TRUE)
 
 
@@ -669,30 +669,30 @@ salmHospitalized.multi <- new("sts", freq=52, start=c(2004,1),
 ### code chunk number 47: cat2terdisplay (eval = FALSE)
 ###################################################
 ## dBB.cusum <- function(y, mu, sigma, size, log = FALSE) {
-## 	 return(dBB(if (is.matrix(y)) y[1,] else y, 
+## 	 return(dBB(if (is.matrix(y)) y[1,] else y,
 ## 				if (is.matrix(y)) mu[1,] else mu,
-## 				sigma = sigma, bd = size, log = log)) 
+## 				sigma = sigma, bd = size, log = log))
 ## }
 
 
 ###################################################
 ### code chunk number 48: cat2ter
 ###################################################
-# Function to use as dfun in the categoricalCUSUM 
+# Function to use as dfun in the categoricalCUSUM
 dBB.cusum <- function(y, mu, sigma, size, log = FALSE) {
  return(dBB( if (is.matrix(y)) y[1,] else y, if (is.matrix(y)) mu[1,] else mu,
- sigma = sigma, bd = size, log = log)) 
+ sigma = sigma, bd = size, log = log))
 }
 
 
 ###################################################
 ### code chunk number 49: cat3display (eval = FALSE)
 ###################################################
-## controlCat <- list(range = phase2, h = 2, pi0 = pi0m, pi1 = pi1m, 
+## controlCat <- list(range = phase2, h = 2, pi0 = pi0m, pi1 = pi1m,
 ##                 ret = "cases", dfun = dBB.cusum)
-## salmHospitalizedCat <- categoricalCUSUM(salmHospitalized.multi, 
+## salmHospitalizedCat <- categoricalCUSUM(salmHospitalized.multi,
 ##                                         control = controlCat,
-##                                         sigma = exp(m.bbin$sigma.coef))									
+##                                         sigma = exp(m.bbin$sigma.coef))
 
 
 ###################################################
@@ -701,9 +701,9 @@ dBB.cusum <- function(y, mu, sigma, size, log = FALSE) {
 # Monitoring
 controlCat <- list(range = phase2,h = 2,pi0 = pi0m, pi1 = pi1m, ret = "cases",
 dfun = dBB.cusum)
-salmHospitalizedCat <- categoricalCUSUM(salmHospitalized.multi, 
+salmHospitalizedCat <- categoricalCUSUM(salmHospitalized.multi,
                                         control = controlCat,
-                                        sigma = exp(m.bbin$sigma.coef))									
+                                        sigma = exp(m.bbin$sigma.coef))
 
 
 ###################################################
@@ -715,14 +715,14 @@ plotOpts2$xaxis.tickFreq <- list("%G"=atChange,"%m"=atChange)
 plotOpts2$par.list <- list(mar=c(6,5,5,5),family="Times",las=1)
 do.call("plot",plotOpts2)
 lines(salmHospitalized@populationFrac/4000,col="grey80",lwd=2)
-lines(campyDE$hum*50, col="white", lwd=2)	   
+lines(campyDE$hum*50, col="white", lwd=2)
 axis(side=4, at=seq(0,2000,by=500)/4000,labels=as.character(seq(0,2000,by=500)),las=1, cex=2,cex.axis=1.5,pos=length(observed(salmHospitalized))+20)
 par(family="Times")
-text(-20, 0.6, "Proportion", pos = 3, xpd = T,cex=cex.text)	  
+text(-20, 0.6, "Proportion", pos = 3, xpd = T,cex=cex.text)
 text(520, 0.6, "Total number of \n reported cases", pos = 3, xpd = T,cex=cex.text)
 
 #mtext(side=4,text=expression(paste("Total number of reported cases (thousands)", sep='')),
-      #las=0,line=1, cex=cex.text)	 
+      #las=0,line=1, cex=cex.text)
 
 
 
@@ -736,14 +736,14 @@ plotOpts2$xaxis.tickFreq <- list("%G"=atChange,"%m"=atChange)
 plotOpts2$par.list <- list(mar=c(6,5,5,5),family="Times",las=1)
 do.call("plot",plotOpts2)
 lines(salmHospitalized@populationFrac/4000,col="grey80",lwd=2)
-lines(campyDE$hum*50, col="white", lwd=2)	   
+lines(campyDE$hum*50, col="white", lwd=2)
 axis(side=4, at=seq(0,2000,by=500)/4000,labels=as.character(seq(0,2000,by=500)),las=1, cex=2,cex.axis=1.5,pos=length(observed(salmHospitalized))+20)
 par(family="Times")
-text(-20, 0.6, "Proportion", pos = 3, xpd = T,cex=cex.text)	  
+text(-20, 0.6, "Proportion", pos = 3, xpd = T,cex=cex.text)
 text(520, 0.6, "Total number of \n reported cases", pos = 3, xpd = T,cex=cex.text)
 
 #mtext(side=4,text=expression(paste("Total number of reported cases (thousands)", sep='')),
-      #las=0,line=1, cex=cex.text)	 
+      #las=0,line=1, cex=cex.text)
 
 
 
@@ -757,13 +757,13 @@ text(520, 0.6, "Total number of \n reported cases", pos = 3, xpd = T,cex=cex.tex
 ###################################################
 ### code chunk number 54: NICELOOKING (eval = FALSE)
 ###################################################
-## h.grid <- seq(1, 10, by = 0.5)			
+## h.grid <- seq(1, 10, by = 0.5)
 ## 
 ## simone <- function(sts, h) {
 ##   y <- rBB(length(phase2), mu = pi0m[1, , drop = FALSE],
 ## 			 bd = population(sts)[phase2, ],
 ## 	         sigma = exp(m.bbin$sigma.coef))
-##   observed(sts)[phase2, ] <- cbind(y, sts@populationFrac[phase2, 1] - y) 
+##   observed(sts)[phase2, ] <- cbind(y, sts@populationFrac[phase2, 1] - y)
 ##   one.surv <- categoricalCUSUM(sts, modifyList(controlCat, list(h = h)),
 ## 	                           sigma = exp(m.bbin$sigma.coef))
 ##   return(any(alarms(one.surv)[, 1]))
@@ -772,13 +772,13 @@ text(520, 0.6, "Total number of \n reported cases", pos = 3, xpd = T,cex=cex.tex
 ## 
 ## nSims <- 1000
 ## 
-## pMC <- sapply(h.grid, function(h) { 
-## 	mean(replicate(nSims, simone(salmHospitalized.multi, h))) 
+## pMC <- sapply(h.grid, function(h) {
+## 	mean(replicate(nSims, simone(salmHospitalized.multi, h)))
 ## })
 ## 
 ## pMarkovChain <- sapply( h.grid, function(h) {
-##   TA <- LRCUSUM.runlength(mu = pi0m[1,, drop = FALSE], 
-##                           mu0 = pi0m[1,, drop = FALSE], 
+##   TA <- LRCUSUM.runlength(mu = pi0m[1,, drop = FALSE],
+##                           mu0 = pi0m[1,, drop = FALSE],
 ##                           mu1 = pi1m[1,, drop = FALSE],
 ##                           n = population(salmHospitalized.multi)[phase2, ],
 ##                           h = h, dfun = dBB.cusum,
@@ -791,8 +791,8 @@ text(520, 0.6, "Total number of \n reported cases", pos = 3, xpd = T,cex=cex.tex
 ### code chunk number 55: cath
 ###################################################
 # Values of the threshold to be investigated
-h.grid <- seq(1,10,by=0.5)			
-							
+h.grid <- seq(1,10,by=0.5)
+
 # Prepare function for simulations
  simone <- function(sts, h) {
 # Draw observed values from the \textit{in-control} distribution
@@ -800,7 +800,7 @@ h.grid <- seq(1,10,by=0.5)
            bd=population(sts)[phase2,],
 		   sigma=exp(m.bbin$sigma.coef))
   observed(sts)[phase2,] <- cbind(y,sts@populationFrac[phase2,1] - y)
-# Perform monitoring  
+# Perform monitoring
   one.surv <- categoricalCUSUM(sts, control=modifyList(controlCat, list(h=h)),
                                sigma=exp(m.bbin$sigma.coef))
 # Return 1 if there was at least one alarm
@@ -812,17 +812,17 @@ if (computeALL) {
 # Number of simulations
 nSims=1000
 # Simulations over the possible h values
-pMC <- sapply(h.grid, function(h) { 
+pMC <- sapply(h.grid, function(h) {
   h <- h
-  mean(replicate(nSims, simone(salmHospitalized.multi,h))) 
+  mean(replicate(nSims, simone(salmHospitalized.multi,h)))
 })
 # Distribution function to be used by LRCUSUM.runlength
 dBB.rl <- function(y, mu, sigma, size, log = FALSE) {
-  dBB(y, mu = mu, sigma = sigma, bd = size, log = log) 
+  dBB(y, mu = mu, sigma = sigma, bd = size, log = log)
 }
 # Markov Chain approximation over h.grid
 pMarkovChain <- sapply( h.grid, function(h) {
-  TA <- LRCUSUM.runlength(mu=pi0m[1,,drop=FALSE], mu0=pi0m[1,,drop=FALSE], 
+  TA <- LRCUSUM.runlength(mu=pi0m[1,,drop=FALSE], mu0=pi0m[1,,drop=FALSE],
                          mu1=pi1m[1,,drop=FALSE],
                          n=population(salmHospitalized.multi)[phase2,],
                          h=h, dfun=dBB.rl, sigma=exp(m.bbin$sigma.coef))
@@ -878,7 +878,7 @@ data("rotaBB")
 ### code chunk number 59: ROTAPLOT (eval = FALSE)
 ###################################################
 ## data("rotaBB")
-## plot(rotaBB, xlab = "Time (months)", 
+## plot(rotaBB, xlab = "Time (months)",
 ##      ylab = "Proportion of reported cases")
 
 
@@ -911,7 +911,7 @@ plotTS <- function(prop=TRUE) {
       fun(epoch(rotaBB),observed(rotaBB)[,i],type="l",xlab="Time (months)",ylab="Reported cases",ylim=c(0,max(observed(rotaBB))),col=pal[i],lwd=2)
     } else {
       fun(epoch(rotaBB),observed(rotaBB)[,i,drop=FALSE]/rowSums(observed(rotaBB)),type="l",xlab="Time (months)",ylab="Proportion of reported cases",ylim=c(0,max(observed(rotaBB)/rowSums(observed(rotaBB)))),col=pal[i],lwd=2)
-    } 
+    }
   }
   # Add legend
   axis(1,at=as.numeric(epoch(rotaBB)),label=NA,tck=-0.01)
@@ -932,19 +932,19 @@ plot(rotaBB.copy)
 ### code chunk number 62: monitoringCounts.Rnw:1394-1408 (eval = FALSE)
 ###################################################
 ## rotaBB.df <- as.data.frame(rotaBB)
-##  
+## 
 ## X <- with(rotaBB.df, cbind(intercept = 1, epoch,
-##                            sin1 = sin(2 * pi * epochInPeriod), 
+##                            sin1 = sin(2 * pi * epochInPeriod),
 ##                            cos1 = cos(2 * pi * epochInPeriod)))
 ## 
-## phase1 <- epoch(rotaBB) < as.Date("2009-01-01") 
+## phase1 <- epoch(rotaBB) < as.Date("2009-01-01")
 ## phase2 <- !phase1
 ## 
 ## order <- c(2:5, 1); reorder <- c(5, 1:4)
 ## 
 ## library("MGLM")
-## m0 <- MGLMreg(as.matrix(rotaBB.df[phase1, order]) ~ -1 + X[phase1, ], 
-##               dist = "MN")               
+## m0 <- MGLMreg(as.matrix(rotaBB.df[phase1, order]) ~ -1 + X[phase1, ],
+##               dist = "MN")
 
 
 ###################################################
@@ -953,12 +953,12 @@ plot(rotaBB.copy)
 # Convert sts object to data.frame useful for regression modelling
 rotaBB.df <- as.data.frame(rotaBB)
 
-# Create matrix 
+# Create matrix
 X <- with(rotaBB.df,cbind(intercept=1,epoch,
           sin1=sin(2*pi*epochInPeriod),cos1=cos(2*pi*epochInPeriod)))
 
 # Fit model to 2002-2009 data
-phase1 <- epoch(rotaBB) < as.Date("2009-01-01") 
+phase1 <- epoch(rotaBB) < as.Date("2009-01-01")
 phase2 <- !phase1
 
 # MGLMreg automatically takes the last class as ref so we reorder
@@ -966,7 +966,7 @@ order <- c(2:5, 1); reorder <- c(5, 1:4)
 
 # Fit multinomial logit model (i.e. dist="MN") to phase1 data
 library("MGLM")
-m0 <- MGLMreg(as.matrix(rotaBB.df[phase1,order])~ -1 + X[phase1,], dist="MN")               
+m0 <- MGLMreg(as.matrix(rotaBB.df[phase1,order])~ -1 + X[phase1,], dist="MN")
 
 
 ###################################################
@@ -991,7 +991,7 @@ h <- 2
 ### code chunk number 66: monitoringCounts.Rnw:1444-1450
 ###################################################
 m1 <- m0
-# Out-of control model: shift in all intercept coeffs 
+# Out-of control model: shift in all intercept coeffs
 m1$coefficients[1,] <- m0$coefficients[1,] + log(2)
 # Proportion over time for phase2 based on fitted model (re-order back)
 pi0 <- t(predict(m0, newdata=X[phase2,])[,reorder])
@@ -1005,7 +1005,7 @@ dfun <- function(y, size, mu, log = FALSE) {
 	return(dmultinom(x = y, size = size, prob = mu, log = log))
 }
 
-control <- list(range = seq(nrow(rotaBB))[phase2], h = h, pi0 = pi0, 
+control <- list(range = seq(nrow(rotaBB))[phase2], h = h, pi0 = pi0,
 				pi1 = pi1, ret = "value", dfun = dfun)
 surv <- categoricalCUSUM(rotaBB,control=control)
 
@@ -1016,7 +1016,7 @@ surv <- categoricalCUSUM(rotaBB,control=control)
 #Number of MC samples
 nSamples <- 1e4
 
-#Do MC 
+#Do MC
 simone.stop <- function(sts, control) {
   phase2Times <- seq(nrow(sts))[phase2]
   #Generate new phase2 data from the fitted in control model
@@ -1053,7 +1053,7 @@ format(alarmDates,"%b %Y")
 ## 	return(dmultinom(x = y, size = size, prob = mu, log = log))
 ## }
 ## 
-## control <- list(range = seq(nrow(rotaBB))[phase2], h = h, pi0 = pi0, 
+## control <- list(range = seq(nrow(rotaBB))[phase2], h = h, pi0 = pi0,
 ## 				pi1 = pi1, ret = "value", dfun = dfun)
 ## surv <- categoricalCUSUM(rotaBB,control=control)
 
@@ -1061,7 +1061,7 @@ format(alarmDates,"%b %Y")
 ###################################################
 ### code chunk number 71: monitoringCounts.Rnw:1508-1512
 ###################################################
-m0.dm <- MGLMreg(as.matrix(rotaBB.df[phase1, 1:5]) ~ -1 + X[phase1, ], 
+m0.dm <- MGLMreg(as.matrix(rotaBB.df[phase1, 1:5]) ~ -1 + X[phase1, ],
                 dist = "DM")
 
 c(m0$AIC, m0.dm$AIC)
@@ -1071,21 +1071,21 @@ c(m0$AIC, m0.dm$AIC)
 ### code chunk number 72: monitoringCounts.Rnw:1520-1538 (eval = FALSE)
 ###################################################
 ## delta <- 2
-## m1.dm <- m0.dm 
-## m1.dm$coefficients[1, ] <- m0.dm$coefficients[1, ] + 
+## m1.dm <- m0.dm
+## m1.dm$coefficients[1, ] <- m0.dm$coefficients[1, ] +
 ##                            c(-delta, rep(delta/4, 4))
 ## 
 ## alpha0 <- exp(X[phase2,] %*% m0.dm$coefficients)
 ## alpha1 <- exp(X[phase2,] %*% m1.dm$coefficients)
-##  
+## 
 ## dfun <- function(y, size, mu, log = FALSE) {
 ## 	dLog <- ddirm(t(y), t(mu))
-## 	if (log) { return(dLog) } else { return(exp(dLog)) } 
+## 	if (log) { return(dLog) } else { return(exp(dLog)) }
 ## }
 ## 
 ## h <- 2
-## control <- list(range = seq(nrow(rotaBB))[phase2], h = h, 
-##                 pi0 = t(alpha0), pi1 = t(alpha1), 
+## control <- list(range = seq(nrow(rotaBB))[phase2], h = h,
+##                 pi0 = t(alpha0), pi1 = t(alpha1),
 ##                 ret = "value", dfun = dfun)
 ## surv.dm <- categoricalCUSUM(rotaBB, control = control)
 
@@ -1095,23 +1095,23 @@ c(m0$AIC, m0.dm$AIC)
 ###################################################
 # Change intercept in the first class (for DM all 5 classes are modeled)
 delta <- 2
-m1.dm <- m0.dm 
-m1.dm$coefficients[1,] <- m0.dm$coefficients[1,] + 
+m1.dm <- m0.dm
+m1.dm$coefficients[1,] <- m0.dm$coefficients[1,] +
                            c(-delta,rep(delta/4,4))
 # Calculate the alphas of the multinomial-Dirichlet in the two cases
 alpha0 <- exp(X[phase2,] %*% m0.dm$coefficients)
 alpha1 <- exp(X[phase2,] %*% m1.dm$coefficients)
-  
+
 # Use alpha vector as mu magnitude
 # (not possible to compute it from mu and size)
 dfun <- function(y, size, mu, log=FALSE) {
 	dLog <- ddirm(t(y), t(mu))
-	if (log) { return(dLog) } else {return(exp(dLog))} 
+	if (log) { return(dLog) } else {return(exp(dLog))}
 }
 
 # Threshold
 h <- 2
-control <- list(range=seq(nrow(rotaBB))[phase2],h=h,pi0=t(alpha0), 
+control <- list(range=seq(nrow(rotaBB))[phase2],h=h,pi0=t(alpha0),
                 pi1=t(alpha1), ret="value",dfun=dfun)
 surv.dm <- categoricalCUSUM(rotaBB,control=control)
 
@@ -1134,11 +1134,11 @@ surv.dm@multinomialTS <- FALSE
 y.max <- max(observed(surv.dm[,1]),upperbound(surv.dm[,1]),observed(surv[,1]),upperbound(surv[,1]),na.rm=TRUE)
 plotOpts3 <- modifyList(plotOpts,list(x=surv[,1],ylim=c(0,y.max),ylab=expression(C[t]),xlab=""))
 plotOpts3$legend.opts <- list(x="topleft",bty="n",legend="R",lty=1,lwd=line.lwd,col=alarm.symbol$col,horiz=TRUE,cex=cex.leg)
-do.call("plot",plotOpts3) 
+do.call("plot",plotOpts3)
 lines( c(0,1e99), rep(h,2),lwd=2,col="darkgray",lty=1)
 par(family="Times")
 mtext(side=1,text="Time (weeks)",
-      las=0,line=3, cex=cex.text)	  
+      las=0,line=3, cex=cex.text)
 
 
 ###################################################
@@ -1148,11 +1148,11 @@ getOption("SweaveHooks")[["fig"]]()
 plotOpts3 <- modifyList(plotOpts,list(x=surv.dm[,1],ylim=c(0,y.max),ylab=expression(C[t]),xlab=""))
 plotOpts3$legend.opts <- list(x="topleft",bty="n",legend="R",lty=1,lwd=line.lwd,col=alarm.symbol$col,horiz=TRUE,cex=cex.text)
 y.max <- max(observed(surv.dm[,1]),upperbound(surv.dm[,1]),observed(surv[,1]),upperbound(surv[,1]),na.rm=TRUE)
-do.call("plot",plotOpts3) 
+do.call("plot",plotOpts3)
 lines( c(0,1e99), rep(h,2),lwd=2,col="darkgray",lty=1)
 par(family="Times")
 mtext(side=1,text="Time (weeks)",
-      las=0,line=3, cex=cex.text)	
+      las=0,line=3, cex=cex.text)
 
 
 ###################################################
@@ -1163,7 +1163,7 @@ mtext(side=1,text="Time (weeks)",
 ## rangeAnalysis <- (today - 4):today
 ## in2013 <- which(isoWeekYear(epoch(salmNewport))$ISOYear == 2013)
 ## 
-## algoParameters <- list(range = rangeAnalysis, noPeriods = 10, 
+## algoParameters <- list(range = rangeAnalysis, noPeriods = 10,
 ##                        populationBool = FALSE,
 ##                        b = 4, w = 3, weightsThreshold = 2.58,
 ##                        pastWeeksNotIncluded = 26, pThresholdTrend = 1,
@@ -1176,11 +1176,11 @@ mtext(side=1,text="Time (weeks)",
 ## 
 ## start <- isoWeekYear(epoch(salmNewport)[range(range)[1]])
 ## end <- isoWeekYear(epoch(salmNewport)[range(range)[2]])
-## caption <- paste("Results of the analysis of reported S. Newport 
+## caption <- paste("Results of the analysis of reported S. Newport
 ##                  counts in two German federal states for the weeks W-",
 ##                  start$ISOWeek, "-", start$ISOYear, " - W-", end$ISOWeek,
 ##                  "-", end$ISOYear, " performed on ", Sys.Date(),
-##                  ". Bold upperbounds (UB) indicate weeks with alarms.", 
+##                  ". Bold upperbounds (UB) indicate weeks with alarms.",
 ##                  sep="")
 ## toLatex(results, caption = caption)
 
@@ -1189,11 +1189,11 @@ mtext(side=1,text="Time (weeks)",
 ### code chunk number 78: testLabel
 ###################################################
 # In this example the sts-object already exists.
-# Supply the code with the date of a Monday and look for the 
+# Supply the code with the date of a Monday and look for the
 # corresponding index in the sts-object
 today <- which(epoch(salmNewport)==as.Date("2013-12-23"))
-# The analysis will be performed for the given week 
-# and the 4 previous ones 
+# The analysis will be performed for the given week
+# and the 4 previous ones
 range <- (today-4):today
 in2013 <- which(isoWeekYear(epoch(salmNewport))$ISOYear==2013)
 # Control argument for using the improved method
@@ -1208,11 +1208,11 @@ results <- farringtonFlexible(salmNewport[,c("Baden.Wuerttemberg",
 # Export the results as a tex table
 start <- isoWeekYear(epoch(salmNewport)[range(range)[1]])
 end <- isoWeekYear(epoch(salmNewport)[range(range)[2]])
-caption <- paste("Results of the analysis of reported S. Newport 
+caption <- paste("Results of the analysis of reported S. Newport
                  counts in two German federal states for the weeks W-",
 				 start$ISOWeek," ",start$ISOYear," - W-",end$ISOWeek,
 				 " ",end$ISOYear," performed on ",Sys.Date(),
-				 ". Bold upperbounds (thresholds) indicate weeks with alarms.", 
+				 ". Bold upperbounds (thresholds) indicate weeks with alarms.",
 				 sep="")
 toLatex(results, table.placement="h", size = "normalsize",
         sanitize.text.function = identity,

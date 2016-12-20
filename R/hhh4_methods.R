@@ -6,8 +6,8 @@
 ### Standard methods for hhh4-fits
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2016 Sebastian Meyer
-### $Revision: 1697 $
-### $Date: 2016-04-06 14:21:54 +0200 (Wed, 06. Apr 2016) $
+### $Revision: 1814 $
+### $Date: 2016-12-13 14:28:26 +0100 (Tue, 13. Dec 2016) $
 ################################################################################
 
 ## NOTE: we also apply print.hhh4 in print.summary.hhh4()
@@ -374,9 +374,14 @@ update.hhh4 <- function (object, ..., S = NULL, subset.upper = NULL,
     }
 
     ## restrict fit to those epochs of control$subset which are <=subset.upper
-    if (isScalar(subset.upper))
+    if (isScalar(subset.upper)) {
+        if (subset.upper > max(control$subset)) # potentially unintended usage
+            warning("using the original subset since 'subset.upper' is beyond")
         control$subset <- control$subset[control$subset <= subset.upper]
-
+        if (length(control$subset) == 0)
+            stop("'subset.upper' is smaller than the lower bound ",
+                 "of the original subset")
+    }
 
     ## fit the updated model or just return the modified control list
     if (evaluate) { 

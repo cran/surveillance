@@ -1,7 +1,7 @@
 \name{stsplot_space}
 \alias{stsplot_space}
 \title{
-  Map of Disease Incidence During a Given Period
+  Map of Disease Counts/Incidence accumulated over a Given Period
 }
 
 \description{
@@ -10,7 +10,7 @@ This is the \code{plot} variant of \code{type=observed~unit} for
 \code{plot(stsObj, type=observed~unit, ...)} calls the function
 documented below. It produces an \code{\link{spplot}}
 where regions are color-coded according to disease incidence
-(either absolute counts or relative to population) during a given
+(either absolute counts or relative to population) over a given
 time period.
 }
 
@@ -46,9 +46,25 @@ stsplot_space(x, tps = NULL, map = x@map, population = NULL,
     empty and is not applicable if \code{x} is a matrix of counts).
   }
   \item{population}{
-    an optional numeric vector of population numbers in the
-    \code{ncol(x)} regions. If given, incidence values instead of
-    absolute counts are plotted.
+    if \code{NULL} (default), the map shows the region-specific numbers
+    of cases accumulated over \code{tps}. For a disease incidence map,
+    \code{population} can be specified in three ways:
+    \itemize{
+      \item a numeric vector of population numbers in the
+      \code{ncol(x)} regions, used to divide the disease counts.
+      \item a matrix of population counts of dimension \code{dim(x)}
+      (such as \code{population(x)} in an \code{"sts"} object).
+      This will produce the cumulative incidence over \code{tps}
+      relative to the population at the first time point, i.e., only
+      \code{population[tps[1],]} is used.
+      \item [if \code{is(x, "sts")}]
+      a scalar specifying how \code{population(x)} should be scaled for
+      use as the population matrix, i.e.,
+      \code{population(x)/population} is used. For instance, if
+      \code{population(x)} contains raw population numbers,
+      \code{population=1000} would produce the incidence per 1000
+      inhabitants.
+    }
   }
   \item{main}{
     a main title for the plot. If \code{NULL} and \code{x} is of
@@ -61,8 +77,8 @@ stsplot_space(x, tps = NULL, map = x@map, population = NULL,
   }
   \item{at}{
     either a number of levels (default: 10) for the categorization
-    (color-coding) of counts, or specific break points to use, or a
-    named list of a number of levels (\code{"n"}), a transformer
+    (color-coding) of counts/incidence, or specific break points to use, or,
+    a named list of a number of levels (\code{"n"}), a transformer
     (\code{"trafo"}) of class \code{"\link[scales]{trans}"} defined by
     package \pkg{scales}, and optional further arguments for
     \code{\link{pretty}}. The default is the square root transformation
@@ -128,7 +144,7 @@ plot(measlesWeserEms, type=observed~unit)
 # compare with old implementation
 plot(measlesWeserEms, type=observed~1|unit)
 
-# plot incidence with region labels
+# plot cumulative incidence (per 100000 inhabitants), with region labels
 plot(measlesWeserEms, type=observed~unit,
      population=measlesWeserEms@map$POPULATION / 100000,
      labels=list(labels="GEN", cex=0.7, font=3))

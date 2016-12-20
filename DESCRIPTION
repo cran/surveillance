@@ -1,8 +1,8 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.12.2
-Date: 2016-11-14
+Version: 1.13.0
+Date: 2016-12-20
 Authors@R: c(MH = person("Michael", "Höhle",
                   email = "hoehle@math.su.se",
                   role = c("aut", "ths")),
@@ -13,6 +13,7 @@ Authors@R: c(MH = person("Michael", "Höhle",
              LH = person("Leonhard", "Held",
                   email = "Leonhard.Held@uzh.ch",
                   role = c("ctb", "ths")),
+             person("Howard", "Burkom", role = "ctb"),
              person("Thais", "Correa", role = "ctb"),
              person("Mathias", "Hofmann", role = "ctb"),
              person("Christian", "Lang", role = "ctb"),
@@ -29,7 +30,7 @@ Authors@R: c(MH = person("Michael", "Höhle",
                     comment = "A few code segments are modified versions of
                                code from base R"))
 Author: Michael Höhle [aut, ths], Sebastian Meyer [aut, cre],
-        Michaela Paul [aut], Leonhard Held [ctb, ths],
+        Michaela Paul [aut], Leonhard Held [ctb, ths], Howard Burkom [ctb],
         Thais Correa [ctb], Mathias Hofmann [ctb], Christian Lang [ctb],
         Juliane Manitz [ctb], Andrea Riebler [ctb], Daniel Sabanés Bové [ctb],
         Maëlle Salmon [ctb], Dirk Schumacher [ctb], Stefan Steiner [ctb],
@@ -83,6 +84,6 @@ BugReports: https://r-forge.r-project.org/tracker/?group_id=45
 Encoding: latin1
 VignetteBuilder: utils, knitr
 NeedsCompilation: yes
-Packaged: 2016-11-17 10:20:40 UTC; smeyer
+Packaged: 2016-12-20 15:49:46 UTC; smeyer
 Repository: CRAN
-Date/Publication: 2016-11-17 14:34:37
+Date/Publication: 2016-12-20 18:31:08

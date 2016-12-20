@@ -8,6 +8,76 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.13.0 (2016-12-20)}{
+
+\subsection{NEW FEATURES}{
+  \itemize{
+    \item \code{earsC} now has two new arguments thanks to Howard
+    Burkom: the number of past time units to be used in  calculation is
+    now not always 7, it can be chosen in the \code{baseline} parameter.
+    Furthermore, the \code{minSigma} parameter allows to get a threshold
+    in the case of sparse data. When one doesn't give any value for those
+    two parameters, the algorithm works like it used to.
+
+    \item \code{animate.sts()} gained support for date labels in the
+    bottom \code{timeplot}.
+
+    \item \code{stsplot_space()} and \code{animate.sts()} can now
+    generate incidence maps based on the population information
+    stored in the supplied \code{"sts"} object.
+    Furthermore, \code{animate.sts()} now supports time-varying
+    population numbers.
+  }
+}
+
+\subsection{MINOR CHANGES}{
+  \itemize{
+    \item \code{hhh4()} guards against the misuse of
+    \code{family = factor("Poisson")} for univariate time series.
+    Previously, this resulted in a negative binomial model by
+    definition, but is now interpreted as \code{family = "Poisson"}
+    (with a warning).
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item \code{animate.sts()} now supports objects with missing values
+    (with a warning). Furthermore, the automatic color breaks have been
+    improved for incidence maps, also in \code{stsplot_space()}.
+
+    \item The \code{as.data.frame}-method for the \code{"sts"} class,
+    applied to classical time-index-based \code{"sts"} objects
+    (\code{epochAsDate=FALSE}), ignored a \code{start} epoch different
+    from 1 when computing the \code{epochInPeriod} indexes.
+    Furthermore, the returned \code{epochInPeriod} now is a fraction of
+    \code{freq}, for consistency with the result for objects with
+    \code{epochAsDate=TRUE}.
+
+    \item \code{simulate.hhh4()} did not handle shared overdispersion
+    parameters correctly. The different parameters were simply recycled
+    to the number of units, ignoring the factor specification from the
+    model's \code{family}. [spotted by Johannes Bracher]
+
+    \item Simulations from \emph{endemic-only} \code{"hhh4"} models
+    with unit-specific overdispersion parameters used wrong
+    variances. [spotted by Johannes Bracher]
+
+    \item \code{oneStepAhead()} predictions of \code{type}
+    \code{"rolling"} (or \code{"first"}) were incorrect for time points
+    \code{tp} (\code{tp[1]}) beyond the originally fitted time range
+    (in that they were based on the original time range only).
+    This usage of \code{oneStepAhead()} was never really supported and
+    is now catched when checking the \code{tp} argument.
+
+    \item \code{plot.hhh4simslist()} ignored its \code{par.settings}
+    argument if \code{groups=NULL} (default).
+  }
+}
+
+}
+
+
 \section{Changes in surveillance version 1.12.2 (2016-11-14)}{
 
 \subsection{NEW FEATURES}{
@@ -190,8 +260,8 @@
 \subsection{NEW FEATURES}{
   \itemize{
     \item \code{update.epidata()} can now handle a distance matrix
-    \code{D} in the form of a classed \code{"Matrix"}
-    (suggested by George Wood).
+    \code{D} in the form of a classed \code{"Matrix"}.
+    [suggested by George Wood]
 
     \item \code{glrnb()} can now handle \code{ret="cases"} for the
     generalized likelihood ratio detector based on the negative binomial
@@ -393,7 +463,7 @@
 
     \item A consistency check in \code{as.epidata.default()} failed for
     SI-type data (and, more generally, for all data which ended with an
-    I-event in the last time block). Spotted by George Wood.
+    I-event in the last time block). [spotted by George Wood]
   }
 }
 
@@ -525,7 +595,7 @@
     (only if \code{W} or \code{tiles}, respectively, contained holes).
 
     \item Non-convergent endemic-only \code{twinstim} models
-    produced an error (spotted by Bing Zhang).
+    produced an error. [spotted by Bing Zhang]
 
     \item The \code{"owin"}-method of \code{intersectPolyCircle} could
     have returned a rectangle-type \code{"owin"} instead of a polygon.

@@ -6,9 +6,9 @@
 ### Plots for an array "hhh4sims" of simulated counts from an "hhh4" model,
 ### or a list thereof as produced by different "hhh4" models (same period!)
 ###
-### Copyright (C) 2013-2015 Sebastian Meyer
-### $Revision: 1493 $
-### $Date: 2015-10-16 14:47:57 +0200 (Fri, 16. Oct 2015) $
+### Copyright (C) 2013-2016 Sebastian Meyer
+### $Revision: 1820 $
+### $Date: 2016-12-20 11:25:32 +0100 (Tue, 20. Dec 2016) $
 ################################################################################
 
 plot.hhh4sims <- function (x, ...) {
@@ -132,7 +132,9 @@ aggregate.hhh4simslist <- function (x, units = TRUE, time = FALSE, ..., drop = F
 
 check_groups <- function (groups, units)
 {
-    if (isTRUE(groups)) {
+    if (is.null(groups)) {
+        factor(rep.int("overall", length(units)))
+    } else if (isTRUE(groups)) {
         factor(units, levels = units)
     } else {
         stopifnot(length(groups) == length(units))
@@ -144,37 +146,41 @@ plot.hhh4simslist <- function (x, type = c("size", "time"), ...,
                                groups = NULL, par.settings = list())
 {
     FUN <- paste("plotHHH4sims", match.arg(type), sep = "_")
-    if (is.null(groups))
-        return(do.call(FUN, list(quote(x), ...)))
-
-    ## stratified plots by groups of units
     groups <- check_groups(groups, colnames(attr(x, "stsObserved")))
-    
+    ngroups <- nlevels(groups)
     if (is.list(par.settings)) {
-        par.defaults <- list(mfrow = sort(n2mfrow(nlevels(groups))),
-                             mar = c(4,4,2,0.5)+.1, las = 1)
+        par.defaults <- list(mar = c(4,4,2,0.5)+.1, las = 1)
+        if (ngroups > 1)
+            par.defaults$mfrow <- sort(n2mfrow(ngroups))
         par.settings <- modifyList(par.defaults, par.settings)
         opar <- do.call("par", par.settings)
         on.exit(par(opar))
     }
-    
-    invisible(sapply(
-        X = levels(groups),
-        FUN = function (group) {
-            x_group <- x[, which(group == groups) , ]
-            do.call(FUN, list(quote(x_group), ..., main = group))
-        },
-        simplify = FALSE, USE.NAMES = TRUE))    
+
+    if (ngroups == 1) {
+        do.call(FUN, list(quote(x), ...))
+    } else { # stratified plots by groups of units
+        invisible(sapply(
+            X = levels(groups),
+            FUN = function (group) {
+                x_group <- x[, which(group == groups) , ] # [-method has drop=F
+                do.call(FUN, list(quote(x_group), ..., main = group))
+            },
+            simplify = FALSE, USE.NAMES = TRUE))
+    }
 }
 
 
 ### simulated final size distribution as boxplots aggregated over all units
 
 plotHHH4sims_size <- function (x, horizontal = TRUE, trafo = NULL,
-                               observed = TRUE, ...)
+                               observed = TRUE, names = base::names(x), ...)
 {
     x <- as.hhh4simslist(x)
-    if (horizontal) x <- rev(x)
+    if (horizontal) {
+        names <- rev(names)
+        x <- rev(x)
+    }
     if (is.null(trafo)) #trafo <- scales::identity_trans()
         trafo <- list(name = "identity", transform = identity)
     if (isTRUE(observed)) observed <- list()
@@ -200,7 +206,8 @@ plotHHH4sims_size <- function (x, horizontal = TRUE, trafo = NULL,
     ## generate boxplots
     boxplot.args <- modifyList(defaultArgs, list(...))
     boxplot.args$horizontal <- horizontal
-    do.call("boxplot", c(list(nsimstrafo), boxplot.args))
+    boxplot.args$names <- names
+    do.call("boxplot", c(list(x=nsimstrafo), boxplot.args))
 
     ## add means
     if (horizontal) {
@@ -321,7 +328,14 @@ plotHHH4sims_time <- function (
 
     ## add legend
     if (!identical(FALSE, legend)) {
-        legendArgs <- list(x="topright", legend=names(x), bty="n",
+        xnames <- if (is.vector(legend, mode = "character")) {
+            if (length(legend) != length(x))
+                warning("'length(legend)' should be ", length(x))
+            legend
+        } else {
+            names(x)
+        }
+        legendArgs <- list(x="topright", legend=xnames, bty="n",
                            col=col, lwd=matplot.args$lwd, lty=matplot.args$lty)
         if (is.list(legend))
             legendArgs <- modifyList(legendArgs, legend)

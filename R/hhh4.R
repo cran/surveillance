@@ -7,8 +7,8 @@
 ### The function allows the incorporation of random effects and covariates.
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2016 Sebastian Meyer
-### $Revision: 1752 $
-### $Date: 2016-06-23 15:12:40 +0200 (Thu, 23. Jun 2016) $
+### $Revision: 1809 $
+### $Date: 2016-12-12 11:07:39 +0100 (Mon, 12. Dec 2016) $
 ################################################################################
 
 ## Error message issued in loglik, score and fisher functions upon NA parameters
@@ -279,8 +279,16 @@ setControl <- function (control, stsObj)
 
   if (is.factor(control$family)) {
       stopifnot(length(control$family) == nUnit)
-      control$family <- droplevels(control$family)
-      names(control$family) <- colnames(stsObj)
+      ## guard against misuse as family = factor("Poisson"), e.g., if taken
+      ## from a data.frame of control options with "stringsAsFactors"
+      if (nUnit == 1 && as.character(control$family) %in% defaultControl$family) {
+          control$family <- as.character(control$family)
+          warning("'family = factor(\"", control$family, "\")' is interpreted ",
+                  "as 'family = \"", control$family, "\"'")
+      } else {
+          control$family <- droplevels(control$family)
+          names(control$family) <- colnames(stsObj)
+      }
   } else {
       control$family <- match.arg(control$family, defaultControl$family)
   }
@@ -891,16 +899,17 @@ sizeHHH <- function (theta, model, subset = model$subset)
 
 ## auxiliary function used in penScore and penFisher
 ## it sums colSums(x) within the groups defined by f (of length ncol(x))
+## and returns these sums in the order of levels(f)
 .colSumsGrouped <- function (x, f, na.rm = TRUE)
 {
     nlev <- nlevels(f)
-    if (nlev == 1L) { # all columns belong to the same group
+    if (nlev == 1L) { # all columns belong to the same group ("NegBin1")
         sum(x, na.rm = na.rm)
     } else {
         dimx <- dim(x)
         colsums <- .colSums(x, dimx[1L], dimx[2L], na.rm = na.rm)
-        if (nlev == dimx[2L]) { # each column is its own group
-            colsums[order(f)]
+        if (nlev == dimx[2L]) { # each column separately ("NegBinM" or factor)
+            colsums[order(f)] # for NegBinM, order(f)==1:nlev, not in general
         } else { # sum colsums within groups
             unlist(lapply(
                 X = split.default(colsums, f, drop = FALSE),

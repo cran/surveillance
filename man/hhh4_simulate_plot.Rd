@@ -27,7 +27,8 @@ as.hhh4simslist(x, ...)
 \method{plot}{hhh4simslist}(x, type = c("size", "time"), ...,
      groups = NULL, par.settings = list())
 
-plotHHH4sims_size(x, horizontal = TRUE, trafo = NULL, observed = TRUE, ...)
+plotHHH4sims_size(x, horizontal = TRUE, trafo = NULL, observed = TRUE,
+                  names = base::names(x), ...)
 
 plotHHH4sims_time(x, average = mean, individual = length(x) == 1,
     conf.level = if (individual) 0.95 else NULL,
@@ -78,6 +79,9 @@ plotHHH4sims_time(x, average = mean, individual = length(x) == 1,
     Alternatively, a list with graphical parameters can be specified to
     modify the default values.
   }
+  \item{names}{
+    a character vector of names for \code{x}.
+  }
 
   \item{average}{
     scalar-valued function to apply to the simulated counts at each time point.
@@ -98,7 +102,8 @@ plotHHH4sims_time(x, average = mean, individual = length(x) == 1,
     a bar for the initial number of cases is added to the plot.
   }
   \item{legend}{
-    a logical or a list of parameters for \code{\link{legend}}.
+    a logical, a character vector (providing names for \code{x}),
+    or a list of parameters for \code{\link{legend}}.
   }
   \item{xlim,ylim}{
     vectors of length 2 determining the axis limits.

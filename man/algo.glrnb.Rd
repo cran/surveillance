@@ -40,8 +40,9 @@ algo.glrpois(disProgObj, control = list(range=range, c.ARL=5,
         fine-tune the model one can instead specify \code{mu0} as a
         list with two components:
         \describe{
-          \item{\code{S}}{number of harmonics to include}
-          \item{\code{trend}}{include a term \code{t} in the GLM model}
+          \item{\code{S}}{integer number of harmonics to include
+        (typically 1 or 2)}
+          \item{\code{trend}}{A Boolean indicating whether to include a term \code{t} in the GLM model}
 	}
 	The fitting is controlled by the \code{estimateGLRNbHook}
         function. The in-control mean model is re-fitted after every
@@ -105,7 +106,7 @@ algo.glrpois(disProgObj, control = list(range=range, c.ARL=5,
 \value{
   \code{algo.glrpois} simply calls \code{algo.glrnb} with
   \code{control$alpha} set to 0.
-  
+
   \code{algo.glrnb} returns a list of class
     \code{survRes} (surveillance result), which includes the alarm
     value for recognizing an outbreak (1 for alarm, 0 for no alarm),

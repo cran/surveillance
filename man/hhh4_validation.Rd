@@ -59,8 +59,10 @@ scores(x, ...)
     subsequent predictions, whereas
     \code{"final"} will just use \code{result} to calculate these.
     The latter case thus gives nothing else than a subset of
-    \code{result$fitted.values}, if the \code{tp}'s are part of the
-    fitted subset \code{result$control$subset}.}
+    \code{result$fitted.values}.
+    %% if the \code{tp}'s are part of the
+    %% fitted subset \code{result$control$subset}.
+  }
   \item{which.start}{
     Which initial parameter values should be used when successively
     refitting the model to subsets of the data (up to time point
