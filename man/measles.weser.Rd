@@ -15,7 +15,7 @@
   (\dQuote{Infektionsschutzgesetz}, \acronym{IfSG}).\cr
   \code{data("measlesWeserEms")} is a corrected version of
   \code{data("measles.weser")} (see Format section below).
-  These data are illustrated and analyzed in Meyer et al. (2016, Section 5),
+  These data are illustrated and analyzed in Meyer et al. (2017, Section 5),
   see \code{vignette("hhh4_spacetime")}.
 }
 
@@ -101,10 +101,11 @@ data("measlesWeserEms")
 }
 
 \references{
-  Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
+  Meyer, S., Held, L. and \enc{Höhle}{Hoehle}, M. (2017):
   Spatio-temporal analysis of epidemic phenomena using the \R package
-  \pkg{surveillance}. \emph{Journal of Statistical Software}. In press.\cr
-  Preprint available at \url{http://arxiv.org/abs/1411.0416}
+  \pkg{surveillance}.
+  \emph{Journal of Statistical Software}, \bold{77} (11), 1-55.
+  \doi{10.18637/jss.v077.i11}
 }
 
 \examples{

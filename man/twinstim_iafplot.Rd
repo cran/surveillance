@@ -9,7 +9,7 @@
 \description{
   The function plots the fitted temporal or (isotropic) spatial
   interaction function of a \code{twinstim} object.
-  The implementation is illustrated in Meyer et al. (2016, Section 3),
+  The implementation is illustrated in Meyer et al. (2017, Section 3),
   see \code{vignette("twinstim")}.
 }
 
@@ -190,10 +190,11 @@ iafplot(object, which = c("siaf", "tiaf"), types = NULL,
   disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.
   \doi{10.1111/j.1541-0420.2011.01684.x}
 
-  Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
+  Meyer, S., Held, L. and \enc{Höhle}{Hoehle}, M. (2017):
   Spatio-temporal analysis of epidemic phenomena using the \R package
-  \pkg{surveillance}. \emph{Journal of Statistical Software}. In press.\cr
-  Preprint available at \url{http://arxiv.org/abs/1411.0416}
+  \pkg{surveillance}.
+  \emph{Journal of Statistical Software}, \bold{77} (11), 1-55.
+  \doi{10.18637/jss.v077.i11}
 }
 
 \author{

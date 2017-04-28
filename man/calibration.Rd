@@ -1,12 +1,9 @@
 \name{calibrationTest}
 \alias{calibrationTest}
 \alias{calibrationTest.default}
-\alias{dss}
-\alias{logs}
-\alias{rps}
 
 \title{
-  Calibration Test for Poisson or Negative Binomial Predictions
+  Calibration Tests for Poisson or Negative Binomial Predictions
 }
 
 \description{
@@ -25,44 +22,37 @@ calibrationTest(x, ...)
 \method{calibrationTest}{default}(x, mu, size = NULL,
                 which = c("dss", "logs", "rps"),
                 tolerance = 1e-4, method = 2, ...)
-
-dss(x, mu, size = NULL)
-logs(x, mu, size = NULL)
-rps(x, mu, size = NULL, k = 40, tolerance = sqrt(.Machine$double.eps))
 }
 
 \arguments{
   \item{x}{
-    a numeric vector of observed counts. All involved functions are
-    vectorized and also accept matrices or arrays.
-    The score functions preserve the dimensions.
+    the observed counts.
+    All involved functions are vectorized and also accept matrices or arrays.
   }
   \item{mu}{
-    a numeric vector of means of the predictive distributions for the
+    the means of the predictive distributions for the
     observations \code{x}.
   }
   \item{size}{
-    either \code{NULL} (indicating Poisson predictions with mean
-    \code{mu}) or a numeric vector of dispersion parameters of the
-    negative binomial distributions for the observations \code{x}.
+    either \code{NULL} (default), indicating Poisson predictions with mean
+    \code{mu}, or dispersion parameters of
+    negative binomial forecasts for the observations \code{x},
+    parametrized as in \code{\link{dnbinom}} with variance
+    \code{mu*(1+mu/size)}.
   }
   \item{which}{
     a character string indicating which proper scoring rule to apply.
   }
   \item{tolerance}{
-    absolute tolerance for the finite sum approximation for \code{rps}
-    and for the null expectation and variance of \code{"logs"} and
-    \code{"rps"}. Unused for \code{which = "dss"} (closed form).
+    absolute tolerance for the null expectation and variance of
+    \code{"logs"} and \code{"rps"}. For the latter, see the note below.
+    Unused for \code{which = "dss"} (closed form).
   }
   \item{method}{
     selection of the \eqn{z}-statistic: \code{method = 2} refers to
     the alternative test statistic \eqn{Z_s^*} of Wei and Held (2014,
     Discussion), which has been recommended for low counts.
     \code{method = 1} corresponds to Equation 5 in Wei and Held (2014).
-  }
-  \item{k}{
-    scalar argument controlling the finite sum approximation for the
-    \code{rps} with truncation at \code{ceiling(mu + k*sd)}.
   }
   \item{\dots}{
     unused (argument of the generic).
@@ -80,6 +70,14 @@ rps(x, mu, size = NULL, k = 40, tolerance = sqrt(.Machine$double.eps))
   \item{p.value}{the p-value for the test.}
 }
 
+\note{
+  If the \CRANpkg{gsl} package is installed, its implementations of the
+  Bessel and hypergeometric functions are used when calculating the null
+  expectation and variance of the \code{rps}.
+  These functions are faster and yield more accurate results (especially
+  for larger \code{mu}).
+}
+
 \references{
   Wei, W. and Held, L. (2014):
   Calibration tests for count data.
@@ -87,39 +85,18 @@ rps(x, mu, size = NULL, k = 40, tolerance = sqrt(.Machine$double.eps))
 }
 
 \author{
-  Sebastian Meyer, Michaela Paul, and Wei Wei
+  Sebastian Meyer and Wei Wei
 }
 
 \examples{
-## simulated example
 mu <- c(0.1, 1, 3, 6, pi, 100)
 size <- 0.1
 set.seed(1)
 y <- rnbinom(length(mu), mu = mu, size = size)
 calibrationTest(y, mu = mu, size = size) # p = 0.99
 calibrationTest(y, mu = mu, size = 1) # p = 4.3e-05
-calibrationTest(y, mu = 1, size = 0.1) # p = 0.6959
-calibrationTest(y, mu = 1, size = 0.1, which = "rps") # p = 0.1286
-
-
-## a univariate surveillance time series
-data("salmonella.agona")
-salmonella <- disProg2sts(salmonella.agona)
-
-## fit a hhh4() model
-model <- list(end = list(f = addSeason2formula(~1 + t)),
-              ar = list(f = ~1),
-              family = "NegBin1")
-fit <- hhh4(salmonella, model)
-
-## do sequential one-step-ahead predictions for the last 5 weeks
-pred <- oneStepAhead(fit, nrow(salmonella)-5, type="rolling",
-                     which.start="final", verbose=FALSE)
-pred
-
-## test if the model is calibrated
-with(pred, calibrationTest(x = observed, mu = pred, size = exp(psi)))
-## p = 0.8746
+calibrationTest(y, mu = 1, size = size) # p = 0.6959
+calibrationTest(y, mu = 1, size = size, which = "rps") # p = 0.1286
 }
 
 \keyword{htest}

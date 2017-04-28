@@ -5,9 +5,9 @@
 ###
 ### Plot-method(s) for fitted hhh4() models
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2012-2016 Sebastian Meyer
-### $Revision: 1715 $
-### $Date: 2016-05-17 10:01:28 +0200 (Tue, 17. May 2016) $
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2017 Sebastian Meyer
+### $Revision: 1843 $
+### $Date: 2017-03-28 16:37:16 +0200 (Tue, 28. Mar 2017) $
 ################################################################################
 
 
@@ -457,7 +457,7 @@ createLambda <- function (object)
     } else {
         function (t) {
             stopifnot(isScalar(t) && t > 0 && t <= nTime)
-            Lambda <- meanHHH$ne.exppred[t,] * Wt(t)
+            Lambda <- meanHHH$ne.exppred[t,] * t(Wt(t))
             diag(Lambda) <- diag(Lambda) + meanHHH$ar.exppred[t,]
             Lambda
         }
@@ -726,7 +726,7 @@ getMaxEV_season <- function (x)
     createLambda <- function (t)
     {
         Lambda <- if ("ne" %in% components) {
-            exp(s2.phi$intercept + ri.phi + if(t==0) 0 else s2.phi$season[t]) * W
+            exp(s2.phi$intercept + ri.phi + if(t==0) 0 else s2.phi$season[t]) * t(W)
         } else matrix(0, nUnits, nUnits)
         if ("ar" %in% components) {
             diag(Lambda) <- diag(Lambda) + exp(s2.lambda$intercept + ri.lambda +

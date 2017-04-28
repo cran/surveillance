@@ -176,7 +176,7 @@ S3method(plot, pit)
 export(calibrationTest)
 S3method(calibrationTest, default)
 export(calibrationTest.default)
-export(dss, logs, rps)  # ses, nses
+export(dss, logs, rps, ses)  # nses
 
 
 ### sts(BP|NC)-specific
@@ -467,7 +467,7 @@ export(plotHHH4_fitted, plotHHH4_fitted1,
        plotHHH4_maps, plotHHH4_ri,
        plotHHH4_neweights)
 
-#S3method(scores, default)  # rather an internal auxiliary function, undocumented
+S3method(scores, default)
 S3method(scores, hhh4)
 S3method(scores, oneStepAhead)
 S3method(calibrationTest, hhh4)
@@ -486,5 +486,6 @@ S3method(aggregate, hhh4simslist)
 S3method(plot, hhh4simslist)
 export(plotHHH4sims_size)
 export(plotHHH4sims_time)
+export(plotHHH4sims_fan)
 S3method(scores, hhh4sims)
 S3method(scores, hhh4simslist)

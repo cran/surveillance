@@ -199,10 +199,13 @@ bibentry(
     bibtype = "Article",
     header = "As a general reference for the spatio-temporal modeling frameworks, please cite:",
     author = authors[c("SM", "LH", "MH")],
-    title = "Spatio-Temporal Analysis of Epidemic Phenomena Using the R Package surveillance",
+    title = "Spatio-Temporal Analysis of Epidemic Phenomena Using the {R} Package {surveillance}",
     journal = "Journal of Statistical Software",
-    year = "2016",
-    note = "Preprint available at \\url{http://arxiv.org/abs/1411.0416}"
+    year = "2017",
+    volume = "77",
+    number = "11",
+    pages = "1--55",
+    doi = "10.18637/jss.v077.i11"
 )
 
 

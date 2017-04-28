@@ -45,7 +45,7 @@ if (!COMPUTE) load("twinSIR-cache.RData", verbose = TRUE)
 \Plaintitle{twinSIR: Individual-level epidemic modeling for a fixed population with known distances}
 \Shorttitle{Modeling epidemics in a fixed population with known distances}
 
-\author{Sebastian Meyer\thanks{Author of correspondence: \email{Sebastian.Meyer@ifspm.uzh.ch}}\\University of Zurich \And
+\author{Sebastian Meyer\thanks{Author of correspondence: \email{seb.meyer@fau.de} (new affiliation)}\\University of Zurich \And
         Leonhard Held\\University of Zurich \And
         Michael H\"ohle\\Stockholm University}
 \Plainauthor{Sebastian Meyer, Leonhard Held, Michael H\"ohle}

@@ -8,6 +8,54 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.13.1 (2017-04-28)}{
+
+\subsection{DOCUMENTATION}{
+  \itemize{
+    \item The paper on \dQuote{Spatio-Temporal Analysis of Epidemic
+      Phenomena Using the \R Package \pkg{surveillance}} (by Sebastian
+    Meyer, Leonhard Held, and Michael \enc{Höhle}{Hoehle}) will appear
+    in the upcoming volume of the \emph{Journal of Statistical Software}.
+    The main sections 3 to 5 of the paper are contained in the package
+    as \code{vignette("twinstim")}, \code{vignette("twinSIR")}, and
+    \code{vignette("hhh4_spacetime")}, respectively.
+  }
+}
+  
+\subsection{NEW FEATURES}{
+  \itemize{
+    \item The \code{calibrationTest()} and \code{pit()} methods for
+    \code{"oneStepAhead"} forecasts gained an argument \code{units}
+    to allow for unit-specific assessments.
+
+    \item A default \code{scores}-method is now available to compute a
+    set of proper scoring rules for Poisson or NegBin predictions.
+
+    \item New plot \code{type = "fan"} for simulations from
+    \code{"hhh4"} models to produce a fan chart using the
+    \CRANpkg{fanplot} package.
+  }
+}
+
+\subsection{MINOR CHANGES}{
+  \itemize{
+    \item \code{scores.hhh4()} sets rownames for consistency with
+    \code{scores.oneStepAhead()}.
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item The \code{"Lambda.const"} matrix returned by
+    \code{getMaxEV_season()} was wrong for models with asymmetric
+    neighbourhood weights. [spotted by Johannes Bracher]\cr
+    Dominant eigenvalues (\code{"maxEV"}) were not affected by this bug.
+  }
+}
+
+}
+
+
 \section{Changes in surveillance version 1.13.0 (2016-12-20)}{
 
 \subsection{NEW FEATURES}{

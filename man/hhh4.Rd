@@ -14,7 +14,7 @@
   in all components; see the Details below.
   A general introduction to the \code{hhh4} modelling approach and its
   implementation is given in the \code{vignette("hhh4")}. Meyer et al
-  (2016, Section 5, available as \code{vignette("hhh4_spacetime")})
+  (2017, Section 5, available as \code{vignette("hhh4_spacetime")})
   describe \code{hhh4} models for areal time series of infectious
   disease counts.
 }
@@ -262,7 +262,7 @@ hhh4(stsObj,
   \code{vignette("hhh4_spacetime")}.
 }
 
-\author{M. Paul, S. Meyer, and L. Held}
+\author{Michaela Paul, Sebastian Meyer, Leonhard Held}
 
 \examples{
 ###########################################################################
@@ -457,33 +457,38 @@ range(plot(fluFit, type = "maxEV"))
 }
 
 \references{
-  Held, L., \enc{Höhle}{Hoehle}, M., Hofmann, M. (2005):
+  Held, L., \enc{Höhle}{Hoehle}, M. and Hofmann, M. (2005):
     A statistical framework for the analysis of multivariate infectious
     disease surveillance counts.
-    \emph{Statistical Modelling}, \bold{5}, 187--199.
+    \emph{Statistical Modelling}, \bold{5} (3), 187-199.
+    \doi{10.1191/1471082X05st098oa}
     
   Paul, M., Held, L. and Toschke, A. M. (2008):
     Multivariate modelling of infectious disease surveillance data.
-    \emph{Statistics in Medicine}, \bold{27}, 6250--6267.    
+    \emph{Statistics in Medicine}, \bold{27} (29), 6250-6267.
+    \doi{10.1002/sim.4177}
 
   Paul, M. and Held, L. (2011):
     Predictive assessment of a non-linear random effects model for
     multivariate time series of infectious disease counts.
-    \emph{Statistics in Medicine}, \bold{30}, 1118--1136
+    \emph{Statistics in Medicine}, \bold{30} (10), 1118-1136.
+    \doi{10.1002/sim.4177}
 
   Held, L. and Paul, M. (2012):
     Modeling seasonality in space-time infectious disease surveillance data.
-    \emph{Biometrical Journal}, \bold{54}, 824--843
+    \emph{Biometrical Journal}, \bold{54} (6), 824-843.
+    \doi{10.1002/bimj.201200037}
     
   Meyer, S. and Held, L. (2014):
     Power-law models for infectious disease spread.
     \emph{The Annals of Applied Statistics}, \bold{8} (3), 1612-1639.
     \doi{10.1214/14-AOAS743}
 
-  Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
-  Spatio-temporal analysis of epidemic phenomena using the \R package
-  \pkg{surveillance}. \emph{Journal of Statistical Software}. In press.\cr
-  Preprint available at \url{http://arxiv.org/abs/1411.0416}
+  Meyer, S., Held, L. and \enc{Höhle}{Hoehle}, M. (2017):
+    Spatio-temporal analysis of epidemic phenomena using the \R package
+    \pkg{surveillance}.
+    \emph{Journal of Statistical Software}, \bold{77} (11), 1-55.
+    \doi{10.18637/jss.v077.i11}
 }
 
 \keyword{ts}

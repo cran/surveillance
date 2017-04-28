@@ -8,9 +8,9 @@
 ### Czado, C., Gneiting, T. & Held, L. (2009)
 ### Biometrics 65:1254-1261
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2014-2015 Sebastian Meyer
-### $Revision: 1474 $
-### $Date: 2015-09-14 21:55:38 +0200 (Mon, 14. Sep 2015) $
+### Copyright (C) 2010-2012 Michaela Paul, 2014-2015,2017 Sebastian Meyer
+### $Revision: 1836 $
+### $Date: 2017-03-15 15:02:47 +0100 (Wed, 15. Mar 2017) $
 ################################################################################
 
 
@@ -118,23 +118,21 @@ rps <- function (x, mu, size=NULL, k=40, tolerance=sqrt(.Machine$double.eps)) {
 
 ### apply a set of scoring rules at once
 
-scores.default <- function(x, mu, size,
+scores.default <- function(x, mu, size = NULL,
                            which = c("logs", "rps", "dss", "ses"),
                            sign = FALSE, ...)
 {
-    ## compute sign of x-mu
-    signXmMu <- if (sign) sign(x-mu) else NULL
-    
-    ## compute individual scores (these are dim(x) matrices)
-    scorelist <- lapply(which, do.call, args = alist(x=x, mu=mu, size=size),
+    ## compute individual scores (these have the same dimensions as x)
+    scorelist <- lapply(X = setNames(nm = which), FUN = do.call,
+                        args = alist(x = x, mu = mu, size = size),
                         envir = environment())
+
+    ## append sign of x-mu
+    if (sign)
+        scorelist <- c(scorelist, list("sign" = sign(x-mu)))
     
-    ## gather individual scores in an array
-    array(c(unlist(scorelist, recursive=FALSE, use.names=FALSE),
-            signXmMu),
-          dim = c(dim(x), length(which) + sign),
-          dimnames = c(dimnames(x),
-              list(c(which, if (sign) "sign"))))
+    ## gather scores in an array
+    simplify2array(scorelist, higher = TRUE)
 }
 
 ### apply scoring rules to a set of oneStepAhead() forecasts
@@ -193,5 +191,6 @@ scores.hhh4 <- function (x, which = c("logs","rps","dss","ses"),
         mu = x$fitted.values[match(subset, x$control$subset), units, drop = FALSE],
         size = psi2size.hhh4(x, subset, units),
         which = which, sign = sign)
+    rownames(result) <- subset
     drop(result)
 }

@@ -12,7 +12,7 @@ epidemics as described in \enc{Höhle}{Hoehle} (2009).  Estimation is driven
 by (penalized) maximum likelihood in the point process frame work.  Optimization 
 (maximization) of the (penalized) likelihood function is performed by means of 
 \code{\link{optim}}.
-The implementation is illustrated in Meyer et al. (2016, Section 4),
+The implementation is illustrated in Meyer et al. (2017, Section 4),
 see \code{vignette("twinSIR")}.
 }
 
@@ -248,13 +248,14 @@ twinSIR(formula, data, weights, subset,
 
 \references{
   \enc{Höhle}{Hoehle}, M. (2009),
-  Additive-Multiplicative Regression Models for Spatio-Temporal
-  Epidemics, Biometrical Journal, 51(6):961-978.
+  Additive-multiplicative regression models for spatio-temporal
+  epidemics, \emph{Biometrical Journal}, \bold{51} (6), 961-978.
 
-  Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
+  Meyer, S., Held, L. and \enc{Höhle}{Hoehle}, M. (2017):
   Spatio-temporal analysis of epidemic phenomena using the \R package
-  \pkg{surveillance}. \emph{Journal of Statistical Software}. In press.\cr
-  Preprint available at \url{http://arxiv.org/abs/1411.0416}
+  \pkg{surveillance}.
+  \emph{Journal of Statistical Software}, \bold{77} (11), 1-55.
+  \doi{10.18637/jss.v077.i11}
 }
 
 \author{

@@ -2,7 +2,7 @@
 ### Categorize functions and methods for a specific class
 ### (this is an internal utility function used in some of the package vignettes)
 ###
-### Copyright (C) 2014-2016  Sebastian Meyer <Sebastian.Meyer@ifspm.uzh.ch>
+### Copyright (C) 2014-2016 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,

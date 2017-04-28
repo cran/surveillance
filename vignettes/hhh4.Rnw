@@ -14,7 +14,6 @@
 \usepackage{amsmath}
 \usepackage{amsfonts,amssymb}
 
-\usepackage{relsize}
 \setlength{\parindent}{0pt} 
 \setcounter{secnumdepth}{1}
 
@@ -41,7 +40,7 @@
 
 \title{\code{hhh4}: An endemic-epidemic modelling framework for infectious disease counts}
 \author{
-Michaela Paul and Sebastian Meyer\thanks{Author of correspondence: \email{Sebastian.Meyer@ifspm.uzh.ch}}\\
+Michaela Paul and Sebastian Meyer\thanks{Author of correspondence: \email{seb.meyer@fau.de} (new affiliation)}\\
 Epidemiology, Biostatistics and Prevention Institute\\
 University of Zurich, Zurich, Switzerland
 }
@@ -57,9 +56,9 @@ University of Zurich, Zurich, Switzerland
 \definecolor{Scode}{rgb}{0,0,0.56}
 \definecolor{Soutput}{rgb}{0,0,0}
 
-\DefineVerbatimEnvironment{Sinput}{Verbatim}{formatcom={\color{Sinput}},fontshape=sl,fontsize=\relsize{-1}}
-\DefineVerbatimEnvironment{Soutput}{Verbatim}{formatcom={\color{Soutput}},fontfamily=courier, fontshape=it,fontsize=\relsize{-2}}
-\DefineVerbatimEnvironment{Scode}{Verbatim}{formatcom={\color{Scode}},fontshape=sl,fontsize=\relsize{-1}}
+\DefineVerbatimEnvironment{Sinput}{Verbatim}{formatcom={\color{Sinput}},fontshape=sl,fontsize=\footnotesize}
+\DefineVerbatimEnvironment{Soutput}{Verbatim}{formatcom={\color{Soutput}},fontfamily=courier, fontshape=it,fontsize=\scriptsize}
+\DefineVerbatimEnvironment{Scode}{Verbatim}{formatcom={\color{Scode}},fontshape=sl,fontsize=\footnotesize}
 
 %%% Initial R code
 <<setup, echo=FALSE, results=hide>>=

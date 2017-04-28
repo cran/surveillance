@@ -75,7 +75,7 @@
   time-stamped geo-referenced surveillance data on infectious disease
   occurrence; see \code{vignette("twinstim")} for an illustration.
   A recent overview of the implemented space-time modeling frameworks
-  for epidemic phenomena is given by Meyer et al. (2016).
+  for epidemic phenomena is given by Meyer et al. (2017).
 }
 
 %% Author information is dynamically extracted from the DESCRIPTION file

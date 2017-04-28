@@ -1,10 +1,10 @@
 /*
  *  16-Aug 2012 / (C) Michael Hoehle
  *  This file is a modified version of the code ks.c available
- *  at http://svn.r-project.org/R/trunk/src/library/stats/src/ks.c
- *  The file is copyright 1995-2009 by The R Core Team under GPL-2 
+ *  at http://svn.r-project.org/R/trunk/src/library/stats/src/ks.c (r60102)
+ *  The file is copyright 1999-2009 by The R Core Team under GPL-2 
  *  (or later) as shown below. As stated in the GPL-2 license 
- *  the present file is again availbale under GPL-2.
+ *  the present file is again available under GPL-2.
  *
  *  License:
  *  This program is free software; you can redistribute it and/or modify

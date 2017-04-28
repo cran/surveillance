@@ -10,7 +10,7 @@
   A \code{twinstim} model as described in Meyer et al. (2012) is fitted to
   marked spatio-temporal point process data. This constitutes a
   regression approach for conditional intensity function modelling.
-  The implementation is illustrated in Meyer et al. (2016, Section 3),
+  The implementation is illustrated in Meyer et al. (2017, Section 3),
   see \code{vignette("twinstim")}.
 }
 
@@ -386,10 +386,11 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
   \emph{The Annals of Applied Statistics}, \bold{8} (3), 1612-1639.
   \doi{10.1214/14-AOAS743}
 
-  Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
+  Meyer, S., Held, L. and \enc{Höhle}{Hoehle}, M. (2017):
   Spatio-temporal analysis of epidemic phenomena using the \R package
-  \pkg{surveillance}. \emph{Journal of Statistical Software}. In press.\cr
-  Preprint available at \url{http://arxiv.org/abs/1411.0416}
+  \pkg{surveillance}.
+  \emph{Journal of Statistical Software}, \bold{77} (11), 1-55.
+  \doi{10.18637/jss.v077.i11}
 
   Rathbun, S. L. (1996):
   Asymptotic properties of the maximum likelihood estimator for

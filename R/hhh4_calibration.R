@@ -5,9 +5,9 @@
 ###
 ### calibrationTest() for "hhh4" fits
 ###
-### Copyright (C) 2015 Sebastian Meyer
-### $Revision: 1428 $
-### $Date: 2015-07-16 12:14:52 +0200 (Thu, 16. Jul 2015) $
+### Copyright (C) 2015,2017 Sebastian Meyer
+### $Revision: 1829 $
+### $Date: 2017-01-23 14:00:47 +0100 (Mon, 23. Jan 2017) $
 ################################################################################
 
 calibrationTest.hhh4 <- function (x,
@@ -27,14 +27,22 @@ calibrationTest.hhh4 <- function (x,
     res
 }
 
-calibrationTest.oneStepAhead <- function (x, ...)
+calibrationTest.oneStepAhead <- function (x, units = NULL, ...)
 {
     ## perform the calibration test
-    res <- calibrationTest.default(
-        x = x$observed,
-        mu = x$pred,
-        size = psi2size.oneStepAhead(x),
-        ...)
+    res <- if (is.null(units)) {
+        calibrationTest.default(
+            x = x$observed,
+            mu = x$pred,
+            size = psi2size.oneStepAhead(x),
+            ...)
+    } else {
+        calibrationTest.default(
+            x = x$observed[, units, drop = FALSE],
+            mu = x$pred[, units, drop = FALSE],
+            size = psi2size.oneStepAhead(x)[, units, drop = FALSE],
+            ...)
+    }
 
     ## change "data.name" to be the name of the supplied "oneStepAhead" object
     res$data.name <- deparse(substitute(x))

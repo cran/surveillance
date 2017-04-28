@@ -45,7 +45,7 @@ if (!COMPUTE) load("hhh4_spacetime-cache.RData", verbose = TRUE)
 \Plaintitle{hhh4: Endemic-epidemic modeling of areal count time series}
 \Shorttitle{Endemic-epidemic modeling of areal count time series}
 
-\author{Sebastian Meyer\thanks{Author of correspondence: \email{Sebastian.Meyer@ifspm.uzh.ch}}\\University of Zurich \And
+\author{Sebastian Meyer\thanks{Author of correspondence: \email{seb.meyer@fau.de} (new affiliation)}\\University of Zurich \And
         Leonhard Held\\University of Zurich \And
         Michael H\"ohle\\Stockholm University}
 \Plainauthor{Sebastian Meyer, Leonhard Held, Michael H\"ohle}

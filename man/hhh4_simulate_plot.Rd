@@ -4,27 +4,23 @@
 \alias{plot.hhh4simslist}
 \alias{plotHHH4sims_size}
 \alias{plotHHH4sims_time}
-\alias{scores.hhh4sims}
-\alias{scores.hhh4simslist}
+\alias{plotHHH4sims_fan}
 
 \title{
-Summarize Simulations from \code{"hhh4"} Models
+Plot Simulations from \code{"hhh4"} Models
 }
 
 \description{
 Arrays of simulated counts from \code{\link{simulate.hhh4}} can be
-visualized in various levels of aggregation: final size, time series.
-Furthermore, proper scoring rules can be calculated based on the
-simulated predictive distributions. Be aware, though, that the current
-implementation can only compute univariate scores, i.e., it treats the
-predictions at the various time points as independent.
+visualized as final size boxplots, individual or average time series,
+or fan charts (using the \CRANpkg{fanplot} package).
 }
 
 \usage{
 \method{plot}{hhh4sims}(x, ...)
 
 as.hhh4simslist(x, ...)
-\method{plot}{hhh4simslist}(x, type = c("size", "time"), ...,
+\method{plot}{hhh4simslist}(x, type = c("size", "time", "fan"), ...,
      groups = NULL, par.settings = list())
 
 plotHHH4sims_size(x, horizontal = TRUE, trafo = NULL, observed = TRUE,
@@ -35,8 +31,9 @@ plotHHH4sims_time(x, average = mean, individual = length(x) == 1,
     matplot.args = list(), initial.args = list(), legend = length(x) > 1,
     xlim = NULL, ylim = NULL, add = FALSE, ...)
 
-\method{scores}{hhh4sims}(x, which = "rps", units = NULL, ..., drop = TRUE)
-\method{scores}{hhh4simslist}(x, ...)
+plotHHH4sims_fan(x, which = 1,
+    fan.args = list(), initial.args = list(), observed.args = list(),
+    xlim = NULL, ylim = NULL, add = FALSE, ...)
 }
 
 \arguments{
@@ -109,27 +106,24 @@ plotHHH4sims_time(x, average = mean, individual = length(x) == 1,
     vectors of length 2 determining the axis limits.
   }
   \item{add}{
-    a logical indicating if the (mean) simulated time series should be
-    added to an existing plot.
+    a logical indicating if the (mean) simulated time series or the fan
+    chart, respectively, should be added to an existing plot.
   }
-
   \item{which}{
-    a character vector indicating which proper scoring rules to compute.
-    By default, only the ranked probability score (\code{"rps"}) is
-    calculated. Other options include \code{"logs"} and \code{"dss"}.
+    a single integer or a character string selecting the simulation in
+    \code{x} for which to produce the fan chart.
+    Defaults to the first simulation.
   }
-  \item{units}{
-    if non-\code{NULL}, an integer or character vector indexing the
-    columns of \code{x} to compute the scores for that subset only.
+  \item{fan.args}{
+    a list of graphical parameters for the \code{\link[fanplot]{fan}},
+    e.g., to employ a different \code{\link{colorRampPalette}} as
+    \code{fan.col}.
   }
-  \item{drop}{
-    a logical indicating if univariate dimensions should be dropped
-    (the default).
+  \item{observed.args}{
+    if a list (of graphical parameters for \code{\link{lines}}),
+    the originally observed counts are added to the plot.
   }
 }
-
-%% \value{
-%% }
 
 \author{
   Sebastian Meyer
@@ -151,8 +145,11 @@ salmSims <- simulate(salmFit, nsim = 300, seed = 3, subset = 678 + seq_len(20),
 ## compare final size distribution to observed value
 plot(salmSims)
 
-## simulated time series
+## individual and average simulated time series with a confidence interval
 plot(salmSims, type = "time", main = "2-weeks-ahead simulation")
+
+## fan chart based on the quantiles of the simulated counts at each time point
+plot(salmSims, type = "fan", main = "2-weeks-ahead simulation")
 
 
 ### multivariate example
@@ -187,12 +184,11 @@ plot(measlesSims)
 ## simulated time series
 plot(measlesSims, type = "time", individual = TRUE, ylim = c(0, 80))
 
-## compare proper scoring rules for a specific subset of the regions
-## (CAVE: these are univariate scores for each time point and region,
-##        which do not account for dependence over time)
-measlesScores5 <- scores(measlesSims, which = "rps",
-                         units = substr(colnames(measlesWeserEms), 4, 4) == "5")
-sapply(measlesScores5, mean)
+## fan charts
+opar <- par(mfrow = c(2,1))
+plot(measlesSims, type = "fan", which = 1, ylim = c(0, 80), main = "NegBin")
+plot(measlesSims, type = "fan", which = 2, ylim = c(0, 80), main = "Poisson")
+par(opar)
 }
 
 \keyword{hplot}

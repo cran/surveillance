@@ -10,7 +10,6 @@
 
 \usepackage{amsmath}
 \usepackage{amsfonts,amssymb}
-\usepackage{relsize}
 \setlength{\parindent}{0pt}
 
 %%% Meta data
@@ -37,9 +36,9 @@ Valentin Wimmer$^{(1,2)}$\thanks{Author of correspondence: \texttt{Valentin.Wimm
 \SweaveOpts{prefix.string=plots/glrnb}
 \setkeys{Gin}{width=1\textwidth} 
 
-\DefineVerbatimEnvironment{Sinput}{Verbatim}{fontshape=sl,fontsize=\relsize{-1}}
-\DefineVerbatimEnvironment{Soutput}{Verbatim}{fontsize=\relsize{-1}}
-\DefineVerbatimEnvironment{Scode}{Verbatim}{fontshape=sl,fontsize=\relsize{-1}}
+\DefineVerbatimEnvironment{Sinput}{Verbatim}{fontshape=sl,fontsize=\footnotesize}
+\DefineVerbatimEnvironment{Soutput}{Verbatim}{fontsize=\footnotesize}
+\DefineVerbatimEnvironment{Scode}{Verbatim}{fontshape=sl,fontsize=\footnotesize}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

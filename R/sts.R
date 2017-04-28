@@ -223,7 +223,7 @@ setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...)
     }
   }
   if (by == "unit") {
-    #Aggregate units
+    #Aggregate units (FIXME: this currently results in NULL colnames!)
     x@observed <- as.matrix(apply(x@observed, MARGIN=1, sum))
     x@state <- as.matrix(apply(x@state, MARGIN=1, sum))>0
     x@alarm <- as.matrix(apply(x@alarm, MARGIN=1, sum))>0 # contrary to counting for by="time"!

@@ -24,7 +24,7 @@ Print, Summary and other Standard Methods for \code{"hhh4"} Objects
 Besides \code{print} and \code{summary} methods there are also some standard
 extraction methods defined for objects of class \code{"hhh4"} resulting
 from a call to \code{\link{hhh4}}.
-The implementation is illustrated in Meyer et al. (2016, Section 5),
+The implementation is illustrated in Meyer et al. (2017, Section 5),
 see \code{vignette("hhh4_spacetime")}.
 }
 
@@ -133,10 +133,11 @@ see \code{vignette("hhh4_spacetime")}.
 }
 
 \references{
-  Meyer, S., Held, L. and H\enc{ö}{oe}hle, M. (2016):
+  Meyer, S., Held, L. and \enc{Höhle}{Hoehle}, M. (2017):
   Spatio-temporal analysis of epidemic phenomena using the \R package
-  \pkg{surveillance}. \emph{Journal of Statistical Software}. In press.\cr
-  Preprint available at \url{http://arxiv.org/abs/1411.0416}
+  \pkg{surveillance}.
+  \emph{Journal of Statistical Software}, \bold{77} (11), 1-55.
+  \doi{10.18637/jss.v077.i11}
 }
 
 \keyword{methods}

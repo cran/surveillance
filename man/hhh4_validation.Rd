@@ -1,10 +1,10 @@
 \encoding{latin1}
 \name{hhh4_validation}
 \alias{oneStepAhead}
-\alias{scores}
 \alias{scores.oneStepAhead}
 \alias{scores.hhh4}
 \alias{calibrationTest.oneStepAhead}
+\alias{calibrationTest.hhh4}
 \alias{pit.oneStepAhead}
 \alias{pit.hhh4}
 
@@ -12,15 +12,15 @@
 \description{
   The function \code{oneStepAhead} computes successive one-step-ahead
   predictions for a (random effects) HHH model fitted by \code{\link{hhh4}}. 
-
-  The function \code{scores} computes a number of (strictly) proper
-  scoring rules based on such one-step-ahead predictions
-  (or, for the \code{hhh4}-method, directly based on the fitted values).
-
-  See Paul and Held (2011) for further details.
-
+  The associated \code{\link{scores}}-method computes a number of (strictly) proper
+  scoring rules based on such one-step-ahead predictions;
+  see Paul and Held (2011) for details.
   There are also \code{\link{calibrationTest}} and \code{\link{pit}}
   methods for \code{oneStepAhead} predictions.
+  
+  Scores, calibration tests and PIT histograms can also be
+  computed for the fitted values of an \code{hhh4} model
+  (i.e., in-sample/training data evaluation).
 }
 
 \usage{
@@ -28,15 +28,17 @@ oneStepAhead(result, tp, type = c("rolling", "first", "final"),
              which.start = c("current", "final"),
              keep.estimates = FALSE, verbose = TRUE, cores = 1)
 
-scores(x, ...)
+## assessment of "oneStepAhead" predictions
 \method{scores}{oneStepAhead}(x, which = c("logs", "rps", "dss", "ses"),
        units = NULL, sign = FALSE, individual = FALSE, reverse = TRUE, ...)
+\method{calibrationTest}{oneStepAhead}(x, units = NULL, ...)
+\method{pit}{oneStepAhead}(x, units = NULL, ...)
+
+## assessment of the "hhh4" model fit (in-sample predictions)
 \method{scores}{hhh4}(x, which = c("logs", "rps", "dss", "ses"),
        subset = x$control$subset, units = seq_len(x$nUnit), sign = FALSE, ...)
-
-\method{calibrationTest}{oneStepAhead}(x, ...)
-
-\method{pit}{oneStepAhead}(x, ...)
+\method{calibrationTest}{hhh4}(x,
+                subset = x$control$subset, units = seq_len(x$nUnit), ...)
 \method{pit}{hhh4}(x, subset = x$control$subset, units = seq_len(x$nUnit), ...)
 }
 
@@ -99,21 +101,21 @@ scores(x, ...)
     scoring rules: logarithmic score (\code{"logs"}), ranked probability
     score (\code{"rps"}), Dawid-Sebastiani score (\code{"dss"}), and
     squared error score (\code{"ses"}). The normalized SES
-    (\code{"nses"}) is also available but it is improper and not
+    (\code{"nses"}) is also available but it is improper and hence not
     computed by default.\cr
     It is possible to name own scoring rules in \code{which}. These
     must be functions of \code{(x, mu, size)}, vectorized in all arguments
     (time x unit matrices) except that \code{size} is \code{NULL}
     in case of a Poisson model.
-    See the supplied scoring rules for guidance, e.g.,
-    \code{\link{logs}} or \code{\link{dss}}.}
+    See the available scoring rules for guidance, e.g., \code{\link{dss}}.
+  }
   \item{subset}{
     subset of time points for which to calculate the scores
-    (or the PIT histogram).
+    (or test calibration, or produce the PIT histogram, respectively).
     Defaults to the subset used for fitting the model.}
   \item{units}{integer or character vector indexing the units for which
-    the scores (or the PIT histogram) should be computed.
-    By default (\code{NULL}) all units are considered.}
+    to compute the scores (or the calibration test or the PIT histogram,
+    respectively). By default, all units are considered.}
   \item{sign}{logical indicating if the function should also return
     \code{sign(x-mu)}, i.e., the sign of the difference between
     the observed counts and corresponding predictions.
@@ -174,20 +176,23 @@ The \code{hhh4}-method of \code{scores} does not reverse rows.
 
 The \code{\link{calibrationTest}}- and \code{\link{pit}}-methods are
 just convenient wrappers around the respective default methods.
-See also \code{\link{calibrationTest.hhh4}}.
 }
 
 \references{
-  Czado, C., Gneiting, T. and Held, L. (2009) Predictive model 
-    assessment for count data. Biometrics, \bold{65}, 1254--1261
+  Czado, C., Gneiting, T. and Held, L. (2009):
+    Predictive model assessment for count data.
+    \emph{Biometrics}, \bold{65} (4), 1254-1261.
+    \doi{10.1111/j.1541-0420.2009.01191.x}
 
-  Paul, M. and Held, L. (2011) Predictive assessment of a non-linear
-    random  effects model for multivariate time series of infectious
-    disease counts. Statistics in Medicine, \bold{30}, 1118--1136
+  Paul, M. and Held, L. (2011):
+    Predictive assessment of a non-linear random effects model for
+    multivariate time series of infectious disease counts.
+    \emph{Statistics in Medicine}, \bold{30} (10), 1118-1136.
+    \doi{10.1002/sim.4177}
 }
 
 \author{
-Michaela Paul and Sebastian Meyer
+Sebastian Meyer and Michaela Paul
 }
 
 \seealso{
@@ -195,21 +200,22 @@ Michaela Paul and Sebastian Meyer
 }
 
 \examples{
-### univariate salmonella agona data
+### univariate salmonella agona count time series
 
 data("salmonella.agona")
-## convert to sts class
+## convert from old "disProg" to new "sts" class
 salmonella <- disProg2sts(salmonella.agona)
 
 ## generate formula for temporal and seasonal trends
-f.end <- addSeason2formula(f = ~1 + t, S=1, period=52)
-model1 <- list(ar = list(f=~1), end = list(f=f.end), family = "NegBin1")
+f.end <- addSeason2formula(~1 + t, S=1, period=52)
+model <- list(ar = list(f = ~1), end = list(f = f.end), family = "NegBin1")
 ## fit the model
-result <- hhh4(salmonella, model1)
+result <- hhh4(salmonella, model)
 
 ## do sequential one-step-ahead predictions for the last 5 weeks
 pred <- oneStepAhead(result, nrow(salmonella)-5, type="rolling",
                      which.start="final", verbose=FALSE)
+pred
 
 \dontshow{
 ## test equivalence of parallelized version
@@ -219,17 +225,22 @@ if (.Platform$OS.type == "unix" && isTRUE(parallel::detectCores() > 1))
                      which.start="final", verbose=FALSE, cores=2)))
 }
 
-## oneStepAhead(..., type="final") just means fitted values
+## note: oneStepAhead(..., type="final") just means fitted values
 stopifnot(identical(
     unname(oneStepAhead(result, nrow(salmonella)-5,
                         type="final", verbose=FALSE)$pred),
     unname(tail(fitted(result), 5))))
 
-## compute scores
+
+## compute scores of the one-step-ahead predictions
 (sc <- scores(pred, reverse = FALSE))
 
+## the above uses the scores-method for "oneStepAhead" predictions,
+## which is a simple wrapper around the default method:
+scores(x = pred$observed, mu = pred$pred, size = exp(pred$psi))
+
 ## scores with respect to the fitted values are similar
-(scFitted <- scores(result, subset = nrow(salmonella)-c(4:0)))
+(scFitted <- scores(result, subset = nrow(salmonella)-(4:0)))
 
 \dontshow{
 ## test that scFitted is equivalent to scores(oneStepAhead(..., type = "final"))
@@ -240,8 +251,52 @@ stopifnot(all.equal(
     check.attributes = FALSE))
 }
 
+
+## test if the one-step-ahead predictions are calibrated
+calibrationTest(pred)  # p = 0.8746
+
+## the above uses the calibrationTest-method for "oneStepAhead" predictions,
+## which is a simple wrapper around the default method:
+calibrationTest(x = pred$observed, mu = pred$pred, size = exp(pred$psi))
+
+## we can also test calibration of the fitted values
+## using the calibrationTest-method for "hhh4" fits
+calibrationTest(result, subset = nrow(salmonella)-(4:0))
+
+
 ## plot a (non-randomized) PIT histogram for the predictions
-with(pred, pit(x = observed, pdistr = "pnbinom", mu = pred, size = exp(psi)))
+pit(pred)
+
+## the above uses the pit-method for "oneStepAhead" predictions,
+## which is a simple wrapper around the default method:
+pit(x = pred$observed, pdistr = "pnbinom", mu = pred$pred, size = exp(pred$psi))
+
+
+### multivariate measles count time series
+## (omitting oneStepAhead forecasts here to keep runtime low)
+
+data("measlesWeserEms")
+
+## fit a hhh4 model with random effects in the endemic component
+measlesModel <- list(
+    end = list(f = addSeason2formula(~0 + ri(type="iid"))),
+    ar = list(f = ~1),
+    ne = list(f = ~1, weights = W_powerlaw(maxlag = 5)),
+    family = "NegBin1")
+measlesFit <- hhh4(measlesWeserEms, control = measlesModel)
+
+## plot fitted mean components
+plot(measlesFit, units = NULL)
+
+## assess overall (in-sample) calibration of the model, i.e.,
+## if the observed counts are from the fitted NegBin distribution
+calibrationTest(measlesFit) # default is DSS (not suitable for low counts)
+calibrationTest(measlesFit, which = "rps")  # p = 0.8267
+calibrationTest(measlesFit, which = "logs") # p = 0.636
+
+## to assess calibration in the second year for a specific district
+calibrationTest(measlesFit, subset = 53:104, units = "03452", which = "rps")
+pit(measlesFit, subset = 53:104, units = "03452")
 
 
 ### For a more sophisticated multivariate analysis of
@@ -253,5 +308,7 @@ demoscript
 #file.show(demoscript)
 }
 
+\keyword{univar}
+\keyword{htest}
+\keyword{dplot}
 \keyword{ts}
-\keyword{regression}
