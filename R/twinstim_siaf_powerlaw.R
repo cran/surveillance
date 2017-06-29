@@ -7,16 +7,17 @@
 ### This is the pure kernel of the Lomax density (the density requires d>1, but
 ### for the siaf specification we only want d to be positive)
 ###
-### Copyright (C) 2013-2014 Sebastian Meyer
-### $Revision: 769 $
-### $Date: 2014-02-14 11:45:59 +0100 (Fri, 14. Feb 2014) $
+### Copyright (C) 2013-2014,2017 Sebastian Meyer
+### $Revision: 1890 $
+### $Date: 2017-06-19 17:36:54 +0200 (Mon, 19. Jun 2017) $
 ################################################################################
 
 
-siaf.powerlaw <- function (nTypes = 1, validpars = NULL)
+siaf.powerlaw <- function (nTypes = 1, validpars = NULL, engine = "C")
 {
     nTypes <- as.integer(nTypes)
     stopifnot(length(nTypes) == 1L, nTypes > 0L)
+    engine <- match.arg(engine, c("C", "R"))
 
     ## for the moment we don't make this type-specific
     if (nTypes != 1) stop("type-specific shapes are not yet implemented")
@@ -38,10 +39,8 @@ siaf.powerlaw <- function (nTypes = 1, validpars = NULL)
     ))
 
     ## numerically integrate f over a polygonal domain
-    F <- function (polydomain, f, logpars, type = NULL, ...)
-        .polyCub.iso(polydomain$bdry, intrfr.powerlaw, logpars, #type,
-                     center=c(0,0), control=list(...))
-    
+    F <- siaf_F_polyCub_iso(intrfr_name = "intrfr.powerlaw", engine = engine)
+
     ## fast integration of f over a circular domain
     Fcircle <- function (r, logpars, type = NULL) {}
     body(Fcircle) <- as.call(c(as.name("{"),
@@ -72,25 +71,20 @@ siaf.powerlaw <- function (nTypes = 1, validpars = NULL)
         tmp,
         expression(
             sLength <- sqrt(.rowSums(s^2, nrow(s), 2L)),
-            rsigmad <- (sLength+sigma)^d,
-            derivlogsigma <- -d*sigma / rsigmad / (sLength+sigma),
-            derivlogd <- -log(rsigmad) / rsigmad,
+            rsigma <- sLength + sigma,
+            rsigmad <- rsigma^d,
+            derivlogsigma <- -d*sigma / rsigmad / rsigma,
+            derivlogd <- -d*log(rsigma) / rsigmad,
             cbind(derivlogsigma, derivlogd)
             )
     ))
 
     ## Numerical integration of 'deriv' over a polygonal domain
-    Deriv <- function (polydomain, deriv, logpars, type = NULL, ...)
-    {
-        res.logsigma <- .polyCub.iso(polydomain$bdry,
-                                     intrfr.powerlaw.dlogsigma, logpars, #type,
-                                     center=c(0,0), control=list(...))
-        res.logd <- .polyCub.iso(polydomain$bdry,
-                                 intrfr.powerlaw.dlogd, logpars, #type,
-                                 center=c(0,0), control=list(...))
-        c(res.logsigma, res.logd)
-    }
+    Deriv <- siaf_Deriv_polyCub_iso(
+        intrfr_names = c("intrfr.powerlaw.dlogsigma", "intrfr.powerlaw.dlogd"),
+        engine = engine)
 
+    ## Simulation function (via polar coordinates)
     simulate <- siaf.simulatePC(intrfr.powerlaw)
     ## if (!is.finite(ub)) normconst <- {
     ##     ## for sampling on [0;Inf] the density is only proper if d > 2
@@ -147,11 +141,11 @@ intrfr.powerlaw.dlogd <- function (R, logpars, types = NULL)
     sigma <- exp(logpars[[1L]])
     d <- exp(logpars[[2L]])
     if (d == 1) {
-        sigma * log(sigma) * (1-log(sigma)/2) - log(R+sigma) * (R+sigma) +
+        sigma * logpars[[1L]] * (1-logpars[[1L]]/2) - log(R+sigma) * (R+sigma) +
             sigma/2 * log(R+sigma)^2 + R
     } else if (d == 2) {
         (-log(R+sigma) * ((R+sigma)*log(R+sigma) + 2*sigma) +
-         (R+sigma)*log(sigma)*(log(sigma)+2) + 2*R) / (R+sigma)
+         (R+sigma)*logpars[[1L]]*(logpars[[1L]]+2) + 2*R) / (R+sigma)
     } else {
         (sigma^(2-d) * (logpars[[1L]]*(-d^2 + 3*d - 2) - 2*d + 3) +
          (R+sigma)^(1-d) * (log(R+sigma)*(d-1)*(d-2) * (R*(d-1) + sigma) +

@@ -1,14 +1,12 @@
 \name{deleval}
 \alias{deleval}
-\encoding{latin1}
-
-\title{Surgical failures data}
+\docType{data}
+\title{Surgical Failures Data}
 \description{
   The dataset from Steiner et al. (1999) on A synthetic dataset from the Danish meat inspection -- useful
   for illustrating the beta-binomial CUSUM.
 }
-\usage{data(abattoir)
-}
+\usage{data(abattoir)}
 \details{
 Steiner et al. (1999) use data from de Leval et al. (1994) to
 illustrate monitoring of failure rates of a surgical procedure

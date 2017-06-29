@@ -41,8 +41,8 @@ test_that("score vector agrees with numerical approximation", {
 
 ### now check with identity link for the epidemic predictor
 
-model2 <- update(model, siaf = NULL, tiaf = NULL, epidemic = ~1, epilink = "log")
-model2i <- update(model2, epilink = "identity")
+model2 <- update.default(model, siaf = NULL, tiaf = NULL, epidemic = ~1, epilink = "log")
+model2i <- update.default(model2, epilink = "identity")
 theta2 <- theta2i <- theta[1:4]
 theta2i["e.(Intercept)"] <- exp(theta2["e.(Intercept)"])
 

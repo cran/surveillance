@@ -6,9 +6,9 @@
 ### Maximum Likelihood inference for the two-component spatio-temporal intensity
 ### model described in Meyer et al (2012), DOI: 10.1111/j.1541-0420.2011.01684.x
 ###
-### Copyright (C) 2009-2016 Sebastian Meyer
-### $Revision: 1750 $
-### $Date: 2016-06-06 20:29:40 +0200 (Mon, 06. Jun 2016) $
+### Copyright (C) 2009-2017 Sebastian Meyer
+### $Revision: 1901 $
+### $Date: 2017-06-20 17:17:41 +0200 (Tue, 20. Jun 2017) $
 ################################################################################
 
 
@@ -51,9 +51,9 @@ twinstim <- function (
         optimMethod, optimRes, optimRes1, optimValid,
         origenv.endemic, origenv.epidemic, partial,
         partialloglik, ptm, qmatrix, res, negsc, score, start, subset, tmpexpr,
-        typeSpecificEndemicIntercept, useScore, verbose, whichfixed, 
+        typeSpecificEndemicIntercept, useScore, verbose, whichfixed,
         inherits = FALSE)))
-    
+
     ## also set fixed[st]iafpars to FALSE (for free posteriori evaluations, and
     ## to be defined for score function evaluation with optim.args=NULL)
     on.exit(fixedsiafpars <- fixedtiafpars <- FALSE, add = TRUE)
@@ -161,7 +161,7 @@ twinstim <- function (
                        eps.t = eps.t, eps.s = eps.s, BLOCK = BLOCK,
                        obsInfLength = .obsInfLength, bdist = .bdist)
 
-    
+
     ### Extract essential information from model frame
 
     # 'inmfe' indexes rows of data$events@data and is necessary for subsetting
@@ -224,7 +224,7 @@ twinstim <- function (
 
 
     ### Drop "terms" and restore original formula environment
-    
+
     epidemic <- formula(epidemic)
     if (epilink != "log") # set as attribute only if non-standard link function
         attr(epidemic, "link") <- epilink
@@ -258,7 +258,7 @@ twinstim <- function (
     ## (will be handled separately)
     typeSpecificEndemicIntercept <- "1 | type" %in% attr(endemic, "term.labels")
     if (typeSpecificEndemicIntercept) {
-        endemic <- update(endemic, ~ . - (1|type)) # this drops the terms attributes
+        endemic <- update.formula(endemic, ~ . - (1|type)) # this drops the terms attributes
         endemic <- terms(endemic, data = data$stgrid, keep.order = TRUE)
     }
 
@@ -301,7 +301,7 @@ twinstim <- function (
                                # for debugging & necessary for intensityplots
         gridBlocks <- mfhGrid[["(BLOCK)"]]
         histIntervals <- data$stgrid[!duplicated.default(
-            data$stgrid$BLOCK, nmax = gridBlocks[length(gridBlocks)]
+            data$stgrid$BLOCK, nmax = data$stgrid$BLOCK[length(data$stgrid$BLOCK)]
         ), c("BLOCK", "start", "stop")] # sorted
         row.names(histIntervals) <- NULL
         histIntervals <- histIntervals[histIntervals$start >= t0 &
@@ -342,9 +342,9 @@ twinstim <- function (
         hEventsExpr <- call("exp", hEventsExpr)
     } else if (verbose) message("no endemic component in model")
 
-    
+
     ### Drop "terms" and restore original formula environment
-    
+
     endemic <- if (typeSpecificEndemicIntercept) {
         ## re-add it to the endemic formula
         update.formula(formula(endemic), ~ (1|type) + .)
@@ -356,10 +356,16 @@ twinstim <- function (
     ## Alternatively, we could set it to parent.frame().
 
 
-    ### Check that there is at least one parameter
+    ### Stop if model is degenerate
 
-    if (!hash && !hase) {
-        stop("nothing to do: neither endemic nor epidemic parts were specified")
+    if (!hash) {
+        if (hase) {
+            if (nEventsWithoutSources <- sum(lengths(eventSources[includes]) == 0))
+                stop("found ", nEventsWithoutSources, " events without .sources ",
+                     "(impossible in a purely epidemic model)")
+        } else {
+            stop("nothing to do: neither endemic nor epidemic parts were specified")
+        }
     }
 
 
@@ -402,7 +408,7 @@ twinstim <- function (
             cores <- 1L
             useParallel <- FALSE
         }
-        
+
         ## Define function that integrates the 'tiaf' function
         .tiafInt <- .tiafIntFUN()
 
@@ -435,7 +441,7 @@ twinstim <- function (
         .siafInt.args <- c(alist(siafpars), control.siaf$F)
 
     } else {
-        
+
         if (!missing(siaf) && !is.null(siaf))
             warning("'siaf' can only be modelled in conjunction with an 'epidemic' process")
         if (!missing(tiaf) && !is.null(tiaf))
@@ -903,7 +909,7 @@ twinstim <- function (
                       sc = if (useScore) score else NULL,
                       fi = if (useScore) fisherinfo else NULL)
 
-    
+
     ### Include check for validity of siafpars and tiafpars ('validpars') in ll
 
     if (!is.null(siaf$validpars)) {
@@ -972,7 +978,7 @@ twinstim <- function (
                           length(optim.args$par), npars))
         }
     }
-    
+
     ## Set names for theta
     names(optim.args$par) <- c(
         if (nbeta0 > 1L) {
@@ -1025,7 +1031,7 @@ twinstim <- function (
 
     ### Define negative log-likelihood (score, hessian) for minimization
     ### as a function of the non-fixed parameters
-    
+
     negll <- ll
     body(negll)[[length(body(negll))]] <-
         call("-", body(negll)[[length(body(negll))]])
@@ -1062,7 +1068,7 @@ twinstim <- function (
                      quote(!fixed), quote(!fixed), drop=FALSE)
         }
 
-        ## if siafpars or tiafpars are fixed, pre-evaluate integrals    
+        ## if siafpars or tiafpars are fixed, pre-evaluate integrals
         if (fixedsiafpars) {
             if (verbose)
                 cat("pre-evaluating 'siaf' integrals with fixed parameters ...\n")
@@ -1218,11 +1224,11 @@ twinstim <- function (
 
 
         ## Convergence message
-        
+
         msgConvergence <- if (finetune || optimMethod != "nlminb") {
             paste("code", optimRes$convergence)
         } else optimRes$message
-        
+
         if (optimRes$convergence != 0) {
             msgNotConverged <- paste0("optimization routine did not converge (",
                                       msgConvergence, ")")
@@ -1287,7 +1293,7 @@ twinstim <- function (
             dimnames = list(names(initpars), names(initpars))
             )
         )
-    
+
     # If requested, add observed fisher info (= negative hessian at maximum)
     fit["fisherinfo.observed"] <- list(
         if (any(!fixed) && !is.null(optimRes$hessian)) optimRes$hessian
@@ -1312,7 +1318,7 @@ twinstim <- function (
         if (!fixedsiafpars) siafInt <- do.call("..siafInt", .siafInt.args)
         if (!fixedtiafpars) tiafInt <- .tiafInt(tiafpars)
     }
-    
+
     # fitted intensities
     hEvents <- if (hash) .hEvents(unname(beta0), beta) else rep.int(0, Nin)
     eEvents <- if (hase) {
@@ -1321,7 +1327,7 @@ twinstim <- function (
     fit$fitted <- hEvents + eEvents   # = lambdaEvents  # Nin-vector
     fit$fittedComponents <- cbind(h = hEvents, e = eEvents)
     rm(hEvents, eEvents)
-    
+
     # calculate cumulative ground intensities at event times
     # Note: this function is also used by residuals.twinstim
     LambdagEvents <- function (cores = 1L, cumCIF.pb = interactive())
@@ -1357,7 +1363,7 @@ twinstim <- function (
     fit$R0 <- if (hase) qSum * gammapred * siafInt * tiafInt else rep.int(0, N)
     names(fit$R0) <- row.names(mfe)
 
-    
+
     ### Append model information
 
     fit$npars <- c(nbeta0 = nbeta0, p = p,
@@ -1369,7 +1375,7 @@ twinstim <- function (
                         siaf = siaf, tiaf = tiaf)
     fit["control.siaf"] <- list(control.siaf)    # might be NULL
 
-    
+
     ### Append optimizer configuration
 
     optim.args$par <- initpars        # reset to also include fixed coefficients

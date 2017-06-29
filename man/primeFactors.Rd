@@ -1,19 +1,14 @@
 \name{primeFactors}
 \alias{primeFactors}
-\encoding{latin1}
-
-\title{Prime number factorization}
+\title{Prime Number Factorization}
 \description{
-       Computes prime number factorization of an integer x. 
+  Computes the prime number factorization of an integer.
 }
 \usage{
-      primeFactors(x)
+primeFactors(x)
 }
 \arguments{
-      \item{x}{an integer}
+  \item{x}{an integer}
 }
-\value{vector with prime number factorization of x}
-\keyword{hplot}
-
-
-% bestCombination
+\value{vector with prime number factorization of \code{x}}
+\keyword{math}

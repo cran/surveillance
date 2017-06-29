@@ -1,22 +1,21 @@
 \name{create.grid}
 \alias{create.grid}
-\encoding{latin1}
 \title{Create a Matrix of Initial Values for \code{algo.hhh.grid}}
 \description{
   (An auxiliary function for the \strong{deprecated} HHH estimation
   routine \code{\link{algo.hhh.grid}}; use \code{\link{hhh4}} instead.)
   
-       For a given model and a list of parameters specified as \code{param = c(lower,upper,length)},
-       \code{create.grid} creates a grid of initial values for \code{algo.hhh.grid}.
-       The resulting matrix contains all combinations of the supplied parameters 
-       which each are a sequence of length \code{length} from \code{lower} to 
-       \code{upper}.  
-       Note that the autoregressive parameters \eqn{\lambda, \phi} and the
-       overdispersion parameter \eqn{\psi} must be positive.  
-       Only one sequence of initial values is considered for the autregressive,
-       endemic and overdispersion parameters to create the grid,
-       e.g. initial values are the same
-       for each one of the seasonal and trend parameters. 
+  For a given model and a list of parameters specified as \code{param = c(lower,upper,length)},
+  \code{create.grid} creates a grid of initial values for \code{algo.hhh.grid}.
+  The resulting matrix contains all combinations of the supplied parameters 
+  which each are a sequence of length \code{length} from \code{lower} to 
+  \code{upper}.  
+  Note that the autoregressive parameters \eqn{\lambda, \phi} and the
+  overdispersion parameter \eqn{\psi} must be positive.  
+  Only one sequence of initial values is considered for the autregressive,
+  endemic and overdispersion parameters to create the grid,
+  e.g. initial values are the same
+  for each one of the seasonal and trend parameters. 
 }
 \usage{
 create.grid(disProgObj, control, params = list(epidemic = c(0.1, 0.9, 5),

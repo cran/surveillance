@@ -1,7 +1,5 @@
 \name{algo.farrington.assign.weights}
 \alias{algo.farrington.assign.weights}
-\encoding{latin1}
-
 \title{Assign weights to base counts}
 \description{
   Weights are assigned according to the Anscombe residuals
@@ -16,7 +14,5 @@ algo.farrington.assign.weights(s, weightsThreshold=1)
     (default value), in the improved version this value is suggested to be 2.58.}
 }
 \value{Weights according to the residuals}
-\seealso{See Also as \code{\link{anscombe.residuals}}}
+\seealso{\code{\link{anscombe.residuals}}}
 \keyword{regression}
-
-

@@ -1,191 +1,7 @@
-## Use meta data extracted from the DESCRIPTION file to get author names
-## (the variable 'meta' is defined in readCitationFile())
-authors <- utils:::.read_authors_at_R_field(meta$"Authors@R")
-
-
-### Outer header
-
-citHeader("Some guidelines for citing package",
-          sQuote("surveillance"), "in publications:")
-
-
-
-############
-### hhh4 ###
-############
-
 bibentry(
     bibtype = "Article",
-    header = "The seminal paper introducing the hhh4() modeling framework:",
-    author = c(authors[c("LH","MH")], person("Mathias", "Hofmann")),
-    title = "A statistical framework for the analysis of multivariate infectious disease surveillance counts",
-    journal = "Statistical Modelling",
-    issn = "1471-082X",
-    year = "2005",
-    volume = "5",
-    number = "3",
-    pages = "187--199",
-    doi = "10.1191/1471082X05st098oa"
-)
-
-bibentry(
-    bibtype = "Article",
-    header = "For multivariate hhh4() models *without* random effects, cite:",
-    author = c(authors[c("MP","LH")], person(c("André", "Michael"), "Toschke")),
-    title = "Multivariate modelling of infectious disease surveillance data",
-    journal = "Statistics in Medicine",
-    issn = "0277-6715",
-    year = "2008",
-    volume = "27",
-    number = "29",
-    pages = "6250--6267",
-    doi = "10.1002/sim.3440"
-)
-
-bibentry(
-    bibtype = "Article",
-    header = "For multivariate hhh4() models *with* random effects, cite:",
-    author = authors[c("MP","LH")],
-    title = "Predictive assessment of a non-linear random effects model for multivariate time series of infectious disease counts",
-    journal = "Statistics in Medicine",
-    issn = "0277-6715",
-    year = "2011",
-    volume = "30",
-    number = "10",
-    pages = "1118--1136",
-    doi = "10.1002/sim.4177"
-)
-
-bibentry(
-    bibtype = "Article",
-    header = "For spatial power-law models with hhh4() or twinstim(), cite:",
-    author = authors[c("SM", "LH")],
-    title = "Power-law models for infectious disease spread",
-    journal = "The Annals of Applied Statistics",
-    issn = "1932-6157",
-    year = "2014",
-    volume = "8",
-    number = "3",
-    pages = "1612--1639",
-    doi = "10.1214/14-AOAS743"
-)
-
-
-###############
-### twinSIR ###
-###############
-
-bibentry(
-    bibtype = "Article",
-    header = "If twinSIR() is used, cite:",
-    author = authors["MH"],
-    title = "Additive-multiplicative regression models for spatio-temporal epidemics",
-    journal = "Biometrical Journal",
-    issn = "0323-3847",
-    year = "2009",
-    volume = "51",
-    number = "6",
-    pages = "961--978",
-    doi = "10.1002/bimj.200900050"
-)
-
-
-################
-### twinstim ###
-################
-
-bibentry(
-    bibtype = "Article",
-    header = "If twinstim() is used, cite:",
-    author = c(authors["SM"], person("Johannes", "Elias"), authors["MH"]),
-    title = "A space-time conditional intensity model for invasive meningococcal disease occurrence",
-    journal = "Biometrics",
-    issn = "0006-341X",
-    year = "2012",
-    volume = "68",
-    number = "2",
-    pages = "607--616",
-    doi = "10.1111/j.1541-0420.2011.01684.x"
-)
-
-bibentry(
-    bibtype = "Article",
-    header = "If knox() or epitest() is used, cite:",
-    author = c(authors["SM"], person("Ingeborg", "Warnke"),
-               person("Wulf", "Rössler"), authors["LH"]),
-    title = "Model-based testing for space-time interaction using point processes: An application to psychiatric hospital admissions in an urban area",
-    journal = "Spatial and Spatio-temporal Epidemiology",
-    issn = "1877-5845",
-    year = "2016",
-    volume = "17",
-    pages = "15--25",
-    doi = "10.1016/j.sste.2016.03.002"
-)
-
-
-##############
-### algo.* ###
-##############
-
-bibentry(
-    bibtype = "Article",
-    header = "For many of the algo.* functions, the appropriate citation is:",
-    title = "surveillance: An {R} package for the monitoring of infectious diseases",
-    author = authors["MH"],
-    journal = "Computational Statistics",
-    year = "2007",
-    volume = "22",
-    number = "4",
-    pages = "571--582",
-    doi = "10.1007/s00180-007-0074-8"
-)
-
-
-############
-### boda ###
-############
-
-bibentry(
-    bibtype = "Article",
-    header = "If boda() is used, cite:",
-    author = c(person("Juliane", "Manitz"), authors["MH"]),
-    title = "Bayesian outbreak detection algorithm for monitoring reported cases of campylobacteriosis in Germany",
-    journal = "Biometrical Journal",
-    issn = "0323-3847",
-    year = "2013",
-    volume = "55",
-    number = "4",
-    pages = "509--526",
-    doi = "10.1002/bimj.201200141"
-)
-
-
-###############
-### nowcast ###
-###############
-
-bibentry(
-    bibtype = "Article",
-    header = "For the nowcast()ing functionality, the appropriate citation is:",
-    title = "Bayesian Nowcasting during the STEC O104:H4 Outbreak in Germany, 2011", 
-    author = c(authors["MH"],person("Matthias", "an der Heiden")),
-    journal = "Biometrics",
-    year = "2014",
-    volume = "70",
-    number = "4",
-    pages = "993--1002",
-    doi = "10.1111/biom.12194"
-)
-
-
-##################
-### JSS papers ###
-##################
-
-bibentry(
-    bibtype = "Article",
-    header = "As a general software reference for the monitoring functionality, please cite:",
-    author = authors[c("MS", "DS", "MH")],
+    header = "As a general software reference for the _monitoring_ functionality, please cite:",
+    author = c(person("Maëlle", "Salmon"), person("Dirk", "Schumacher"), person("Michael", "Höhle")),
     title = "Monitoring Count Time Series in {R}: Aberration Detection in Public Health Surveillance",
     journal = "Journal of Statistical Software",
     year = "2016",
@@ -197,8 +13,8 @@ bibentry(
 
 bibentry(
     bibtype = "Article",
-    header = "As a general reference for the spatio-temporal modeling frameworks, please cite:",
-    author = authors[c("SM", "LH", "MH")],
+    header = "As a general reference for the spatio-temporal _modeling_ frameworks, please cite:",
+    author = c(person("Sebastian", "Meyer"), person("Leonhard", "Held"), person("Michael", "Höhle")),
     title = "Spatio-Temporal Analysis of Epidemic Phenomena Using the {R} Package {surveillance}",
     journal = "Journal of Statistical Software",
     year = "2017",
@@ -208,22 +24,5 @@ bibentry(
     doi = "10.18637/jss.v077.i11"
 )
 
-
-################################
-### basic software reference ###
-################################
-
-{
-    softwareRef <- citation(auto = meta)
-    softwareRef$key <- "R:surveillance"
-    softwareRef$header <- paste("To cite the software package",
-                                sQuote("surveillance"), "itself, use:")
-    softwareRef
-}
-
-
-
-### Outer footer
-
-citFooter("In general, the references given in the help pages",
-          "of the respective main functions should be used.")
+citFooter("References to the underlying methodological papers can be found via",
+          "'surveillance:::REFERENCES' and on the help pages of the functions.")

@@ -1,4 +1,3 @@
-\encoding{latin1}
 \name{hhh4_formula}
 \alias{fe}
 \alias{ri}
@@ -14,10 +13,10 @@ respectively, in the component formulae of \code{\link{hhh4}}.
 }
 
 \usage{
-  fe(x, unitSpecific = FALSE, which = NULL, initial = NULL)
+fe(x, unitSpecific = FALSE, which = NULL, initial = NULL)
 
-  ri(type = c("iid","car"), corr = c("none", "all"),
-     initial.fe = 0, initial.var = -.5, initial.re = NULL)
+ri(type = c("iid","car"), corr = c("none", "all"),
+   initial.fe = 0, initial.var = -.5, initial.re = NULL)
 }
 
 \arguments{
@@ -58,7 +57,6 @@ respectively, in the component formulae of \code{\link{hhh4}}.
     used for optimization. The default \code{NULL} are random numbers
     from a normal distribution with zero mean and variance 0.001.}
 }
-
 
 \seealso{
 \code{\link{addSeason2formula}}

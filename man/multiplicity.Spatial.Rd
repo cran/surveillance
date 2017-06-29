@@ -21,8 +21,6 @@ Count Number of Instances of Points
 
 \arguments{
   \item{x}{
-    %% an object, for which a \code{multiplicity} method is defined, e.g.
-    %% a numeric matrix (or anything coercible to it by \code{as.matrix})
     a \code{"\linkS4class{Spatial}"} object (we only need a
     \code{\link{coordinates}}-method), e.g. of class
     \code{"\linkS4class{SpatialPoints}"}. 

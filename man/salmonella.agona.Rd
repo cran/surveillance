@@ -10,12 +10,11 @@
 }
 \usage{data(salmonella.agona)}
 \format{
-  A \code{disProg} object with 312 observations starting from week
-  1 in 1990. 
+  A \code{disProg} object with 312 observations starting from week 1 in 1990.
 }
-\source{A statistical algorithm for the early detection of outbreaks of infectious disease, Farrington, C.P., Andrews, N.J, Beale A.D. and Catchpole, M.A. (1996). , J. R. Statist. Soc. A, 159, 547-563.}
-\examples{
-data(salmonella.agona)
+\source{
+  A statistical algorithm for the early detection of outbreaks of
+  infectious disease, Farrington, C.P., Andrews, N.J, Beale A.D. and
+  Catchpole, M.A. (1996). , J. R. Statist. Soc. A, 159, 547-563.
 }
 \keyword{datasets}
-

@@ -1,6 +1,6 @@
 \name{fluBYBW}
 \alias{fluBYBW}
-\encoding{latin1}
+\docType{data}
 
 \title{Influenza in Southern Germany}
 

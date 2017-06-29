@@ -2,12 +2,11 @@
 \alias{testSim}
 \encoding{latin1}
 \title{Print xtable for a Simulated Disease and the Summary}
-\description{Just a test method.
-}
+\description{Just a test method.}
 \usage{
-    testSim(p = 0.99, r = 0.01, length = 400, A = 1, alpha = 1,
-            beta = 0, phi = 0, frequency = 1, state = NULL, K, 
-            range = 200:400)
+testSim(p = 0.99, r = 0.01, length = 400, A = 1, alpha = 1,
+        beta = 0, phi = 0, frequency = 1, state = NULL, K, 
+        range = 200:400)
 }
 \arguments{
 \item{p}{probability to get a new epidemic at time i if there was one at time i-1, default 0.99}
@@ -27,21 +26,20 @@
 \item{range}{range of timepoints to be evaluated by the RKI 1 system, default 200:400.}
 }
 \value{
-\item{xtable}{one printed latex table and a result plot}
+one printed LaTeX xtable and a result plot
 }
-\details{A point-source epidemic is generated and sent to the RKI 1 system, the quality values for
+\details{
+  A point-source epidemic is generated and sent to the RKI 1 system, the quality values for
   the result are computed and shown as a latex table. Additionally a plot of the result
   is generated.
 }
-\seealso{\code{\link{sim.pointSource}}, \code{\link{algo.call}}, \code{\link{algo.compare}},
+\seealso{
+  \code{\link{sim.pointSource}}, \code{\link{algo.call}}, \code{\link{algo.compare}},
   \code{\link{plot.survRes}}, \code{\link{compMatrix.writeTable}}
 }
 \author{M. \enc{Höhle}{Hoehle}, A. Riebler, C. Lang}
 \examples{
-    testSim(K = 2)
-    testSim(r = 0.5, K = 5)
+testSim(K = 2)
+testSim(r = 0.5, K = 5)
 }
-
 \keyword{misc}
-
-

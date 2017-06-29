@@ -3,7 +3,6 @@
 \docType{data}
 \title{Hospitalization date for HUS cases of the STEC outbreak in Germany, 2011}
 \description{
-  
   Data contain the date of hospitalization for 630 hemolytic-uremic
   syndrome (HUS) cases during the large STEC outbreak in Germany,
   2011. Note: Only HUS cases which ultimately had a hospitalization
@@ -26,22 +25,20 @@
   discrepancies when compared with the results of the paper. However, as
   mentioned in the paper, longer delays were not very relevant for the
   nowcasting.
-
 }
 
 \usage{data(husO104Hosp)}
 \format{
   A \code{data.frame} object. 
 }
+
 \source{
-  
   Data were collected during the outbreak as part of the mandatory
   reporting of notifiable diseases in Germany (Faensen et al.,
   2006). Here, reports are transmitted from the local health authorities
   via the state health authorities to the Robert Koch Institute, Berlin.
   The resulting reporting triangle corresponds to Fig. 1 of the Web
   appendix of \enc{Höhle}{Hoehle} and an der Heiden (2014).
-  
 }
 
 \references{
@@ -61,7 +58,4 @@
   diseases, Euro Surveillance, 2006;11(4):100-103.
 }
 
-\examples{
-data("husO104Hosp")
-}
 \keyword{datasets}

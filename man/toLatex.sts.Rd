@@ -1,7 +1,6 @@
 \name{toLatex.sts}
 \alias{toLatex.sts}
 \alias{toLatex,sts-method}
-\encoding{latin1}
 
 \title{\code{toLatex}-Method for \code{"sts"} Objects}
 
@@ -31,32 +30,26 @@ data. Therefore range needs to be a numerical vector of indexes from 1 to length
 \item{\dots}{further arguments passed to \code{\link{print.xtable}}.}
 }
 
-%% \details{
-%% FIXME
-%% }
-
 \value{
  An object of class \code{\link[=toLatex]{"Latex"}}.
 }
 
 \examples{
+# Create a test object
+data("salmonella.agona")
 
-  # Create a test object
-  data("salmonella.agona")
-  
-  # Create the corresponding sts object from the old disProg object
-  salm <- disProg2sts(salmonella.agona)
-  
-  control <- list(range=(260:312),
-                   noPeriods=1,populationOffset=FALSE,
-                   fitFun="algo.farrington.fitGLM.flexible",
-                   b=4,w=3,weightsThreshold=1,
-                   pastWeeksNotIncluded=3,
-                   pThresholdTrend=0.05,trend=TRUE,
-                   thresholdMethod="delta",alpha=0.1)
-  salm <- farringtonFlexible(salm,control=control)
-  print(toLatex(salm))
+# Create the corresponding sts object from the old disProg object
+salm <- disProg2sts(salmonella.agona)
 
+control <- list(range=(260:312),
+                noPeriods=1,populationOffset=FALSE,
+                fitFun="algo.farrington.fitGLM.flexible",
+                b=4,w=3,weightsThreshold=1,
+                pastWeeksNotIncluded=3,
+                pThresholdTrend=0.05,trend=TRUE,
+                thresholdMethod="delta",alpha=0.1)
+salm <- farringtonFlexible(salm,control=control)
+print(toLatex(salm))
 }
 
 \author{Dirk Schumacher}

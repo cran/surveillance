@@ -1,7 +1,6 @@
 \name{create.disProg}
 \alias{create.disProg}
 \alias{print.disProg}
-\encoding{latin1}
 
 \title{Creating an object of class disProg}
 \description{
@@ -12,8 +11,8 @@
   information about neighbouring units and population proportions.
 }
 \usage{
-  create.disProg(week, observed, state, start=c(2001,1), freq=52, 
-  neighbourhood=NULL, populationFrac=NULL, epochAsDate=FALSE)
+create.disProg(week, observed, state, start=c(2001,1), freq=52, 
+               neighbourhood=NULL, populationFrac=NULL, epochAsDate=FALSE)
 }
 \arguments{
 \item{week}{index in the matrix of observations, typically weeks}
@@ -29,28 +28,22 @@
 \item{populationFrac}{matrix with corresponding population proportions} 
 \item{epochAsDate}{interpret the integers in \code{week} as Dates. Default is \code{FALSE}}
 }
-\value{\item{disProg}{object of class \code{disProg}  
-  }
-}
+\value{object of class \code{disProg}}
 \author{M. Paul}
 \examples{
+# create an univariate disProg object 
+# read in salmonella.agona data
+salmonella <- read.table(system.file("extdata/salmonella.agona.txt", 
+                                     package = "surveillance"), header = TRUE)
+# look at data.frame
+str(salmonella)
 
-  # create an univariate disProg object 
-  # read in salmonella.agona data
-  salmonella <- read.table(system.file("extdata/salmonella.agona.txt", 
-                                      package = "surveillance"), header = TRUE)
-  # look at data.frame
-  str(salmonella)
+salmonellaDisProg <- create.disProg(week = 1:nrow(salmonella), 
+                                    observed = salmonella$observed,
+                                    state = salmonella$state,
+                                    start = c(1990, 1))
 
-  salmonellaDisProg <- create.disProg(week = 1:nrow(salmonella), 
-        observed = salmonella$observed,
-        state = salmonella$state, start = c(1990, 1))
-
-  # look at disProg object
-  salmonellaDisProg
-  
+# look at disProg object
+salmonellaDisProg
 }
-\keyword{hplot}
-
-
-
+\keyword{datagen}

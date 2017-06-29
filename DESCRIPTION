@@ -1,8 +1,8 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.13.1
-Date: 2017-04-28
+Version: 1.14.0
+Date: 2017-06-29
 Authors@R: c(MH = person("Michael", "Höhle",
                   email = "hoehle@math.su.se",
                   role = c("aut", "ths")),
@@ -38,9 +38,9 @@ Author: Michael Höhle [aut, ths], Sebastian Meyer [aut, cre],
         (A few code segments are modified versions of code from base R)
 Maintainer: Sebastian Meyer <seb.meyer@fau.de>
 Depends: R (>= 3.2.0), methods, grDevices, graphics, stats, utils, sp
-        (>= 1.0-15), xtable (>= 1.7-0), polyCub (>= 0.4-3)
+        (>= 1.0-15), xtable (>= 1.7-0), polyCub (>= 0.6.0)
 Imports: Rcpp (>= 0.11.1), MASS, Matrix, nlme, spatstat (>= 1.36-0)
-LinkingTo: Rcpp
+LinkingTo: Rcpp, polyCub
 Suggests: parallel, grid, xts, gridExtra, lattice, colorspace, scales,
         animation, msm, spc, quadprog, memoise, polyclip, rgeos,
         gpclib, maptools, intervals, spdep, numDeriv, maxLik, gsl,
@@ -78,12 +78,13 @@ Description: Statistical methods for the modeling and monitoring of time series
         for epidemic phenomena is given by Meyer et al. (2017)
         <doi:10.18637/jss.v077.i11>.
 License: GPL-2
-URL: http://surveillance.r-forge.r-project.org/
+URL: http://surveillance.R-Forge.R-project.org/
 Additional_repositories: https://www.math.ntnu.no/inla/R/stable
-BugReports: https://r-forge.r-project.org/tracker/?group_id=45
+BugReports: https://R-Forge.R-project.org/tracker/?group_id=45
 Encoding: latin1
 VignetteBuilder: utils, knitr
+RoxygenNote: 6.0.1
 NeedsCompilation: yes
-Packaged: 2017-04-28 16:38:20 UTC; smeyer
+Packaged: 2017-06-29 15:49:53 UTC; smeyer
 Repository: CRAN
-Date/Publication: 2017-04-28 22:25:47 UTC
+Date/Publication: 2017-06-29 22:13:49 UTC

@@ -163,7 +163,7 @@ for (.type in 1:2) {
     grid::grid.text("Epidemic proportion", x=1, rot=90, vjust=-1)
 }
 
-## ----imdfit_checkResidualProcess, fig.cap="\\code{checkResidualProcess(imdfit\\_powerlaw)}. The left plot shows the \\code{ecdf} of the transformed residuals with a 95\\% confidence band obtained by inverting the corresponding Kolmogorov-Smirnov test (no evidence for deviation from uniformity). The right-hand plot suggests absence of serial correlation.", results="hide", fig.pos="p", echo=FALSE----
+## ----imdfit_checkResidualProcess, fig.cap="\\code{checkResidualProcess(imdfit\\_powerlaw)}. The left-hand plot shows the \\code{ecdf} of the transformed residuals with a 95\\% confidence band obtained by inverting the corresponding Kolmogorov-Smirnov test (no evidence for deviation from uniformity). The right-hand plot suggests absence of serial correlation.", results="hide", fig.pos="p", echo=FALSE----
 par(mar = c(5, 5, 1, 1))
 checkResidualProcess(imdfit_powerlaw)
 

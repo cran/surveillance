@@ -1,13 +1,9 @@
 \name{refvalIdxByDate}
 \alias{refvalIdxByDate}
-\encoding{latin1}
-
 \title{Compute indices of reference value using Date class}
 \description{ 
-
   The reference values are formed based on computations 
   of \code{seq} for Date class arguments.  
-
 }
 \usage{
 refvalIdxByDate(t0, b, w, epochStr, epochs)
@@ -17,11 +13,9 @@ refvalIdxByDate(t0, b, w, epochStr, epochs)
 \item{b}{Number of years to go back in time}
 \item{w}{Half width of window to include reference values for}
 \item{epochStr}{One of \code{"1 month"}, \code{"1 week"} or \code{"1 day"}}
-
 \item{epochs}{Vector containing the epoch value of the sts/disProg object}
 }
 \details{ 
-
   Using the Date class the reference values are formed as follows:
   Starting from \code{t0} go i, i= 1,...,\code{b} years back in time.
   For each year, go \code{w} epochs back and include from here to
@@ -31,10 +25,7 @@ refvalIdxByDate(t0, b, w, epochStr, epochs)
   date. In case of months we also go back in time to closest 1st of
   month. 
 }
-
 \value{
   a vector of indices in epochs which match
 }
-\keyword{regression}
-
-
+\keyword{chron}

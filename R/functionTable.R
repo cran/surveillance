@@ -2,7 +2,7 @@
 ### Categorize functions and methods for a specific class
 ### (this is an internal utility function used in some of the package vignettes)
 ###
-### Copyright (C) 2014-2016 Sebastian Meyer
+### Copyright (C) 2014-2017 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -11,7 +11,8 @@
 
 
 functionTable <- function (class, functions = list(),
-                           format = "\\texttt", format.nongenerics = "\\textit")
+                           format = "\\texttt", format.nongenerics = "\\textit",
+                           horizontal = FALSE)
 {
     ## categorization of known generic functions
     KNOWNGENERICS <- list(
@@ -60,12 +61,20 @@ functionTable <- function (class, functions = list(),
     ## transform list into a matrix by filling with empty cells
     categoryLengths <- lengths(functionList, use.names = FALSE)
     nrows <- max(categoryLengths)
-    functionTable <- vapply(X = functionList[categoryLengths > 0L],
-                            FUN = function (x)
-                                c(paste0(format, "{", x, "}"),
-                                  rep.int(NA_character_, nrows-length(x))),
-                            FUN.VALUE = character(nrows),
-                            USE.NAMES = TRUE)
+    functionTable <- if (horizontal) {
+        as.matrix(vapply(X = functionList[categoryLengths > 0L],
+               FUN = function (x)
+                   paste0(format, "{", x, "}", collapse = ", "),
+               FUN.VALUE = character(1L),
+               USE.NAMES = TRUE))
+    } else {
+        vapply(X = functionList[categoryLengths > 0L],
+               FUN = function (x)
+                   c(paste0(format, "{", x, "}"),
+                     rep.int(NA_character_, nrows-length(x))),
+               FUN.VALUE = character(nrows),
+               USE.NAMES = TRUE)
+    }
 
     ## done
     functionTable #xtable::xtable(functionTable, ...)

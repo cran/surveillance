@@ -35,9 +35,9 @@ siaf.constant()
 siaf.step(knots, maxRange = Inf, nTypes = 1, validpars = NULL)
 siaf.gaussian(nTypes = 1, logsd = TRUE, density = FALSE,
               F.adaptive = TRUE, effRangeMult = 6, validpars = NULL)
-siaf.powerlaw(nTypes = 1, validpars = NULL)
-siaf.powerlawL(nTypes = 1, validpars = NULL)
-siaf.student(nTypes = 1, validpars = NULL)
+siaf.powerlaw(nTypes = 1, validpars = NULL, engine = "C")
+siaf.powerlawL(nTypes = 1, validpars = NULL, engine = "C")
+siaf.student(nTypes = 1, validpars = NULL, engine = "C")
 
 # predefined temporal interaction functions
 tiaf.constant()
@@ -120,6 +120,15 @@ tiaf.exponential(nTypes = 1, validpars = NULL)
     If \code{logsd=FALSE} and one prefers not to use
     \code{method="L-BFGS-B"} for fitting the \code{twinstim}, then
     \code{validpars} could be set to \code{function (pars) pars > 0}.
+  }
+  \item{engine}{
+    character string specifying the implementation to use.
+    Prior to \pkg{surveillance} 0.14.0, the \code{intrfr} functions for
+    \code{\link{polyCub.iso}} were evaluated in \R (and this
+    implementation is available via \code{engine = "R"}).
+    The new C-implementation, \samp{LinkingTo} the newly exported
+    \code{polyCub_iso} C-implementation in \pkg{polyCub} 0.6.0,
+    is considerably faster.
   }
 }
 

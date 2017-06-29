@@ -6,9 +6,9 @@
 ### Spatial interaction functions for twinstim's epidemic component.
 ### Specific implementations are in seperate files (e.g.: Gaussian, power law).
 ###
-### Copyright (C) 2009-2015 Sebastian Meyer
-### $Revision: 1217 $
-### $Date: 2015-03-07 02:30:09 +0100 (Sat, 07. Mar 2015) $
+### Copyright (C) 2009-2015,2017 Sebastian Meyer
+### $Revision: 1864 $
+### $Date: 2017-05-31 17:32:24 +0200 (Wed, 31. May 2017) $
 ################################################################################
 
 
@@ -111,12 +111,13 @@ siaf.constant <- function ()
 ##########################################
 
 ## numerical integration of f over a polygonal domain (single "owin" and type)
-siaf.fallback.F <- function(polydomain, f, pars, type, method = "SV", ...)
+siaf.fallback.F <- function (polydomain, f, pars, type, method = "SV", ...)
 {
-    if (identical(method,"SV"))
+    if (identical(method,"SV")) {
         polyCub.SV(polydomain, f, pars, type, alpha=0, ...) # since max at origin
-    else 
+    } else {
         polyCub(polydomain, f, method, pars, type, ...)
+    }
 }
 
 ## numerical integration of f over a circular domain
@@ -176,7 +177,7 @@ siaf.simulatePC <- function (intrfr)    # e.g., intrfr.powerlaw
         r <- vapply(X=runif(n), FUN=QF, FUN.VALUE=0, USE.NAMES=FALSE)
         ## Check simulation of r via kernel estimate:
         ## plot(density(r, from=0, to=ub)); curve(p(x)/normconst,add=TRUE,col=2)
-        
+
         ## now rotate each point by a random angle to cover all directions
         theta <- runif(n, 0, 2*pi)
         r * cbind(cos(theta), sin(theta))
@@ -207,7 +208,7 @@ checksiaf <- function (siaf, pargrid, type = 1, tolerance = 1e-5,
                       check.attributes=FALSE, tolerance=tolerance),
             "\n")
     }
-    
+
     ## Check 'Fcircle'
     if (!is.null(siaf$Fcircle)) {
         cat("'Fcircle' vs. cubature using method = \"",method,"\" ... ", sep="")
@@ -218,7 +219,7 @@ checksiaf <- function (siaf, pargrid, type = 1, tolerance = 1e-5,
                       check.attributes=FALSE, tolerance=tolerance),
             "\n")
     }
-    
+
     ## Check 'deriv'
     if (!is.null(siaf$deriv)) {
         cat("'deriv' vs. numerical derivative ... ")
@@ -341,7 +342,7 @@ checksiaf.simulate <- function (simulate, f, pars, type=1, B=3000, ub=10,
         do.call("curve", list(quote(rfr(x)/rfrnorm), add=TRUE, col=2, lwd=2))
         ##<- use do.call-construct to prevent codetools::checkUsage from noting "x"
     }
-    
+
     ## invisibly return simulated points
     invisible(simpoints)
 }

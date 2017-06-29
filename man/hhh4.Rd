@@ -155,6 +155,8 @@ hhh4(stsObj,
 	\code{control}, which are both part of the returned
 	\code{"hhh4"} object).}
     }
+    The auxiliary function \code{\link{makeControl}} might be useful to
+    create such a list of control parameters.
   }
   \item{check.analyticals}{logical (or a subset of
     \code{c("numDeriv", "maxLik")}), indicating if (how) the implemented

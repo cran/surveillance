@@ -21,6 +21,7 @@
 %This is the main function
 wrap.algo(sts, algo, control,control.hook=function(k, control)
          return(control),verbose=TRUE,...)
+
 %Derived functions fixing the control object and the "algo" argument
 farrington(sts, control=list(range=NULL, b=3, w=3,reweight=TRUE,
          verbose=FALSE,alpha=0.01),...)
@@ -65,8 +66,4 @@ outbreakP(sts, control=list(range = range, k=100,
   for the exact form of the \code{control} object.
 }
 \author{M. \enc{Höhle}{Hoehle}}
-%\examples{
-%}
-
 \keyword{classif}
-

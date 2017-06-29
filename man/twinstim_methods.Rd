@@ -1,4 +1,3 @@
-\encoding{latin1}
 \name{twinstim_methods}
 \alias{print.twinstim}
 \alias{summary.twinstim}

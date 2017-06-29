@@ -157,7 +157,3 @@ plot(pb.surv2, xaxis.labelFormat=NULL)
 
 \author{S. Steiner and M. \enc{Höhle}{Hoehle}}
 \keyword{regression}
-
-%deleval <- read.table("~/MCHealth/Varizellen/R/leval.txt",header=TRUE)
-%deleval <- new("sts", epoch=1:nrow(deleval), observed=deleval,state=0*deleval,freq=104)
-%save(file="~/Surveillance/surveillance/pkg/data/deleval.RData",list=c("deleval"))

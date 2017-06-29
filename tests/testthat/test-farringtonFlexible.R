@@ -9,13 +9,13 @@ salm <- new("sts",epoch = as.numeric(dates), start = start, freq = 52,
 observed = salm.ts, epochAsDate = TRUE)
 
 ################################################################################
-context("weights function")
+context("farringtonFlexible -- weights function")
 ################################################################################
 test_that("gamma = 1 if everything below the threshold",{
   s <- rep(0,10)
   weightsThreshold <- 0
   weights <- algo.farrington.assign.weights(s,weightsThreshold)
-  expect_equal(weights,rep(1,10))   
+  expect_equal(weights,rep(1,10))
 })
 
 
@@ -32,7 +32,7 @@ test_that(" A case that was checked by hand",{
 ################################################################################
 
 ################################################################################
-context("residuals function")
+context("farringtonFlexible -- residuals function")
 ################################################################################
 
 test_that(" residuals should be zero",{
@@ -57,7 +57,7 @@ test_that(" residuals should not be zero",{
 ################################################################################
 
 ################################################################################
-context("formula function")
+context("farringtonFlexible -- formula function")
 ################################################################################
 test_that("We get the right formula",{
   expect_equal(formulaGLM(populationOffset=FALSE,timeBool=TRUE,factorsBool=FALSE),"response ~ 1+wtime")
@@ -71,7 +71,7 @@ test_that("We get the right formula",{
 ################################################################################
 
 ################################################################################
-context("reference time points function")
+context("farringtonFlexible -- reference time points function")
 ################################################################################
 test_that("We get the expected timepoints with weekly data",{
   # Case with weekly data with dates
@@ -103,7 +103,7 @@ test_that("one gets a warning if too many years back",{
   epochAsDate <- FALSE
   epochStr <- "month"
   expect_that(algo.farrington.referencetimepoints(dayToConsider,b=8,freq=freq,epochAsDate,epochStr), gives_warning("Some reference"))
-  
+
   # apply code
    control1 <-  list(range=250,noPeriods=10,populationOffset=FALSE,
                      fitFun="algo.farrington.fitGLM.flexible",
@@ -118,7 +118,7 @@ test_that("one gets a warning if too many years back",{
 ################################################################################
 
 ################################################################################
-context("fit glm function")
+context("farringtonFlexible -- fit glm function")
 ################################################################################
 
 # Case with convergence
@@ -128,11 +128,11 @@ control<-  list(range=250,noPeriods=10,populationOffset=TRUE,
                 pastWeeksNotIncluded=26,
                 pThresholdTrend=1,trend=TRUE,
                 thresholdMethod="muan",alpha=0.05,glmWarnings=FALSE)
- response=salm@observed[1:120]     
+ response=salm@observed[1:120]
 dataGLM <- data.frame(response=response,wtime=1:120,
 	                  population=runif(120)*100,
                       seasgroups=as.factor(rep(1:12,10)))
-     
+
 arguments <- list(dataGLM=dataGLM,
                    timeTrend=TRUE,
                    populationOffset=TRUE,
@@ -177,7 +177,7 @@ test_that("there is not a too small overdispersion",{
 ################################################################################
 
 ################################################################################
-context("block function")
+context("farringtonFlexible -- block function")
 ################################################################################
 
 referenceTimePoints <- c(as.Date("2010-06-03"),as.Date("2013-06-06"),as.Date("2012-06-07"),as.Date("2011-06-09"))
@@ -195,7 +195,7 @@ lala <- blocks(referenceTimePoints,vectorOfDates,freq,dayToConsider,b,w,p,
 epochAsDate)
 test_that("the reference window has the right length",{
   expect_equal(length(vectorOfDates[is.na(lala)==FALSE&lala==p]),w+1+b*(2*w+1))
-  
+
   # p>1
   p <- 8
   lala <- blocks(referenceTimePoints,vectorOfDates,freq,dayToConsider,b,w,p,
@@ -206,7 +206,7 @@ test_that("the reference window has the right length",{
 
 lili <- as.factor(lala[is.na(lala)==FALSE])
 
-test_that("there are as many levels as expected",{ 
+test_that("there are as many levels as expected",{
   expect_equal(length(levels(lili)),p)
 
 })
@@ -215,7 +215,7 @@ lala <- blocks(referenceTimePoints,vectorOfDates,freq,dayToConsider,b,w,p,
                epochAsDate)
 lili <- as.factor(lala[is.na(lala)==FALSE])
 lolo <- lili[lili!=p]
-test_that("periods of roughly the same length each year",{ 
+test_that("periods of roughly the same length each year",{
     expect_equal(as.numeric(abs(diff(table(lolo))[1:(p-2)])<=b),rep(1,(p-2)))
 })
 ################################################################################
@@ -223,7 +223,7 @@ test_that("periods of roughly the same length each year",{
 ################################################################################
 
 ################################################################################
-context("Farrington threshold function")
+context("farringtonFlexible -- Farrington threshold function")
 ################################################################################
 
 predFit <- 5
@@ -245,28 +245,28 @@ test_that("some results we know are found",{
   skewness.transform <- "none"
   lala <- algo.farrington.threshold.farrington(predFit,predSeFit,phi,
                                                  skewness.transform,
-												  alpha,y,method)												  
+												  alpha,y,method)
   # Should always be ok
   lala <- as.numeric(lala)
-  expect_true(lala[3]<=1&lala[1]>=0)	
+  expect_true(lala[3]<=1&lala[1]>=0)
   expect_true(lala[2]>lala[1])
-  expect_true(lala[1]>=0)			
-  
-  # Here we know the results								  
+  expect_true(lala[1]>=0)
+
+  # Here we know the results
   expect_equal(abs(as.numeric(lala)-c(1.3073128, 8.6926872, 0.0907246, 0.8124165))<rep(1e-7,4),rep(TRUE,4))
-  
+
   skewness.transform <- "1/2"
   lala <- algo.farrington.threshold.farrington(predFit,predSeFit,phi,
                                                    skewness.transform,
-  												  alpha,y,method)												  
-  											  
+  												  alpha,y,method)
+
   expect_equal(abs(as.numeric(lala)-c( 1.9891097, 9.3744842, 0.0000000, 0.6857951))<rep(1e-7,4),rep(TRUE,4))
-  
+
   skewness.transform <- "2/3"
   lala <- algo.farrington.threshold.farrington(predFit,predSeFit,phi,
                                                    skewness.transform,
-  												  alpha,y,method)												  
-  											  
+  												  alpha,y,method)
+
   expect_equal(abs(as.numeric(lala)-c( 1.808448e+00,  9.115482e+00, 1.596176e-112,  7.289546e-01))<rep(1e-6,4),rep(TRUE,4))
 
 })
@@ -276,9 +276,9 @@ test_that("some results we know are found",{
 
 
 ################################################################################
-context("Noufaily threshold function")
+context("farringtonFlexible -- Noufaily threshold function")
 ################################################################################
-											  
+
 predFit <- log(5)
 predSeFit <- log(2)
 wtime <- 380
@@ -293,10 +293,10 @@ lala <- algo.farrington.threshold.noufaily(predFit,predSeFit,phi,
 test_that("some results we know are found",{
   # Should always be ok
   lala <- as.numeric(lala)
-  expect_true(lala[3]<=1&lala[1]>=0)	
+  expect_true(lala[3]<=1&lala[1]>=0)
   expect_true(lala[2]>lala[1])
-  expect_true(lala[1]>=0)	
-  
+  expect_true(lala[1]>=0)
+
   # Here we calculated some examples
   expect_equal(abs(as.numeric(lala)-c(7.0000000, 26.0000000,  0.8597797,  0.3850080))<rep(1e-6,4),rep(TRUE,4))
   phi <- 1.0
@@ -305,19 +305,19 @@ test_that("some results we know are found",{
                                                    skewness.transform,
   												  alpha,y,method)
   expect_equal(abs(as.numeric(lala)-c(8.0000000, 24.0000000,  0.9093099 , 0.4193982))<rep(1e-6,4),rep(TRUE,4))
-  
+
   phi <- 1.5
   method <- "nbPlugin"
   lala <- algo.farrington.threshold.noufaily(predFit,predSeFit,phi,
                                                    skewness.transform,
   												  alpha,y,method)
   expect_equal(abs(as.numeric(lala)-c(1.00000000, 11.00000000,  0.03763657,  1.00000000))<rep(1e-6,4),rep(TRUE,4))
-  												  
+
   phi <- 1.0
   method <- "nbPlugin"
   lala <- algo.farrington.threshold.noufaily(predFit,predSeFit,phi,
                                                    skewness.transform,
-  												  alpha,y,method)										
+  												  alpha,y,method)
   expect_equal(abs(as.numeric(lala)-c( 1.00000000, 10.00000000,  0.01369527,  1.11918153))<rep(1e-6,4),rep(TRUE,4))
 })
 ################################################################################
@@ -325,7 +325,7 @@ test_that("some results we know are found",{
 ################################################################################
 
 ################################################################################
-context("data GLM function")
+context("farringtonFlexible -- data GLM function")
 ################################################################################
 b <- 3
 freq <- 52
@@ -342,7 +342,7 @@ verbose <- FALSE
 pastWeeksNotIncluded <- w
 k <- 1200
 
-lala <- algo.farrington.data.glm(dayToConsider, b, freq, 
+lala <- algo.farrington.data.glm(dayToConsider, b, freq,
                                      epochAsDate,epochStr,
 									 vectorOfDates,w,noPeriods,
 									 observed,population,
@@ -364,7 +364,7 @@ test_that("the factor variable has the right number of levels",{
 })
 
 observed[1150] <- NA
-lala <- algo.farrington.data.glm(dayToConsider, b, freq, 
+lala <- algo.farrington.data.glm(dayToConsider, b, freq,
                                      epochAsDate,epochStr,
 									 vectorOfDates,w,noPeriods,
 									 observed,population,
@@ -378,7 +378,7 @@ test_that("the data frame has the right dimensions",{
 ################################################################################
 
 ################################################################################
-context("GLM function")
+context("farringtonFlexible -- GLM function")
 ################################################################################
 
 dataGLM <- lala
@@ -420,7 +420,7 @@ test_that("no time trend in no time trend",{
 ################################################################################
 
 ################################################################################
-context("Alarms")
+context("farringtonFlexible -- alarms")
 ################################################################################
 data("salmonella.agona")
 # sts object
@@ -443,7 +443,7 @@ test_that("there are only alarms when expected",{
 ################################################################################
 
 ################################################################################
-context("no convergence")
+context("farringtonFlexible -- no convergence")
 ################################################################################
 timeSeries <- rep(0,698)
 timeSeries[696] <- 1
@@ -461,7 +461,7 @@ test_that("The code does not produce any error",{
 })
 
 ################################################################################
-context("NA")
+context("farringtonFlexible -- NA")
 ################################################################################
 timeSeries <- observed <- rnorm(698)*10+runif(698)*100+30
 

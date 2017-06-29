@@ -3,7 +3,6 @@
 \alias{algo.hmm}
 \title{Hidden Markov Model (HMM) method}
 \description{ 
-  %
   This function implements on-line HMM detection of outbreaks based on
   the retrospective procedure described in Le Strat and Carret (1999).
   Using the function \code{\link[msm]{msm}} (from package \pkg{msm}) a specified HMM
@@ -49,16 +48,14 @@
           }
 }
 \value{
-\item{survRes}{
-    \code{algo.hmm} gives a list of class \code{survRes} which includes the 
-    vector of alarm values for every timepoint in \code{range}. No
-    \code{upperbound} can be specified and is put equal to zero.
+  \code{algo.hmm} gives a list of class \code{survRes} which includes the 
+  vector of alarm values for every timepoint in \code{range}. No
+  \code{upperbound} can be specified and is put equal to zero.
     
-    The resulting object contains a slot \code{control$hmm}, which
-    contains the \code{msm} object with the fitted HMM.  }
+  The resulting object contains a slot \code{control$hmm}, which
+  contains the \code{msm} object with the fitted HMM.
 }
 \details{
-
   For each time point t the reference values values are extracted. If
   the number of requested values is larger than the number of possible
   values the latter is used. Now the following happens on these reference values:
@@ -71,7 +68,6 @@
     \delta_j^i \sin(2i\pi/freq\cdot (t-1))}{%
     log(mu_t^j) = alpha_j + beta_j t + \sum_{i=1}^{nH} gamma_j^i
     \cos(2*i*pi/freq * (t-1)) + delta_j^i sin(2*i*pi/freq * (t-1)) }
-%
   and \eqn{nH=}\code{noHarmonics} and \eqn{freq=12,52} depending on the
   sampling frequency of the surveillance data. In the above \eqn{t-1} is
   used, because the first week is always saved as \code{t=1}, i.e. we
@@ -96,7 +92,6 @@
   updating schemes of the HMM would increase speed considerably!  A
   major advantage of the approach is that outbreaks in the reference
   values are handled automatically.
-
 }
 \seealso{\code{\link[msm:msm]{msm}}}
 \author{M. \enc{Höhle}{Hoehle}}
@@ -141,4 +136,3 @@ table(tab[,1],tab[,2])
 }
 
 \keyword{classif}
-

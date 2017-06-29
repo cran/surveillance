@@ -18,7 +18,4 @@
   Bayesian outbreak detection in the presence of reporting delays.
   Biometrical Journal, 57 (6), 1051-1067.
 }
-\examples{
-  data(stsNewport)
-}
 \keyword{datasets}

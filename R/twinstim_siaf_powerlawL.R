@@ -6,16 +6,17 @@
 ### _L_agged power-law kernel f(s) = (||s||/sigma)^-d for ||s|| >= sigma, else 1
 ### Similar to the density of the Pareto distribution (but value 1 for < sigma)
 ###
-### Copyright (C) 2013-2014 Sebastian Meyer
-### $Revision: 777 $
-### $Date: 2014-02-18 12:07:58 +0100 (Tue, 18. Feb 2014) $
+### Copyright (C) 2013-2014,2017 Sebastian Meyer
+### $Revision: 1890 $
+### $Date: 2017-06-19 17:36:54 +0200 (Mon, 19. Jun 2017) $
 ################################################################################
 
 
-siaf.powerlawL <- function (nTypes = 1, validpars = NULL)
+siaf.powerlawL <- function (nTypes = 1, validpars = NULL, engine = "C")
 {
     nTypes <- as.integer(nTypes)
     stopifnot(length(nTypes) == 1L, nTypes > 0L)
+    engine <- match.arg(engine, c("C", "R"))
 
     ## for the moment we don't make this type-specific
     if (nTypes != 1) stop("type-specific shapes are not yet implemented")
@@ -39,10 +40,8 @@ siaf.powerlawL <- function (nTypes = 1, validpars = NULL)
         )))
 
     ## numerically integrate f over a polygonal domain
-    F <- function (polydomain, f, logpars, type = NULL, ...)
-        .polyCub.iso(polydomain$bdry, intrfr.powerlawL, logpars, #type,
-                     center=c(0,0), control=list(...))
-    
+    F <- siaf_F_polyCub_iso(intrfr_name = "intrfr.powerlawL", engine = engine)
+
     ## fast integration of f over a circular domain
     Fcircle <- function (r, logpars, type = NULL) {}
     body(Fcircle) <- as.call(c(as.name("{"),
@@ -50,7 +49,7 @@ siaf.powerlawL <- function (nTypes = 1, validpars = NULL)
         expression(
             ## trivial case: radius of integration domain < sigma (=> constant f)
             if (r <= sigma) return(pi * r^2),
-            
+
             ## otherwise, if r > sigma, integration via f^-1
             fofr <- (r/sigma)^-d,
             basevolume <- pi * r^2 * fofr,   # cylinder volume up to height f(r)
@@ -78,17 +77,10 @@ siaf.powerlawL <- function (nTypes = 1, validpars = NULL)
         )))
 
     ## Numerical integration of 'deriv' over a polygonal domain
-    Deriv <- function (polydomain, deriv, logpars, type = NULL, ...)
-    {
-        res.logsigma <- .polyCub.iso(polydomain$bdry,
-                                     intrfr.powerlawL.dlogsigma, logpars, #type,
-                                     center=c(0,0), control=list(...))
-        res.logd <- .polyCub.iso(polydomain$bdry,
-                                 intrfr.powerlawL.dlogd, logpars, #type,
-                                 center=c(0,0), control=list(...))
-        c(res.logsigma, res.logd)
-    }
-    
+    Deriv <- siaf_Deriv_polyCub_iso(
+        intrfr_names = c("intrfr.powerlawL.dlogsigma", "intrfr.powerlawL.dlogd"),
+        engine = engine)
+
     ## simulate from the lagged power law (within a maximum distance 'ub')
     ##simulate <- siaf.simulatePC(intrfr.powerlawL) # <- generic simulator
     ## faster implementation taking advantage of the constant component:
@@ -138,7 +130,7 @@ siaf.powerlawL <- function (nTypes = 1, validpars = NULL)
 
         ## put samples from both components together
         r <- c(r1, r2)
-        
+
         ## now rotate each point by a random angle to cover all directions
         r * cbind(cos(theta), sin(theta))
     }
@@ -198,8 +190,8 @@ intrfr.powerlawL.dlogd <- function (R, logpars, types = NULL)
     d <- exp(logpars[[2L]])
     pl <- which(R > sigma)
     res <- numeric(length(R))
-    res[pl] <- if (d == 2) -(sigma*log(R[pl]/sigma))^2 else 
-    (sigma^d * R[pl]^(2-d) * (d-2)*d*log(R[pl]/sigma) -
-     d*(sigma^2 - R[pl]^(2-d)*sigma^d)) / (d-2)^2
+    res[pl] <- if (d == 2) -(sigma*log(R[pl]/sigma))^2 else
+        (sigma^d * R[pl]^(2-d) * (d-2)*d*log(R[pl]/sigma) -
+         d*(sigma^2 - R[pl]^(2-d)*sigma^d)) / (d-2)^2
     res
 }

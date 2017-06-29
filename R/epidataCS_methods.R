@@ -6,9 +6,9 @@
 ### Standard S3-methods for "epidataCS" objects, which represent
 ### CONTINUOUS SPATIO-temporal infectious disease case data
 ###
-### Copyright (C) 2009-2015 Sebastian Meyer
-### $Revision: 1285 $
-### $Date: 2015-03-24 15:26:51 +0100 (Tue, 24. Mar 2015) $
+### Copyright (C) 2009-2015,2017 Sebastian Meyer
+### $Revision: 1882 $
+### $Date: 2017-06-19 15:38:10 +0200 (Mon, 19. Jun 2017) $
 ################################################################################
 
 
@@ -90,18 +90,18 @@ update.epidataCS <- function (object, eps.t, eps.s, qmatrix, nCircle2Poly, ...)
 {
     ## rescue attributes of .influenceRegion (dropped when indexing)
     iRattr <- attributes(x$events$.influenceRegion)
-    
+
     ## apply [,SpatialPointsDataFrame-method (where "drop" is ignored)
     cl <- sys.call()
     cl[[1]] <- as.name("[")
     cl[[2]] <- substitute(x$events)
     x$events <- eval(cl, envir=parent.frame())
-    
+
     ## assure valid epidataCS after subsetting
     if (!missing(j)) {                # only epidemic covariates may be selected
         endemicVars <- setdiff(names(x$stgrid), c(
             reservedColsNames_stgrid, obligColsNames_stgrid))
-        if (!all(c(reservedColsNames_events, obligColsNames_events, 
+        if (!all(c(reservedColsNames_events, obligColsNames_events,
                    endemicVars) %in% names(x$events))) {
             stop("only epidemic covariates may be removed from 'events'")
         }
@@ -121,24 +121,24 @@ update.epidataCS <- function (object, eps.t, eps.s, qmatrix, nCircle2Poly, ...)
             }
         }
     }
-    
+
     ## restore attributes of .influenceRegion
     attributes(x$events$.influenceRegion) <- iRattr
-    
+
     ## done
     return(x)
 }
 
 
 ## The subset method for epidataCS-objects is adapted from
-## base::subset.data.frame (authored by Peter 
+## base::subset.data.frame (authored by Peter
 ## Dalgaard and Brian Ripley, Copyright (C) 1995-2012
 ## The R Core Team) with slight modifications only
 ## (we just replace 'x' by 'x$events@data' for evaluation of subset and select)
 
 subset.epidataCS <- function (x, subset, select, drop = TRUE, ...)
 {
-    if (missing(subset)) 
+    if (missing(subset))
         r <- TRUE
     else {
         e <- substitute(subset)
@@ -146,7 +146,7 @@ subset.epidataCS <- function (x, subset, select, drop = TRUE, ...)
         if (!is.logical(r)) stop("'subset' must evaluate to logical")
         r <- r & !is.na(r)
     }
-    if (missing(select)) 
+    if (missing(select))
         vars <- TRUE
     else {
         nl <- as.list(seq_along(x$events@data)) # HERE IS A MOD
@@ -201,7 +201,7 @@ permute.epidataCS <- function (x, what = c("time", "space"), keep)
 {
     stopifnot(inherits(x, "epidataCS"))
     what <- match.arg(what)
-    
+
     ## permutation index
     perm <- if (missing(keep)) {
         sample.int(nobs.epidataCS(x))
@@ -219,10 +219,10 @@ permute.epidataCS <- function (x, what = c("time", "space"), keep)
         perm[which2permute] <- which2permute[sample.int(howmany2permute)]
         perm
     }
-    
+
     ## rescue attributes of .influenceRegion (dropped when indexing)
     iRattr <- attributes(x$events@data$.influenceRegion)
-    
+
     ## permute time points and/or locations
     PERMVARS <- if (what == "time") {
         c("time", "BLOCK", "start", ".obsInfLength")
@@ -231,12 +231,12 @@ permute.epidataCS <- function (x, what = c("time", "space"), keep)
         c("tile", ".bdist", ".influenceRegion")
     }
     x$events@data[PERMVARS] <- x$events@data[perm, PERMVARS]
-    
+
     ## re-sort on time if necessary
     if (what == "time") {
         x$events <- x$events[order(x$events@data$time), ]
     }
-    
+
     ## .sources and endemic variables need an update
     x$events@data$.sources <- determineSources.epidataCS(x)
     ENDVARS <- setdiff(names(x$stgrid),
@@ -246,10 +246,10 @@ permute.epidataCS <- function (x, what = c("time", "space"), keep)
         do.call("paste", c(x$stgrid[c("BLOCK", "tile")], sep = "\r"))
     )
     x$events@data[ENDVARS] <- x$stgrid[gridcellsOfEvents, ENDVARS]
-    
+
     ## restore attributes of .influenceRegion
     attributes(x$events@data$.influenceRegion) <- iRattr
-    
+
     ## done
     x
 }
@@ -271,7 +271,7 @@ print.epidataCS <- function (x, n = 6L, digits = getOption("digits"), ...)
     str(levels(x$events$type), give.attr = FALSE, give.head = FALSE,
         width = getOption("width") - 17L)
     cat("Overall number of events:", nEvents <- nobs(x), "\n\n")
-    
+
     visibleCols <- grep("^\\..+", names(x$events@data), invert = TRUE)
     if (nEvents == 0L) { # not handled by [,SpatialPointsDataFrame-method
                          # and thus actually not supported by "epidataCS"
@@ -324,11 +324,11 @@ summary.epidataCS <- function (object, ...)
         eventCoords = coordinates(object$events),
         eventTypes = object$events$type,
         eventRanges = object$events@data[c("eps.t", "eps.s")],
-        eventMarks = marks.epidataCS(object), 
+        eventMarks = marks.epidataCS(object),
         tileTable = c(table(object$events$tile)),
         typeTable = c(table(object$events$type)),
         counter = as.stepfun.epidataCS(object),
-        nSources = sapply(object$events$.sources, length)
+        nSources = lengths(object$events$.sources, use.names = FALSE)
         )
     class(res) <- "summary.epidataCS"
     res
@@ -341,7 +341,7 @@ print.summary.epidataCS <- function (x, ...)
     cat("Overall number of events:", x$nEvents,
         if (x$nTypes==1) "(single type)" else paste0("(",x$nTypes," types)"),
         "\n")
-    
+
     cat("\nSummary of event marks and number of potential sources:\n")
     print(summary(cbind(x$eventMarks, "|.sources|"=x$nSources)), ...)
 
@@ -366,7 +366,7 @@ as.stepfun.epidataCS <- function (x, ...)
 getSourceDists <- function (object, dimension = c("space", "time"))
 {
     dimension <- match.arg(dimension)
-    
+
     ## extract required info from "epidataCS"-object
     distmat <- as.matrix(dist(
         if (dimension == "space") {
@@ -376,7 +376,7 @@ getSourceDists <- function (object, dimension = c("space", "time"))
     .sources <- object$events$.sources
 
     ## number of sources
-    nsources <- sapply(.sources, length)
+    nsources <- lengths(.sources, use.names = FALSE)
     hasSources <- nsources > 0
     cnsources <- c(0, cumsum(nsources))
 

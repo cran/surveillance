@@ -1,5 +1,6 @@
 \name{abattoir}
 \alias{abattoir}
+\docType{data}
 \encoding{latin1}
 
 \title{Abattoir Data}

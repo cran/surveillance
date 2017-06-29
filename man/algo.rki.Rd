@@ -7,16 +7,16 @@
 \encoding{latin1}
 \title{The system used at the RKI}
 \description{
-        Evaluation of timepoints with the detection algorithms used by the RKI
+  Evaluation of timepoints with the detection algorithms used by the RKI
 }
 \usage{
-    algo.rkiLatestTimepoint(disProgObj, timePoint = NULL,
-         control = list(b = 2, w = 4, actY = FALSE))
-    algo.rki(disProgObj, control = list(range = range,
+algo.rkiLatestTimepoint(disProgObj, timePoint = NULL,
+                        control = list(b = 2, w = 4, actY = FALSE))
+algo.rki(disProgObj, control = list(range = range,
          b = 2, w = 4, actY = FALSE))
-    algo.rki1(disProgObj, control = list(range = range))
-    algo.rki2(disProgObj, control = list(range = range))
-    algo.rki3(disProgObj, control = list(range = range))
+algo.rki1(disProgObj, control = list(range = range))
+algo.rki2(disProgObj, control = list(range = range))
+algo.rki3(disProgObj, control = list(range = range))
 }
 \arguments{
 \item{disProgObj}{object of class disProg (including the observed and the state chain).}
@@ -31,19 +31,17 @@
   }
 }
 \value{
-\item{survRes}{
-    \code{algo.rkiLatestTimepoint} returns a list of class \code{survRes} (surveillance result), which
-    includes the alarm value (alarm = 1, no alarm = 0) for recognizing an
-    outbreak, the threshold value for recognizing the alarm and
-    the input object of class disProg.
-    
-    \code{algo.rki} gives a list of class \code{survRes} which includes the vector
-    of alarm values for every timepoint in \code{range}, the vector of threshold values
-    for every timepoint in \code{range} for the system specified by \code{b}, \code{w} and
-    \code{actY}, the range and the input object of class disProg.
-    \code{algo.rki1} returns the same for the RKI 1 system, \code{algo.rki2}
-    for the RKI 2 system and \code{algo.rki3} for the RKI 3 system.
-  }
+  \code{algo.rkiLatestTimepoint} returns a list of class \code{survRes} (surveillance result), which
+  includes the alarm value (alarm = 1, no alarm = 0) for recognizing an
+  outbreak, the threshold value for recognizing the alarm and
+  the input object of class disProg.
+  
+  \code{algo.rki} gives a list of class \code{survRes} which includes the vector
+  of alarm values for every timepoint in \code{range}, the vector of threshold values
+  for every timepoint in \code{range} for the system specified by \code{b}, \code{w} and
+  \code{actY}, the range and the input object of class disProg.
+  \code{algo.rki1} returns the same for the RKI 1 system, \code{algo.rki2}
+  for the RKI 2 system and \code{algo.rki3} for the RKI 3 system.
 }
 \details{
   Using the reference values for calculating an upper limit (threshold),
@@ -67,27 +65,25 @@
   }
 }
 \seealso{
-        \code{\link{algo.bayesLatestTimepoint}} and \code{\link{algo.bayes}} for
-        the Bayes system.
+  \code{\link{algo.bayesLatestTimepoint}} and \code{\link{algo.bayes}} for
+  the Bayes system.
 }
 \author{M. \enc{Höhle}{Hoehle}, A. Riebler, Christian Lang}
 \examples{
-    # Create a test object
-    disProgObj <- sim.pointSource(p = 0.99, r = 0.5, length = 208, A = 1,
-                                      alpha = 1, beta = 0, phi = 0,
-                                      frequency = 1, state = NULL, K = 1.7)
+# Create a test object
+disProgObj <- sim.pointSource(p = 0.99, r = 0.5, length = 208, A = 1,
+                              alpha = 1, beta = 0, phi = 0,
+                              frequency = 1, state = NULL, K = 1.7)
 
-    # Test week 200 to 208 for outbreaks with a selfdefined rki
-    algo.rki(disProgObj, control = list(range = 200:208, b = 1,
-                                            w = 5, actY = TRUE))
-    # The same for rki 1 to rki 3
-    algo.rki1(disProgObj, control = list(range = 200:208))
-    algo.rki2(disProgObj, control = list(range = 200:208))
-    algo.rki3(disProgObj, control = list(range = 200:208))
+# Test week 200 to 208 for outbreaks with a selfdefined rki
+algo.rki(disProgObj, control = list(range = 200:208, b = 1,
+                                    w = 5, actY = TRUE))
+# The same for rki 1 to rki 3
+algo.rki1(disProgObj, control = list(range = 200:208))
+algo.rki2(disProgObj, control = list(range = 200:208))
+algo.rki3(disProgObj, control = list(range = 200:208))
 
-    # Test for rki 1 the latest timepoint
-    algo.rkiLatestTimepoint(disProgObj)
+# Test for rki 1 the latest timepoint
+algo.rkiLatestTimepoint(disProgObj)
 }
-
 \keyword{classif}
-

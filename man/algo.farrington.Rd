@@ -4,25 +4,26 @@
 
 \title{Surveillance for a count data time series using the Farrington method.}
 \description{
-%
   The function takes \code{range} values of the surveillance time
   series \code{disProgObj} and for each time point uses a GLM to
   predict the number of counts according to the procedure by
   Farrington et al. (1996). This is then compared to the observed
   number of counts. If the observation is above a specific quantile of
   the prediction interval, then an alarm is raised.
-%
 }
 \usage{
-  algo.farrington(disProgObj, control=list(range=NULL, b=3, w=3,
-  reweight=TRUE,verbose=FALSE,alpha=0.01,trend=TRUE,limit54=c(5,4),
-  powertrans="2/3",
-  fitFun=c("algo.farrington.fitGLM.fast","algo.farrington.fitGLM",
-           "algo.farrington.fitGLM.populationOffset")))
+algo.farrington(disProgObj, control=list(range=NULL, b=3, w=3,
+                reweight=TRUE,verbose=FALSE,alpha=0.01,trend=TRUE,limit54=c(5,4),
+                powertrans="2/3",
+                fitFun=c("algo.farrington.fitGLM.fast","algo.farrington.fitGLM",
+                         "algo.farrington.fitGLM.populationOffset")))
 }
 \arguments{
-\item{disProgObj}{object of class disProgObj (including the \code{observed} and the \code{state} time series.)}
-\item{control}{Control object
+  \item{disProgObj}{
+    object of class disProgObj (including the \code{observed} and the
+    \code{state} time series.)
+  }
+  \item{control}{list of control parameters
     \describe{
     \item{\code{range}}{Specifies the index of all timepoints which
         should be tested. If range is \code{NULL} the maximum number
@@ -61,7 +62,6 @@
         \code{algo.farrington.fitGLM} or 
         \code{algo.farrington.fitGLM.populationOffset}. See details of
         \code{\link{algo.farrington.fitGLM}} for more information.}
-      % 
       }
     }
 }
@@ -116,6 +116,8 @@ stopifnot(upperbound(sts1) == upperbound(sts2))
 \author{M. \enc{Höhle}{Hoehle}}
 \seealso{\code{\link{algo.farrington.fitGLM}},\code{\link{algo.farrington.threshold}}}
 \keyword{classif}
-\source{A statistical algorithm for the early detection of outbreaks of infectious disease, Farrington, C.P., Andrews, N.J, Beale A.D. and Catchpole, M.A. (1996), J. R. Statist. Soc. A, 159, 547-563.}
-
-
+\references{
+  A statistical algorithm for the early detection of outbreaks of
+  infectious disease, Farrington, C.P., Andrews, N.J, Beale A.D. and
+  Catchpole, M.A. (1996), J. R. Statist. Soc. A, 159, 547-563.
+}

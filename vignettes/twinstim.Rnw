@@ -45,7 +45,7 @@ if (!COMPUTE) load("twinstim-cache.RData", verbose = TRUE)
 \Plaintitle{twinstim: An endemic-epidemic modeling framework for spatio-temporal point patterns}
 \Shorttitle{Endemic-epidemic modeling of spatio-temporal point patterns}
 
-\author{Sebastian Meyer\thanks{Author of correspondence: \email{seb.meyer@fau.de} (new affiliation)}\\University of Zurich \And
+\author{Sebastian Meyer\thanks{Author of correspondence: \email{seb.meyer@fau.de}}\\Friedrich-Alexander-Universit{\"a}t\\Erlangen-N{\"u}rnberg \And
         Leonhard Held\\University of Zurich \And
         Michael H\"ohle\\Stockholm University}
 \Plainauthor{Sebastian Meyer, Leonhard Held, Michael H\"ohle}
@@ -216,9 +216,9 @@ Similar to the simple SIR model
 model~\eqref{eqn:twinstim} features a reproduction number derived from its
 branching process interpretation. 
 As soon as an event occurs (individual becomes infected), it triggers offspring
-(secondary cases) around its origin $(\bm{s_j}, t_j)$
+(secondary cases) around its origin $(\bm{s}_j, t_j)$
 according to an inhomogeneous Poisson process with rate
-$\eta_j \, f(\norm{\bm{s}-\bm{s_j}}) \, g(t-t_j)$.
+$\eta_j \, f(\norm{\bm{s}-\bm{s}_j}) \, g(t-t_j)$.
 Since this triggering process is independent of the event's parentage and of other
 events, the expected number $\mu_j$ of events triggered by event $j$
 can be obtained by integrating the triggering rate over
@@ -254,7 +254,7 @@ Then, for $T \rightarrow \infty$,
 \begin{equation*}
   \mu = \beta \cdot
   \left[ \int_0^\infty e^{-\alpha t} \,dt \right] \cdot
-  \left[ \int_{\bm{W}-\bm{s_j}} 1 \,d\bm{s} \right] =
+  \left[ \int_{\bm{W}-\bm{s}_j} 1 \,d\bm{s} \right] =
   \beta \cdot \abs{\bm{W}} / \alpha \:,
 \end{equation*}
 which corresponds to the basic reproduction number
@@ -633,7 +633,7 @@ and a power-law kernel for spatial interaction may diverge if
 there are events with zero distance to potential source events
 \citep{meyer.held2013}. The function \code{untie} breaks ties by
 random shifts. This has already been applied to the event \emph{times} in
-the provided \code{imdepi} data by subtracting a U(0,1)-distributed random
+the provided \code{imdepi} data by subtracting a U$(0,1)$-distributed random
 number from the original dates.
 The event \emph{coordinates} in the IMD data are subject to interval censoring
 at the level of Germany's postcode regions. A possible replacement for the given
@@ -648,7 +648,7 @@ set.seed(321)
 imdepi_untied <- untie(imdepi, amount = list(s = minsep / 2))
 @ 
 Note that random tie-breaking requires sensitivity analyses as
-discussed by \citet{meyer.held2013}, but skipped here for the sake of brevity.
+discussed by \citet{meyer.held2013}, but these are skipped here for the sake of brevity.
 
 The \code{update}-method is useful to change the values of the maximum
 interaction ranges \code{eps.t} and \code{eps.s}, since it takes care of the
@@ -1036,7 +1036,7 @@ process'' in such a way that it exhibits a uniform distribution and lacks serial
 correlation if the fitted model describes the true CIF well
 \citep[see][Section~3.3]{ogata1988}. % more recent work: \citet{clements.etal2011}
 
-<<imdfit_checkResidualProcess, fig.cap="\\code{checkResidualProcess(imdfit\\_powerlaw)}. The left plot shows the \\code{ecdf} of the transformed residuals with a 95\\% confidence band obtained by inverting the corresponding Kolmogorov-Smirnov test (no evidence for deviation from uniformity). The right-hand plot suggests absence of serial correlation.", results="hide", fig.pos="p", echo=FALSE>>=
+<<imdfit_checkResidualProcess, fig.cap="\\code{checkResidualProcess(imdfit\\_powerlaw)}. The left-hand plot shows the \\code{ecdf} of the transformed residuals with a 95\\% confidence band obtained by inverting the corresponding Kolmogorov-Smirnov test (no evidence for deviation from uniformity). The right-hand plot suggests absence of serial correlation.", results="hide", fig.pos="p", echo=FALSE>>=
 par(mar = c(5, 5, 1, 1))
 checkResidualProcess(imdfit_powerlaw)
 @ 

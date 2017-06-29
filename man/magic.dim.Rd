@@ -1,6 +1,5 @@
 \name{magic.dim}
 \alias{magic.dim}
-\encoding{latin1}
 
 \title{Returns a suitable k1 x k2 for plotting the disProgObj}
 \description{
@@ -25,4 +24,3 @@ internally used to complete the task.
 }
 \keyword{dplot}
 \keyword{utilities}
-

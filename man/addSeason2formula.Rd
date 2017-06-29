@@ -1,4 +1,3 @@
-\encoding{latin1}
 \name{addSeason2formula}
 \alias{addSeason2formula}
 \title{
@@ -48,11 +47,10 @@ addSeason2formula(f = ~1, S = 1, period = 52, timevar = "t")
       \gamma_s sin(2*pi*s/period * t) + \delta_s cos2*pi*s/period * t) = 
         A_s sin(2*pi*s/period * t + \epsilon_s)}
   with amplitude \eqn{A_s=\sqrt{\gamma_s^2 +\delta_s^2}}{A_s=sqrt{\gamma_s^2 +\delta_s^2}} 
-  and phase difference \eqn{\tan(\epsilon_s) = \delta_s / \gamma_s}. 
- % The amplitude and phase shift can be obtained from model fitted with
- % \code{\link{hhh4}} by specifying \code{amplitudeShift = TRUE}
- % in the respective \code{coef} method.
-
+  and phase shift \eqn{\tan(\epsilon_s) = \delta_s / \gamma_s}. 
+  The amplitude and phase shift can be obtained from a fitted
+  \code{\link{hhh4}} model via \code{coef(..., amplitudeShift = TRUE)},
+  see \code{\link{coef.hhh4}}.
 }
 \value{
   Returns a \code{\link{formula}} with the seasonal terms added and 

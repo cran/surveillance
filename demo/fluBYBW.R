@@ -2,7 +2,7 @@
 ### Demo of hhh4() modelling of influenza in Southern Germany - data("fluBYBW")
 ### RUNNING THE WHOLE SCRIPT TAKES ~20 MINUTES!
 ###
-### Copyright (C) 2009-2012 Michaela Paul, 2012-2013,2016 Sebastian Meyer
+### Copyright (C) 2009-2012 Michaela Paul, 2012-2013,2016,2017 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -21,7 +21,7 @@ data("fluBYBW")
 ##################################################
 
 ## generate formula for temporal and seasonal trends
-f.end <- addSeason2formula(f = ~ -1 + ri(type="iid", corr="all") + 
+f.end <- addSeason2formula(f = ~ -1 + ri(type="iid", corr="all") +
                                I((t-208)/100), S=3, period=52)
 
 ## settings for the optimizer
@@ -40,14 +40,14 @@ summary(res_A0 <- hhh4(fluBYBW,cntrl_A0))
 cntrl_B0 <- list(ar = list(f = ~ 1),
                  end = list(f =f.end, offset = population(fluBYBW)),
                  family = "NegBin1", optimizer = opt, verbose=1)
-res_B0 <- hhh4(fluBYBW,cntrl_B0)               
- 
+res_B0 <- hhh4(fluBYBW,cntrl_B0)
+
 
 # C0
 cntrl_C0 <- list(ar = list(f = ~ -1 + ri(type="iid", corr="all")),
                  end = list(f =f.end, offset = population(fluBYBW)),
                  family = "NegBin1", optimizer = opt, verbose=1)
-res_C0 <- hhh4(fluBYBW,cntrl_C0)               
+res_C0 <- hhh4(fluBYBW,cntrl_C0)
 
 
 #A1
@@ -59,7 +59,7 @@ cntrl_A1 <- list(ar = list(f = ~ -1),
                  ne = list(f = ~ 1, weights = wji),
                  end = list(f =f.end, offset = population(fluBYBW)),
                  family = "NegBin1", optimizer = opt, verbose=1)
-res_A1 <- hhh4(fluBYBW,cntrl_A1)               
+res_A1 <- hhh4(fluBYBW,cntrl_A1)
 
 
 # B1
@@ -67,7 +67,7 @@ cntrl_B1 <- list(ar = list(f = ~ 1),
                  ne = list(f = ~ 1, weights = wji),
                  end = list(f =f.end, offset = population(fluBYBW)),
                  family = "NegBin1", optimizer = opt, verbose=1)
-res_B1 <- hhh4(fluBYBW,cntrl_B1)               
+res_B1 <- hhh4(fluBYBW,cntrl_B1)
 
 
 # C1
@@ -75,7 +75,7 @@ cntrl_C1 <- list(ar = list(f = ~ -1 + ri(type="iid", corr="all")),
                  ne = list(f = ~ 1, weights = wji),
                  end = list(f =f.end, offset = population(fluBYBW)),
                  family = "NegBin1", optimizer = opt, verbose=1)
-res_C1 <- hhh4(fluBYBW,cntrl_C1)               
+res_C1 <- hhh4(fluBYBW,cntrl_C1)
 
 
 #A2
@@ -83,7 +83,7 @@ cntrl_A2 <- list(ar = list(f = ~ -1),
                  ne = list(f = ~ -1 + ri(type="iid",corr="all"), weights=wji),
                  end = list(f =f.end, offset = population(fluBYBW)),
                  family = "NegBin1", optimizer = opt, verbose=1)
-res_A2 <- hhh4(fluBYBW,cntrl_A2)               
+res_A2 <- hhh4(fluBYBW,cntrl_A2)
 
 
 # B2
@@ -91,7 +91,7 @@ cntrl_B2 <- list(ar = list(f = ~ 1),
                  ne = list(f = ~ -1 + ri(type="iid",corr="all"), weights =wji),
                  end = list(f =f.end, offset = population(fluBYBW)),
                  family = "NegBin1", optimizer = opt, verbose=1)
-res_B2 <- hhh4(fluBYBW,cntrl_B2)               
+res_B2 <- hhh4(fluBYBW,cntrl_B2)
 
 # C2
 cntrl_C2 <- list(ar = list(f = ~ -1 + ri(type="iid", corr="all")),
@@ -100,17 +100,17 @@ cntrl_C2 <- list(ar = list(f = ~ -1 + ri(type="iid", corr="all")),
                  family = "NegBin1", optimizer = opt, verbose=1,
                  start=list(fixed=fixef(res_B0),random=c(rep(0,140),
                          ranef(res_B0)), sd.corr=c(-.5,res_B0$Sigma.orig,0)))
-res_C2 <- hhh4(fluBYBW,cntrl_C2)               
+res_C2 <- hhh4(fluBYBW,cntrl_C2)
 
 
 # D
 cntrl_D <- list(ar = list(f = ~ 1),
                 ne = list(f = ~ -1 + ri(type="iid"), weights = wji),
-                end = list(f =addSeason2formula(f = ~ -1 + ri(type="car") + 
-                                             I((t-208)/100), S=3, period=52), 
+                end = list(f =addSeason2formula(f = ~ -1 + ri(type="car") +
+                                             I((t-208)/100), S=3, period=52),
                           offset = population(fluBYBW)),
                 family = "NegBin1", optimizer = opt, verbose=1)
-res_D <- hhh4(fluBYBW,cntrl_D)               
+res_D <- hhh4(fluBYBW,cntrl_D)
 
 
 ######################################################################
@@ -173,10 +173,10 @@ compareWithBest <- function(best, whichModels, nPermut=9999, seed=1234){
   for(score in seq_along(whichScores)){
     p <- c()
     for(model in whichModels){
-      if(model==best) p <- c(p,NA)
-      else p <- c(p,permutationTest(scores_i[[model]][,,score],scores_i[[best]][,,score],
-     plot=TRUE,nPermutation=nPermut, verbose=TRUE)$pVal.permut)
-    }  
+      p <- c(p, if(model==best) NA else
+          permutationTest(scores_i[[model]][,,score],scores_i[[best]][,,score],
+                          plot=interactive(),nPermutation=nPermut, verbose=TRUE)$pVal.permut)
+    }
     pVals <- cbind(pVals,p)
   }
   return(pVals)

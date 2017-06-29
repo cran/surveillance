@@ -1,6 +1,7 @@
 \name{ha}
 \alias{ha}
 \alias{ha.sts}
+\docType{data}
 \title{Hepatitis A in Berlin}
 
 \description{
@@ -28,22 +29,23 @@ Robert Koch Institut, Epidemiologisches Bulletin 33/2006, p.290.
 }
 
 \examples{
+## deprecated "disProg" object
 data("ha")
 ha
 plot(aggregate(ha))
 
-## conversion of the old "disProg" object 'ha' to the new S4 class "sts"
-if (requireNamespace("maptools")) {
-    shpfile <- system.file("shapes/berlin.shp",package="surveillance")
-    ha.sts <- disProg2sts(ha, map=maptools::readShapePoly(shpfile,IDvar="SNAME"))
-} else {
-    data("ha.sts")
-    # is almost identical to the above except that German umlauts
-    # have been replaced in 'ha.sts@map@data$BEZIRK' for compatibility reasons
-}
-
+## new-style "sts" object
+data("ha.sts")
 ha.sts
 plot(ha.sts, type = observed ~ unit, labels = TRUE)
+
+## conversion of the old "disProg" object 'ha' to the new S4 class "sts"
+\dontrun{
+shpfile <- system.file("shapes/berlin.shp", package="surveillance")
+ha.sts <- disProg2sts(ha, map = maptools::readShapePoly(shpfile,IDvar="SNAME"))
+## in data("ha.sts"), German umlauts in 'ha.sts@map@data$BEZIRK'
+## have been replaced for compatibility
+}
 }
 
 \keyword{datasets}

@@ -1,7 +1,6 @@
 \name{residuals.ah}
 \alias{residuals.ah}
 \alias{residuals.ahg}
-\encoding{latin1}
 \title{Residuals from a HHH model}
 \description{
   Extracts model residuals from a \code{ah} or \code{ahg} object.
@@ -19,12 +18,5 @@
   matrix with residuals for each region 
   and time point. 
 }
-\details{this function is still experimental}
+\note{This function is experimental!}
 \keyword{models}
-
-
-
-
-
-
-

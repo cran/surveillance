@@ -16,13 +16,11 @@
   information reveals a Windows system. The function also provides three
   additional \code{strptime} formatting strings: "\%Q" (the quarter of a
   date as a numeric), "%OQ" (the quarter of a date in roman) and "%q"
-  (day within the quarter). These are, e.g., used by \code{linelist2sts}.
-  
+  (day within the quarter). These are, e.g., used by \code{linelist2sts}.  
 }
-\details{
+\source{
   The code to find the ISO week and year on Windows is by Gustaf Rydevik
-  <gustaf.rydevik_at_gmail.com>  posted
-  at http://tolstoy.newcastle.edu.au/R/e10/help/10/05/5588.html
+  posted at \url{https://stat.ethz.ch/pipermail/r-help/2010-May/239531.html}
 }
 \usage{
 isoWeekYear(Y, M=NULL, D=NULL)
@@ -43,4 +41,3 @@ isoWeekYear(dates)
 }
 
 \keyword{chron}
-

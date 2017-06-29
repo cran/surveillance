@@ -21,7 +21,4 @@
   mung bean sprouts in Germany and the Netherlands, October to November
   2011, Eurosurveillance 19(1):pii=20665.
 }  
-\examples{
-data(salmNewport)
-}
 \keyword{datasets}

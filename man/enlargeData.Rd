@@ -1,10 +1,11 @@
 \name{enlargeData}
 \alias{enlargeData}
 \title{Data Enlargement}
-\description{Enlargement of data which is too short for a surveillance method to evaluate.
+\description{
+  Enlargement of data which is too short for a surveillance method to evaluate.
 }
 \usage{
-    enlargeData(disProgObj, range = 1:156, times = 1)
+enlargeData(disProgObj, range = 1:156, times = 1)
 }
 \arguments{
 \item{disProgObj}{object of class disProg (including the observed and the state chain).}
@@ -13,25 +14,22 @@
 \item{times}{number of times to enlarge.}
 }
 \value{
-\item{disProg}{a object \code{disProg} (disease progress) including a list of the observed
-    and the state chain (extended with cyclic data generation)}
+a \code{disProg} (disease progress) object including a list of the observed
+and the state chain (extended with cyclic data generation)
 }
 \details{
-        \code{observed} and \code{state} are enlarged in the way that the part \code{range}
-        of \code{observed} and \code{state}
-        is repeated \code{times} times in front of \code{observed} and \code{state}.
-        Sometimes it's useful to care for the cyclic property of the timeseries, so as default
-        we enlarge observed and state once with the first three existing years, assuming a year
-        has 52 weeks.
+  \code{observed} and \code{state} are enlarged in the way that the part \code{range}
+  of \code{observed} and \code{state}
+  is repeated \code{times} times in front of \code{observed} and \code{state}.
+  Sometimes it's useful to care for the cyclic property of the timeseries, so as default
+  we enlarge observed and state once with the first three existing years, assuming a year
+  has 52 weeks.
 }
-\seealso{\code{\link{readData}}
-}
+\seealso{\code{\link{readData}}}
 \examples{
-    obj <- readData("k1")
+obj <- readData("k1")
 
-    enlargeData(obj) # enlarge once with part 1:156
-    enlargeData(obj, 33:36, 10) # enlarge 10 times with part 33:36
+enlargeData(obj) # enlarge once with part 1:156
+enlargeData(obj, 33:36, 10) # enlarge 10 times with part 33:36
 }
-
 \keyword{utilities}
-

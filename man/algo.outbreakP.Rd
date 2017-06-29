@@ -7,8 +7,8 @@
   Frisen and Andersson (2009) method for semiparametric surveillance of outbreaks
 }
 \usage{
-    algo.outbreakP(disProgObj, control = list(range = range, k=100,
-                   ret=c("cases","value"),maxUpperboundCases=1e5))
+algo.outbreakP(disProgObj, control = list(range = range, k=100,
+               ret=c("cases","value"),maxUpperboundCases=1e5))
 }
 \arguments{
 \item{disProgObj}{object of class disProg (including the observed and the state chain).}
@@ -32,19 +32,17 @@
   }
 }
 \value{
-\item{survRes}{
-    \code{algo.outbreakP} gives a list of class \code{survRes} which
-    includes the vector of alarm values for every time-point in
-    \code{range}, the vector of threshold values for every time-point
-    in \code{range}.
-  }
+  \code{algo.outbreakP} gives a list of class \code{survRes} which
+  includes the vector of alarm values for every time-point in
+  \code{range}, the vector of threshold values for every time-point
+  in \code{range}.
 }
 \details{
   A generalized likelihood ratio test based on the Poisson
   distribution is implemented where the means of the in-control and
   out-of-control states are computed by isotonic regression.
 
- \deqn{OutbreakP(s) = \prod_{t=1}^s \left( \frac{\hat{\mu}^{C1}(t)}{\hat{\mu}^D(t)} \right)^{x(t)} },
+ \deqn{OutbreakP(s) = \prod_{t=1}^s \left( \frac{\hat{\mu}^{C1}(t)}{\hat{\mu}^D(t)} \right)^{x(t)}}
 
  where \eqn{\hat{\mu}^{C1}(t)} is the estimated mean obtained by
  uni-modal regression under the assumption of one change-point and
@@ -111,8 +109,5 @@ res <- outbreakP(mysts, control=list(range=1:length(y),k=100,
            ret="cases"))
 plot(res,dx.upperbound=0,lwd=c(1,1,3),legend.opts=list(legend=c("Infected",
       "NNBA","Outbreak","Alarm"),horiz=TRUE))
-
 }
-
 \keyword{classif}
-

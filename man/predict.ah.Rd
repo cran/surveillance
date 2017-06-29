@@ -1,7 +1,6 @@
 \name{predict.ah}
 \alias{predict.ah}
 \alias{predict.ahg}
-\encoding{latin1}
 \title{Predictions from a HHH model}
 \description{
   Use a \code{ah} or \code{ahg} object for prediction.
@@ -25,9 +24,5 @@
   matrix of values containing the mean \eqn{\mu_{it}}{\mu_it} for each region 
   and time point. 
 }
-\details{this function is still experimental}
-\keyword{ models }
-
-
-
-% residuals.ah
+\note{This function is experimental!}
+\keyword{models}

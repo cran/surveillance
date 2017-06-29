@@ -236,7 +236,6 @@ measlesSim <- simulate(measlesFit_ri,
 ## ----------------------------------------------------------------------------------
 summary(colSums(measlesSim, dims = 2))
 
-## ----measlesSim_plot_time, fig.cap="Simulation-based long-term forecast starting from the last week in 2001 (vertical bar on the left), showing the counts aggregated over all districts. The weekly mean of the simulations is represented by dots and the dashed lines correspond to the pointwise 2.5\\% and 97.5\\% quantiles. The actually observed counts are shown in the background.", fig.pos="htb", echo=-1----
-par(las = 1, mar = c(4,4,0,0)+.5)
-plot(measlesSim, "time", ylim = c(0, 100))
+## ----measlesSim_plot_time, fig.cap="Simulation-based long-term forecast starting from the last week in 2001 (left-hand dot). The plot shows the weekly counts aggregated over all districts. The fan chart represents the 1\\% to 99\\% quantiles of the simulations in each week. The circles correspond to the observed counts.", fig.pos="htb"----
+plot(measlesSim, "fan", ylim = c(0, 140), key.args = list())
 

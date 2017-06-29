@@ -6,9 +6,9 @@
 ### Methods for objects of class "twinstim", specifically:
 ### vcov, logLik, print, summary, plot, R0, residuals, update, terms, all.equal
 ###
-### Copyright (C) 2009-2016 Sebastian Meyer
-### $Revision: 1692 $
-### $Date: 2016-04-02 16:24:21 +0200 (Sat, 02. Apr 2016) $
+### Copyright (C) 2009-2017 Sebastian Meyer
+### $Revision: 1870 $
+### $Date: 2017-06-12 15:42:49 +0200 (Mon, 12. Jun 2017) $
 ################################################################################
 
 ## extract the link function used for the epidemic predictor (default: log-link)
@@ -62,7 +62,7 @@ extractAIC.twinstim <- function (fit, scale, k = 2, ...)
     loglik <- logLik(fit)
     edf <- attr(loglik, "df")
     penalty <- k * edf
-    c(edf = edf, AIC = -2 * c(loglik) + penalty)            
+    c(edf = edf, AIC = -2 * c(loglik) + penalty)
 }
 
 ## Number of events (excluding the pre-history)
@@ -342,8 +342,9 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE, newcoef = NULL, ...)
     }
     ## update object for use of new parameters
     if (!is.null(newcoef)) {
-        object <- update(object, optim.args = list(par=newcoef, fixed=TRUE),
-                         cumCIF = FALSE, cores = 1L, verbose = FALSE)
+        object <- update.twinstim(object,
+                                  optim.args = list(par=newcoef, fixed=TRUE),
+                                  cumCIF = FALSE, cores = 1L, verbose = FALSE)
     }
     ## extract model information
     t0 <- object$timeRange[1L]
@@ -357,7 +358,7 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE, newcoef = NULL, ...)
     coefs <- coef(object)
     tiafpars <- coefs[sum(npars[1:4]) + seq_len(npars["ntiafpars"])]
     siafpars <- coefs[sum(npars[1:3]) + seq_len(npars["nsiafpars"])]
-    
+
     if (missing(newevents)) {
         ## if no newevents are supplied, use original events
         if (trimmed) {                  # already calculated by 'twinstim'
@@ -384,7 +385,7 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE, newcoef = NULL, ...)
             stop("missing \"eps.s\" or \"eps.t\" columns in 'newevents'")
         }
         stopifnot(is.factor(newevents[["type"]]))
-        
+
         ## subset newevents to timeRange
         .N <- nrow(newevents)
         newevents <- subset(newevents, time + eps.t > t0 & time <= T)
@@ -398,7 +399,7 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE, newcoef = NULL, ...)
         eventTimes <- newevents[["time"]]
         eps.t <- newevents[["eps.t"]]
         eps.s <- newevents[["eps.s"]]
-        
+
         ## calculate gammapred for newevents
         epidemic <- terms(form$epidemic, data = newevents, keep.order = TRUE)
         mfe <- model.frame(epidemic, data = newevents,
@@ -424,9 +425,9 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE, newcoef = NULL, ...)
 
 
     ## calculate remaining factors of the R0 formula, i.e. siafInt and tiafInt
-    
+
     if (trimmed) {                      # trimmed R0 for newevents
-        
+
         ## integral of g over the observed infectious periods
         .tiafInt <- .tiafIntFUN()
         gIntUpper <- pmin(T - eventTimes, eps.t)
@@ -452,7 +453,7 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE, newcoef = NULL, ...)
         .siafInt <- .siafIntFUN(siaf, noCircularIR=noCircularIR)
         .siafInt.args <- c(alist(siafpars), object$control.siaf$F)
         siafInt <- do.call(".siafInt", .siafInt.args)
-        
+
     } else {                     # untrimmed R0 for original events or newevents
 
         ## integrals of interaction functions for all combinations of type and
@@ -471,7 +472,7 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE, newcoef = NULL, ...)
             eps.s <- type_eps.s[2L]
             Fcircle(eps.s, siafpars, type)
         })
-        
+
         ## match combinations to rows of original events or 'newevents'
         eventscombiidxS <- match(paste(eventTypes,eps.s,sep="."),
                                  with(typeScombis,paste(type,eps.s,sep=".")))
@@ -486,7 +487,7 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE, newcoef = NULL, ...)
             message("infinite interaction ranges yield non-finite R0 values ",
                     "because 'trimmed = FALSE'")
         }
-        
+
     }
 
     ## return R0 values
@@ -531,7 +532,7 @@ simpleR0 <- function (object, eta = coef(object)[["e.(Intercept)"]],
 
     ## calculate basic R0
     (if (.epilink(object) == "log") exp(eta) else eta) * siafInt * tiafInt
-}            
+}
 
 
 
@@ -592,7 +593,7 @@ profile.twinstim <- function (fitted, profile, alpha = 0.05,
   ## the implementation below is not well tested, simply uses optim (ignoring
   ## optimizer settings from the original fit), and does not store the complete
   ## set of coefficients
-  
+
   ## Check that input is ok
   profile <- as.list(profile)
   if (length(profile) == 0L) {
@@ -719,7 +720,7 @@ update.twinstim <- function (object, endemic, epidemic,
     call <- object$call
     thiscall <- match.call(expand.dots=FALSE)
     extras <- thiscall$...
-    
+
     if (!missing(model)) {
         call$model <- model
         ## Special case: update model component ONLY
@@ -731,19 +732,19 @@ update.twinstim <- function (object, endemic, epidemic,
 
     ## Why we no longer use call$endemic but update object$formula$endemic:
     ## call$endemic would be an unevaluated expression eventually receiving the
-    ## parent.frame() as environment, cp.: 
+    ## parent.frame() as environment, cp.:
     ##(function(e) {ecall <- match.call()$e; eval(call("environment", ecall))})(~1+start)
     ## This could cause large files if the fitted model is saved.
     ## Furthermore, call$endemic could refer to some object containing
-    ## the formula, which is no longer visible.    
+    ## the formula, which is no longer visible.
     call$endemic <- if (missing(endemic)) object$formula$endemic else
         update.formula(object$formula$endemic, endemic)
     call$epidemic <- if (missing(epidemic)) object$formula$epidemic else
         update.formula(object$formula$epidemic, epidemic)
     ## Note: update.formula uses terms.formula(...,simplify=TRUE), but
-    ##       the principle order of terms is retained. Offsets will be moved to 
+    ##       the principle order of terms is retained. Offsets will be moved to
     ##       the end and a missing intercept will be denoted by a final -1.
-    
+
     if (!missing(control.siaf)) {
         if (is.null(control.siaf)) {
             call$control.siaf <- NULL  # remove from call, i.e., use defaults
@@ -752,7 +753,7 @@ update.twinstim <- function (object, endemic, epidemic,
             call$control.siaf[names(control.siaf)] <- control.siaf
         }
     }
-    
+
     call["optim.args"] <- if (missing(optim.args)) object["optim.args"] else {
         list( # use list() to enable optim.args=NULL
              if (is.list(optim.args)) {

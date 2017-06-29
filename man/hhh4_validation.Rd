@@ -1,4 +1,3 @@
-\encoding{latin1}
 \name{hhh4_validation}
 \alias{oneStepAhead}
 \alias{scores.oneStepAhead}

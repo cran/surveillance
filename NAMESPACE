@@ -115,6 +115,8 @@ export(ks.plot.unif)
 export(checkResidualProcess)       # for twinstim and twinSIR
 export(qlomax)                     # quantile function of the Lomax distribution
 export(plapply)
+export(clapply)
+export(hcl.colors)
 
 # spatial utilities
 export(discpoly)
@@ -436,8 +438,10 @@ S3method(simHHH, ah)
 ## main functions
 export(hhh4)
 export(addSeason2formula)
+export(makeControl)
 export(zetaweights, W_powerlaw)
 export(W_np)
+export(getNEweights, coefW)
 export(oneStepAhead)
 export(scores)
 export(permutationTest)
@@ -458,6 +462,7 @@ S3method(confint, hhh4)
 S3method(residuals, hhh4)
 S3method(predict, hhh4)
 S3method(update, hhh4)
+export(update.hhh4)            # for add-on packages
 S3method(all.equal, hhh4)
 S3method(simulate, hhh4)
 S3method(plot, hhh4)
@@ -489,3 +494,6 @@ export(plotHHH4sims_time)
 export(plotHHH4sims_fan)
 S3method(scores, hhh4sims)
 S3method(scores, hhh4simslist)
+
+## internal functions for use by add-on packages
+export(meanHHH, sizeHHH, decompose.hhh4)

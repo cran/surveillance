@@ -1,6 +1,5 @@
 \name{loglikelihood}
 \alias{loglikelihood}
-\encoding{latin1}
 \title{Calculation of the loglikelihood needed in algo.hhh}
 \description{
         Calculates the loglikelihood according to the model specified in \code{designRes}.
@@ -25,13 +24,6 @@ loglikelihood(theta, designRes)
               If the model specifies less parameters, those components are omitted.} 
         \item{designRes}{Result of a call to \code{make.design} }
 }
-\value{
-    Returns the loglikelihood
-}
 \seealso{\code{\link{algo.hhh}}}
 \author{M. Paul, L. Held}
 \keyword{internal}
-%\keyword{models}
-
-
-% meanResponse

@@ -242,8 +242,8 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
   \code{"simEpidataCS"}, which enhances the class
   \code{"epidataCS"} by the following additional components known from
   objects of class \code{"\link{twinstim}"}:
-  \code{timeRange}, \code{formula}, \code{coefficients}, \code{npars},
-  \code{call}, \code{runtime}.
+  \code{bbox}, \code{timeRange}, \code{formula}, \code{coefficients},
+  \code{npars}, \code{control.siaf}, \code{call}, \code{runtime}.
   It has corresponding \code{\link{coeflist}},
   \code{\link[=residuals.simEpidataCS]{residuals}},
   \code{\link[=R0.simEpidataCS]{R0}}, and
@@ -337,8 +337,17 @@ plot(stateD, add=TRUE, border=2, lwd=2)
 mysims <- simulate(imdepifit, nsim=2, seed=1, data=imdepi,
                    tiles=districtsD, newcoef=c("e.typeC"=-1),
                    t0=31, T=61, simplify=TRUE)
+\dontshow{
+    ## check construction and selection from "simEpidataCSlist"
+    local({
+        mysim_from_list <- mysims[[1]]
+        mysim_single <- eval("[[<-"(attr(mysims, "call"), "nsim", 1))
+        mysim_from_list$runtime <- mysim_single$runtime <- NULL
+        stopifnot(all.equal(mysim_single, mysim_from_list, check.attributes = FALSE))
+    })
+}
 
-## extract the first realization -> object of class simEpidataCS
+## extract the second realization -> object of class simEpidataCS
 mysim2 <- mysims[[2]]
 summary(mysim2)
 plot(mysim2, aggregate="space")

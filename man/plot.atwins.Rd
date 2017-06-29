@@ -1,6 +1,5 @@
 \name{plot.atwins}
 \alias{plot.atwins}
-
 \encoding{latin1}
 \title{Plot results of a twins model fit} 
 \description{
@@ -40,8 +39,7 @@
 \details{
   For details see the plots in the paper. Basically MCMC output is
   visualized. This function is together with \code{algo.twins} still
-  experimental.
-  
+  experimental.  
 }
 \value{This function does not return anything.}
 \references{Held, L., Hofmann, M., \enc{Höhle}{Hoehle}, M. and Schmid V. (2006)
@@ -71,8 +69,3 @@ plot(otwins,which=c(1,2),ask=FALSE)
 }
 \keyword{ts}
 \keyword{regression}
-
-
-
-
-

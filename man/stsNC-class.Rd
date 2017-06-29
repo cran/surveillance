@@ -1,5 +1,4 @@
 \name{stsNC-class}
-\Rdversion{1.1}
 \docType{class}
 \alias{stsNC-class}
 %New stsNC specific methods
@@ -63,10 +62,8 @@
       prediction interval slot of an \code{stsNC} object.
     }
 }
-} %end section methods.
-
+}
 
 \author{M. \enc{Höhle}{Hoehle}}
-
 
 \keyword{classes}

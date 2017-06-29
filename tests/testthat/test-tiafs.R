@@ -30,7 +30,6 @@ test_that("Step kernel of a single type agrees with numerical approximations",
                           tolerance=1e-6,
                           label=paste0("steptiaf$Deriv()[,",paridx,"]"),
                           expected.label="integrate() approximation")
-                                 
      })
 
 test_that("Step kernel with maxRange>max(eps.t) is equivalent to maxRange=Inf",
@@ -42,7 +41,9 @@ test_that("Step kernel with maxRange>max(eps.t) is equivalent to maxRange=Inf",
               tiaf = tiaf.step(c(7,20), maxRange=Inf),
               data = imdepi, optim.args = NULL, verbose = FALSE)
           maxepst <- max(imdepi$events$eps.t)
-          imdfit_steptiaf30 <- update(
+          imdfit_steptiaf30 <- update.default(
+              ## update() might call an update.list-method registered by another
+              ## package, e.g., gdata (2.18.0) implicitly loaded in other tests
               imdfit_steptiafInf,
               tiaf = tiaf.step(c(7,20), maxRange=maxepst+0.1))
           coefs <- c(-20, -0.05, -15, -0.5, 0.2, -1)

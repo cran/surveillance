@@ -69,9 +69,6 @@ meanResponse(theta, designRes)
    \deqn{\mu_{it} = \lambda_i \pi_i y_{i,t-1} + \sum_{j \sim i} \lambda_j (1-\pi_j)/ |k \sim j| y_{j,t-1} + n_{it} \nu_{it}}{
          \mu_it = \lambda_i *\pi_i * y_i,t-1 + \sum_(j ~ i) \lambda_j *(1-\pi_j)/|k ~ j| * y_j,t-1 + n_it * \nu_it }
    if \code{proportion}="single" ("multiple") in \code{designRes$control}. Note that this model specification is still experimental.
-   
-   
-   
 }
 
 \value{
@@ -90,7 +87,6 @@ meanResponse(theta, designRes)
 
 \author{M. Paul, L. Held}
 
-%\keyword{models}
 \keyword{internal}
 
 \references{

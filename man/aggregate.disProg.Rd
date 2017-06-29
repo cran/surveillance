@@ -21,6 +21,3 @@
 data(ha)
 plot(aggregate(ha))
 }
-
-
-% plot.disProg

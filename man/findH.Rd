@@ -1,7 +1,7 @@
 \name{findH}
 \alias{findH}
 \alias{hValues}
-\title{ Find decision interval for given in-control ARL and reference value}
+\title{Find decision interval for given in-control ARL and reference value}
 \description{
   Function to find a decision interval \code{h}* for given reference value \code{k}
   and desired ARL \eqn{\gamma} so that the
@@ -13,11 +13,10 @@
 }
 \usage{
 findH(ARL0, theta0, s = 1, rel.tol = 0.03, roundK = TRUE,
-       distr = c("poisson", "binomial"), digits = 1, FIR = FALSE, ...)
-           
-hValues(theta0, ARL0, rel.tol=0.02, s = 1, roundK = TRUE, digits = 1,
-      distr = c("poisson", "binomial"), FIR = FALSE, ...)
+      distr = c("poisson", "binomial"), digits = 1, FIR = FALSE, ...)
 
+hValues(theta0, ARL0, rel.tol=0.02, s = 1, roundK = TRUE, digits = 1,
+        distr = c("poisson", "binomial"), FIR = FALSE, ...)
 }
 \arguments{
   \item{ARL0}{ desired in-control ARL \eqn{\gamma} }
@@ -53,5 +52,3 @@ for a Poisson variate \eqn{X \sim Po(\lambda)}
 for a Binomial variate \eqn{X \sim Bin(n, \pi) }
 }
 \keyword{models}
-
-

@@ -45,7 +45,7 @@ if (!COMPUTE) load("twinSIR-cache.RData", verbose = TRUE)
 \Plaintitle{twinSIR: Individual-level epidemic modeling for a fixed population with known distances}
 \Shorttitle{Modeling epidemics in a fixed population with known distances}
 
-\author{Sebastian Meyer\thanks{Author of correspondence: \email{seb.meyer@fau.de} (new affiliation)}\\University of Zurich \And
+\author{Sebastian Meyer\thanks{Author of correspondence: \email{seb.meyer@fau.de}}\\Friedrich-Alexander-Universit{\"a}t\\Erlangen-N{\"u}rnberg \And
         Leonhard Held\\University of Zurich \And
         Michael H\"ohle\\Stockholm University}
 \Plainauthor{Sebastian Meyer, Leonhard Held, Michael H\"ohle}
@@ -525,9 +525,7 @@ Rbib <- sapply(c("quadprog"), function (pkg) {
     bib
 }, simplify=FALSE, USE.NAMES=TRUE)
 ## "quadprog" needs manual author formatting
-Rbib$quadprog$author <- "Berwin A. Turlach"
-Rbib$quadprog$note <- paste0(Rbib$quadprog$note,
-    ", ported to \\proglang{R} by Andreas Weingessel")
+Rbib$quadprog$author <- c("Berwin A. Turlach", "Andreas Weingessel")
 ## write to bibfile
 .Rbibfile <- file("twinSIR-R.bib", "w", encoding = "latin1")
 cat(unlist(lapply(Rbib, toBibtex), use.names = FALSE),

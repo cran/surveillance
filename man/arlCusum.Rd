@@ -2,8 +2,8 @@
 \alias{arlCusum}
 \title{Calculation of Average Run Length for discrete CUSUM schemes}
 \description{
-        Calculates the average run length (ARL) for an upward CUSUM scheme for discrete
-        distributions (i.e. Poisson and binomial) using the Markov chain approach.
+  Calculates the average run length (ARL) for an upward CUSUM scheme for discrete
+  distributions (i.e. Poisson and binomial) using the Markov chain approach.
 }
 \usage{
 arlCusum(h=10, k=3, theta=2.4, distr=c("poisson","binomial"),
@@ -29,10 +29,10 @@ arlCusum(h=10, k=3, theta=2.4, distr=c("poisson","binomial"),
 Returns a list with the ARL of the regular (zero-start)
 and the fast initial response (FIR)
 CUSUM scheme with reference value \code{k}, decision interval \code{h} for
-   \eqn{X \sim F(\theta)}, where F is the Poisson or binomial cdf
-  \item{ARL}{one-sided ARL of the regular (zero-start) CUSUM scheme}
-  \item{FIR.ARL}{one-sided ARL of the FIR CUSUM scheme with head start
-               \eqn{\frac{\code{h}}{2}} }
+\eqn{X \sim F(\theta)}, where F is the Poisson or binomial CDF.
+\item{ARL}{one-sided ARL of the regular (zero-start) CUSUM scheme}
+\item{FIR.ARL}{one-sided ARL of the FIR CUSUM scheme with head start
+  \eqn{\frac{\code{h}}{2}} }
 }
 \keyword{models}
 \source{Based on the FORTRAN code of
@@ -41,4 +41,3 @@ Hawkins, D. M. (1992). Evaluation of Average Run Lengths of Cumulative
   Sum Charts for an Arbitrary Data Distribution. Communications in
   Statistics - Simulation and Computation, 21(4), p. 1001-1020.
 }
-

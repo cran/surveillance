@@ -16,7 +16,7 @@ Toy Data for \code{twinSIR}
   \code{"\link{twinSIR}"} and is the result of a fit to \code{fooepidata}.
 }
 
-\examples{
+\usage{
 data(foodata)
 data(fooepidata)
 data(foofit)

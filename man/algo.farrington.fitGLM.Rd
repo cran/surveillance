@@ -2,10 +2,7 @@
 \alias{algo.farrington.fitGLM}
 \alias{algo.farrington.fitGLM.fast}
 \alias{algo.farrington.fitGLM.populationOffset}
-\encoding{latin1}
-
-\title{Fit the Poisson GLM of the Farrington procedure for a single
-  time point}
+\title{Fit Poisson GLM of the Farrington procedure for a single time point}
 \description{
   The function fits a Poisson regression model (GLM) with mean predictor
   \deqn{\log \mu_t = \alpha + \beta t}{
@@ -16,12 +13,12 @@
   be caused by earlier outbreaks are downweighted.
 }
 \usage{
-  algo.farrington.fitGLM(response, wtime, timeTrend = TRUE, 
-                         reweight = TRUE, ...)
-  algo.farrington.fitGLM.fast(response, wtime, timeTrend = TRUE, 
-                         reweight = TRUE, ...)
-  algo.farrington.fitGLM.populationOffset(response, wtime, population,
-                         timeTrend=TRUE,reweight=TRUE, ...) 
+algo.farrington.fitGLM(response, wtime, timeTrend = TRUE,
+                       reweight = TRUE, ...)
+algo.farrington.fitGLM.fast(response, wtime, timeTrend = TRUE,
+                            reweight = TRUE, ...)
+algo.farrington.fitGLM.populationOffset(response, wtime, population,
+                                        timeTrend=TRUE,reweight=TRUE, ...)
 }
 \arguments{
 \item{response}{The vector of observed base counts}
@@ -39,8 +36,8 @@
   }
 \item{\dots}{Used to catch additional arguments, currently not used.}
 }
-%
-\details{Compute weights from an initial fit and rescale using
+\details{
+  Compute weights from an initial fit and rescale using
   Anscombe based residuals as described in the
   \code{\link{anscombe.residuals}} function.
 
@@ -54,12 +51,10 @@
   function. Which function is used for \code{algo.farrington} can be
   controlled by the \code{control$fitFun} argument.
 }
-%
-\value{An object of class GLM with additional fields \code{wtime},
+\value{
+  an object of class GLM with additional fields \code{wtime},
   \code{response} and \code{phi}. If the \code{glm} returns without
-  convergence \code{NULL} is returned.}
-%
+  convergence \code{NULL} is returned.
+}
 \seealso{\code{\link{anscombe.residuals}},\code{\link{algo.farrington}}}
 \keyword{regression}
-
-

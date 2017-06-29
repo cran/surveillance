@@ -1,9 +1,8 @@
 \name{make.design}
 \alias{make.design}
-\encoding{latin1}
 \title{Create the design matrices}
 \description{
-        Creates the design matrices needed for \code{meanResponse}
+  Creates the design matrices needed for \code{meanResponse}
 }
 \usage{
 make.design(disProgObj, control=list(lambda=TRUE, neighbours=FALSE, 
@@ -54,7 +53,3 @@ make.design(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
 }
 \author{M.Paul, L. Held}
 \keyword{internal}
-
-
-
-% predict.ah

@@ -49,52 +49,8 @@ gpclibCheck <- function (fatal = TRUE)
 ###########################
 
 
-### checking if x is scalar, i.e. a numeric vector of length 1.
-
-isScalar <- function (x) {
-    length(x) == 1L && is.vector(x, mode = "numeric")
-}
-
-
-### _c_onditional lapply, which only uses lapply() if X really is a list object
-### and otherwise applies FUN to X. The result is always a list (of length 1 in
-### the latter case). Used for neOffset in hhh4 models.
-
-clapply <- function (X, FUN, ...)
-{
-    if (is.list(X)) lapply(X, FUN, ...) else list(FUN(X, ...))
-}
-
-
-### pretty p-value formatting
-
-formatPval <- function (pv, eps = 1e-4, scientific = FALSE, ...)
-{
-    format1 <- function (p)
-        format.pval(p, digits = if (p < 10*eps) 1 else 2, eps = eps,
-                    nsmall = 2, scientific = scientific, ...)
-    vapply(X = pv, FUN = format1, FUN.VALUE = "", USE.NAMES = TRUE)
-}
-
-
 ### determines multiplicities in a matrix (or data frame)
 ### and returns unique rows with appended column of counts
+### using spatstat's multiplicity methods
 
 countunique <- function (x) unique(cbind(x, COUNT = multiplicity(x)))
-
-
-### generate a color vector (via the colorspace package)
-
-hcl.colors <- function (ncolors=100, use.color=TRUE)
-{
-    GYR <- if (requireNamespace("colorspace", quietly=TRUE)) {
-        ## the Zeil-ice colors 
-        colorspace::heat_hcl(ncolors, h=c(0,120),
-                             c=if (use.color) c(90,30) else c(0,0),
-                             l=c(50,90), power=c(0.75, 1.2))
-    } else {
-        if (use.color) heat.colors(ncolors) else grey.colors(ncolors)
-    }
-    
-    return(rev(GYR))
-}

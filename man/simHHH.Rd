@@ -13,7 +13,6 @@
 \method{simHHH}{default}(model=NULL, control = list(coefs = list(alpha=1, gamma = 0, delta = 0,
        lambda = 0, phi = NULL, psi = NULL, period = 52),
        neighbourhood = NULL, population = NULL, start = NULL),
-%       state = NULL, K = 0),
        length)
 
 \method{simHHH}{ah}(model, control = model$control, length)
@@ -67,10 +66,8 @@
         and \eqn{n_{it}} are possibly standardized population sizes.
 }
 \note{The model does not contain a linear trend.}
-%\seealso{\code{\link{algo.hhh}}, \code{\link{algo.hhh.grid}}}
 \source{Held, L., \enc{Höhle}{Hoehle}, M., Hofmann, M. (2005). A statistical framework for the
     analysis of multivariate infectious disease surveillance counts. Statistical
     Modelling, 5, p. 187-199.
     }
 \keyword{datagen}
-

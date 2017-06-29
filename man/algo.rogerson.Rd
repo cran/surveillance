@@ -51,7 +51,6 @@ After an alarm is given, the FIR CUSUM starts again at this head start value.
   
 The procedure after the CUSUM gives an alarm can be determined by \code{limit}.
 Suppose that the CUSUM signals at time \eqn{t}, i.e. \eqn{S_t \geq h}.
-%as suggested by Kenett and Pollack (1983) for the standard CUSUM.
 For numeric values of \code{limit}, the CUSUM is bounded
 above after an alarm is given, % at time \eqn{t-1},
 i.e. \eqn{S_{t}} is set to \eqn{ \min\{\code{limit} \cdot h,S_{t}\} }.
@@ -96,12 +95,6 @@ plot(res)
 Rogerson, P. A. and Yamada, I. Approaches to Syndromic Surveillance When Data
 Consist of Small Regional Counts. Morbidity and Mortality Weekly Report, 2004,
 53/Supplement, 79-85
-%
-%Kenett, R. and Pollack, M. On Sequential Detection of a Shift in the
-%Probability of a Rare Event. Journal of the American Statistical Association,
-%1983, 78, 389-395
- }
+}
 \seealso{\code{\link{hValues}}}
 \keyword{classif}
-
-

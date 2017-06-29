@@ -8,16 +8,17 @@
 ### the Cauchy density with scale sigma; in Geostatistics, a correlation
 ### function of this kind is known as the Cauchy model.
 ###
-### Copyright (C) 2013-2014 Sebastian Meyer
-### $Revision: 711 $
-### $Date: 2014-01-27 21:51:24 +0100 (Mon, 27. Jan 2014) $
+### Copyright (C) 2013-2014,2017 Sebastian Meyer
+### $Revision: 1890 $
+### $Date: 2017-06-19 17:36:54 +0200 (Mon, 19. Jun 2017) $
 ################################################################################
 
 
-siaf.student <- function (nTypes = 1, validpars = NULL)
+siaf.student <- function (nTypes = 1, validpars = NULL, engine = "C")
 {
     nTypes <- as.integer(nTypes)
     stopifnot(length(nTypes) == 1L, nTypes > 0L)
+    engine <- match.arg(engine, c("C", "R"))
 
     ## for the moment we don't make this type-specific
     if (nTypes != 1) stop("type-specific shapes are not yet implemented")
@@ -39,10 +40,8 @@ siaf.student <- function (nTypes = 1, validpars = NULL)
     ))
 
     ## numerically integrate f over a polygonal domain
-    F <- function (polydomain, f, logpars, type = NULL, ...)
-        .polyCub.iso(polydomain$bdry, intrfr.student, logpars, #type,
-                     center=c(0,0), control=list(...))
-    
+    F <- siaf_F_polyCub_iso(intrfr_name = "intrfr.student", engine = engine)
+
     ## fast integration of f over a circular domain
     ## is not relevant for this heavy-tail kernel since we don't use
     ## 'effRange', and usually eps.s=Inf
@@ -59,18 +58,11 @@ siaf.student <- function (nTypes = 1, validpars = NULL)
         )))
 
     ## Numerical integration of 'deriv' over a polygonal domain
-    Deriv <- function (polydomain, deriv, logpars, type = NULL, ...)
-    {
-        res.logsigma <- .polyCub.iso(polydomain$bdry,
-                                     intrfr.student.dlogsigma, logpars, #type,
-                                     center=c(0,0), control=list(...))
-        res.logd <- .polyCub.iso(polydomain$bdry,
-                                 intrfr.student.dlogd, logpars, #type,
-                                 center=c(0,0), control=list(...))
-        c(res.logsigma, res.logd)
-    }
+    Deriv <- siaf_Deriv_polyCub_iso(
+        intrfr_names = c("intrfr.student.dlogsigma", "intrfr.student.dlogd"),
+        engine = engine)
 
-    ## simulation from the kernel
+    ## simulation from the kernel (via polar coordinates)
     simulate <- siaf.simulatePC(intrfr.student)
 
     ## set function environments to the global environment

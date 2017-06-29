@@ -1,14 +1,13 @@
 \name{MMRcoverageDE}
 \alias{MMRcoverageDE}
-\encoding{latin1}
-
+\docType{data}
 \title{MMR coverage levels in the 16 states of Germany}
-\description{Coverage levels at school entry for the first and second dose
+\description{
+  Coverage levels at school entry for the first and second dose
   of the combined measles-mumps-rubella (MMR) vaccine in 2006, estimated 
   from children presenting vaccination documents at school entry examinations.
 }
-\usage{data(MMRcoverageDE)
-}
+\usage{data(MMRcoverageDE)}
 \format{
   A \code{data.frame} containing 19 rows and 5 columns with variables
   \describe{
@@ -30,7 +29,6 @@
   Note that information from children who did not present a vaccination 
   document on the day of the medical examination, is not included in
   the estimated coverage. 
-
 }
 \source{
   Robert Koch-Institut (2008) Zu den Impfquoten bei den 
@@ -38,14 +36,9 @@
     Epidemiologisches Bulletin, \bold{7}, 55-57
 }
 \seealso{\code{\link{measlesDE}}}
-\examples{
-    data(MMRcoverageDE)   
-}
 \references{
   Herzog, S.A., Paul, M. and Held, L. (2011) Heterogeneity in vaccination
     coverage explains the size and occurrence of measles epidemics in
     German surveillance data. Epidemiology and Infection, \bold{139}, 505--515.
 }
-
 \keyword{datasets}
-

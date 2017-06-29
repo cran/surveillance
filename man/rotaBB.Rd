@@ -15,7 +15,4 @@
   The data are queried on 19 Feb 2014 from the Survstat@RKI database of the German
   Robert Koch Institute (\url{http://www3.rki.de/SurvStat/}). 
 }  
-\examples{
-data(rotaBB)
-}
 \keyword{datasets}

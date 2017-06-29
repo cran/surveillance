@@ -181,9 +181,6 @@ backprojNP(sts, incu.pmf,
   \code{stsBP} objects is currently missing.
 }
 
-%\seealso{
-%}
-
 \examples{
 #Generate an artificial outbreak of size n starting at time t0 and being of length
 n <- 1e3 ; t0 <- 23 ; l <- 10
