@@ -137,7 +137,7 @@ achieve the typical behaviour from \eqn{1\leq k\leq n}{1<= k <= n} use
 
 So \eqn{N} is the time point where the GLR statistic is above the
 threshold the first time: An alarm is given and the surveillance is
-resetted starting from time \eqn{N+1}. Note that the same
+reset starting from time \eqn{N+1}. Note that the same
 \code{c.ARL} as before is used, but if \code{mu0} is different at
 \eqn{N+1,N+2,\ldots} compared to time \eqn{1,2,\ldots} the run length
 properties differ. Because \code{c.ARL} to obtain a specific ARL can

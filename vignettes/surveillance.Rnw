@@ -504,7 +504,7 @@ In both this study and the earlier simulation study the Bayesian
 approach seems to do quite well. However, the extent of the
 comparisons do not make allowance for any more supported statements.
 Consult the work of~\citet{riebler2004} for a more thorough
-comparision using simulation studies.
+comparison using simulation studies.
 
 \section{Multivariate Surveillance}
 
@@ -594,7 +594,7 @@ as the overdispersion parameter $\psi$ is omitted.
 measles.hhh <- algo.hhh(measles.weser, control = cntrl)
 @
 
-Depending on the inital values for the parameters, the optimization algorithm
+Depending on the initial values for the parameters, the optimization algorithm
 might not converge or only find a local maximum as the parameter space is
 high-dimensional.
 It is therefore reasonable to try multiple starting values.

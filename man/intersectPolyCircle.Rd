@@ -47,7 +47,7 @@ intersectPolyCircle(object, center, radius, ...)
 }
 
 \examples{
-data("letterR", package="spatstat")
+library("spatstat")
 plot(letterR)
 plot(intersectPolyCircle(letterR, c(3,2), 1), add=TRUE, col=2, lwd=3)
 }

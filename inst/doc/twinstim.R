@@ -85,9 +85,7 @@ summary(imdfit_endemic)
 
 ## ----imdfit_Gaussian, results="hide", eval=COMPUTE---------------------------------
 #  imdfit_Gaussian <- update(imdfit_endemic, epidemic = ~type + agegrp,
-#    siaf = siaf.gaussian(), start = c("e.(Intercept)" = -12.5, "e.siaf.1" = 2.75),
-#    control.siaf = list(F = list(adapt = 0.25), Deriv = list(nGQ = 13)),
-#    cores = 2 * (.Platform$OS.type == "unix"))
+#    siaf = siaf.gaussian(), cores = 2 * (.Platform$OS.type == "unix"))
 
 ## ----tab_imdfit_Gaussian, echo=FALSE, results="asis"-------------------------------
 print(xtable(imdfit_Gaussian,
@@ -102,13 +100,12 @@ tapply(R0_events, marks(imdepi_untied)[names(R0_events), "type"], mean)
 
 ## ----imdfit_powerlaw, results="hide", eval=COMPUTE, include=FALSE------------------
 #  imdfit_powerlaw <- update(imdfit_Gaussian, data = imdepi_untied_infeps,
-#    siaf = siaf.powerlaw(), control.siaf = NULL,
+#    siaf = siaf.powerlaw(),
 #    start = c("e.(Intercept)" = -6.2, "e.siaf.1" = 1.5, "e.siaf.2" = 0.9))
 
 ## ----imdfit_step4, results="hide", eval=COMPUTE, include=FALSE---------------------
 #  imdfit_step4 <- update(imdfit_Gaussian, data = imdepi_untied_infeps,
-#    siaf = siaf.step(exp(1:4 * log(100) / 5), maxRange = 100), control.siaf = NULL,
-#    start = c("e.(Intercept)" = -10, setNames(-2:-5, paste0("e.siaf.", 1:4))))
+#    siaf = siaf.step(exp(1:4 * log(100) / 5), maxRange = 100))
 
 ## ----imdfit_siafs, fig.cap="Various estimates of spatial interaction (scaled by the epidemic intercept $\\gamma_0$).", fig.pos="!ht", echo=FALSE----
 par(mar = c(5,5,1,1))
@@ -128,6 +125,9 @@ exp(cbind("Estimate" = coef(imdfit_Gaussian)["e.siaf.1"],
 exp(cbind("Estimate" = coef(imdfit_powerlaw)[c("e.siaf.1", "e.siaf.2")],
           confint(imdfit_powerlaw, parm = c("e.siaf.1", "e.siaf.2"))))
 
+## ----------------------------------------------------------------------------------
+quantile(getSourceDists(imdepi_untied_infeps, "space"), c(1,2,4,8)/100)
+
 ## ----imdfits_AIC-------------------------------------------------------------------
 AIC(imdfit_endemic, imdfit_Gaussian, imdfit_powerlaw, imdfit_step4)
 
@@ -143,7 +143,7 @@ imdfit_powerlaw <- update(imdfit_powerlaw, model = TRUE)
 par(mar = c(5,5,1,1), las = 1)
 intensity_endprop <- intensityplot(imdfit_powerlaw, aggregate="time",
                                    which="endemic proportion", plot=FALSE)
-intensity_total <- intensityplot(imdfit_powerlaw, aggregate="time", 
+intensity_total <- intensityplot(imdfit_powerlaw, aggregate="time",
                                  which="total", tgrid=501, lwd=2,
                                  xlab="Time [days]", ylab="Intensity")
 curve(intensity_endprop(x) * intensity_total(x), add=TRUE, col=2, lwd=2, n=501)

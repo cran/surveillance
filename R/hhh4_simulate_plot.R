@@ -7,8 +7,8 @@
 ### or a list thereof as produced by different "hhh4" models (same period!)
 ###
 ### Copyright (C) 2013-2017 Sebastian Meyer
-### $Revision: 1898 $
-### $Date: 2017-06-20 12:30:12 +0200 (Tue, 20. Jun 2017) $
+### $Revision: 1991 $
+### $Date: 2017-10-06 14:17:06 +0200 (Fri, 06. Oct 2017) $
 ################################################################################
 
 plot.hhh4sims <- function (x, ...) {
@@ -116,7 +116,7 @@ aggregate.hhh4simslist <- function (x, units = TRUE, time = FALSE, ..., drop = F
 {
     if (drop || time) { # unclass(x) to use default "[["-method in lapply
         lapply(X = unclass(x), FUN = aggregate.hhh4sims,
-               units = units, time = time,..., drop = TRUE)
+               units = units, time = time, ..., drop = TRUE)
     } else {
         as.hhh4simslist.list(
             lapply(X = x, FUN = aggregate.hhh4sims,

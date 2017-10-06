@@ -118,12 +118,12 @@ stopifnot(isTRUE(all.equal(colSums(imdsts@observed),
 
 ## compare plots of monthly number of cases
 opar <- par(mfrow = c(2, 1))
-suppressWarnings(plot(imdepi, "time", breaks = c(0,unique(imdepi$stgrid$stop))))
-plot(imdsts, type = observed ~ time, legend.opts = NULL)
+plot(imdepi, "time")
+plot(imdsts, type = observed ~ time)
 par(opar)
 
 ## plot number of cases by district
-plot(imdsts, type = observed ~ 1 | unit, labels = FALSE)
+plot(imdsts, type = observed ~ unit)
 
 
 ## also test conversion to an SIS event history ("epidata") of the "tiles"

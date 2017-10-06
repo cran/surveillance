@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
+### Compute one-step-ahead predictions at a series of time points
+###
+### Copyright (C) 2011-2012 Michaela Paul, 2012-2017 Sebastian Meyer
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
 ### a copy of which is available at http://www.r-project.org/Licenses/.
-###
-### Compute one-step-ahead predictions (means) at a series of time points
-###
-### Copyright (C) 2011-2012 Michaela Paul, 2012-2016 Sebastian Meyer
-### $Revision: 1816 $
-### $Date: 2016-12-13 16:53:46 +0100 (Tue, 13. Dec 2016) $
 ################################################################################
 
 
@@ -36,24 +34,26 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
     ## get model terms
     model <- result[["terms"]]
     if (is.null(model))
-        model <- result$terms <- with(result, interpretControl(control, stsObj))
+        model <- result$terms <- terms(result)
     nTime <- model$nTime   # = nrow(result$stsObj)
     nUnits <- model$nUnits # = ncol(result$stsObj)
     dimPsi <- model$nOverdisp
     withPsi <- dimPsi > 0L
     psiIdx <- model$nFE + model$nd + seq_len(dimPsi)
-    
+
     ## check that tp is within the time period of the data
-    stopifnot(length(tp) %in% 1:2)
-    tpRange <- c(min(model$subset), max(model$subset)-1L) # supported range
-    if (type == "final") { # no re-fitting necessary
-        stopifnot(tp >= 0, tp <= nTime-1L)
-    } else if (any(tp < tpRange[1L] | tp > tpRange[2L])) {
+    stopifnot(length(tp) %in% 1:2, tp >= 0)
+    tpRange <- c(model$subset[1L], nTime-1L) # supported range
+    if (any(tp > tpRange[2L]) || (type != "final" && any(tp < tpRange[1L]))) {
         stop("the time range defined by 'tp' must be a subset of ",
-             tpRange[1L], ":", tpRange[2L]) # because of how subset.upper works
+             tpRange[1L], ":", tpRange[2L])
     }
-    if (length(tp) == 1) tp <- c(tp, tpRange[2L])
-    tps <- tp[1L]:tp[2L]
+    if (length(tp) == 1) {
+        tp <- c(tp, max(model$subset)-1L)  # historical default
+        if (tp[1L] > tp[2L])  # probably unintended
+            stop("'tp' larger than the default upper limit (", tp[2L], ")")
+    }
+    tps <- tp[1L]:tp[2L]  # this function actually works if tp[1] > tp[2]
     ntps <- length(tps)
     observed <- model$response[tps+1,,drop=FALSE]
     rownames(observed) <- tps+1
@@ -63,7 +63,7 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
     result$control$verbose <- max(0, verbose - (ntps>1))
     if (type != "rolling" && verbose > 1L) verbose <- 1L
     do_pb <- verbose == 1L && interactive()
-    
+
     ## initial fit
     fit <- if (type == "first") {
         if (do_pb)
@@ -137,7 +137,7 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
             Sigma.orig[] <- .extractFromList("Sigma.orig")
             logliks[] <- .extractFromList("logliks")
         }
-        
+
     } else { ## sequential one-step ahead predictions
 
         if (do_pb) pb <- txtProgressBar(min=0, max=ntps, initial=0, style=3)
@@ -145,7 +145,7 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
             if (verbose > 1L) {
                 cat("\nOne-step-ahead prediction @ t =", tps[i], "...\n")
             } else if (do_pb) setTxtProgressBar(pb, i)
-            
+
             if (type == "rolling") { # update fit
                 fit.old <- fit # backup
                 start <- if (is.list(which.start)) {
@@ -166,7 +166,7 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
             }
 
             res <- getPreds(fit, tps[i])
-            
+
             ## gather results
             pred[i,] <- res$pred
             if (withPsi)
@@ -185,7 +185,7 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
     if (dimPsi > 1L && dimPsi != nUnits) {
         psi <- psi[,model$indexPsi,drop=FALSE]
     }
-    
+
     ## done
     res <- c(list(pred = pred, observed = observed,
            psi = if (withPsi) psi else NULL,
@@ -213,7 +213,119 @@ psi2size.oneStepAhead <- function (object)
         size <- rep.int(size, dimpred[2L])
         dim(size) <- dimpred
     }
-    
+
     dimnames(size) <- list(rownames(object$psi), colnames(object$pred))
     size
+}
+
+## quantiles of the one-step-ahead forecasts
+quantile.oneStepAhead <- function (x, probs = c(2.5, 10, 50, 90, 97.5)/100, ...)
+{
+    stopifnot(is.vector(probs, mode = "numeric"), probs >= 0, probs <= 1,
+              (np <- length(probs)) > 0)
+    names(probs) <- paste(format(100*probs, trim=TRUE, scientific=FALSE, digits=3), "%")
+
+    size <- psi2size.oneStepAhead(x)
+    qs <- if (is.null(size)) {
+        vapply(X = probs, FUN = qpois, FUN.VALUE = x$pred,
+               lambda = x$pred)
+    } else {
+        vapply(X = probs, FUN = qnbinom, FUN.VALUE = x$pred,
+               mu = x$pred, size = size)
+    }
+    ## one tp, one unit -> qs is a vector of length np
+    ## otherwise, 'qs' has dimensions ntps x nUnit x np
+    ## if nUnit==1, we return an ntps x np matrix, otherwise an array
+    if (is.vector(qs)) {
+        qs <- t(qs)
+        rownames(qs) <- rownames(x$pred)
+        qs
+    } else if (dim(qs)[2L] == 1L) {
+        matrix(qs, dim(qs)[1L], dim(qs)[3L], dimnames = dimnames(qs)[c(1L,3L)])
+    } else qs
+}
+
+## confidence intervals for one-step-ahead predictions
+confint.oneStepAhead <- function (object, parm, level = 0.95, ...)
+{
+    quantile.oneStepAhead(object, (1+c(-1,1)*level)/2, ...)
+}
+
+## simple plot of one-step-ahead forecasts
+plot.oneStepAhead <- function (x, unit = 1, probs = 1:99/100,
+    fan.args = list(), observed.args = list(), key.args = NULL,
+    add = FALSE, ...)
+{
+    stopifnot(length(unit) == 1, length(probs) > 1)
+
+    ## select unit
+    obs <- x$observed[,unit]
+    qs <- quantile.oneStepAhead(x, probs = probs)
+    if (!is.matrix(qs))  # multi-unit predictions
+        qs <- matrix(qs[,unit,], dim(qs)[1L], dim(qs)[3L],
+                     dimnames = dimnames(qs)[c(1L,3L)])
+
+    ## produce fanplot
+    fanplot(quantiles = qs, probs = probs, observed = obs,
+            start = as.integer(rownames(qs)[1L]),
+            fan.args = fan.args, observed.args = observed.args,
+            key.args = key.args, add = add, ...)
+}
+
+## my wrapper for fanplot::fan (quantiles: time x prob, observed: vector)
+fanplot <- function (quantiles, probs, observed = NULL, start = 1,
+    fan.args = list(), observed.args = list(), key.args = NULL,
+    xlim = NULL, ylim = NULL, xlab = "time", ylab = "No. infected",
+    add = FALSE, ...)
+{
+    stopifnot(is.matrix(quantiles), length(probs) == ncol(quantiles),
+              is.null(observed) || length(observed) == nrow(quantiles),
+              isScalar(start))
+
+    ## axis range
+    if (is.null(xlim))
+        xlim <- c(1 - 0.5, nrow(quantiles) + 0.5) + (start-1)
+    if (is.null(ylim))
+        ylim <- c(0, max(quantiles, observed))
+
+    ## graphical parameters
+    stopifnot(is.list(fan.args))
+    fan.args <- modifyList(
+        list(data = t(quantiles), data.type = "values", probs = probs,
+             start = start, fan.col = heat.colors, ln = NULL),
+        fan.args, keep.null = TRUE)
+
+    ## initialize empty plot
+    if (!add)
+        plot(xlim, ylim, type = "n", xlab = xlab, ylab = ylab, ...)
+
+    ## add fan
+    do.call(fanplot::fan, fan.args)
+
+    ## add observed time series
+    if (!is.null(observed) && is.list(observed.args)) {
+        observed.args <- modifyList(
+            list(x = seq_along(observed) + (start-1), y = observed, type = "b", lwd = 2),
+            observed.args)
+        do.call("lines", observed.args)
+    }
+
+    ## add color key
+    if (is.list(key.args)) {
+        key.args <- modifyList(
+            list(start = xlim[2L] - 1, ylim = c(ylim[1L] + mean(ylim), ylim[2L]),
+                 data.type = "values", style = "boxfan", probs = fan.args$probs,
+                 fan.col = fan.args$fan.col, ln = NULL, space = 0.9,
+                 rlab = quantile(fan.args$probs, names = FALSE, type = 1)),
+            key.args)
+        ## convert ylim to data
+        key.args$data <- matrix(seq.int(from = key.args$ylim[1L], to = key.args$ylim[2L],
+                                        length.out = length(fan.args$probs)))
+        key.args$ylim <- NULL
+        tryCatch(do.call(fanplot::fan, key.args), error = function (e)
+            warning("color key could not be drawn, probably due to non-standard 'probs'",
+                    call. = FALSE))
+    }
+
+    invisible(NULL)
 }

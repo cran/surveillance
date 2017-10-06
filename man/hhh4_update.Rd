@@ -38,8 +38,10 @@
     list by the \code{\dots} arguments.
   }
   \item{subset.upper}{
-    if a scalar value, restrict the new fit to those epochs of
-    \code{object$control$subset} which are \code{<= subset.upper}.
+    if a scalar value, refit the model to the data up to the time index
+    given by \code{subset.upper}. The lower time index remains
+    unchanged, i.e., \code{control$subset[1]:subset.upper} is used as
+    the new \code{subset}.
     This argument is used by \code{\link{oneStepAhead}}.
   }
   \item{use.estimates}{

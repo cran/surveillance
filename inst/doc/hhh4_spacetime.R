@@ -209,6 +209,12 @@ t(sapply(measlesScores1, colMeans, dims = 2))
 #  measlesPreds2 <- lapply(mget(models2compare), oneStepAhead,
 #    tp = tp, type = "rolling", which.start = "final")
 
+## ----measlesPreds2_plot, fig.cap = "Fan charts of rolling one-week-ahead forecasts during the second quarter of 2002, as produced by the random effects model \\code{measlesFit\\_ri}, for the six most affected districts.", out.width="\\linewidth", echo=-1----
+par(mfrow = sort(n2mfrow(length(districts2plot))), mar = c(4.5,4.5,2,1))
+for (unit in names(districts2plot))
+  plot(measlesPreds2[["measlesFit_ri"]], unit = unit, main = unit,
+    key.args = if (unit == tail(names(districts2plot),1)) list())
+
 ## ----measlesScores2----------------------------------------------------------------
 measlesScores2 <- lapply(measlesPreds2, scores, which = SCORES, individual = TRUE)
 t(sapply(measlesScores2, colMeans, dims = 2))

@@ -12,7 +12,7 @@
   \code{upper}.  
   Note that the autoregressive parameters \eqn{\lambda, \phi} and the
   overdispersion parameter \eqn{\psi} must be positive.  
-  Only one sequence of initial values is considered for the autregressive,
+  Only one sequence of initial values is considered for the autoregressive,
   endemic and overdispersion parameters to create the grid,
   e.g. initial values are the same
   for each one of the seasonal and trend parameters. 

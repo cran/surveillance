@@ -50,7 +50,7 @@ when performing Monte Carlo to calculate a threshold}
 \item{\code{limit54}}{c(cases,period) is a vector allowing the
 user to change these numbers.}
 
-\item{\code{quantileMethod}}{Character, either \code{MC} or \code{MM}. Indicates how to compute the quantile based on the posterior distribution (no matter the inference method): either by sampling \code{mc.munu} values from the posterior distribution of the parameters and then for each sampled parameters vector sampling \code{mc.y} response values so that one gets a vector of response values based on which one computes an empirical quantile (MC method, as explained in Salmon et al. 2015); or by sampling \code{mc.munu} from the posterior distribution of the parameters and then compute the quantile of the mixture distribution using bisectionning, which is faster.}
+\item{\code{quantileMethod}}{Character, either \code{MC} or \code{MM}. Indicates how to compute the quantile based on the posterior distribution (no matter the inference method): either by sampling \code{mc.munu} values from the posterior distribution of the parameters and then for each sampled parameters vector sampling \code{mc.y} response values so that one gets a vector of response values based on which one computes an empirical quantile (MC method, as explained in Salmon et al. 2015); or by sampling \code{mc.munu} from the posterior distribution of the parameters and then compute the quantile of the mixture distribution using bisectioning, which is faster.}
 }
 }
 }

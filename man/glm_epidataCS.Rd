@@ -44,8 +44,7 @@ glm_epidataCS(formula, data, ...)
 }
 
 \examples{
-data("imdepi")
-data("imdepifit")
+data("imdepi", "imdepifit")
 
 ## Fit an endemic-only twinstim() and an equivalent model wrapped in glm()
 fit_twinstim <- update(imdepifit, epidemic = ~0, siaf = NULL, subset = NULL,
@@ -56,13 +55,13 @@ fit_glm <- glm_epidataCS(formula(fit_twinstim)$endemic, data = imdepi)
 cbind(twinstim = coef(fit_twinstim), glm = coef(fit_glm))
 \dontshow{
 stopifnot(all.equal(coef(fit_glm), coef(fit_twinstim),
-                    tolerance = 1e-5, check.attributes = FALSE))
+                    tolerance = 1e-6, check.attributes = FALSE))
 if (surveillance.options("allExamples")) {
     ## also check type-specific model:
     stopifnot(all.equal(
         coef(glm_epidataCS(~0+type, imdepi)),
         coef(update(fit_twinstim, endemic=~(1|type))),
-    tolerance = 1e-5, check.attributes = FALSE))
+    tolerance = 1e-6, check.attributes = FALSE))
 }
 }
 

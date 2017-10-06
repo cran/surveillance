@@ -311,17 +311,19 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
 }
 
 \seealso{
+The function \code{\link{simEndemicEvents}} is a faster alternative
+for endemic-only models, only returning a
+\code{"\linkS4class{SpatialPointsDataFrame}"} of simulated events.
+  
 The \code{\link{plot.epidataCS}} and \code{\link{animate.epidataCS}}
 methods for plotting and animating continuous-space epidemic data,
-respectively, which also work for simulated epidemics (by inheritance).
-
-Function \code{\link{twinstim}} for fitting
-spatio-temporal conditional intensity models to epidemic data.
+respectively, also work for simulated epidemics (by inheritance),
+and \code{\link{twinstim}} can be used to fit
+spatio-temporal conditional intensity models also to simulated data.
 }
 
 \examples{
-data("imdepi")
-data("imdepifit")
+data("imdepi", "imdepifit")
 
 ## load borders of Germany's districts (originally obtained from the
 ## Bundesamt für Kartographie und Geodäsie, Frankfurt am Main, Germany,
@@ -343,11 +345,13 @@ mysims <- simulate(imdepifit, nsim=2, seed=1, data=imdepi,
         mysim_from_list <- mysims[[1]]
         mysim_single <- eval("[[<-"(attr(mysims, "call"), "nsim", 1))
         mysim_from_list$runtime <- mysim_single$runtime <- NULL
-        stopifnot(all.equal(mysim_single, mysim_from_list, check.attributes = FALSE))
+        stopifnot(all.equal(mysim_single, mysim_from_list,
+                            check.attributes = FALSE))
     })
 }
 
 ## extract the second realization -> object of class simEpidataCS
+mysims
 mysim2 <- mysims[[2]]
 summary(mysim2)
 plot(mysim2, aggregate="space")
@@ -387,8 +391,10 @@ invisible(lapply(csums_simulated, plotcsums,
 }
 
 
-if (surveillance.options("allExamples")) {
-### 'nsim' simulations of 'nm2add' months beyond the observed period:
+\dontrun{
+
+### Experimental code to generate 'nsim' simulations of 'nm2add' months
+### beyond the observed time period:
 nm2add <- 24
 nsim <- 5
 ### With these settings, simulations will take about 30 seconds.
@@ -431,6 +437,7 @@ for (i in seq_along(simsext$eventsList))
          cumulative=list(offset=c(table(imdepi$events$type)), maxat=330, axis=FALSE),
          border=NA, density=0)  # no histogram
 abline(v=origT, lty=2, lwd=2)
+
 }
 }
 

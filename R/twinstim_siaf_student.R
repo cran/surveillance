@@ -9,8 +9,8 @@
 ### function of this kind is known as the Cauchy model.
 ###
 ### Copyright (C) 2013-2014,2017 Sebastian Meyer
-### $Revision: 1890 $
-### $Date: 2017-06-19 17:36:54 +0200 (Mon, 19. Jun 2017) $
+### $Revision: 1988 $
+### $Date: 2017-10-06 11:04:19 +0200 (Fri, 06. Oct 2017) $
 ################################################################################
 
 
@@ -38,6 +38,7 @@ siaf.student <- function (nTypes = 1, validpars = NULL, engine = "C")
         expression(s2 <- .rowSums(s^2, nrow(s), 2L)),
         expression((s2+sigma^2)^-d)
     ))
+    environment(f) <- baseenv()
 
     ## numerically integrate f over a polygonal domain
     F <- siaf_F_polyCub_iso(intrfr_name = "intrfr.student", engine = engine)
@@ -56,6 +57,7 @@ siaf.student <- function (nTypes = 1, validpars = NULL, engine = "C")
         derivlogd <- log(fvals) * fvals,
         cbind(derivlogsigma, derivlogd, deparse.level = 0)
         )))
+    environment(deriv) <- baseenv()
 
     ## Numerical integration of 'deriv' over a polygonal domain
     Deriv <- siaf_Deriv_polyCub_iso(
@@ -64,12 +66,7 @@ siaf.student <- function (nTypes = 1, validpars = NULL, engine = "C")
 
     ## simulation from the kernel (via polar coordinates)
     simulate <- siaf.simulatePC(intrfr.student)
-
-    ## set function environments to the global environment
-    environment(f) <-  environment(deriv) <- .GlobalEnv
-    ## in F, Deriv, and simulate we need access to the intrfr-functions
-    environment(F) <- environment(Deriv) <- environment(simulate) <-
-        getNamespace("surveillance")
+    environment(simulate) <- getNamespace("surveillance")
 
     ## return the kernel specification
     list(f=f, F=F, deriv=deriv, Deriv=Deriv, simulate=simulate,

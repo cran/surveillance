@@ -7,8 +7,8 @@
 ### Similar to the density of the Pareto distribution (but value 1 for < sigma)
 ###
 ### Copyright (C) 2013-2014,2017 Sebastian Meyer
-### $Revision: 1890 $
-### $Date: 2017-06-19 17:36:54 +0200 (Mon, 19. Jun 2017) $
+### $Revision: 1988 $
+### $Date: 2017-10-06 11:04:19 +0200 (Fri, 06. Oct 2017) $
 ################################################################################
 
 
@@ -38,6 +38,7 @@ siaf.powerlawL <- function (nTypes = 1, validpars = NULL, engine = "C")
         fvals[inPLrange] <- (sLength[inPLrange]/sigma)^-d,
         fvals
         )))
+    environment(f) <- baseenv()
 
     ## numerically integrate f over a polygonal domain
     F <- siaf_F_polyCub_iso(intrfr_name = "intrfr.powerlawL", engine = engine)
@@ -59,6 +60,7 @@ siaf.powerlawL <- function (nTypes = 1, validpars = NULL, engine = "C")
             basevolume + pi * intfinvsq
         )
     ))
+    environment(Fcircle) <- baseenv()
 
     ## derivative of f wrt logpars
     ## CAVE: the derivative of f wrt logsigma is mathematically NaN at x=sigma
@@ -75,6 +77,7 @@ siaf.powerlawL <- function (nTypes = 1, validpars = NULL, engine = "C")
         derivlogd[inPLrange] <- fPL * log(fPL),
         cbind(derivlogsigma, derivlogd)
         )))
+    environment(deriv) <- baseenv()
 
     ## Numerical integration of 'deriv' over a polygonal domain
     Deriv <- siaf_Deriv_polyCub_iso(
@@ -83,6 +86,7 @@ siaf.powerlawL <- function (nTypes = 1, validpars = NULL, engine = "C")
 
     ## simulate from the lagged power law (within a maximum distance 'ub')
     ##simulate <- siaf.simulatePC(intrfr.powerlawL) # <- generic simulator
+    ##environment(simulate) <- getNamespace("surveillance")
     ## faster implementation taking advantage of the constant component:
     simulate <- function (n, logpars, type, ub)
     {
@@ -91,12 +95,12 @@ siaf.powerlawL <- function (nTypes = 1, validpars = NULL, engine = "C")
         ## Sampling via polar coordinates and inversion method
 
         ## random angle
-        theta <- stats::runif(n, 0, 2*pi)
+        theta <- runif(n, 0, 2*pi)
 
         ## sampling radius r
         ## trivial case u < sigma: p(r) \propto r on [0;u]
         if (ub < sigma) {
-            r <- ub * sqrt(stats::runif(n)) # inversion sampling
+            r <- ub * sqrt(runif(n)) # inversion sampling
             ## now rotate each point by a random angle to cover all directions
             return(r * cbind(cos(theta), sin(theta)))
         }
@@ -112,20 +116,20 @@ siaf.powerlawL <- function (nTypes = 1, validpars = NULL, engine = "C")
         mass2 <- sigma^d *
             if (d == 2) log(ub/sigma) else (ub^(2-d)-sigma^(2-d))/(2-d)
         ## probability for r < sigma is mass1/(mass1+mass2) => sample component
-        unir <- stats::runif(n) <= mass1 / (mass1 + mass2)
+        unir <- runif(n) <= mass1 / (mass1 + mass2)
 
         ## samples from the uniform short-range component:
         n1 <- sum(unir)
-        r1 <- sigma * sqrt(stats::runif(n1)) # similar to the case u < sigma
+        r1 <- sigma * sqrt(runif(n1)) # similar to the case u < sigma
 
         ## samples from power-law component: p2(r) \propto r^(-d+1) on [sigma;u]
         ## For d>2 only, we could use VGAM::rpareto(n,sigma,d-2), d=1 is trivial
         n2 <- n - n1
-        r2 <- if (d==1) stats::runif(n2, sigma, ub) else { # inversion sampling
+        r2 <- if (d==1) runif(n2, sigma, ub) else { # inversion sampling
             P2inv <- if (d == 2) { function (z) ub^z * sigma^(1-z) } else {
                 function (z) (z*ub^(2-d) + (1-z)*sigma^(2-d))^(1/(2-d))
             }
-            P2inv(stats::runif(n2))
+            P2inv(runif(n2))
         }
 
         ## put samples from both components together
@@ -134,12 +138,7 @@ siaf.powerlawL <- function (nTypes = 1, validpars = NULL, engine = "C")
         ## now rotate each point by a random angle to cover all directions
         r * cbind(cos(theta), sin(theta))
     }
-
-    ## set function environments to the global environment
-    environment(f) <- environment(Fcircle) <-
-        environment(deriv) <- environment(simulate) <- .GlobalEnv
-    ## in F and Deriv we need access to the intrfr-functions
-    environment(F) <- environment(Deriv) <- getNamespace("surveillance")
+    environment(simulate) <- getNamespace("stats")
 
     ## return the kernel specification
     list(f=f, F=F, Fcircle=Fcircle, deriv=deriv, Deriv=Deriv,

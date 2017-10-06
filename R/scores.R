@@ -9,8 +9,8 @@
 ### Biometrics 65:1254-1261
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2014-2015,2017 Sebastian Meyer
-### $Revision: 1836 $
-### $Date: 2017-03-15 15:02:47 +0100 (Wed, 15. Mar 2017) $
+### $Revision: 1968 $
+### $Date: 2017-10-05 14:23:42 +0200 (Thu, 05. Oct 2017) $
 ################################################################################
 
 
@@ -67,7 +67,7 @@ dss <- function (x, mu, size=NULL)
     ## compute P(X<=k)
     k <- 0:kmax
     Pk <- P(k, ...)
-    
+
     ## check precision
     if ((1 - Pk[length(Pk)])^2 > tolerance)
         warning("finite sum approximation error larger than tolerance=",
@@ -130,7 +130,7 @@ scores.default <- function(x, mu, size = NULL,
     ## append sign of x-mu
     if (sign)
         scorelist <- c(scorelist, list("sign" = sign(x-mu)))
-    
+
     ## gather scores in an array
     simplify2array(scorelist, higher = TRUE)
 }
@@ -159,10 +159,15 @@ scores.oneStepAhead <- function (x, which = c("logs","rps","dss","ses"),
 
     result <- scores.default(x = y, mu = mu, size = size,
                              which = which, sign = sign)
-    
+
     ## reverse order of the time points (historically)
-    if (reverse)
+    if (reverse) {
         result <- result[nrow(result):1L,,,drop=FALSE]
+        if (missing(reverse))
+            warning("Time points are reversed in the result (historical default).\n",
+                    "  Note that this will change with the next version of \"surveillance\".\n",
+                    "  Set the 'reverse' argument explicitly to avoid this warning.")
+    }
 
     ## average over units if requested
     if (individual) {

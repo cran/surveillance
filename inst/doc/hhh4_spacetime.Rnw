@@ -1,13 +1,13 @@
 %\VignetteIndexEntry{hhh4 (spatio-temporal): Endemic-epidemic modeling of areal count time series}
 %\VignetteEngine{knitr::knitr}
-%\VignetteDepends{surveillance, lattice, spdep, gsl, colorspace, animation, gridExtra, scales, fanplot}
+%\VignetteDepends{surveillance, lattice, spdep, gsl, colorspace, animation, gridExtra, scales, fanplot, hhh4contacts}
 
 <<setup, cache = FALSE, include = FALSE, purl = FALSE>>=
 ## purl=FALSE => not included in the tangle'd R script
 knitr::opts_chunk$set(echo = TRUE, tidy = FALSE, results = 'markup',
                       fig.path='plots/hhh4_spacetime-', fig.width = 8, fig.height = 4.5,
                       fig.align = "center", fig.scap = NA, out.width = NULL,
-                      cache = FALSE, error = FALSE, message = FALSE)
+                      cache = FALSE, error = FALSE, warning = FALSE, message = FALSE)
 knitr::render_sweave()             # use Sweave environments
 knitr::set_header(highlight = '')  # no \usepackage{Sweave} (part of jss class)
 ## R settings
@@ -844,13 +844,27 @@ predictions for week $t+1$:
 measlesPreds2 <- lapply(mget(models2compare), oneStepAhead,
   tp = tp, type = "rolling", which.start = "final")
 @
+
+Figure~\ref{fig:measlesPreds2_plot} shows a \pkg{fanplot} \citep{R:fanplot} of
+the sequential one-week-ahead forecasts from the random effects models for the
+same districts as in Figure~\ref{fig:measlesFitted_ri}:
+<<measlesPreds2_plot, fig.cap = "Fan charts of rolling one-week-ahead forecasts during the second quarter of 2002, as produced by the random effects model \\code{measlesFit\\_ri}, for the six most affected districts.", out.width="\\linewidth", echo=-1>>=
+par(mfrow = sort(n2mfrow(length(districts2plot))), mar = c(4.5,4.5,2,1))
+for (unit in names(districts2plot))
+  plot(measlesPreds2[["measlesFit_ri"]], unit = unit, main = unit,
+    key.args = if (unit == tail(names(districts2plot),1)) list())
+@
+Note that \code{quantile} and \code{confint} methods are also available
+for \class{oneStepAhead} predictions.
+
+Looking at the average scores of these forecasts over all weeks and districts,
+the most parsimonious initial model \code{measlesFit_basic}
+actually turns out best:
 <<measlesScores2>>=
 measlesScores2 <- lapply(measlesPreds2, scores, which = SCORES, individual = TRUE)
 t(sapply(measlesScores2, colMeans, dims = 2))
 @
 
-Thus, the most parsimonious initial model \code{measlesFit_basic}
-gives the best one-week-ahead predictions in terms of overall mean scores.
 Statistical significance of the differences in mean scores can be investigated
 by a \code{permutationTest} for paired data or a paired $t$-test:
 <<measlesScores_test>>=
@@ -859,21 +873,6 @@ sapply(SCORES, function (score) permutationTest(
   measlesScores2$measlesFit_ri[, , score],
   measlesScores2$measlesFit_basic[, , score],
   nPermutation = 999))
-@
-
-<<measlesPreds2_plot, echo=FALSE, eval=FALSE, purl=FALSE>>=
-## plot observed counts and one-week-ahead predictions for selected districts
-par(mfrow=c(2,1))
-local(for (unit in c("03401", "03454")) {
-    y <- measlesPreds2[[1]]$observed
-    weeks <- as.integer(rownames(y))
-    plot(weeks, y[,unit], type="h", ylab="No. infected", xlab="Week",
-         ylim=c(0,1.05*max(y[,unit])))
-    matlines(weeks, sapply(measlesPreds2, function (preds) preds$pred[,unit]),
-             type="l", col=2:6, lty=c(2,1,2,1,1))
-    legend("top", ncol=5, legend=sub("^measlesFit_", "", names(measlesPreds2)),
-           col=2:6, lty=c(2,1,2,1,1), bty="n", cex=0.9)
-})
 @
 
 Hence, there is no clear evidence for a difference between the basic and the
@@ -968,7 +967,10 @@ A useful epidemic model should therefore be additionally stratified by age group
 and take the inherent contact structure into account.
 How this extension can be incorporated in the spatio-temporal endemic-epidemic
 modeling framework \class{hhh4} has recently been investigated by
-\citet{meyer.held2015}.
+\citet{meyer.held2015}. The associated \pkg{hhh4contacts} package
+\citep{R:hhh4contacts} contains a demo script to exemplify this modeling
+approach with surveillance data on norovirus gastroenteritis and an
+age-structured contact matrix.
 
 
 
@@ -1002,7 +1004,7 @@ is below the observed number of \code{sum(observed(measlesWeserEms)[53:104, ])}
 $= \Sexpr{sum(observed(measlesWeserEms)[53:104,])}$ cases in the year 2002.
 Using the \code{plot}-method associated with such \code{hhh4} simulations,
 Figure~\ref{fig:measlesSim_plot_time} shows the weekly number of observed cases
-compared to the long-term forecast via a \pkg{fanplot} \citep{R:fanplot}:
+compared to the long-term forecast via a fan chart:
 <<measlesSim_plot_time, fig.cap="Simulation-based long-term forecast starting from the last week in 2001 (left-hand dot). The plot shows the weekly counts aggregated over all districts. The fan chart represents the 1\\% to 99\\% quantiles of the simulations in each week. The circles correspond to the observed counts.", fig.pos="htb">>=
 plot(measlesSim, "fan", ylim = c(0, 140), key.args = list())
 @
@@ -1010,7 +1012,7 @@ We refer to \code{help("simulate.hhh4")} and \code{help("plot.hhh4sims")}
 for further examples.
 
 
-
+\pagebreak[2]
 %--------------
 % BIBLIOGRAPHY
 %--------------
@@ -1019,7 +1021,7 @@ for further examples.
 ## create automatic references for R packages
 .Rbibfile <- file("hhh4_spacetime-R.bib", "w", encoding = "latin1")
 knitr::write_bib(
-    c("MASS", "Matrix", "spdep", "colorspace", "scales", "gridExtra", "lattice", "sp", "animation", "fanplot"),
+    c("MASS", "Matrix", "spdep", "colorspace", "scales", "gridExtra", "lattice", "sp", "animation", "fanplot", "hhh4contacts"),
     file = .Rbibfile, tweak = FALSE, prefix = "R:")
 close(.Rbibfile)
 @

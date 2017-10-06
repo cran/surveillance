@@ -34,7 +34,8 @@
 siaf.constant()
 siaf.step(knots, maxRange = Inf, nTypes = 1, validpars = NULL)
 siaf.gaussian(nTypes = 1, logsd = TRUE, density = FALSE,
-              F.adaptive = TRUE, effRangeMult = 6, validpars = NULL)
+              F.adaptive = FALSE, F.method = "iso",
+              effRangeMult = 6, validpars = NULL)
 siaf.powerlaw(nTypes = 1, validpars = NULL, engine = "C")
 siaf.powerlawL(nTypes = 1, validpars = NULL, engine = "C")
 siaf.student(nTypes = 1, validpars = NULL, engine = "C")
@@ -51,7 +52,12 @@ tiaf.exponential(nTypes = 1, validpars = NULL)
     number of parameters to estimate. For identifiability, the step
     function has height 1 in the first interval \eqn{[0,knots_1)}. Note
     that the implementation is right-continuous, i.e., intervals are
-    \eqn{[a,b)}.}
+    \eqn{[a,b)}.\cr
+    An initial choice of knots could be based on quantiles of the
+    observed distances between events and their potential source events.
+    For instance, an identifiable spatial step function could be
+    \code{siaf.step(quantile(\link{getSourceDists}(myepi, "space"), c(1,2,4)/10))},
+    where \code{myepi} is the \code{"epidataCS"} data to be modelled.}
   \item{maxRange}{a scalar larger than any of \code{knots}.
     Per default (\code{maxRange=Inf}), the step function
     never drops to 0 but keeps the last height for any distance larger
@@ -69,25 +75,20 @@ tiaf.exponential(nTypes = 1, validpars = NULL)
     event types of the epidemic, in which case every type has its own
     (log-)scale or (log-)shape, respectively.\cr
     Currently, \code{nTypes > 1} is only implemented for
-    \code{siaf.gaussian}, \code{tiaf.step}, and \code{tiaf.exponential}.
+    \code{siaf.gaussian(F.adaptive = TRUE)},
+    \code{tiaf.step}, and \code{tiaf.exponential}.
   }
-  \item{logsd}{
-    logical indicating if the kernel should be parametrized
-    with the log-standard deviation as the parameter in question to
-    enforce positivity. This is the recommended default and avoids
-    constrained optimisation (L-BFGS-B) or the use of
-    \code{validpars}.\cr
-    The power-law kernels always use the log-scale for their scale and
-    shape parameters.
+  \item{logsd,density}{
+    logicals affecting the parametrization of the Gaussian kernel.
+    Settings different from the defaults are deprecated.
+    The default is to use only the kernel of the bivariate, isotropic
+    normal distribution (\code{density=FALSE}, see Details below),
+    parametrized with the log-standard deviation (\code{logsd=TRUE}) to
+    avoid constrained optimisation (L-BFGS-B) or \code{validpars}.\cr
+    The power-law kernels always employ the log-scale for their scale
+    and shape parameters.
   }
-  \item{density}{
-    logical indicating if the density or just its kernel should be used.
-    If \code{density=TRUE}, \code{siaf.gaussian} uses the density of the
-    bivariate, isotropic normal distribution as the spatial interaction
-    function. Otherwise (default), only the kernel of the bivariate
-    normal density is used.
-  }
-  \item{F.adaptive}{
+  \item{F.adaptive,F.method}{
     If \code{F.adaptive = TRUE}, then an adaptive bandwidth of
     \code{adapt*sd} will be used in the midpoint-cubature
     (\code{\link[polyCub]{polyCub.midpoint}} in package \pkg{polyCub})
@@ -98,11 +99,12 @@ tiaf.exponential(nTypes = 1, validpars = NULL)
     \code{twinstim}, or by a numeric specification of \code{F.adaptive}
     in the constructing call, e.g., \code{F.adaptive = 0.05} to achieve
     higher accuracy.\cr
-    Otherwise, if \code{F.adaptive = FALSE}, a general cubature
-    method (\code{\link[polyCub]{polyCub}}) is returned as \code{siaf$F}
-    component, where the \code{method} and accuracy (\code{eps},
-    \code{dimyx}, or \code{nGQ}, depending on the method) should then be
-    specified in \code{twinstim}'s \code{control.siaf$F} argument.
+    Otherwise, if \code{F.adaptive = FALSE}, the \code{F.method}
+    argument determines which \code{\link[polyCub]{polyCub}} method to
+    use in \code{siaf$F}. The accuracy (controlled via, e.g.,
+    \code{nGQ}, \code{rel.tol}, or \code{eps}, depending on the cubature
+    method) can then be adjusted in \code{twinstim}'s
+    \code{control.siaf$F} argument.
   }
   \item{effRangeMult}{
     determines the effective range for numerical integration
@@ -170,10 +172,12 @@ tiaf.exponential(nTypes = 1, validpars = NULL)
       If \code{nTypes=1} (single-type epidemic or type-invariant
       \code{siaf} in multi-type epidemic), then
       \eqn{\sigma_\kappa = \sigma} for all types \eqn{\kappa}.
-      If \code{density=TRUE}, then the kernel formula above is
+      If \code{density=TRUE} (deprecated), then the kernel formula above is
       additionally divided by \eqn{2 \pi \sigma_\kappa^2}, yielding the
       density of the bivariate, isotropic Gaussian distribution with
       zero mean and covariance matrix \eqn{\sigma_\kappa^2 I_2}.
+      The standard deviation is optimized on the log-scale
+      (\code{logsd = TRUE}, not doing so is deprecated).
     }
     \item{\code{siaf.powerlaw}:}{
       \eqn{f(s) = (||s|| + \sigma)^{-d}},\cr
@@ -287,6 +291,9 @@ tiaf.exponential()
 # Type-dependent Gaussian spatial interaction function using an adaptive
 # two-dimensional midpoint-rule to integrate it over polygonal domains
 siaf.gaussian(2, F.adaptive=TRUE)
+
+# Single-type Gaussian spatial interaction function (using polyCub.iso)
+siaf.gaussian()
 
 # Type-independent power-law kernel
 siaf.powerlaw()

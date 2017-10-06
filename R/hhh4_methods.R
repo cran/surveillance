@@ -5,9 +5,9 @@
 ###
 ### Standard methods for hhh4-fits
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2012-2016 Sebastian Meyer
-### $Revision: 1814 $
-### $Date: 2016-12-13 14:28:26 +0100 (Tue, 13. Dec 2016) $
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2017 Sebastian Meyer
+### $Revision: 1957 $
+### $Date: 2017-09-25 15:54:45 +0200 (Mon, 25. Sep 2017) $
 ################################################################################
 
 ## NOTE: we also apply print.hhh4 in print.summary.hhh4()
@@ -18,7 +18,7 @@ print.hhh4 <- function (x, digits = max(3, getOption("digits")-3), ...)
         return(invisible(x))
     }
     if (!is.null(x$call)) {
-        cat("\nCall: \n", paste(deparse(x$call), sep = "\n", collapse = "\n"), 
+        cat("\nCall: \n", paste(deparse(x$call), sep = "\n", collapse = "\n"),
             "\n\n", sep = "")
     }
     if (x$dim["random"] > 0) {
@@ -50,7 +50,7 @@ print.hhh4 <- function (x, digits = max(3, getOption("digits")-3), ...)
         dimnames(REmat) <- rep.int(
             list(sub("^sd\\.", "",
                      names(object$Sigma.orig)[seq_len(nrow(REmat))])), 2L)
-    
+
     attr(REmat, "correlation") <- cov2cor(REmat)
     attr(REmat, "sd") <- sqrt(diag(REmat))
     REmat
@@ -93,12 +93,12 @@ print.summary.hhh4 <- function (x, digits = max(3, getOption("digits")-3), ...)
         cat("Epidemic dominant eigenvalue: ",
             paste(sprintf("%.2f", x$maxEV_range), collapse = " -- "), "\n\n")
     if(x$dim["random"]==0){
-        cat('Log-likelihood:  ',round(x$loglikelihood,digits=digits-2),'\n')  
+        cat('Log-likelihood:  ',round(x$loglikelihood,digits=digits-2),'\n')
         cat('AIC:             ',round(x$AIC,digits=digits-2),'\n')
         cat('BIC:             ',round(x$BIC,digits=digits-2),'\n\n')
     } else {
-        cat('Penalized log-likelihood: ',round(x$loglikelihood,digits=digits-2),'\n')  
-        cat('Marginal log-likelihood:  ',round(x$margll,digits=digits-2),'\n\n')        
+        cat('Penalized log-likelihood: ',round(x$loglikelihood,digits=digits-2),'\n')
+        cat('Marginal log-likelihood:  ',round(x$margll,digits=digits-2),'\n\n')
     }
     cat('Number of units:       ', x$nUnit, '\n')
     cat('Number of time points: ', x$nTime, '\n')
@@ -143,7 +143,7 @@ coef.hhh4 <- function(object, se=FALSE,
     coefnames <- names(coefs)
     idx <- getCoefIdxRenamed(coefnames, reparamPsi, idx2Exp, amplitudeShift,
                              warn=!se)
-    
+
     ## transform and rename
     if (length(idx$Psi)) {
         coefs[idx$Psi] <- exp(-coefs[idx$Psi])  # -log(overdisp) -> overdisp
@@ -159,7 +159,7 @@ coef.hhh4 <- function(object, se=FALSE,
     }
     ## set new names
     names(coefs) <- coefnames
-    
+
     if (se) {
         cov <- vcov.hhh4(object, reparamPsi=reparamPsi, idx2Exp=idx2Exp,
                          amplitudeShift=amplitudeShift)
@@ -190,7 +190,7 @@ vcov.hhh4 <- function (object,
         D[idx$AS,idx$AS] <- jacobianAmplitudeShift(newcoefs[idx$AS])
         D %*% object$cov %*% t(D)
     } else t(t(object$cov*d)*d)  # 30 times faster than via matrix products
-        
+
     dimnames(vcov) <- list(names(newcoefs), names(newcoefs))
     vcov
 }
@@ -373,18 +373,16 @@ update.hhh4 <- function (object, ..., S = NULL, subset.upper = NULL,
         }, control[names(S)], S, SIMPLIFY=FALSE, USE.NAMES=FALSE)
     }
 
-    ## restrict fit to those epochs of control$subset which are <=subset.upper
+    ## use a different time range of the data (only changing the end)
+    ## Note: surveillance < 1.15.0 disallowed subset.upper > max(control$subset)
     if (isScalar(subset.upper)) {
-        if (subset.upper > max(control$subset)) # potentially unintended usage
-            warning("using the original subset since 'subset.upper' is beyond")
-        control$subset <- control$subset[control$subset <= subset.upper]
-        if (length(control$subset) == 0)
-            stop("'subset.upper' is smaller than the lower bound ",
-                 "of the original subset")
+        if (subset.upper < control$subset[1L])
+            stop("'subset.upper' is smaller than the lower bound of 'subset'")
+        control$subset <- control$subset[1L]:subset.upper
     }
 
     ## fit the updated model or just return the modified control list
-    if (evaluate) { 
+    if (evaluate) {
         hhh4(stsObj = object$stsObj, control = control)
     } else {
         control
@@ -440,7 +438,7 @@ coeflist.hhh4 <- function (x, ...)
                               recursive = FALSE, use.names = FALSE),
                        levels = 1:3, labels = c("ar", "ne", "end")),
                    FUN = sum, simplify = TRUE)
-               nParByComp[is.na(nParByComp)] <- 0 # component not in model 
+               nParByComp[is.na(nParByComp)] <- 0 # component not in model
                nParByComp
            })
 
@@ -521,14 +519,14 @@ decompose.hhh4 <- function (x, coefs = x$coefficients, ...)
     ##<- ne.exppred is (t, i) and recycled for (t, i, j)
     stopifnot(all.equal(rowSums(neArray, dims = 2), meancomps$epi.neighbours,
                         check.attributes = FALSE))
-    
+
     ## add autoregressive part to neArray
     diagidx <- cbind(c(row(meancomps$epi.own)),
                      c(col(meancomps$epi.own)),
                      c(col(meancomps$epi.own)))
     ## usually: neArray[diagidx] == 0
     neArray[diagidx] <- neArray[diagidx] + meancomps$epi.own
-    
+
     ## add endemic component to the array
     res <- array(c(meancomps$endemic, neArray),
           dim = dim(neArray) + c(0, 0, 1),
@@ -551,7 +549,7 @@ neOffsetArray <- function (object, pars = coefW(object),
                      "j" = colnames(object$stsObj),
                      "t" = rownames(object$stsObj)[subset],
                      "i" = colnames(object$stsObj)))
-    
+
     ## calculate array values if the fit has an NE component
     if ("ne" %in% componentsHHH4(object)) {
         W <- getNEweights(object, pars = pars)
@@ -572,7 +570,7 @@ neOffsetArray <- function (object, pars = coefW(object),
         ##     terms.hhh4(object)$offset$ne(pars)[subset,,drop=FALSE],
         ##     check.attributes = FALSE))
     }
-    
+
     ## permute dimensions as (t, i, j)
     aperm(res, perm = c(2L, 3L, 1L), resize = TRUE)
 }

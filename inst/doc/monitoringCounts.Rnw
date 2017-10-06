@@ -217,7 +217,7 @@ do.call("plot",plotOpts2)
 \subsubsection[Basic manipulation of objects of the class sts]{Basic manipulation of objects of the class \texttt{sts}}
 This time series above is represented as a multivariate \code{sts} object whose dimensions correspond
 to the 16 German federal states. Values are weekly counts so \code{freq = 52}.
- Weeks are here handled as \code{Date} objects by setting \code{epochAsDate} to \code{TRUE}. One can thus for instance get the weekday of the date by calling \code{weekdays(salmNewport)}. Furthermore, one can use the function \code{format} (and the package specific platform independent version \code{dateFormat}) to obtain \code{strftime} compatible formatting of the epochs. Another advantage of using \code{Date} objects is that the plot functions have been re-written for better management of ticks and labelling of the x-axis based on \code{strtime} compatible conversion specifications.
+ Weeks are here handled as \code{Date} objects by setting \code{epochAsDate} to \code{TRUE}. One can thus for instance get the weekday of the date by calling \code{weekdays(salmNewport)}. Furthermore, one can use the function \code{format} (and the package specific platform independent version \code{dateFormat}) to obtain \code{strftime} compatible formatting of the epochs. Another advantage of using \code{Date} objects is that the plot functions have been re-written for better management of ticks and labelling of the x-axis based on \code{strftime} compatible conversion specifications.
 For example, to get ticks at all weeks corresponding to the first week in a month as well as all weeks corresponding to the first in a year while placing labels consisting of the year at the median index per year:
 
 <<eval=FALSE,echo=TRUE>>=
@@ -606,7 +606,7 @@ with known trend character.
 
 As an example,
 \citet{Manitz2013} studied the influence of absolute
-humidity on the occurence of weekly reported campylobacter cases in Germany.
+humidity on the occurrence of weekly reported campylobacter cases in Germany.
 
 <<campyDE, fig=FALSE, echo = FALSE, label=campyDE,include = F,results=tex>>=
 # Load data and create \code{sts}-object
@@ -688,7 +688,7 @@ $\bm{x}_t$ denotes a vector of possibly time-varying covariates, which
 influence the expected number of cases. Data from timepoints $1,\ldots,t_0-1$ are now used to determine the posterior distribution of all model parameters and subsequently the posterior predictive distribution of $y_{t_0}$ is computed. If the actual observed value of $y_{t_0}$ is above the $(1-\alpha)\cdot 100\%$ quantile of the predictive posterior distribution an alarm is flagged for $t_0$.
 
 Below we illustrate the use
-of \code{boda} to monitor the campylobacterioris time series from 2007.
+of \code{boda} to monitor the campylobacteriosis time series from 2007.
 In the first case we include in the model for $\log\left(\mu_t\right)$ penalized splines for trend and
 seasonality and a simple linear trend.
 <<NICELOOKINGboda,eval=FALSE,echo=TRUE>>=
@@ -765,7 +765,7 @@ reported cases. Furthermore, it becomes clear that the improved Farrington proce
 similar to the original procedure, but the improved reweighting and trend
 inclusion produces fewer alarms.
 
-The \code{boda} method is to be seen as a step towards more Bayesian thinking in aberration detection. However, besides its time demands for a detailed modeling, the speed of the procedure is also prohibitive as regards routine application. As a response~\citet{Maelle} introduce a method which has two advantages: it allows to adjust outbreak detection for reporting delays and includes an approximate inference method much faster than the INLA inference method. However, its linear predictor is more in the style of~\citet{Noufaily2012} not allowing for additionnal covariates or penalized options for the intercept.
+The \code{boda} method is to be seen as a step towards more Bayesian thinking in aberration detection. However, besides its time demands for a detailed modeling, the speed of the procedure is also prohibitive as regards routine application. As a response~\citet{Maelle} introduce a method which has two advantages: it allows to adjust outbreak detection for reporting delays and includes an approximate inference method much faster than the INLA inference method. However, its linear predictor is more in the style of~\citet{Noufaily2012} not allowing for additional covariates or penalized options for the intercept.
 <<bPlot, fig=FALSE, echo = FALSE, label=bPlot,include = F,results=hide>>=
 # Plot with special function
 y.max <- max(observed(boda.covars),upperbound(boda.covars),na.rm=TRUE)
@@ -957,7 +957,7 @@ All monitoring methods presented up to now have been methods for analysing count
 which are time series where the response variable obtains one of $k\geq2$ different categories (nominal or ordinal). When $k=2$ the time series is binary, for instance representing
 a specific outcome in cases such as hospitalization, death or a positive result to some diagnostic test. One can also think of applications with
 $k>2$ if one studies, e.g., the age groups of the cases in the context of monitoring a vaccination program: vaccination targeted at children could induce a shift towards older cases which one wants to detect
-as quickly as possible -- this will be explained thorougly with an example.
+as quickly as possible -- this will be explained thoroughly with an example.
 
 The developments of prospective surveillance methods for such categorical time series were up to recently limited to CUSUM-based approaches for
 binary data such as those explained in~\citet{Chen1978},~\citet{Reynolds2000} and~\citet{rogerson_yamada2004}. Other than being only suitable for binary data these methods have the drawback of not handling
@@ -1782,7 +1782,7 @@ In addition, major developments in the \proglang{R} component can be shared with
 
 The \proglang{R} package \pkg{surveillance} was initially created as an implementational framework for the development and the evaluation of outbreak detection algorithms in
 routine collected public health surveillance data. Throughout the years it has more and more also become a tool for the use of surveillance in routine practice. The
-presented description aimed at showing the potential of the package for aberration derection. Other functions offered by the package for modeling~\citep{meyer.etal2014}, nowcasting~\citep{hoehle-heiden} or
+presented description aimed at showing the potential of the package for aberration detection. Other functions offered by the package for modeling~\citep{meyer.etal2014}, nowcasting~\citep{hoehle-heiden} or
 back-projection of incidence cases~\citep{becker_marschner93} are documented elsewhere and contribute to widening the scope of possible analysis in infectious disease
 epidemiology when using \pkg{surveillance}. Future areas of interest for the package are, e.g., to better take into account the multivariate and hierarchical structure of the data streams analysed. Another important topic is the adjustment for reporting delays when performing the surveillance~\citep{Maelle}. The package can be obtained from CRAN and resources for learning its use are listed in the documentation section of the project
 (\url{https://surveillance.R-Forge.R-project.org/}). As all \proglang{R} packages, \pkg{surveillance} is distributed with a manual describing each function with corresponding examples. The manual, the present article and two previous ones~\citep{hoehle-2007, hoehle-mazick-2010} form a good basis for getting started with the package. The data and analysis of the present manuscript are accessible as the vignette \texttt{"monitoringCounts.Rnw"} in the package.

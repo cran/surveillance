@@ -16,8 +16,8 @@ test(data = c("k1", "m5"), range = 157:339)
 \details{
   The specified datasets are read, corrected, enlarged and sent to
   the RKI 1, RKI 2, RKI 3 and Bayes system. The quality values are computed
-  and printed for each diesease as latex table. Additonally a summary latex table
-  for all diseases is printed
+  and printed for each disease as latex table. Additionally a summary latex table
+  for all diseases is printed.
 }
 \author{M. \enc{Höhle}{Hoehle}, A. Riebler, C. Lang}
 \examples{

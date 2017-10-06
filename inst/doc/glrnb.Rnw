@@ -130,7 +130,7 @@ GLR(n)=\max_{1 \leq k \leq n} \sup_{\theta \in \Theta} \left[ \sum_{t=k}^n \log
 .  
 \end{equation}
 
-Now $N=\inf \{n \geq 1 : GLR(n) \geq c_{\gamma} \}$ is the first time point where the GLR-statistic is above a threshold $c_{\gamma}$. For this time point $N$ an alarm is given. If the parameter $\kappa$ and hence $\theta=\kappa$ is known, the maximation over $\theta$ can be omitted.
+Now $N=\inf \{n \geq 1 : GLR(n) \geq c_{\gamma} \}$ is the first time point where the GLR-statistic is above a threshold $c_{\gamma}$. For this time point $N$ an alarm is given. If the parameter $\kappa$ and hence $\theta=\kappa$ is known, the maximisation over $\theta$ can be omitted.
 
 With the function \verb+algo.glrnb+ one can compute the the GLR-statistic for every time point. If the actual value extends the chosen threshold $c_{\gamma}$, an alarm is given. After every alarm, the algorithm gets reset and the surveillance starts again. The result of a call of \verb+algo.glrnb+ is an object of class \verb+SurvRes+. This is basically a list of several arguments. The most important one is the \verb+upperbound+ statistic, which is a vector of length $n$ containing the likelihood-ratio-statistic for every time point under surveillance. The \verb+alarm+-vector contains a boolean for every time point whether there was an alarm or not. \\ 
  

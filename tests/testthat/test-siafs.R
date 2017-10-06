@@ -31,10 +31,15 @@ myexpectation <- function (siaf, intrfr, intrderivr, pargrid, type = 1, ...)
 
 ### test all pre-defined spatial interaction functions
 
-test_that("Gaussian implementation agrees with numerical approximation",
-          myexpectation(siaf.gaussian(F.adaptive=TRUE),
-                        pargrid=t(log(0.5)),
-                        tolerance=0.0005, method="midpoint", dimyx=250))
+test_that("Gaussian 'F.adaptive' implementation agrees with numerical approximation",
+          myexpectation(siaf.gaussian(F.adaptive=0.05),  # Deriv uses polyCub.SV
+                        pargrid=as.matrix(log(c(0.5, 1, 3))),
+                        tolerance=0.01, method="midpoint", dimyx=150))
+
+test_that("Gaussian iso-C-implementation agrees with numerical approximation",
+          myexpectation(siaf.gaussian(F.adaptive=FALSE, F.method="iso"),
+                        pargrid=as.matrix(log(c(0.5, 1, 3))),
+                        tolerance=0.0005, method="SV", nGQ=25))
 
 test_that("Power-law implementation agrees with numerical approximation",
           myexpectation(siaf.powerlaw(engine = "R"),
@@ -50,7 +55,7 @@ test_that("Lagged power-law implementation agrees with numeric results",
                         list(surveillance:::intrfr.powerlawL.dlogsigma,
                              surveillance:::intrfr.powerlawL.dlogd),
                         pargrid=cbind(-0.5,log(c(0.1,1,2))),
-                        tolerance=0.0005, method="midpoint", dimyx=250))
+                        tolerance=0.01, method="midpoint", dimyx=150))
 
 test_that("Student implementation agrees with numerical approximation",
           myexpectation(siaf.student(engine = "R"),
@@ -63,15 +68,13 @@ test_that("Student implementation agrees with numerical approximation",
 test_that("Step kernel implementation agrees with numerical approximation",
           myexpectation(siaf.step(c(0.1,0.5,1)),
                         pargrid=-t(c(0.5,0.1,0.2)),
-                        tolerance=0.0005, method="midpoint", dimyx=350))
+                        tolerance=0.01, method="midpoint", dimyx=150))
 
 
 ## ## plot the polygon on which F and Deriv are tested (to choose parameters)
 ## showsiaf <- function (siaf, pars) {
-##     data("letterR", package="spatstat", envir=environment())
-##     poly <- spatstat::shift.owin(letterR, -c(3,2))
-##     plotpolyf(poly, siaf$f, pars, print.args=list(split=c(1,1,2,1), more=TRUE))
-##     plotpolyf(poly, function (...) siaf$deriv(...)[,1], pars, print.args=list(split=c(2,1,2,1)))
+##     plotpolyf(LETTERR, siaf$f, pars, print.args=list(split=c(1,1,2,1), more=TRUE))
+##     plotpolyf(LETTERR, function (...) siaf$deriv(...)[,1], pars, print.args=list(split=c(2,1,2,1)))
 ## }
 ## showsiaf(siaf.student(), c(0.5,-0.5))
 
@@ -80,7 +83,7 @@ test_that("Step kernel implementation agrees with numerical approximation",
 
 expect_equal_CnR <- function (siafgen, pargrid)
 {
-    polydomain <- spatstat::shift.owin(spatstat::letterR, -c(3,2))
+    polydomain <- surveillance:::LETTERR
     siafR <- siafgen(engine = "R")
     siafC <- siafgen(engine = "C")
     ## check F

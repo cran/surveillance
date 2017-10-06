@@ -16,7 +16,7 @@ pairedbinCUSUM.runlength(p,w1,w2,h1,h2,h11,h22, sparse=FALSE)
 \arguments{
   \item{stsObj}{Object of class \code{sts} containing the paired
     responses for each of the, say n, patients. The observed slot of
-    \code{stsObj} is thus a \eqn{n \times 2} matrix.}
+    \code{stsObj} is thus a \eqn{n \times 2}{n x 2} matrix.}
   \item{control}{Control object as a list containing several parameters.
     \itemize{
       \item{\code{range}}{Vector of indices in the observed slot to monitor.}
@@ -33,7 +33,7 @@ pairedbinCUSUM.runlength(p,w1,w2,h1,h2,h11,h22, sparse=FALSE)
        (death=0,near-miss=1),(death=1,near-miss=1)).}
   \item{w1}{The parameters \code{w1} and \code{w2} are the sample
     weights vectors for the two CUSUMs, see eqn. (2) in the paper. We
-    have that \code{w1} is equal to deaths }  
+    have that \code{w1} is equal to deaths }
   \item{w2}{As for \code{w1}}
   \item{h1}{decision barrier for 1st individual cusums}
   \item{h2}{decision barrier for 2nd cusums}
@@ -45,7 +45,7 @@ pairedbinCUSUM.runlength(p,w1,w2,h1,h2,h11,h22, sparse=FALSE)
 }
 \details{
   For details about the method see the Steiner et al. (1999) reference
-  listed below. Basically, two individual CUSUMs are run based on a
+  listed below. Basically, two individual CUSUMs are run each based on a
   logistic regression model. The combined CUSUM not only signals if one
   of its two individual CUSUMs signals, but also if the two CUSUMs
   simultaneously cross the secondary limits.
@@ -95,11 +95,11 @@ data("deleval")
 #Switch between death and near misses
 observed(deleval) <- observed(deleval)[,c(2,1)]
 
-#Run paired-binary CUSUM without generating alarms. 
+#Run paired-binary CUSUM without generating alarms.
 pb.surv <- pairedbinCUSUM(deleval,control=list(theta0=theta0,
              theta1=theta1,h1=Inf,h2=Inf,h11=Inf,h22=Inf))
 
-plot(pb.surv, xaxis.labelFormat=NULL)
+plot(pb.surv, xaxis.labelFormat=NULL, ylab="CUSUM Statistic")
 
 
 
@@ -116,7 +116,7 @@ LLR.pairedbin <- function(yz,theta0, theta1) {
     alphay0 <- theta0[1] ; alphaz0 <- theta0[2] ; beta0 <- theta0[3]
     #Out of control
     alphay1 <- theta1[1] ; alphaz1 <- theta1[2] ; beta1 <- theta1[3]
-    #Likelihood ratios        
+    #Likelihood ratios
     llry <- (alphay1-alphay0)*yz[1]+log(1+exp(alphay0))-log(1+exp(alphay1))
     llrz <- (alphaz1-alphaz0)*yz[2]+log(1+exp(alphaz0+beta0*yz[1]))-
                                     log(1+exp(alphaz1+beta1*yz[1]))
@@ -136,7 +136,7 @@ plot(1:nrow(deleval),S[,1],type="l",main="Near Miss",xlab="Patient No.",
      ylab="CUSUM Statistic")
 lines(c(0,1e99), c(32,32),lty=2,col=2)
 lines(c(0,1e99), c(17,17),lty=2,col=3)
-    
+
 plot(1:nrow(deleval),S[,2],type="l",main="Death",xlab="Patient No.",
      ylab="CUSUM Statistic")
     lines(c(0,1e99), c(70,70),lty=2,col=2)

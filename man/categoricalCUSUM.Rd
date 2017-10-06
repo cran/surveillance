@@ -58,7 +58,7 @@ categoricalCUSUM(stsObj,control = list(range=NULL,h=5,pi0=NULL,
   for paired comparisons. See the \enc{Höhle}{Hoehle} (2010) reference
   for further details about the methodology.
 
-  Once an alarm is found the CUSUM scheme is resetted (to zero) and
+  Once an alarm is found the CUSUM scheme is reset (to zero) and
   monitoring continues from there.
 }
 \seealso{\code{\link{categoricalCUSUM}}}

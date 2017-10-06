@@ -7,8 +7,8 @@
 ### model described in Meyer et al (2012), DOI: 10.1111/j.1541-0420.2011.01684.x
 ###
 ### Copyright (C) 2009-2017 Sebastian Meyer
-### $Revision: 1901 $
-### $Date: 2017-06-20 17:17:41 +0200 (Tue, 20. Jun 2017) $
+### $Revision: 1983 $
+### $Date: 2017-10-06 09:04:54 +0200 (Fri, 06. Oct 2017) $
 ################################################################################
 
 
@@ -43,7 +43,7 @@ twinstim <- function (
     ## Clean the model environment when exiting the function
     on.exit(suppressWarnings(rm(cl, cumCIF, cumCIF.pb, data, doHessian,
         eventsData, finetune, neghess, fisherinfo, fit, fixed,
-        functions, globalEndemicIntercept, h.Intercept, inmfe, initpars,
+        functions, globalEndemicIntercept, inmfe, initpars,
         ll, negll, loglik, msgConvergence, msgNotConverged,
         mfe, mfhEvents, mfhGrid, model, my.na.action, na.action, namesOptimUser,
         namesOptimArgs, nlminbControl, nlminbRes, nlmObjective, nlmControl,
@@ -916,7 +916,7 @@ twinstim <- function (
         body(ll) <- as.call(append(as.list(body(ll)),
             as.list(expression(
                 if (hassiafpars && !siaf$validpars(siafpars)) {
-                    if (optimArgs$control$trace > 0L)
+                    if (!isTRUE(optimArgs$control$trace == 0)) # default: NULL
                         cat("(invalid 'siafpars' in loglik)\n")
                     return(-Inf)
                 }
@@ -928,7 +928,7 @@ twinstim <- function (
         body(ll) <- as.call(append(as.list(body(ll)),
             as.list(expression(
                 if (hastiafpars && !tiaf$validpars(tiafpars)) {
-                    if (optimArgs$control$trace > 0L)
+                    if (!isTRUE(optimArgs$control$trace == 0)) # default: NULL
                         cat("(invalid 'tiafpars' in loglik)\n")
                     return(-Inf)
                 }
@@ -960,15 +960,35 @@ twinstim <- function (
 
     ### Check initial value for theta
 
-    if (is.null(optim.args[["par"]])) { # set naive defaults
-        h.Intercept <- if (nbeta0 > 0) rep.int(crudebeta0(
+    initpars <- rep(0, npars)
+    names(initpars) <- c(
+        if (nbeta0 > 1L) {
+            paste0("h.type",typeNames)
+        } else if (nbeta0 == 1L) "h.(Intercept)",
+        if (p > 0L) paste("h", colnames(mmhEvents), sep = "."),
+        if (hase) paste("e", colnames(mme), sep = "."),
+        if (hassiafpars) paste("e.siaf", seq_len(nsiafpars), sep="."),
+        if (hastiafpars) paste("e.tiaf", seq_len(ntiafpars), sep=".")
+    )
+
+    ## some naive defaults
+    if (nbeta0 > 0)
+        initpars[seq_len(nbeta0)] <- crudebeta0(
             nEvents = Nin,
             offset.mean = if (is.null(offsetGrid)) 0 else weighted.mean(offsetGrid, ds),
             W.area = sum(ds[gridBlocks==histIntervals[1,"BLOCK"]]),
             period = T-t0, nTypes = nTypes
-            ), nbeta0) else numeric(0L)
-        optim.args$par <- c(h.Intercept, rep.int(0, npars - nbeta0))
-    } else { # check validity of par-specification
+        )
+    if (hase && "e.(Intercept)" %in% names(initpars) && epilink == "log")
+        initpars["e.(Intercept)"] <- -9  # suitable value depends on [st]iafInt
+    if (hassiafpars && identical(body(siaf$f)[[2L]], quote(sds <- exp(pars)))) {
+        ## "detect" siaf.gaussian => use 10% of bbox diameter as initial sd
+        initpars[paste0("e.siaf.", seq_len(nsiafpars))] <-
+            round(log(0.1*sqrt(sum(apply(bbox(data$W), 1L, diff.default)^2))))
+    }
+
+    ## manual par-specification overrides these defaults
+    if (!is.null(optim.args[["par"]])) {
         if (!is.vector(optim.args$par, mode="numeric")) {
             stop("'optim.args$par' must be a numeric vector")
         }
@@ -977,27 +997,23 @@ twinstim <- function (
                                 "length as the number of unknown parameters (%d)"),
                           length(optim.args$par), npars))
         }
+        initpars[] <- optim.args$par
     }
 
-    ## Set names for theta
-    names(optim.args$par) <- c(
-        if (nbeta0 > 1L) {
-            paste0("h.type",typeNames)
-        } else if (nbeta0 == 1L) "h.(Intercept)",
-        if (p > 0L) paste("h", colnames(mmhEvents), sep = "."),
-        if (hase) paste("e", colnames(mme), sep = "."),
-        if (hassiafpars) paste("e.siaf",1:nsiafpars,sep="."),
-        if (hastiafpars) paste("e.tiaf",1:ntiafpars,sep=".")
-    )
-
-    ## values in "start" overwrite initial values given by optim.args$par
+    ## values in "start" overwrite defaults and optim.args$par
     if (!is.null(start)) {
         start <- check_twinstim_start(start)
-        start <- start[names(start) %in% names(optim.args$par)]
-        optim.args$par[names(start)] <- start
+        start <- start[names(start) %in% names(initpars)]
+        initpars[names(start)] <- start
     }
 
-    initpars <- optim.args$par
+    ## warn if initial intercept is negative when the identity link is used
+    if (epilink == "identity" && "e.(Intercept)" %in% names(initpars) &&
+        initpars["e.(Intercept)"] < 0)
+        warning("identity link and negative start value for \"e.(Intercept)\"")
+
+    ## update optim.args$par
+    optim.args$par <- initpars
 
 
     ### Fixed parameters during optimization

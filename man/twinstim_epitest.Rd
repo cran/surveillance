@@ -61,7 +61,7 @@ epitest(model, data, tiles, method = "time", B = 199,
       \item{\code{"simulate"}:}{
         obtain the null distribution of the test statistic by
         simulations from the endemic-only model
-        (using \code{\link{simulate.twinstim}}).
+        (using \code{\link{simEndemicEvents}}).
       }
     }
   }
@@ -182,16 +182,14 @@ epitest(model, data, tiles, method = "time", B = 199,
 }
 
 \examples{
-data("imdepi")
-data("imdepifit")
+data("imdepi", "imdepifit")
 
 ## test for space-time interaction of the B-cases
 ## assuming spatial interaction to be constant within 50 km
 imdepiB50 <- update(subset(imdepi, type == "B"), eps.s = 50)
 imdfitB50 <- update(imdepifit, data = imdepiB50,
-                    epidemic = ~1, epilink = "identity",
-                    siaf = NULL, control.siaf = NULL,
-                    start = c("e.(Intercept)" = 1e-6))
+                    epidemic = ~1, epilink = "identity", siaf = NULL,
+                    start = c("e.(Intercept)" = 0))
 
 ## simple likelihood ratio test
 epitest(imdfitB50, imdepiB50, method = "LRT")
@@ -202,7 +200,9 @@ et <- epitest(imdfitB50, imdepiB50, B = 3 + 26*surveillance.options("allExamples
               .seed = 1, .parallel = 1 + surveillance.options("allExamples"))
 et
 plot(et)
-summary(coef(et))
+## evidence against the null hypothesis of no space-time interaction
+
+summary(coef(et, which = "m1"))
 }
 
 \keyword{htest}

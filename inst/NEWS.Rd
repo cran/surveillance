@@ -8,6 +8,75 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.15.0 (2017-10-06)}{
+
+\subsection{NEW FEATURES}{
+  \itemize{
+    \item \code{siaf.gaussian()} now also employs a \code{polyCub.iso()}
+    integration routine by default (similar to the powerlaw-type
+    kernels), instead of adaptive midpoint cubature.
+    This increases precision and considerably accelerates estimation of
+    \code{twinstim()} models with a Gaussian spatial interaction
+    function. Models fitted with the new default
+    (\code{F.adaptive=FALSE, F.method="iso"})
+    will likely differ from previous fits (\code{F.adaptive=TRUE}),
+    and the numerical difference depends on 
+    the adaptive bandwidth used before (the default \code{adapt=0.1}
+    yielded a rather rough approximation of the integral).
+
+    \item Added \code{quantile()}, \code{confint()}, and \code{plot()}
+    methods for \code{"oneStepAhead"} predictions.
+
+    \item Exported the function \code{simEndemicEvents()} to simulate a
+    spatio-temporal point pattern from an endemic-only
+    \code{"twinstim"}; faster than via the general
+    \code{simulate.twinstim()} method.
+  }
+}
+  
+\subsection{MINOR CHANGES}{
+  \itemize{
+    \item \code{twinstim(..., siaf = siaf.gaussian())}
+    uses a larger default initial value for the kernel's standard
+    deviation (based on the size of the observation region).
+
+    \item Non-default parametrizations of \code{siaf.gaussian()} are
+    deprecated, i.e., always use \code{logsd=TRUE} and \code{density=FALSE}.
+
+    \item \code{twinstim()} uses a smaller default initial value for the
+    epidemic intercept, which usually allows for faster convergence.
+
+    \item \code{update.hhh4()} now allows \code{subset.upper} values
+    beyond the originally fitted time range (but still within the time
+    range of the underlying \code{"sts"} object).
+
+    \item \code{scores.oneStepAhead()} by default reverses the ordering
+    of the time points. This awkward behaviour will change in the next
+    version, so the method now warns if the default \code{reverse=TRUE}
+    is used without explicit specification.
+
+    \item Minor improvements in the documentation and some vignettes:
+    corrected typos, simplified example code, documented some methods.
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item The C-routines introduced in version 1.14.0 used \code{==}
+    comparisons on parameter values to choose among case-specific
+    formulae (e.g., for \eqn{d==2} in \code{siaf.powerlaw()}).
+    We now employ an absolute tolerance of 1e-7 (which should fix
+    the failing tests on Solaris).
+
+    \item Interaction functions for \code{twinstim()}, such as
+    \code{siaf.powerlaw()} or \code{tiaf.exponential()}, no longer live in
+    the global environment as this risks using masked base functions.
+  }
+}
+
+}
+
+
 \section{Changes in surveillance version 1.14.0 (2017-06-29)}{
 
 \subsection{DOCUMENTATION}{

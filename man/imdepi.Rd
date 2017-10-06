@@ -2,7 +2,6 @@
 \docType{data}
 \name{imdepi}
 \alias{imdepi}
-\alias{imdepifit}
 
 \title{
   Occurrence of Invasive Meningococcal Disease in Germany
@@ -13,22 +12,16 @@
   cases of invasive meningococcal disease (IMD) caused by the two most
   common meningococcal finetypes in Germany, \samp{B:P1.7-2,4:F1-5} (of
   serogroup B) and \samp{C:P1.5,2:F3-3} (of serogroup C).
-  \code{imdepifit} contains a model fit to the \code{imdepi} data. 
 }
 
 \usage{
-data(imdepi)
-data(imdepifit)
+data("imdepi")
 }
 
 \format{
   \code{imdepi} is an object of class
   \code{"\link{epidataCS}"} (a list with components \code{events},
   \code{stgrid}, \code{W} and \code{qmatrix}).
-  
-  \code{imdepifit} is an object of class \code{"\link{twinstim}"},
-  see \code{\link{summary.twinstim}} for some simple methods for fitted
-  \code{"twinstim"} models.
 }
 
 \details{

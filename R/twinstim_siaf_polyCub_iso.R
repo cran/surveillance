@@ -97,5 +97,7 @@ INTRFR_CODE <- c(
     "intrfr.student.dlogd" = 22L,
     "intrfr.powerlawL" = 30L,
     "intrfr.powerlawL.dlogsigma" = 31L,
-    "intrfr.powerlawL.dlogd" = 32L
+    "intrfr.powerlawL.dlogd" = 32L,
+    "intrfr.gaussian" = 40L,
+    "intrfr.gaussian.dlogsigma" = 41L
 )

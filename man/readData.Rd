@@ -22,7 +22,7 @@ readData(abb,week53to52=TRUE,sysPath=TRUE)
   observed and the state chain.
 }
 \details{
-  This function is only kept for backwards compability.
+  This function is only kept for backwards compatibility.
   As of 0.9-2 all data should be read with \code{data}.
 }
 \seealso{

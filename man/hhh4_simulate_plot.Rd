@@ -1,7 +1,9 @@
 \name{hhh4_simulate_plot}
 \alias{plot.hhh4sims}
+\alias{aggregate.hhh4sims}
 \alias{as.hhh4simslist}
 \alias{plot.hhh4simslist}
+\alias{aggregate.hhh4simslist}
 \alias{plotHHH4sims_size}
 \alias{plotHHH4sims_time}
 \alias{plotHHH4sims_fan}
@@ -14,14 +16,17 @@ Plot Simulations from \code{"hhh4"} Models
 Arrays of simulated counts from \code{\link{simulate.hhh4}} can be
 visualized as final size boxplots, individual or average time series,
 or fan charts (using the \CRANpkg{fanplot} package).
+An \code{aggregate}-method is also available.
 }
 
 \usage{
 \method{plot}{hhh4sims}(x, ...)
+\method{aggregate}{hhh4sims}(x, units = TRUE, time = FALSE, ..., drop = FALSE)
 
 as.hhh4simslist(x, ...)
 \method{plot}{hhh4simslist}(x, type = c("size", "time", "fan"), ...,
      groups = NULL, par.settings = list())
+\method{aggregate}{hhh4simslist}(x, units = TRUE, time = FALSE, ..., drop = FALSE)
 
 plotHHH4sims_size(x, horizontal = TRUE, trafo = NULL, observed = TRUE,
                   names = base::names(x), ...)
@@ -135,6 +140,21 @@ plotHHH4sims_fan(x, which = 1,
     An alternative way of labeling the quantiles is via the argument
     \code{ln} in \code{fan.args}, see the Examples.
   }
+
+  \item{units}{
+    a logical indicating aggregation over units. Can also be a factor
+    (or something convertible to a factor using \code{\link{as.factor}})
+    to aggregate groups of units.
+  }
+  \item{time}{
+    a logical indicating if the counts should be summed over the whole
+    simulation period.
+  }
+  \item{drop}{
+    a logical indicating if the unit dimension and the \code{"hhh4sims"}
+    (or \code{"hhh4simslist"}) class should be dropped after aggregating
+    over (groups of) units.
+  }
 }
 
 \author{
@@ -155,7 +175,8 @@ salmSims <- simulate(salmFit, nsim = 300, seed = 3, subset = 678 + seq_len(20),
                      y.start = observed(salmAllOnset)[678,])
 
 ## compare final size distribution to observed value
-plot(salmSims)
+summary(aggregate(salmSims, time = TRUE))  # summary of simulated values
+plot(salmSims, type = "size")
 
 ## individual and average simulated time series with a confidence interval
 plot(salmSims, type = "time", main = "20-weeks-ahead simulation")
@@ -179,9 +200,11 @@ measlesModel <- list(
     family = "NegBin1", subset = 2:52,
     data = list(pop = population(measlesWeserEms)))
 measlesFit1 <- hhh4(measlesWeserEms, control = measlesModel)
+
+## use a Poisson distribution instead (just for comparison)
 measlesFit2 <- update(measlesFit1, family = "Poisson")
 
-## simulate realizations from this model during the second year
+## simulate realizations from these models during the second year
 measlesSims <- lapply(X = list(NegBin = measlesFit1, Poisson = measlesFit2),
                       FUN = simulate, nsim = 50, seed = 1, subset = 53:104,
                       y.start = observed(measlesWeserEms)[52,])
@@ -190,7 +213,9 @@ measlesSims <- lapply(X = list(NegBin = measlesFit1, Poisson = measlesFit2),
 plot(measlesSims[[1]])
 
 ## stratified by groups of districts
-plot(measlesSims[[1]], groups = factor(substr(colnames(measlesWeserEms), 4, 4)))
+mygroups <- factor(substr(colnames(measlesWeserEms), 4, 4))
+apply(aggregate(measlesSims[[1]], time = TRUE, units = mygroups), 1, summary)
+plot(measlesSims[[1]], groups = mygroups)
 
 ## a class and plot-method for a list of simulations from different models
 measlesSims <- as.hhh4simslist(measlesSims)

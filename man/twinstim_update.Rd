@@ -59,13 +59,13 @@ especially useful if one wants to add the \code{model} environment
 }
 
 \examples{
-data("imdepi")
-data("imdepifit")
+data("imdepi", "imdepifit")
 
-## add another epidemic covariate (but fix siaf-parameter for speed)
+## add another epidemic covariate
+## (but fix siaf-parameter so that this example runs quickly)
 imdepifit2 <- update(imdepifit, epidemic = ~. + log(popdensity),
                      optim.args = list(fixed="e.siaf.1"))
-  
+
 ## compare by AIC
 AIC(imdepifit, imdepifit2)
 }

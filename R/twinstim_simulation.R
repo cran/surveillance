@@ -8,8 +8,8 @@
 ### algorithm (cf. Daley & Vere-Jones, 2003, Algorithm 7.5.V.).
 ###
 ### Copyright (C) 2010-2017 Sebastian Meyer
-### $Revision: 1902 $
-### $Date: 2017-06-20 21:32:13 +0200 (Tue, 20. Jun 2017) $
+### $Revision: 1993 $
+### $Date: 2017-10-06 15:25:39 +0200 (Fri, 06. Oct 2017) $
 ################################################################################
 
 ### CAVE:
@@ -1010,6 +1010,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
 simEndemicEvents <- function (object, tiles)
 {
     ## check arguments
+    stopifnot(inherits(object, "twinstim"))
     if (is.null(modelenv <- environment(object)))
         stop("no model environment -- re-fit or update() with 'model=TRUE'")
     tileLevels <- levels(modelenv$gridTiles)

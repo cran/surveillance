@@ -175,19 +175,19 @@ plot(imdepi, "space", lwd = 2, col = "lavender")
 ## with the district-specific population density in the background,
 ## a scale bar, and customized point style
 load(system.file("shapes", "districtsD.RData", package = "surveillance"))
-districtsD$log10pop <- log10(districtsD$POPULATION)
-keylabels <- c(1,2,5) * rep(10^(4:6), each=3)
-plot(imdepi, "space", tiles = districtsD, pop = "log10pop", col = "white",
+districtsD$log10popdens <- log10(districtsD$POPULATION/districtsD$AREA)
+keylabels <- (c(1,2,5) * rep(10^(1:3), each=3))[-1]
+plot(imdepi, "space", tiles = districtsD, pop = "log10popdens", col = "white",
      ## modify point style for better visibility on gray background
-     points.args = list(pch = 19, col = c("orangered", "blue")),
+     points.args = list(pch=c(1,3), col=c("orangered","blue"), lwd=2),
      ## metric scale bar due to projected coordinates, see proj4string(imdepi$W)
-     sp.layout = layout.scalebar(imdepi$W, scale=100, labels=c("0", "100 km")),
-     ## gray background levels for the district population
+     sp.layout = layout.scalebar(imdepi$W, scale=100, labels=c("0","100 km")),
+     ## gray background levels for the population density
      col.regions = gray.colors(100, start=0.9, end=0.1),
-     ## color key is equidistant on log10(population) scale
-     at = seq(4.5, 6.6, by = 0.05),
-     colorkey = list(labels=list(at=log10(keylabels), labels=keylabels/1000)))
-grid::grid.text("District population [1000 inhabitants]", x=0.95, rot=90)
+     ## color key is equidistant on log10(popdens) scale
+     at = seq(1.3, 3.7, by=0.05),
+     colorkey = list(labels=list(at=log10(keylabels), labels=keylabels)))
+grid::grid.text("Population density [per km2]", x=0.95, rot=90)
 }
 
 \keyword{hplot}

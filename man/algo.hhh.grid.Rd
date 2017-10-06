@@ -49,7 +49,7 @@ algo.hhh.grid(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
       \item{thetastartMatrix}{matrix with initial values for all parameters specified
       in the control object as rows.}
 \item{verbose}{if \code{true} progress information is printed} 
-\item{maxTime}{maximum of time (in seconds) to elapse until algorithm stopps.}
+\item{maxTime}{maximum of time (in seconds) to elapse until algorithm stops.}
 }
 
 \value{Returns an object of class \code{ahg} with elements 

@@ -22,7 +22,7 @@
 }
 \arguments{
         \item{disProgObj}{object of class disProg (including the observed and the state chain)}
-        \item{timePoint}{time point which shoud be evaluated in
+        \item{timePoint}{time point which should be evaluated in
 	  \code{algo.bayes LatestTimepoint}. The
                 default is to use the latest timepoint}
         \item{control}{control object: \code{range} determines the desired

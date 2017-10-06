@@ -140,23 +140,22 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     a list with elements \code{"F"} and \code{"Deriv"}, which are lists
     of extra arguments passed to the functions \code{siaf$F} and
     \code{siaf$Deriv}, respectively.\cr
-    These arguments mainly determine the accuracy of the numerical
-    cubature rules from package \pkg{polyCub}
-    involved in non-constant \code{siaf} specifications,
-    e.g., the bandwidth of the midpoint rule
+    These arguments control the accuracy of the cubature routines from
+    package \pkg{polyCub} involved in non-constant \code{siaf}
+    specifications, e.g., the bandwidth of the midpoint rule
     \code{\link{polyCub.midpoint}}, the number of Gaussian
     quadrature points for \code{\link{polyCub.SV}}, or the relative
     tolerance of \code{\link{integrate}} in \code{\link{polyCub.iso}}.\cr
-    For instance, \code{\link{siaf.gaussian}()} uses the
+    For instance, \code{\link{siaf.gaussian}(F.adaptive = TRUE)} uses the
     midpoint-cubature \code{\link{polyCub.midpoint}} with an
     adaptive bandwidth of \code{eps=adapt*sd} to numerically integrate the
     kernel \eqn{f(\bold{s})}, and the default \code{adapt} value (0.1)
     can be overwritten by setting \code{control.siaf$F$adapt}.
-    The default integration method for the derivative of \eqn{f(\bold{s})}
-    wrt the kernel parameters is product Gauss cubature
-    \code{\link{polyCub.SV}} with \code{nGQ=20} univariate Gauss
-    quadrature points. This number can be overwritten by setting
-    \code{control.siaf$Deriv$nGQ}.\cr
+    However, the default version \code{siaf.gaussian()}
+    as well as \code{\link{siaf.powerlaw}()} and friends use
+    \code{\link{polyCub.iso}} and thus accept control arguments for the
+    standard \code{\link{integrate}} routine (such as \code{rel.tol})
+    via \code{control.siaf$F} and \code{control.siaf$Deriv}.\cr
     This argument list is ignored in the case
     \code{siaf=siaf.constant()} (which is the default if \code{siaf} is
     unspecified).
@@ -169,10 +168,10 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
 
     Initial values for the parameters may be given as list element
     \code{par} in the order \code{(endemic, epidemic, siaf, tiaf)}.
-    If no initial values are provided, a crude estimate for the endemic
-    intercept will be used (see the Examples),
-    but just zeroes for the remaining parameters.
-    However, any initial values given in the \code{start} argument
+    If no initial values are provided, crude estimates will be used for
+    the endemic intercept and the Gaussian kernel, -9 for the epidemic
+    intercept, and zeroes for the remaining parameters.
+    Any initial values given in the \code{start} argument
     take precedence over those in \code{par}.
     
     Note that \code{optim} receives the negative log-likelihood for 
@@ -440,7 +439,7 @@ pchisq(2*c(logLik(m_noepi_type)-logLik(m_noepi)), df=1, lower.tail=FALSE)
 ### assuming uniform dispersal in time and space up to a distance of
 ### eps.s = 200 km and eps.t = 30 days (see summary(imdepi))
 
-m0 <- update(m_noepi, epidemic=~1, start=c("e.(Intercept)"=-18), model=TRUE)
+m0 <- update(m_noepi, epidemic=~1, model=TRUE)
 
 ## summarize the model fit
 s <- summary(m0, correlation = TRUE, symbolic.cor = TRUE)
@@ -473,9 +472,8 @@ if (surveillance.options("allExamples"))
 
 \dontrun{
   ## NB: in contrast to using nlminb() optim's BFGS would miss the
-  ##     likelihood maximum wrt the epidemic intercept if starting at -10
-  m0_BFGS <- update(m_noepi, epidemic=~1, start=c("e.(Intercept)"=-10),
-                    optim.args = list(method="BFGS"))
+  ##     likelihood maximum wrt the epidemic intercept
+  m0_BFGS <- update(m_noepi, epidemic=~1, optim.args = list(method="BFGS"))
   format(cbind(nlminb=coef(m0), BFGS=coef(m0_BFGS)), digits=3, scientific=FALSE)
   m0_BFGS$fisherinfo   # singular Fisher information matrix here
   m0$fisherinfo
@@ -520,23 +518,18 @@ if (surveillance.options("allExamples"))
   plot(m1_tiaf, "tiaf", scaled=FALSE)
 
   ## estimate a step function for spatial interaction
-  m1_fstep <- update(m0, siaf=c(5,10,25,50))
+  summary(sourceDists <- getSourceDists(imdepi, "space"))
+  (knots <- quantile(sourceDists, c(5,10,20,40)/100))
+  m1_fstep <- update(m0, siaf=knots)
   plot(m1_fstep, "siaf", scaled=FALSE)
-  rug(getSourceDists(imdepi, dimension="space"), ticksize=0.02)
+  rug(sourceDists, ticksize=0.02)
 
-  ## estimate a continuously decreasing spatial interaction function, where
-  ## likelihood evaluation takes much longer than for (piecewise) constant
-  ## spatial spread; here we use the kernel of an isotropic bivariate
-  ## Gaussian with a standard deviation of exp(2.8) = 16.4 km for both
-  ## finetypes (fixed to speed up the example)
-  m1 <- update(m0,
-      siaf = siaf.gaussian(1, F.adaptive = TRUE),
-      start = c("e.siaf.1" = 2.8), # sigma = exp(2.8) = 16.4 km
-      optim.args = list(fixed="e.siaf.1"),
-      control.siaf = list(F=list(adapt=0.25)) # use adaptive eps=sigma/4
-  )
-  AIC(m_noepi, m0, m1_fstep, m1)   # further improvement
-  summary(m1, test.iaf=FALSE)   # nonsense to test H0: log(sigma) = 0
+  ## estimate a continuously decreasing spatial interaction function,
+  ## here we use the kernel of an isotropic bivariate Gaussian
+  m1 <- update(m0, siaf = siaf.gaussian())
+  AIC(m_noepi, m0, m1_fstep, m1)
+  summary(m1)  # e.siaf.1 is log(sigma), no test for H0: log(sigma) = 0
+  exp(confint(m1, "e.siaf.1"))  # a confidence interval for sigma
   plot(m1, "siaf", scaled=FALSE)
   ## alternative: siaf.powerlaw() with eps.s=Inf and untie()d data,
   ##              see vignette("twinstim")

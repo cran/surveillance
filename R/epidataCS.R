@@ -6,9 +6,9 @@
 ### Data structure for CONTINUOUS SPATIO-temporal infectious disease case data
 ### and a spatio-temporal grid of endemic covariates
 ###
-### Copyright (C) 2009-2016 Sebastian Meyer
-### $Revision: 1750 $
-### $Date: 2016-06-06 20:29:40 +0200 (Mon, 06. Jun 2016) $
+### Copyright (C) 2009-2017 Sebastian Meyer
+### $Revision: 1939 $
+### $Date: 2017-07-31 15:50:20 +0200 (Mon, 31. Jul 2017) $
 ################################################################################
 
 
@@ -53,7 +53,7 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
                           verbose = interactive())
 {
     clipper <- match.arg(clipper)
-    
+
     # Check and SORT events
     if (verbose) cat("\nChecking 'events':\n")
     events <- check_events(events, verbose = verbose)
@@ -63,24 +63,18 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
     tiles <- NULL                       # FIXME: add argument to as.epidataCS
     stgrid <- if (missing(stgrid) && inherits(tiles, "SpatialPolygons")) {
         if (verbose) cat("\t(missing, using time-constant 'tiles' grid)\n")
-        stgrid_template <- data.frame(
-            start = min(events$time),
-            stop = max(events$time),
-            tile = row.names(tiles),
-            area = areaSpatialPolygons(tiles, byid = TRUE),
-            check.rows = FALSE, check.names = FALSE)
-        check_stgrid(stgrid_template, verbose = FALSE)
+        check_stgrid(tiles2stgrid(tiles, start=0, T=T), verbose = FALSE)
     } else {
         check_stgrid(stgrid, T, verbose = verbose)
     }
-    
+
     # Check class of W and consistency of area
     if (verbose) cat("Checking 'W' ...\n")
     W <- check_W(W, area.other =
                  sum(stgrid[["area"]][seq_len(nlevels(stgrid$tile))]),
                  other = "stgrid")
     stopifnot(identicalCRS(W, events))
-    
+
     # Check qmatrix
     if (verbose) cat("Checking 'qmatrix' ...\n")
     typeNames <- levels(events$type)
@@ -90,7 +84,7 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
     # Check nCircle2Poly
     stopifnot(isScalar(nCircle2Poly))
     nCircle2Poly <- as.integer(nCircle2Poly)
-    
+
     # Small helper function converting event index to (time, tile, type) string
     eventidx2string <- function (eventIdx) {
         with(events@data,
@@ -238,7 +232,7 @@ check_events <- function (events, dropTypes = TRUE, verbose = TRUE)
                 paste0("'", names(events)[reservedColsIdx], "'", collapse=", "),
                 ") have been replaced")
         events@data <- events@data[-reservedColsIdx]
-    }    
+    }
 
     # Check that influence radii are numeric and positive (also not NA)
     if (verbose) cat("\tChecking 'eps.t' and 'eps.s' columns ...\n")
@@ -264,7 +258,7 @@ check_events <- function (events, dropTypes = TRUE, verbose = TRUE)
     # Sort events chronologically
     if (verbose) cat("\tSorting events ...\n")
     events <- events[order(events$time),]
-    
+
     # First obligatory columns then remainders (epidemic covariates)
     obligColsIdx <- match(obligColsNames_events, names(events@data))
     covarColsIdx <- setdiff(seq_along(events@data), obligColsIdx)
@@ -316,7 +310,7 @@ check_stgrid <- function (stgrid, T, verbose = TRUE)
 
     # Transform start times and area into numeric variables
     stgrid$start <- as.numeric(stgrid$start)
-    stgrid$area <- as.numeric(stgrid$area)        
+    stgrid$area <- as.numeric(stgrid$area)
 
     # Check stop times
     stgrid$stop <- if (autostop) {
@@ -386,11 +380,11 @@ check_stgrid <- function (stgrid, T, verbose = TRUE)
 check_W <- function (W, area.other = NULL, other, tolerance = 0.001)
 {
     W <- as(W, "SpatialPolygons") # i.e. drop data if a SpatialPolygonsDataFrame
-    
+
     if (!is.null(area.other) && area.other > 0) {
         check_W_area(W, area.other, other, tolerance)
     }
-    
+
     return(W)
 }
 
@@ -425,7 +419,7 @@ check_tiles <- function (tiles, levels,
 
     ## drop data (also for suitable over-method in check_tiles_events)
     .tiles <- as(tiles, "SpatialPolygons")
-    
+
     ## check tile specification of events and identical projection
     if (!is.null(events)) {
         check_tiles_events(.tiles, events)
@@ -453,10 +447,10 @@ check_tiles_events <- function (tiles, events)
               identicalCRS(tiles, events))
     tileIDs <- row.names(tiles)
     eventIDs <- row.names(events)
-    
+
     ## get polygon ID's of events (via overlay)
     eventtiles <- tileIDs[over(events, tiles)]
-    
+
     if (length(which_not_in_tiles <- which(is.na(eventtiles))))
         warning("some of 'events' are not within 'tiles': ",
                 paste0("\"", eventIDs[which_not_in_tiles], "\"", collapse=", "))
@@ -507,7 +501,7 @@ check_tiles_areas <- function (areas.tiles, areas.stgrid, tolerance = 0.05)
             "owin"),
         stop("unsupported polygon clipping engine: '", clipper, "'")
         )
-    
+
     eventCoords <- coordinates(events)
     res <- mapply(
         function (x, y, eps, bdist) {
@@ -525,8 +519,22 @@ check_tiles_areas <- function (areas.tiles, areas.stgrid, tolerance = 0.05)
         },
         eventCoords[,1], eventCoords[,2], events$eps.s, events$.bdist,
         SIMPLIFY = FALSE, USE.NAMES = FALSE)
-    
+
     attr(res, "nCircle2Poly") <- npoly
     attr(res, "clipper") <- clipper
     res
+}
+
+
+### CREATE stgrid TEMPLATE FROM tiles
+
+tiles2stgrid <- function (tiles, start, T)
+{
+    start <- sort.int(unique.default(start))
+    stgrid <- expand.grid(tile = row.names(tiles),
+                          start = start,
+                          KEEP.OUT.ATTRS = FALSE, stringsAsFactors = TRUE)
+    cbind(stgrid,
+          stop = rep(c(start[-1L], T), each = length(tiles)),
+          area = rep(areaSpatialPolygons(tiles, byid = TRUE), length(start)))
 }

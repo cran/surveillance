@@ -1,8 +1,8 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.14.0
-Date: 2017-06-29
+Version: 1.15.0
+Date: 2017-10-06
 Authors@R: c(MH = person("Michael", "Höhle",
                   email = "hoehle@math.su.se",
                   role = c("aut", "ths")),
@@ -44,8 +44,8 @@ LinkingTo: Rcpp, polyCub
 Suggests: parallel, grid, xts, gridExtra, lattice, colorspace, scales,
         animation, msm, spc, quadprog, memoise, polyclip, rgeos,
         gpclib, maptools, intervals, spdep, numDeriv, maxLik, gsl,
-        fanplot, testthat (>= 0.11.0), coda, splancs, gamlss, INLA (>=
-        0.0-1458166556), runjags, ggplot2, MGLM, knitr
+        fanplot, hhh4contacts, testthat (>= 0.11.0), coda, splancs,
+        gamlss, INLA (>= 0.0-1458166556), runjags, ggplot2, MGLM, knitr
 Description: Statistical methods for the modeling and monitoring of time series
         of counts, proportions and categorical data, as well as for the modeling
         of continuous-time point processes of epidemic phenomena.
@@ -80,11 +80,10 @@ Description: Statistical methods for the modeling and monitoring of time series
 License: GPL-2
 URL: http://surveillance.R-Forge.R-project.org/
 Additional_repositories: https://www.math.ntnu.no/inla/R/stable
-BugReports: https://R-Forge.R-project.org/tracker/?group_id=45
 Encoding: latin1
 VignetteBuilder: utils, knitr
 RoxygenNote: 6.0.1
 NeedsCompilation: yes
-Packaged: 2017-06-29 15:49:53 UTC; smeyer
+Packaged: 2017-10-06 17:09:04 UTC; smeyer
 Repository: CRAN
-Date/Publication: 2017-06-29 22:13:49 UTC
+Date/Publication: 2017-10-06 20:34:46 UTC

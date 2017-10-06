@@ -1,6 +1,7 @@
 \name{knox}
 \alias{knox}
 \alias{plot.knox}
+\alias{toLatex.knox}
 \title{
 Knox Test for Space-Time Interaction
 }
@@ -69,7 +70,7 @@ knox(dt, ds, eps.t, eps.s, simulate.p.value = TRUE, B = 999, ...)
 
 \note{
   The Poisson approximation works well if the proportions of close
-  pairs in both time and space are small (Kulldorf and Hjalmars,
+  pairs in both time and space are small (Kulldorff and Hjalmars,
   1999), otherwise the Monte Carlo permutation approach is
   recommended.
 }
@@ -97,6 +98,9 @@ knox(dt, ds, eps.t, eps.s, simulate.p.value = TRUE, B = 999, ...)
     \code{ds <= eps.s}.}
 
   The \code{plot}-method invisibly returns \code{NULL}.
+
+  A \code{toLatex}-method exists, which generates LaTeX code for the
+  contingency table associated with the Knox test.
 }
 
 \author{
@@ -152,6 +156,8 @@ knoxtest <- knox(
 )
 knoxtest
 plot(knoxtest)
+
+toLatex(knoxtest)  # just the contingency table
 }
 
 \keyword{htest}

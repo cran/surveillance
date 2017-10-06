@@ -7,7 +7,7 @@ using namespace Rcpp;
 
 // determineSourcesC
 List determineSourcesC(NumericVector eventTimes, NumericVector eps_t, NumericMatrix eventCoords, NumericVector eps_s, IntegerVector eventTypes, LogicalMatrix qmatrix);
-RcppExport SEXP surveillance_determineSourcesC(SEXP eventTimesSEXP, SEXP eps_tSEXP, SEXP eventCoordsSEXP, SEXP eps_sSEXP, SEXP eventTypesSEXP, SEXP qmatrixSEXP) {
+RcppExport SEXP _surveillance_determineSourcesC(SEXP eventTimesSEXP, SEXP eps_tSEXP, SEXP eventCoordsSEXP, SEXP eps_sSEXP, SEXP eventTypesSEXP, SEXP qmatrixSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;

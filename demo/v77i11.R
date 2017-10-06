@@ -8,6 +8,8 @@
 ### Journal of Statistical Software, 77(11), 1-55.
 ### https://doi.org/10.18637/jss.v077.i11
 ###
+### Changes to the original replication script are marked with a "#M" comment.
+###
 ### Copyright (C) 2017 Sebastian Meyer, Leonhard Held, Michael Hoehle
 ###
 ### This file is part of the R package "surveillance",
@@ -80,7 +82,9 @@ imdfit_endemic <- twinstim(endemic = endemic, epidemic = ~0,
 summary(imdfit_endemic)
 
 imdfit_Gaussian <- update(imdfit_endemic, epidemic = ~type + agegrp,
-  siaf = siaf.gaussian(), start = c("e.(Intercept)" = -12.5, "e.siaf.1" = 2.75),
+  siaf = siaf.gaussian(F.adaptive = TRUE),
+  ##M set F.adaptive=TRUE for replication with surveillance >= 1.15.0
+  start = c("e.(Intercept)" = -12.5, "e.siaf.1" = 2.75),
   control.siaf = list(F = list(adapt = 0.25), Deriv = list(nGQ = 13)),
   cores = 2 * (.Platform$OS.type == "unix"), model = TRUE)
 

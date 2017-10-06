@@ -20,7 +20,7 @@ algo.rki3(disProgObj, control = list(range = range))
 }
 \arguments{
 \item{disProgObj}{object of class disProg (including the observed and the state chain).}
-\item{timePoint}{time point which shoud be evaluated in \code{algo.rkiLatestTimepoint}. The
+\item{timePoint}{time point which should be evaluated in \code{algo.rkiLatestTimepoint}. The
     default is to use the latest timepoint.}
 \item{control}{control object: \code{range} determines the desired
     timepoints which should be evaluated, \code{b} describes the number of years to go

@@ -7,7 +7,7 @@
 knitr::opts_chunk$set(echo = TRUE, tidy = FALSE, results = 'markup',
                       fig.path='plots/twinSIR-', fig.width = 8, fig.height = 4.5,
                       fig.align = "center", fig.scap = NA, out.width = NULL,
-                      cache = FALSE, error = FALSE, message = FALSE)
+                      cache = FALSE, error = FALSE, warning = FALSE, message = FALSE)
 knitr::render_sweave()             # use Sweave environments
 knitr::set_header(highlight = '')  # no \usepackage{Sweave} (part of jss class)
 ## R settings
@@ -18,7 +18,7 @@ options(scipen = 1)  # so that 1e-4 gets printed as 0.0001
 options(xtable.booktabs = TRUE, xtable.size = "small",
         xtable.sanitize.text.function = identity,
         xtable.comment = FALSE)
-@ 
+@
 
 <<include = FALSE>>=
 ## load the "cool" package
@@ -28,7 +28,7 @@ library("surveillance")
 message("Doing computations: ",
         COMPUTE <- !file.exists("twinSIR-cache.RData"))
 if (!COMPUTE) load("twinSIR-cache.RData", verbose = TRUE)
-@ 
+@
 
 
 \documentclass[nojss,nofooter,article]{jss}
@@ -129,7 +129,7 @@ branching process with immigration}
 The spatio-temporal point process regression model ``\code{twinstim}''
 (\citealp{meyer.etal2011}, illustrated in \code{vignette("twinstim")})
 is indexed in a continuous spatial domain, i.e., the set of
-possible event locations %(the susceptible ``population'') 
+possible event locations %(the susceptible ``population'')
 consists of the whole observation region and is thus infinite.
 In contrast, if infections can only occur at a known discrete set of sites, such
 as for livestock diseases among farms,
@@ -161,7 +161,7 @@ f(u) = \sum_{m=1}^M \alpha_m^{(f)} B_m(u) \: \geq 0 \:,
 \end{equation}
 which is represented by a linear combination of non-negative basis
 functions $B_m$ with the $\alpha_m^{(f)}$'s being
-the respective coefficients. 
+the respective coefficients.
 For instance, $f$ could be modeled by a B-spline
 \citep[Section~8.1]{Fahrmeir.etal2013},
 and $d_{ij}$ could refer to the Euclidean distance $\norm{\bm{s}_i - \bm{s}_j}$
@@ -366,7 +366,7 @@ using the call
 
 <<hagellochFit, results='hide'>>=
 hagellochFit <- twinSIR(~household + c1 + c2 + nothousehold, data = hagelloch)
-@ 
+@
 
 and the fit is summarized below:
 
@@ -539,6 +539,6 @@ close(.Rbibfile)
 
 <<save-cache, include = FALSE, eval = COMPUTE, purl=FALSE>>=
 save(prof, file = "twinSIR-cache.RData")
-@ 
+@
 
 \end{document}

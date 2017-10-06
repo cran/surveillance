@@ -20,12 +20,14 @@ static double intrfr_powerlaw(double R, double *logpars)
 {
     double sigma = exp(logpars[0]);
     double d = exp(logpars[1]);
-    if (d == 1.0) {
+    double onemd = 1.0 - d;
+    double twomd = 2.0 - d;
+    if (fabs(onemd) < 1e-7) {
         return R - sigma * log1p(R/sigma);
-    } else if (d == 2.0) {
+    } else if (fabs(twomd) < 1e-7) {
         return log1p(R/sigma) - R/(R+sigma);
     } else {
-        return (R*pow(R+sigma,1.0-d) - (pow(R+sigma,2.0-d) - pow(sigma,2.0-d))/(2.0-d)) / (1.0-d);
+        return (R*pow(R+sigma,onemd) - (pow(R+sigma,twomd) - pow(sigma,twomd))/twomd) / onemd;
     }
 }
 
@@ -40,17 +42,19 @@ static double intrfr_powerlaw_dlogd(double R, double *logpars)
 {
     double sigma = exp(logpars[0]);
     double d = exp(logpars[1]);
-    if (d == 1.0) {
+    double onemd = 1.0 - d;
+    double twomd = 2.0 - d;
+    if (fabs(onemd) < 1e-7) {
         return sigma * logpars[0] * (1.0-logpars[0]/2.0) - log(R+sigma) * (R+sigma) +
             sigma/2.0 * pow(log(R+sigma),2.0) + R;
-    } else if (d == 2.0) {
+    } else if (fabs(twomd) < 1e-7) {
         return (-log(R+sigma) * ((R+sigma)*log(R+sigma) + 2.0*sigma) +
                 (R+sigma)*logpars[0]*(logpars[0]+2.0) + 2.0*R) / (R+sigma);
     } else {
-        return (pow(sigma,2.0-d) * (logpars[0]*(-d*d + 3.0*d - 2.0) - 2.0*d + 3.0) +
-                pow(R+sigma,1.0-d) * (log(R+sigma)*(d-1.0)*(d-2.0) * (R*(d-1.0) + sigma) +
+        return (pow(sigma,twomd) * (logpars[0]*(-d*d + 3.0*d - 2.0) - 2.0*d + 3.0) +
+                pow(R+sigma,onemd) * (log(R+sigma)*onemd*twomd * (sigma - R*onemd) +
                                       R*(d*d+1.0) + 2.0*d*(sigma-R) - 3.0*sigma)
-                ) * d / pow(d-1.0,2.0) / pow(d-2.0,2.0);
+                ) * d/onemd/onemd/twomd/twomd;
     }
 }
 
@@ -59,10 +63,11 @@ static double intrfr_student(double R, double *logpars)
 {
     double sigma = exp(logpars[0]);
     double d = exp(logpars[1]);
-    if (d == 1.0) {
+    double onemd = 1.0 - d;
+    if (fabs(onemd) < 1e-7) {
         return log(R*R+sigma*sigma) / 2.0 - logpars[0];
     } else {
-        return ( pow(R*R+sigma*sigma,1.0-d) - pow(sigma*sigma,1.0-d) ) / (2.0-2.0*d);
+        return ( pow(R*R+sigma*sigma,onemd) - pow(sigma*sigma,onemd) )/2/onemd;
     }
 }
 
@@ -83,7 +88,7 @@ static double intrfr_student_dlogd(double R, double *logpars)
 {
     double sigma = exp(logpars[0]);
     double d = exp(logpars[1]);
-    if (d == 1.0) {
+    if (fabs(d-1.0) < 1e-7) {
         return pow(logpars[0], 2.0) - pow(log(R*R+sigma*sigma), 2.0) / 4.0;
     } else {
         return intrfr_student_dlogd_primitive(R, sigma, d) -
@@ -95,7 +100,7 @@ static double intrfr_student_dlogd(double R, double *logpars)
 static double intrfr_powerlawL_sigmadxplint(double R, double sigma, double d)
 {
     double twomd = 2.0 - d;
-    double xplint = (twomd == 0.0) ? log(R/sigma) : (pow(R,twomd)-pow(sigma,twomd))/twomd;
+    double xplint = (fabs(twomd) < 1e-7) ? log(R/sigma) : (pow(R,twomd)-pow(sigma,twomd))/twomd;
     return pow(sigma,d) * xplint;
 }
 
@@ -130,8 +135,22 @@ static double intrfr_powerlawL_dlogd(double R, double *logpars)
     double d = exp(logpars[1]);
     double twomd = 2.0 - d;
     double sigmadRtwomdd = pow(sigma,d) * pow(R,twomd) * d;
-    return (twomd == 0.0) ? -pow(sigma*log(R/sigma), 2.0) :
+    return (fabs(twomd) < 1e-7) ? -pow(sigma*log(R/sigma), 2.0) :
         (sigmadRtwomdd * (-twomd)*log(R/sigma) - d*sigma*sigma + sigmadRtwomdd)/(twomd*twomd);
+}
+
+// Gaussian kernel
+static double intrfr_gaussian(double R, double *logsigma)
+{
+    double sigma2 = exp(2*logsigma[0]);
+    return sigma2 * (1 - exp(-R*R/2/sigma2));
+}
+
+static double intrfr_gaussian_dlogsigma(double R, double *logsigma)
+{
+    double sigma2 = exp(2*logsigma[0]);
+    double R2sigma2 = R*R/2/sigma2;
+    return 2*sigma2 * (1 - (1+R2sigma2)/exp(R2sigma2));
 }
 
 
@@ -157,6 +176,8 @@ void C_siaf_polyCub1_iso(
     case 30: intrfr = intrfr_powerlawL; break;
     case 31: intrfr = intrfr_powerlawL_dlogsigma; break;
     case 32: intrfr = intrfr_powerlawL_dlogd; break;
+    case 40: intrfr = intrfr_gaussian; break;
+    case 41: intrfr = intrfr_gaussian_dlogsigma; break;
     default: error("unknown intrfr_code"); break;
     }
     double center_x = 0.0;
