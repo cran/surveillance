@@ -15,20 +15,37 @@ measlesFit <- hhh4(stsObj = measlesWeserEms, control = measlesModel)
 test_that("estimates and standard errors are reproducible", {
     ## dput(coef(measlesFit, se = TRUE))
     orig <- structure(
-        c(-0.499636482022272, 0.551345030080107, 0.96093157194767, 
+        c(-0.499636482022272, 0.551345030080107, 0.96093157194767,
           -0.153585641356373, 0.00333284018297979, 1.01500011496702,
           -0.588738943313705, 5.52782609236691, 1.81915612994789,
           0.121781347106564, 1.27401298230559, 0.453889365025671,
-          0.281013375484401, 0.00459840327748742, 0.210642721317572, 
+          0.281013375484401, 0.00459840327748742, 0.210642721317572,
           0.191921649336323, 1.87984346848385, 0.265016986696184),
         .Dim = c(9L, 2L),
-        .Dimnames = list(c("ar.1", "ne.1", "ne.log(pop)", "end.1", 
-            "end.t", "end.sin(2 * pi * t/52)", "end.cos(2 * pi * t/52)", 
+        .Dimnames = list(c("ar.1", "ne.1", "ne.log(pop)", "end.1",
+            "end.t", "end.sin(2 * pi * t/52)", "end.cos(2 * pi * t/52)",
             "neweights.d", "overdisp"), c("Estimate", "Std. Error"))
     )
     expect_equal(coef(measlesFit, se = TRUE), orig,
                  tolerance = 1e-6) # increased for Solaris Sparc
     ## tolerance determined empirically by an R build with --disable-long-double
+})
+
+test_that("neighbourhood weights array yields the same results", {
+    What <- getNEweights(measlesFit)
+    ## put that in an array for time-varying weights in hhh4
+    ## (they are not actually varying here)
+    Warray <- array(What,
+                    dim = c(dim(What),nrow(measlesWeserEms)),
+                    dimnames = c(dimnames(What), list(NULL)))
+    measlesFit_Warray <- update(measlesFit, ne = list(weights = Warray),
+                                use.estimates = FALSE)
+    ## NOTE: variance estimates are different because of fixed powerlaw
+    expect_equal(measlesFit_Warray, measlesFit,
+                 ignore = c("control", "coefficients", "se", "cov", "dim"))
+    expect_equal(coef(measlesFit_Warray),
+                 coef(measlesFit)[names(coef(measlesFit_Warray))],
+                 tolerance = 1e-6)  # triggered by 64-bit win-builder
 })
 
 test_that("score vector and Fisher info agree with numerical approximations", {

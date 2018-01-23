@@ -11,8 +11,8 @@
   A \code{sts} object. 
 }
 \source{
-  The data are queried from the Survstat@RKI database of the German
-  Robert Koch Institute (http://www3.rki.de/SurvStat/). A detailed
+  The data were queried from the SurvStat@RKI database of the German
+  Robert Koch Institute (\url{https://survstat.rki.de/}). A detailed
   description of the 2011 outbreak can be found in the publication
 
   Bayer, C., Bernard, H., Prager, R., Rabsch, W., Hiller, P., Malorny,

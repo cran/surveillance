@@ -143,18 +143,18 @@ multivariate series $\{(y_t,x_t)\>; t=1,\ldots,n\}$ is in
 (disease progress), which is basically a \texttt{list} containing two
 vectors: the observed number of counts and a boolean vector
 \texttt{state} indicating whether there was an outbreak that week. A
-number of time series are contained in the \texttt{data} directory,
+number of time series are contained in the package (see
+\texttt{data(package="surveillance")}),
 mainly originating from the SurvStat@RKI database at
-\href{http://www3.rki.de/SurvStat/}{http://www3.rki.de/SurvStat/}
+\url{https://survstat.rki.de/}
 maintained by the Robert Koch Institute, Germany~\citep{survstat}.
 For example the object \texttt{k1} describes Kryptosporidosis
 surveillance data for the German federal state Baden-W\"{u}rttemberg
 2001-2005. The peak in 2001 is due to an outbreak of Kryptosporidosis
 among a group of army-soldiers in boot-camp~\citep{bulletin3901}. In
 \surveillance\ the \texttt{readData} function is used to bring the
-time series on \texttt{disProg} form. The SurvStat@RKI database at
-\href{http://www3.rki.de/SurvStat/}{http://www3.rki.de/SurvStat/}
-maintained by the Robert Koch Institute, Germany, uses a 53 weeks a
+time series on \texttt{disProg} form. The SurvStat@RKI database
+uses a 53 weeks a
 year format; therefore a conversion with \texttt{correct53to52} is
 necessary.
 

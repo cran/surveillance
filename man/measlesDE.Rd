@@ -17,7 +17,7 @@
 }
 \source{
   Robert Koch-Institut: SurvStat:
-  \url{http://www3.rki.de/SurvStat};
+  \url{https://survstat.rki.de/};
   Queried on 14 October 2009. 
 }
 \seealso{\code{\link{MMRcoverageDE}}}

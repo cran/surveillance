@@ -28,11 +28,11 @@
     \item \code{m5} 'Masern' in the 'Stadt Verden' (Germany, Niedersachsen)
     \item \code{q1\_nrwh} 'Q-Fieber' in the 'Hochsauerlandkreis' (Germany, Westfalen)
     and in the 'Landkreis Waldeck-Frankenberg' (Germany, Hessen)
-    \item \code{q2} 'Q-Fieber' in 'München' (Germany, Bayern)
+    \item \code{q2} 'Q-Fieber' in '\enc{München}{Muenchen}' (Germany, Bayern)
     \item \code{s1} 'Salmonella Oranienburg' in Germany
-    \item \code{s2} 'Salmonella Agona' in 12 'Bundesländern' of Germany
+    \item \code{s2} 'Salmonella Agona' in 12 'Bundesl\enc{ä}{ae}ndern' of Germany
     \item \code{s3} 'Salmonella Anatum' in Germany
-    \item \code{k1} 'Kryptosporidiose' in Germany, 'Baden-Württemberg'
+    \item \code{k1} 'Kryptosporidiose' in Germany, 'Baden-W\enc{ü}{ue}rttemberg'
     \item \code{n1} 'Norovirus' in 'Stadtkreis Berlin Mitte' (Germany, Berlin)
     \item \code{n2} 'Norovirus' in 'Torgau-Oschatz' (Germany, Sachsen)
     \item \code{h1\_nrwrp} 'Hepatitis A' in 'Oberbergischer Kreis, Olpe, Rhein-Sieg-kreis'
@@ -49,7 +49,7 @@
 }
 \source{
   Robert Koch-Institut: SurvStat:
-  \url{http://www3.rki.de/SurvStat};
+  \url{https://survstat.rki.de/};
   m1 and m3 were queried on 10 November 2004. The rest during September 2004.
 }
 \seealso{\code{\link{readData}}}

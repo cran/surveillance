@@ -1,7 +1,7 @@
 ################################################################################
 ### Initialization and other basic methods for the S4 class "sts"
 ###
-### Copyright (C) 2007-2014 Michael Hoehle, 2012-2016 Sebastian Meyer
+### Copyright (C) 2007-2014 Michael Hoehle, 2012-2017 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -188,8 +188,12 @@ sts2disProg <- function(sts) {
 
 setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...) {
 
- #Action of aggregation for populationFrac depends on the type
- binaryTS <- sum( x@populationFrac > 1 ) > 1  # FIXME: x@multinomialTS?
+ by <- match.arg(by, choices = c("time", "unit"))
+
+ ## Action of aggregation for populationFrac depends on the type
+ binaryTS <- sum( x@populationFrac > 1 ) > 1  # FIXME @ Michael: why not any()?
+ ## NOTE: we cannot rely on x@multinomialTS since this is not necessarily set
+ ##       if population(x) contains absolute numbers
 
   #Aggregate time
   if (by == "time") {
@@ -214,7 +218,7 @@ setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...)
     x@alarm <- as.matrix(aggregate(x@alarm,by=list(new),sum)[,-1]) # number of alarms
     x@upperbound <- as.matrix(aggregate(x@upperbound,by=list(new),sum)[,-1])
     x@populationFrac <- as.matrix(aggregate(x@populationFrac,by=list(new),sum)[,-1])
-    ## FIXME: should make clear (warn?) that population is summed over time
+    ## CAVE: summing population (fractions) over time might not be intended
 
     #the population fractions need to be recomputed if not a binary ts
     if (!binaryTS) {
@@ -222,8 +226,10 @@ setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...)
       x@populationFrac <-x@populationFrac/sums
     }
   }
+
+  #Aggregate units
   if (by == "unit") {
-    #Aggregate units (FIXME: this currently results in NULL colnames!)
+    #Aggregate units
     x@observed <- as.matrix(apply(x@observed, MARGIN=1, sum))
     x@state <- as.matrix(apply(x@state, MARGIN=1, sum))>0
     x@alarm <- as.matrix(apply(x@alarm, MARGIN=1, sum))>0 # contrary to counting for by="time"!
@@ -231,7 +237,11 @@ setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...)
     x@upperbound <- matrix(NA_real_,ncol=ncol(x@alarm),nrow=nrow(x@alarm))
     x@populationFrac <- as.matrix(apply(x@populationFrac, MARGIN=1, sum))#>0
     x@neighbourhood <- matrix(NA, 1, 1) # consistent with default for new("sts")
-    ## FIXME: x@map will be invalid, remove or unionSpatialPolygons()?
+    ## we have lost colnames
+    colnames(x@observed) <- "overall"
+    x <- fix.dimnames(x)
+    ## drop the map (set to empty prototype)
+    x@map <- new(getSlots("sts")[["map"]])
   }
 
   #validObject(x) #just a check
@@ -285,7 +295,7 @@ setMethod("[", "sts", function(x, i, j, ..., drop) {
 
   x@populationFrac <- x@populationFrac[i,j,drop=FALSE]
   #If not binary TS the populationFrac is normed
-  binaryTS <- sum( x@populationFrac > 1 ) > 1 # FIXME @ Michael: x@multinomialTS
+  binaryTS <- sum( x@populationFrac > 1 ) > 1 # FIXME @ Michael: why not any()?
   if (!binaryTS) {
     x@populationFrac <- x@populationFrac / apply(x@populationFrac,MARGIN=1,sum)
    }

@@ -1,28 +1,32 @@
 \name{boda}
 \alias{boda}
 
-\title{Surveillance for an univariate count data time series using the
-  Bayesian Outbreak Detection Algorithm (BODA) described in Manitz and
-  \enc{Höhle}{Hoehle} (2013)}
+\title{Bayesian Outbreak Detection Algorithm (BODA)}
+
 \description{
-%
-  The function takes \code{range} values of the surveillance time
+  The function takes \code{range} values of a univariate surveillance time
   series \code{sts} and for each time point uses a negative binomial
   regression model to compute the predictive posterior distribution for
-  the current observation. The \eqn{(1-\alpha)\cdot
-  100\%}{(1-alpha)*100} quantile of this predictive distribution is then
+  the current observation. The
+  \eqn{(1-\alpha)\cdot 100\%}{(1-alpha)*100\%}
+  quantile of this predictive distribution is then
   used as bound: If the actual observation is above the bound an alarm
   is raised. 
-  The implementation is illustrated in Salmon et al. (2016).
-%
+  The Bayesian Outbreak Detection Algorithm (\code{boda}) is due to
+  Manitz and \enc{Höhle}{Hoehle} (2013) and its implementation is
+  illustrated in Salmon et al. (2016).
 }
+
 \usage{
-boda(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE,
-                                   prior=c('iid','rw1','rw2'), alpha=0.05, mc.munu=100, 
-                                   mc.y=10, verbose=FALSE,multicore=TRUE,
-                                   samplingMethod=c('joint','marginals'),
-                                   quantileMethod=c("MC","MM")))
+boda(sts, control = list(
+    range=NULL, X=NULL, trend=FALSE, season=FALSE,
+    prior=c('iid','rw1','rw2'), alpha=0.05, mc.munu=100, 
+    mc.y=10, verbose=FALSE,multicore=TRUE,
+    samplingMethod=c('joint','marginals'),
+    quantileMethod=c("MC","MM")
+))
 }
+
 \arguments{
   \item{sts}{object of class sts (including the \code{observed} and the
     \code{state} time series)}
@@ -61,42 +65,42 @@ boda(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE,
 
 \section{Warning}{
   This function is currently experimental!! It also heavily
-  depends on the \pkg{INLA} package so changes here might affect the
-  operational ability of the function. Since the computations
-  for the Bayesian GAM are quite involved do not expected this function
+  depends on the \pkg{INLA} package so changes there might affect the
+  operational ability of this function. Since the computations
+  for the Bayesian GAM are quite involved do not expect this function
   to be particularly fast. Future work could focus on improving the
-  speed, e.g. one issue would be to make the inference work in sequential
+  speed, e.g., one issue would be to make the inference work in a sequential
   fashion.
 }
 
 \keyword{classif}
 
 \examples{
+\dontrun{
+  ## running this example takes a couple of minutes
+
   #Load the campylobacteriosis data for Germany
   data("campyDE")
   #Make an sts object from the data.frame
-  cam.sts <-  new("sts",epoch=as.numeric(campyDE$date),observed=campyDE$case,
-                   state=campyDE$state, epochAsDate=TRUE)
+  cam.sts <-  sts(epoch=as.numeric(campyDE$date), epochAsDate=TRUE,
+                  observed=campyDE$case, state=campyDE$state)
 
-  \dontrun{
   #Define monitoring period
 #  range <- which(epoch(cam.sts)>=as.Date("2007-01-01"))
 #  range <- which(epoch(cam.sts)>=as.Date("2011-12-10"))
   range <- tail(1:nrow(cam.sts),n=2)
 
   control <- list(range=range, X=NULL, trend=TRUE, season=TRUE,
-                  prior='iid', alpha=0.025, mc.munu=100, mc.y=10, samplingMethod = "joint")
+                  prior='iid', alpha=0.025, mc.munu=100, mc.y=10,
+                  samplingMethod = "joint")
 
   #Apply the boda algorithm in its simples form, i.e. spline is
   #described by iid random effects and no extra covariates
   library("INLA")  # needs to be attached
   cam.boda1 <- boda(cam.sts, control=control)
 
-  if(!inherits(cam.boda1,'try-error')){
-    plot(cam.boda1,xlab='time [weeks]', ylab='No. reported',dx.upperbound=0)
-  }
-
-  } 
+  plot(cam.boda1, xlab='time [weeks]', ylab='No. reported', dx.upperbound=0)
+}
 }
 
 \author{J. Manitz, M. \enc{Höhle}{Hoehle}, M. Salmon}

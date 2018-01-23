@@ -144,8 +144,12 @@ stsplot_alarm(x, lvl=rep(1,nrow(x)), ylim=NULL,
 }
 
 \seealso{
-  the central \code{\link{stsplot}}-documentation for an overview of
-  plot types.
+  There is an \code{\link[=autoplot.sts]{autoplot}}-method, which
+  implements \CRANpkg{ggplot2}-based time-series plots of \code{"sts"}
+  objects.
+  
+  The \code{\link{stsplot}} help page gives an overview of other
+  types of plots for \code{"sts"} objects.
 }
 
 \examples{

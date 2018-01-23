@@ -224,6 +224,8 @@ hhh4(stsObj,
   Univariate time series of counts \eqn{Y_t} are supported as well, in
   which case \code{hhh4} can be regarded as an extension of
   \code{\link[MASS]{glm.nb}} to account for autoregression.
+  See the Examples below for a comparison of an endemic-only
+  \code{hhh4} model with a corresponding \code{glm.nb}.
   
   The three unknown quantities of the mean \eqn{\mu_{it}}{\mu_it},
   \itemize{
@@ -267,9 +269,9 @@ hhh4(stsObj,
 \author{Michaela Paul, Sebastian Meyer, Leonhard Held}
 
 \examples{
-###########################################################################
-## Univariate examples (similar as for the 'hhh4' predecessor 'algo.hhh')
-###########################################################################
+######################
+## Univariate examples
+######################
 
 ### weekly counts of salmonella agona cases, UK, 1990-1995
 
@@ -312,9 +314,9 @@ plot(meningoFit)
 plot(meningoFit, type = "season", components = "end")
 
 
-###########################################################################
-## Multivariate examples (similar as for the 'hhh4' predecessor 'algo.hhh')
-###########################################################################
+########################
+## Multivariate examples
+########################
 
 ### bivariate analysis of influenza and meningococcal infections
 ### (see Paul et al, 2008)
@@ -344,45 +346,33 @@ plot(fluMenFit, type = "season", components = "end", unit = 2)
 
 
 ### weekly counts of measles, Weser-Ems region of Lower Saxony, Germany
-### (see Held et al, 2005, and vignette("hhh4_spacetime"), where a
-### corrected version of these data is used for illustration of 'hhh4')
 
-data("measles.weser")
-measles <- disProg2sts(measles.weser)
-measles
-plot(measles)
+data("measlesWeserEms")
+measlesWeserEms
+plot(measlesWeserEms)  # note the two districts with zero cases
 
 ## we could fit the same simple model as for the salmonella cases above
-measlesFit <- hhh4(measles, model1)
+model1 <- list(
+    ar = list(f = ~1),
+    end = list(f = addSeason2formula(~1 + t, period = 52)),
+    family = "NegBin1"
+)
+measlesFit <- hhh4(measlesWeserEms, model1)
 summary(measlesFit, idx2Exp=TRUE, amplitudeShift=TRUE, maxEV=TRUE)
 
-## but we should use region-specific intercepts and a population offset
-## in the endemic component => update the model
-f.end2 <- update.formula(f.end, ~ . + fe(1, unitSpecific = TRUE) - 1)
-f.end2
+## but we should probably at least use a population offset in the endemic
+## component to reflect heterogeneous incidence levels of the districts,
+## and account for spatial dependence (here just using first-order adjacency)
 measlesFit2 <- update(measlesFit,
-    end = list(f = f.end2, offset = population(measles)))
+    end = list(offset = population(measlesWeserEms)),
+    ne = list(f = ~1, weights = neighbourhood(measlesWeserEms) == 1))
 summary(measlesFit2, idx2Exp=TRUE, amplitudeShift=TRUE, maxEV=TRUE)
+plot(measlesFit2, units = NULL, hide0s = TRUE)
 
-## now also allow for transmission from adjacent districts
-measlesFit3 <- update(measlesFit2,
-    ne = list(f = ~1, weights = neighbourhood(measles)))
-summary(measlesFit3, idx2Exp=TRUE, amplitudeShift=TRUE)
-plot(measlesFit3, units = NULL, hide0s = TRUE)
-
-\dontshow{
-## check that neighbourhood weights array yields same result
-.neweights <- array(neighbourhood(measles),
-                   dim = c(rep(ncol(measles),2),nrow(measles)),
-                   dimnames = c(dimnames(neighbourhood(measles)), list(NULL)))
-measlesFit3_tv <- update(measlesFit3, ne = list(weights = .neweights),
-                         use.estimates = FALSE)
-stopifnot(all.equal(measlesFit3, measlesFit3_tv, ignore = "control"))
-}
-
-## See vignette("hhh4_spacetime") for further analyses of the measles
-## data from Weser-Ems, including vaccination coverage as a covariate,
-## power-law weights, and random intercepts.
+## 'measlesFit2' corresponds to the 'measlesFit_basic' model in
+## vignette("hhh4_spacetime"). See there for further analyses,
+## including vaccination coverage as a covariate,
+## spatial power-law weights, and random intercepts.
 
 
 \dontrun{
@@ -455,6 +445,49 @@ gridExtra::grid.arrange(
     nrow = 1, ncol = 3)
 
 range(plot(fluFit, type = "maxEV"))
+}
+
+
+########################################################################
+## An endemic-only "hhh4" model can also be estimated using MASS::glm.nb
+########################################################################
+
+## weekly counts of measles, Weser-Ems region of Lower Saxony, Germany
+data("measlesWeserEms")
+
+## fit an endemic-only "hhh4" model
+## with time covariates and a district-specific offset
+hhh4fit <- hhh4(measlesWeserEms, control = list(
+    end = list(f = addSeason2formula(~1 + t, period = measlesWeserEms@freq),
+               offset = population(measlesWeserEms)),
+    ar = list(f = ~-1), ne = list(f = ~-1), family = "NegBin1",
+    subset = 1:nrow(measlesWeserEms)
+))
+summary(hhh4fit)
+
+## fit the same model using MASS::glm.nb
+measlesWeserEmsData <- as.data.frame(measlesWeserEms, tidy = TRUE)
+measlesWeserEmsData$t <- c(hhh4fit$control$data$t)
+glmnbfit <- MASS::glm.nb(
+    update(formula(hhh4fit)$end, observed ~ . + offset(log(population))),
+    data = measlesWeserEmsData
+)
+summary(glmnbfit)
+
+## Note that the overdispersion parameter is parametrized inversely.
+## The likelihood and point estimates are all the same.
+## However, the variance estimates are different: in glm.nb, the parameters
+## are estimated conditional on the overdispersion theta.
+
+\dontshow{
+stopifnot(
+    all.equal(logLik(hhh4fit), logLik(glmnbfit)),
+    all.equal(1/coef(hhh4fit)[["overdisp"]], glmnbfit$theta, tolerance = 1e-6),
+    all.equal(coef(hhh4fit)[1:4], coef(glmnbfit),
+              tolerance = 1e-6, check.attributes = FALSE),
+    all.equal(c(residuals(hhh4fit)), residuals(glmnbfit),
+              tolerance = 1e-6, check.attributes = FALSE)
+)
 }
 }
 

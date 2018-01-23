@@ -3,13 +3,14 @@
 ### Free software under the terms of the GNU General Public License, version 2,
 ### a copy of which is available at http://www.r-project.org/Licenses/.
 ###
-### Function 'twinSIR' performs (penalized) maximum likelihood inference 
+### Function 'twinSIR' performs (penalized) maximum likelihood inference
 ### for the Hoehle (2009) model. Now with REML estimation of smoothing
 ### parameter lambda.
 ###
-### Copyright (C) 2008-2009 Michael Hoehle, 2008-2009, 2014 Sebastian Meyer
-### $Revision: 1079 $
-### $Date: 2014-10-18 01:26:00 +0200 (Sat, 18. Oct 2014) $
+### Copyright (C) 2008-2009 Michael Hoehle
+### Copyright (C) 2008-2009,2014,2017 Sebastian Meyer
+### $Revision: 2046 $
+### $Date: 2017-11-16 15:51:54 +0100 (Thu, 16. Nov 2017) $
 ################################################################################
 
 ## ATTENTION: the .loglik and .score functions assume atRiskY == 1 data
@@ -34,17 +35,17 @@
 {
   # Calculate epidemic (e) and endemic (h) component of the infection intensity
   eh <- .eh(theta, X, Z)
-  
+
   # Calculate infection intensity assuming atRiskY == 1 for all rows
   lambdaNoY <- rowSums(eh)
-  
+
   # dN Part of the loglik
   isEvent <- survs$event == 1
   events <- which(isEvent)
   intdN <- numeric(length(isEvent))   # zeros
   intdN[events] <- weights[events] * log(lambdaNoY[events])
   # here one might have got -Inf values in case of 0-intensity at an event time
-  
+
   # lambda integral of the log-likelihood
   dt <- survs$stop - survs$start
   intlambda <- weights * lambdaNoY * dt
@@ -65,11 +66,11 @@
 .ploglik <- function(theta, X, Z, survs, weights, lambda.smooth, K)
 {
   loglik <- .loglik(theta, X, Z, survs, weights)
-  
+
   if (lambda.smooth == 0) {
     return(loglik)
   }
-  
+
   # Add penalty term and return the penalized log-likelihood
   beta <- theta[ncol(X) + seq_len(ncol(Z))]
   penalty <- lambda.smooth/2 * drop(t(beta) %*% K %*% beta)
@@ -92,14 +93,14 @@
   isEvent <- survs$event == 1       # event indicator for the dN integral
   events <- which(isEvent)
   dt <- survs$stop - survs$start    # for the dt integral
-  
+
   # Calculate epidemic (e) and endemic (h) component of the infection intensity
   eh <- .eh(theta, X, Z)
   h <- eh[,2,drop=TRUE]
-  
+
   # Calculate infection intensity at event times
   lambdaEvents <- rowSums(eh[events,,drop=FALSE])
-  
+
   score <- if (px > 0L) {
     wX <- X * weights
     part1intdN <- matrix(0, nrow = nRows, ncol = px, dimnames = dimnames(X))
@@ -128,11 +129,11 @@
 .pscore <- function(theta, X, Z, survs, weights, lambda.smooth, K, ...)
 {
   score <- .score(theta, X, Z, survs, weights)
-  
+
   if (lambda.smooth == 0) {
     return(score)
   }
-  
+
   # Add penalty term and return the penalized Score function
   beta <- theta[ncol(X) + seq_len(ncol(Z))]
   penalty <- c(rep.int(0, ncol(X)), lambda.smooth * K %*% beta)
@@ -152,33 +153,33 @@
   pz <- ncol(Z)
   isEvent <- survs$event == 1   # event indicator
   events <- which(isEvent)
-  
+
   # Fisher matrix calculation only incorporates data at event times!
   Xevents <- X[events,,drop = FALSE]
   Zevents <- Z[events,,drop = FALSE]
-  
+
   # Calculate epidemic (e) and endemic (h) component of the infection intensity
   eh <- .eh(theta, Xevents, Zevents)
   h <- eh[,2,drop=TRUE]
-  
+
   # Calculate infection intensity
   lambda <- rowSums(eh)
-  
+
   # calculate intdN of d/dtheta log(lambda_i(t)) for all individuals with events
   wpl <- weights[events] / lambda
   dloglambda <- if (px > 0L) Xevents * wpl else NULL
   if (pz > 0L) {
     dloglambda <- cbind(dloglambda, Zevents * (h * wpl))
   }
-  
+
   # Build the optional variation process (Martinussen & Scheike, p64)
   fisherinfo <- matrix(0, nrow=px+pz, ncol=px+pz)
-  for (i in 1:nrow(dloglambda)) {
+  for (i in seq_len(nrow(dloglambda))) {
     x <- dloglambda[i,,drop=FALSE]  # single-ROW matrix
     fisherinfo <- fisherinfo + crossprod(x) # t(x) %*% x
   }
-  
-  return(fisherinfo) 
+
+  return(fisherinfo)
 }
 
 
@@ -190,11 +191,11 @@
 .pfisherinfo <- function(theta, X, Z, survs, weights, lambda.smooth, K)
 {
   fisherinfo <- .fisherinfo(theta, X, Z, survs, weights)
-  
+
   if (lambda.smooth == 0) {
     return(fisherinfo)
   }
-  
+
   # Add penalty term and return the penalized Fisher information matrix
   penalty <- matrix(0, ncol=ncol(fisherinfo), nrow=nrow(fisherinfo))
   zIndex <- ncol(X) + seq_len(ncol(Z))
@@ -220,7 +221,7 @@
 # Returns:
 #  value of lmarg
 ######################################################################
- 
+
 .lmarg.lambda <- function(log.lambda.smooth, theta, X, Z, survs, weights, K) {
   #Contribution of the penalized likelihood
   loglik <- .ploglik(theta, X, Z, survs, weights, exp(log.lambda.smooth), K)
@@ -246,20 +247,20 @@ twinSIR <- function (formula, data, weights, subset,
     optim.args = list(), model = TRUE, keep.data = FALSE)
 {
   cl <- match.call()
-  
+
   ## Verify that 'data' inherits from "epidata"
   data <- eval(cl$data, parent.frame())
   if (!inherits(data, "epidata")) {
     stop("'data' must inherit from class \"epidata\"")
   }
-  
+
   ## Extract the time range of the epidemic
   timeRange <- attr(data, "timeRange")
   minTime <- timeRange[1L]
   maxTime <- timeRange[2L]
-  
+
 #   ## NOTE: modification of 'data' has no effect with the current evaluation
-#   ##       of model.frame in the parent.frame() as the original 'data' will 
+#   ##       of model.frame in the parent.frame() as the original 'data' will
 #   ##       be used.
 #   ## Impute blocks for 'knots', which are not existing stop times
 #   if (is.vector(knots, mode = "numeric")) {
@@ -270,12 +271,12 @@ twinSIR <- function (formula, data, weights, subset,
 #     knots <- sort(knots[insideKnot])
 #     data <- intersperse(data, knots)
 #   }
-  
-  
+
+
   ############################
   ### Build up model.frame ### (this is derived from the coxph function)
   ############################
-  
+
   mfnames <- c("", "formula", "data", "weights", "subset")
   mf <- cl[match(mfnames, names(cl), nomatch = 0L)]
   mf$id <- as.name("id")
@@ -295,12 +296,12 @@ twinSIR <- function (formula, data, weights, subset,
   mf$formula <- Terms
   mf[[1]] <- as.name("model.frame")
   mf <- eval(mf, parent.frame())
-  
-  
+
+
   ###########################################################
   ### Check arguments and extract components of the model ###
   ###########################################################
-  
+
   ## Extract and check 'weights'
   weights <- model.extract(mf, "weights")
   if (is.null(weights)) {
@@ -314,15 +315,21 @@ twinSIR <- function (formula, data, weights, subset,
       stop("negative 'weights' not allowed")
     }
   }
-  
+
   ## Extract the response
   response <- model.response(mf)
   survs <- data.frame(id = model.extract(mf, "id"), start = response[,1L],
                       stop = response[,2L], event = response[,3L],
                       check.names = FALSE, stringsAsFactors = FALSE)
-  attr(survs, "eventTimes") <- attr(data, "eventTimes")
+  attr(survs, "eventTimes") <- survs$stop[survs$event == 1]
+  ##<- equals attr(data, "eventTimes") if missing(subset)
   attr(survs, "timeRange") <- timeRange
-  
+
+  ## Check that we have events
+  if (length(attr(survs, "eventTimes")) == 0)
+      warning("no events in data",
+              if (!missing(subset)) " (subject to 'subset')")
+
   ## Check specified baseline intervals
   if (is.null(knots) && isScalar(nIntervals)) {
     knots <- if (nIntervals == 1) {
@@ -342,41 +349,31 @@ twinSIR <- function (formula, data, weights, subset,
     }
     isStopKnot <- knots %in% unique(survs$stop)
     if (any(!isStopKnot)) {
-      stop("ATM, 'knots' must be a subset of the 'stop' times where at least ",
-           "one individual is susceptible")
-#       nNonStopKnots <- sum(!isStopKnot)
-#       warning(
-#         sprintf(ngettext(nNonStopKnots,
-#           paste("%d of 'knots' has been ignored due to no susceptible",
-#                 "individuals at this time point: "),
-#           paste("%d 'knots' have been ignored due to no susceptible",
-#                 "individuals at those time points: ")), nNonStopKnots),
-#         knots[!stopKnot]
-#       )
-#       knots <- knots[stopKnot]
+      stop("'knots' must be a subset of 'unique(data$stop[data$atRiskY==1])'",
+           if (!missing(subset)) ",\n  where 'data' is subject to 'subset'")
     }
     knots <- sort(knots)
   } else {
     stop("'knots' (a numeric vector) or 'nIntervals' (a single number) ",
          "must be specified")
   }
-  
+
   intervals <- c(minTime, knots, maxTime)
   nIntervals <- length(intervals) - 1L
   message(
     sprintf(ngettext(nIntervals,
                      "Initialized %d log-baseline interval:  ",
                      "Initialized %d log-baseline intervals:  "),
-            nIntervals), 
+            nIntervals),
     paste(format(intervals, trim = TRUE), collapse=" ")
   )
-  
+
   ## Extract the two parts of the design matrix:
   ## Z contains the Cox part, X contains the epidemic part, there's no intercept
   des <- read.design(mf, Terms)
   X <- des$X; px <- ncol(X)
   Z <- des$Z
-  
+
   ## Add variables for the piecewise constant baseline to Z (if requested)
   if (nIntervals == 1L) {
     nEvents <- length(attr(survs, "eventTimes"))
@@ -393,12 +390,12 @@ twinSIR <- function (formula, data, weights, subset,
                                       levels = seq_len(nIntervals))))
   }
   pz <- ncol(Z)
-  
+
   ## Check that we have at least one parameter
   if (pz == 0L && px == 0L) {
     stop("nothing to do: neither a baseline nor covariates have been specified")
   }
-  
+
   ## Check lambda.smooth
   if (!isScalar(lambda.smooth)) {
     stop("'lambda.smooth' must be scalar")
@@ -428,7 +425,7 @@ twinSIR <- function (formula, data, weights, subset,
         #Use Fahrmeir & Lang (2001), p.206
         invdelta <- 1/diff(intervals) * mean(diff(intervals))
         #Use Fahrmeir & Lang (2001), p.206
-        for (i in 1:(nIntervals)) {
+        for (i in seq_len(nIntervals)) {
           idx2 <- cbind(j=c(-1,1) + i, deltaidx=i+c(-1,0),fac=c(-1,-1))
           idx2 <- idx2[idx2[,"j"] > 0 & idx2[,"j"] <= nIntervals,,drop=FALSE]
           #Off diagonal elements
@@ -449,12 +446,12 @@ twinSIR <- function (formula, data, weights, subset,
          "dimension ", pz, "x", pz, ", fitting the number of unknown ",
          "parameters in the endemic component (baseline and covariates)")
   }
-  
+
   ## Check that optim.args is a list
   if (!is.list(optim.args)) {
     stop("'optim.args' must be a list")
   }
-  
+
   ## Check start value for theta
   if (!is.null(optim.args[["par"]])) {
     if (!is.vector(optim.args$par, mode="numeric")) {
@@ -469,7 +466,7 @@ twinSIR <- function (formula, data, weights, subset,
     optim.args$par <- c(rep.int(1, px), rep.int(0, pz))
   }
   message("Initial parameter vector:  ", paste(optim.args$par, collapse=" "))
-  
+
   ## Set names for theta
   names(optim.args$par) <- c(colnames(X), colnames(Z))
 
@@ -477,7 +474,7 @@ twinSIR <- function (formula, data, weights, subset,
   ####################
   ### Optimization ###
   ####################
-  
+
   ## Configuring the optim procedure (check optim.args)
   optimControl <- list(trace = 1, fnscale = -1, maxit = 300, factr = 1e7)
   optimControl[names(optim.args[["control"]])] <- optim.args[["control"]]
@@ -529,13 +526,13 @@ twinSIR <- function (formula, data, weights, subset,
         if (optimControl$trace > 0) {
           cat("==> Iteration ",iter," of Gauss-Seidel maximization. lambda.smooth = ",lambda.smooth,"\n")
         }
-        
+
         #Step 1 - maximize (alpha,beta) with fixed lambda
         optimArgs$lambda.smooth <- lambda.smooth
         optimRes <- do.call("optim", optimArgs)
         theta <- optimRes$par
         optimArgs$par <- theta #better start value the next time
-        
+
         #Step 2 - maximize log(lambda) with fixed (alpha,beta)
         optimLambda <- optim(log(lambda.smooth), .lmarg.lambda, control=list(fnscale=-1,trace=1),method="BFGS",
                              theta=theta, X=X, Z=Z, survs=survs, weights=weights, K=K)
@@ -559,20 +556,20 @@ twinSIR <- function (formula, data, weights, subset,
   ## Set up list object to be returned
   fit <- list(coefficients = optimRes$par, lambda.smooth = lambda.smooth, loglik = optimRes$value,
               counts = optimRes$counts, converged = (optimRes$convergence == 0))
-              
+
   ## If requested, add observed fisher info (= negative hessian at maximum)
   if (!is.null(optimRes$hessian)) {
     fit$fisherinfo.observed <- -optimRes$hessian
   }
-  
+
   ## Add own (exact) fisher info computation
   fit$fisherinfo <- .pfisherinfo(theta = fit$coefficients, X = X, Z = Z,
                                  survs = survs, weights = weights,
                                  lambda.smooth = lambda.smooth, K = K)
-  
+
   ## Add 'method'
   fit$method <- optimArgs$method
-  
+
   ## Append further information
   fit$intervals <- intervals
   fit$nEvents <- nEvents
@@ -590,7 +587,7 @@ twinSIR <- function (formula, data, weights, subset,
   fit$call <- cl
   fit$formula <- formula(Terms)
   fit$terms <- Terms
-  
+
   ## Return object of class "twinSIR"
   class(fit) <- "twinSIR"
   return(fit)

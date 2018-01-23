@@ -1,7 +1,7 @@
 ################################################################################
 ### Compute one-step-ahead predictions at a series of time points
 ###
-### Copyright (C) 2011-2012 Michaela Paul, 2012-2017 Sebastian Meyer
+### Copyright (C) 2011-2012 Michaela Paul, 2012-2018 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -253,79 +253,21 @@ confint.oneStepAhead <- function (object, parm, level = 0.95, ...)
 
 ## simple plot of one-step-ahead forecasts
 plot.oneStepAhead <- function (x, unit = 1, probs = 1:99/100,
-    fan.args = list(), observed.args = list(), key.args = NULL,
-    add = FALSE, ...)
+                               start = NULL, means.args = NULL, ...)
 {
     stopifnot(length(unit) == 1, length(probs) > 1)
 
     ## select unit
     obs <- x$observed[,unit]
+    ms <- x$pred[,unit]
     qs <- quantile.oneStepAhead(x, probs = probs)
     if (!is.matrix(qs))  # multi-unit predictions
         qs <- matrix(qs[,unit,], dim(qs)[1L], dim(qs)[3L],
                      dimnames = dimnames(qs)[c(1L,3L)])
 
     ## produce fanplot
-    fanplot(quantiles = qs, probs = probs, observed = obs,
-            start = as.integer(rownames(qs)[1L]),
-            fan.args = fan.args, observed.args = observed.args,
-            key.args = key.args, add = add, ...)
-}
-
-## my wrapper for fanplot::fan (quantiles: time x prob, observed: vector)
-fanplot <- function (quantiles, probs, observed = NULL, start = 1,
-    fan.args = list(), observed.args = list(), key.args = NULL,
-    xlim = NULL, ylim = NULL, xlab = "time", ylab = "No. infected",
-    add = FALSE, ...)
-{
-    stopifnot(is.matrix(quantiles), length(probs) == ncol(quantiles),
-              is.null(observed) || length(observed) == nrow(quantiles),
-              isScalar(start))
-
-    ## axis range
-    if (is.null(xlim))
-        xlim <- c(1 - 0.5, nrow(quantiles) + 0.5) + (start-1)
-    if (is.null(ylim))
-        ylim <- c(0, max(quantiles, observed))
-
-    ## graphical parameters
-    stopifnot(is.list(fan.args))
-    fan.args <- modifyList(
-        list(data = t(quantiles), data.type = "values", probs = probs,
-             start = start, fan.col = heat.colors, ln = NULL),
-        fan.args, keep.null = TRUE)
-
-    ## initialize empty plot
-    if (!add)
-        plot(xlim, ylim, type = "n", xlab = xlab, ylab = ylab, ...)
-
-    ## add fan
-    do.call(fanplot::fan, fan.args)
-
-    ## add observed time series
-    if (!is.null(observed) && is.list(observed.args)) {
-        observed.args <- modifyList(
-            list(x = seq_along(observed) + (start-1), y = observed, type = "b", lwd = 2),
-            observed.args)
-        do.call("lines", observed.args)
-    }
-
-    ## add color key
-    if (is.list(key.args)) {
-        key.args <- modifyList(
-            list(start = xlim[2L] - 1, ylim = c(ylim[1L] + mean(ylim), ylim[2L]),
-                 data.type = "values", style = "boxfan", probs = fan.args$probs,
-                 fan.col = fan.args$fan.col, ln = NULL, space = 0.9,
-                 rlab = quantile(fan.args$probs, names = FALSE, type = 1)),
-            key.args)
-        ## convert ylim to data
-        key.args$data <- matrix(seq.int(from = key.args$ylim[1L], to = key.args$ylim[2L],
-                                        length.out = length(fan.args$probs)))
-        key.args$ylim <- NULL
-        tryCatch(do.call(fanplot::fan, key.args), error = function (e)
-            warning("color key could not be drawn, probably due to non-standard 'probs'",
-                    call. = FALSE))
-    }
-
-    invisible(NULL)
+    if (is.null(start))
+        start <- as.integer(rownames(qs)[1L])
+    fanplot(quantiles = qs, probs = probs, means = ms,
+            observed = obs, start = start, means.args = means.args, ...)
 }

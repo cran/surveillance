@@ -5,9 +5,9 @@
 ###
 ### Simulate from a HHH4 model
 ###
-### Copyright (C) 2012 Michaela Paul, 2013-2016 Sebastian Meyer
-### $Revision: 1810 $
-### $Date: 2016-12-12 12:31:07 +0100 (Mon, 12. Dec 2016) $
+### Copyright (C) 2012 Michaela Paul, 2013-2016,2018 Sebastian Meyer
+### $Revision: 2064 $
+### $Date: 2018-01-22 11:42:48 +0100 (Mon, 22. Jan 2018) $
 ################################################################################
 
 
@@ -36,15 +36,15 @@ simulate.hhh4 <- function (object, # result from a call to hhh4
         on.exit(assign(".Random.seed", R.seed, envir = .GlobalEnv))
     }
     ## END seed
-    
+
     cl <- match.call()
     theta <- if (missing(coefs)) coefs else checkCoefs(object, coefs)
-    
+
     ## lags
     lag.ar <- object$control$ar$lag
     lag.ne <- object$control$ne$lag
     maxlag <- max(lag.ar, lag.ne)
-    
+
     ## initial counts
     nUnits <- object$nUnit
     if (is.null(y.start)) { # set starting value to mean observed (in subset!)
@@ -61,7 +61,7 @@ simulate.hhh4 <- function (object, # result from a call to hhh4
     ## get fitted components nu_it (with offset), phi_it, lambda_it, t in subset
     model <- terms.hhh4(object)
     means <- meanHHH(theta, model, subset=subset)
-    
+
     ## extract overdispersion parameters (simHHH4 assumes psi->0 means Poisson)
     psi <- splitParams(theta,model)$overdisp
     if (length(psi) > 1) # "NegBinM" or shared overdispersion parameters
@@ -104,7 +104,7 @@ simulate.hhh4 <- function (object, # result from a call to hhh4
         attr(res, "stsObserved") <- object$stsObj[subset,]
         class(res) <- "hhh4sims"
     }
-    
+
     ## Done
     attr(res, "call") <- cl
     attr(res, "seed") <- RNGstate
@@ -199,6 +199,34 @@ checkCoefs <- function (object, coefs, reparamPsi=TRUE)
 }
 
 
+### subset simulations and keep attributes in sync
+
+"[.hhh4sims" <- function (x, i, j, ..., drop = FALSE)
+{
+    xx <- NextMethod("[", drop = drop)
+
+    if (nargs() == 2L)  # x[i] call -> hhh4sims class is lost
+        return(xx)
+
+    ## otherwise we were subsetting the array and attributes are lost
+    attr(xx, "initial") <- attr(x, "initial")
+    attr(xx, "stsObserved") <- attr(x, "stsObserved")
+    subset_hhh4sims_attributes(xx, i, j)
+}
+
+subset_hhh4sims_attributes <- function (x, i, j)
+{
+    if (!missing(i))
+        attr(x, "stsObserved") <- attr(x, "stsObserved")[i,]
+    if (!missing(j)) {
+        attr(x, "stsObserved") <- suppressMessages(attr(x, "stsObserved")[, j])
+        is.na(attr(x, "stsObserved")@neighbourhood) <- TRUE
+        attr(x, "initial") <- attr(x, "initial")[, j, drop = FALSE]
+    }
+    x
+}
+
+
 ### aggregate predictions over time and/or (groups of) units
 
 aggregate.hhh4sims <- function (x, units = TRUE, time = FALSE, ..., drop = FALSE)
@@ -247,7 +275,7 @@ aggregate.hhh4sims <- function (x, units = TRUE, time = FALSE, ..., drop = FALSE
             return(x)
         }
     }
-    
+
     ## done
     res
 }

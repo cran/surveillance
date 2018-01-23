@@ -127,9 +127,10 @@ getSourceDists(object, dimension = c("space", "time"))
     representing the observation region.
     It must have the same \code{proj4string} as \code{events}
     and all events must be within \code{W}.
-    The function \code{\link[spatstat]{simplify.owin}} 
-    from package \pkg{spatstat} may be useful if polygonal operations take
-    too long or memory is limited (see also the \dQuote{Note} section below).
+    Prior simplification of \code{W} may considerably reduce the
+    computational burden of likelihood evaluations in
+    \code{\link{twinstim}} models with non-trivial spatial
+    interaction functions (see the \dQuote{Note} section below).
   }
 
   \item{qmatrix}{
@@ -153,8 +154,8 @@ getSourceDists(object, dimension = c("space", "time"))
 
   \item{clipper}{polygon clipping engine to use for calculating the
     \code{.influenceRegion}s of events (see the Value section below).
-    Default is the \pkg{polyclip} package (called via
-    \code{\link{intersect.owin}} from package \pkg{spatstat}).
+    Default is the \CRANpkg{polyclip} package (called via
+    \code{\link{intersect.owin}} from package \CRANpkg{spatstat}).
     In \pkg{surveillance} <= 1.6-0, package \pkg{gpclib} was used, which
     has a restrictive license. This is no longer supported.}
 
@@ -284,28 +285,19 @@ getSourceDists(object, dimension = c("space", "time"))
 }
 
 \note{
-  The more detailed the observation region \code{W} is the longer will
-  it take to fit a \code{\link{twinstim}}. It is often advisable to
-  sacrifice some shape detail for speed by reducing polygon complexity
-  using, e.g., the Douglas and Peucker (1973) reduction method available
-  at \url{MapShaper.org} (Harrower and Bloch, 2006) or as function
-  \code{\link[maptools]{thinnedSpatialPoly}} in package \pkg{maptools},
-  or by passing via \pkg{spatstat}'s
-  \code{\link[spatstat]{simplify.owin}} procedure.
+  Since the observation region \code{W} defines the integration domain
+  in the point process likelihood,
+  the more detailed the polygons of \code{W} are the longer it will
+  take to fit a \code{\link{twinstim}}. You are advised to
+  sacrifice some shape details for speed by reducing the polygon
+  complexity, for example via \code{\link[rmapshaper]{ms_simplify}} from
+  the \CRANpkg{rmapshaper} package.
+  Alternative tools are provided by the packages \CRANpkg{maptools}
+  (\code{\link[maptools]{thinnedSpatialPoly}}) and \CRANpkg{spatstat}
+  (\code{\link[spatstat]{simplify.owin}}).
 }
 
 \references{
-  Douglas, D. H. and Peucker, T. K. (1973):
-  Algorithms for the reduction of the number of points required to
-  represent a digitized line or its caricature.
-  \emph{Cartographica: The International Journal for Geographic
-  Information and Geovisualization}, \bold{10}, 112-122.
-
-  Harrower, M. and Bloch, M. (2006):
-  MapShaper.org: A Map Generalization Web Service.
-  \emph{IEEE Computer Graphics and Applications}, \bold{26}(4), 22-27.
-  \doi{10.1109/MCG.2006.85}
-
   Meyer, S., Elias, J. and H\enc{ö}{oe}hle, M. (2012):
   A space-time conditional intensity model for invasive meningococcal
   disease occurrence. \emph{Biometrics}, \bold{68}, 607-616.
@@ -390,7 +382,7 @@ summary(events)
 ## endemic covariates
 head(stgrid <- imdepi$stgrid[,-1])
 
-## (Simplified) observation region (as SpatialPolygons)
+## (Simplified) observation region (as "SpatialPolygons")
 load(system.file("shapes", "districtsD.RData", package="surveillance"),
      verbose = TRUE)
 

@@ -94,6 +94,12 @@ ses(x, mu, size = NULL)
     \doi{10.1111/j.1541-0420.2009.01191.x}
 }
 
+\seealso{
+  The R package \CRANpkg{scoringRules} implements the logarithmic
+  score and the (continuous) ranked probability score for many
+  distributions.
+}
+
 \author{
   Sebastian Meyer and Michaela Paul
 }

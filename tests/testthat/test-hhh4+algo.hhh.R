@@ -1,6 +1,6 @@
 context("Comparison of hhh4() and algo.hhh() for 'influMen' example")
 
-## influenza/meningococcal data (also illustrated in vignette("hhh4")
+## influenza/meningococcal data, also illustrated in vignette("hhh4")
 data("influMen")
 
 ## fit with old algo.hhh()

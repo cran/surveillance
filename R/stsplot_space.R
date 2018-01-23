@@ -5,9 +5,9 @@
 ###
 ### Snapshot map (spplot) of an sts-object or matrix of counts
 ###
-### Copyright (C) 2013-2014,2016 Sebastian Meyer
-### $Revision: 1802 $
-### $Date: 2016-12-01 15:11:02 +0100 (Thu, 01. Dec 2016) $
+### Copyright (C) 2013-2014,2016,2017 Sebastian Meyer
+### $Revision: 2028 $
+### $Date: 2017-10-26 09:06:23 +0200 (Thu, 26. Oct 2017) $
 ################################################################################
 
 ## x: "sts" or (simulated) matrix of counts
@@ -25,7 +25,7 @@ stsplot_space <- function (x, tps = NULL, map = x@map, population = NULL,
                            main = NULL, labels = FALSE,
                            at = 10, col.regions = NULL,
                            colorkey = list(space="bottom", labels=list(at=at)),
-                           total.args = NULL, 
+                           total.args = NULL,
                            gpar.missing = list(col="darkgrey", lty=2, lwd=2),
                            sp.layout = NULL,
                            xlim = bbox(map)[1, ], ylim = bbox(map)[2, ], ...)
@@ -53,7 +53,7 @@ stsplot_space <- function (x, tps = NULL, map = x@map, population = NULL,
     map <- as(map, "SpatialPolygonsDataFrame")
     map$ncases <- NA_real_
     map$ncases[match(colnames(counts),row.names(map))] <- ncases
-    
+
     ## default main title
     if (is.null(main) && inherits(x, "sts"))
         main <- stsTimeRange2text(x, tps)
@@ -146,7 +146,7 @@ checkat <- function (at, data, counts = TRUE) { # for non-transformed "data"
     at <- if (is.list(at)) {
         at <- modifyList(list(n=10, data=data, counts=counts), at)
         do.call("getPrettyIntervals", at)
-    } else sort(at) 
+    } else sort(at)
     if (any(data >= max(at) | data < min(at), na.rm=TRUE))
         stop("'at' (right-open!) does not cover the data (range: ",
              paste0(format(data_range), collapse=" - "), ")")
@@ -172,11 +172,12 @@ getPrettyIntervals <- function (nInt, data, trafo=scales::sqrt_trans(), counts=T
     at
 }
 
-stsTime2text <- function (stsObj, tps=TRUE, fmt="%i/%i") {
+stsTime2text <- function (stsObj, tps=TRUE, fmt=if(stsObj@freq==1) "%i" else "%i/%i")
+{
     sprintf(fmt, year(stsObj)[tps], epochInYear(stsObj)[tps])
 }
 
-stsTimeRange2text <- function (stsObj, tps, fmt="%i/%i", sep=" - ")
+stsTimeRange2text <- function (stsObj, tps, fmt=if(stsObj@freq==1) "%i" else "%i/%i", sep=" - ")
 {
     tpsRangeYW <- stsTime2text(stsObj, tps=range(tps), fmt=fmt)
     paste0(unique(tpsRangeYW), collapse=sep)

@@ -2,7 +2,7 @@
 ### Demo of hhh4() modelling of influenza in Southern Germany - data("fluBYBW")
 ### RUNNING THE WHOLE SCRIPT TAKES ~20 MINUTES!
 ###
-### Copyright (C) 2009-2012 Michaela Paul, 2012-2013,2016,2017 Sebastian Meyer
+### Copyright (C) 2009-2012 Michaela Paul, 2012-2013,2016-2018 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -151,7 +151,8 @@ whichScores <- c("logs", "rps", "ses")
 scores_i <- vector(mode="list", length=length(vals))
 meanScores <- NULL
 for(i in seq_along(vals)){
-  sc <- scores(get(vals[i]), which=whichScores, individual=TRUE)
+  sc <- scores(get(vals[i]), which=whichScores, individual=TRUE, reverse=TRUE)
+  ## reverse=TRUE => same permutation test results as in surveillance < 1.16.0
   scores_i[[i]] <- sc
   meanScores <- rbind(meanScores,colMeans(sc, dims=2))
 }

@@ -22,8 +22,8 @@ animate(object, ...)
 }
 
 \seealso{
-The methods \code{\link{animate.epidata}} and \code{\link{animate.epidataCS}}
-for the animation of epidemics.
+The methods \code{\link{animate.epidata}}, \code{\link{animate.epidataCS}},
+and \code{\link{animate.sts}} for the animation of surveillance data.
 }
 
 \keyword{hplot}

@@ -43,7 +43,7 @@ plot(as.stepfun(imdepi), xlim = summary(imdepi)$timeRange, xaxs = "i",
   xlab = "Time [days]", ylab = "Current number of infectives", main = "")
 #axis(1, at = 2557, labels = "T", font = 2, tcl = -0.3, mgp = c(3, 0.3, 0))
 
-## ----imdepi_plot, fig.cap="Occurrence of the two finetypes viewed in the temporal and spatial dimensions.", fig.subcap=c("Temporal pattern.","Spatial pattern."), fig.width=5, fig.height=6, echo=c(2,4,5), out.width="0.47\\linewidth"----
+## ----imdepi_plot, fig.cap="Occurrence of the two finetypes viewed in the temporal and spatial dimensions.", fig.subcap=c("Temporal pattern.","Spatial pattern."), fig.width=5, fig.height=6, echo=c(2,4,5), out.width="0.5\\linewidth", fig.pos="!htb"----
 par(las = 1)
 plot(imdepi, "time", col = c("indianred", "darkblue"), ylim = c(0, 20))
 par(mar = c(0, 0, 0, 0))
@@ -54,19 +54,18 @@ layout.scalebar(imdepi$W, scale = 100, labels = c("0", "100 km"), plot = TRUE)
 ## ----imdepi_animate_saveHTML, eval=FALSE-------------------------------------------
 #  animation::saveHTML(
 #    animate(subset(imdepi, type == "B"), interval = c(0, 365), time.spacing = 7),
-#    nmax = Inf, interval = 0.2, loop = FALSE,
-#    title = "Animation of the first year of type B events")
+#    nmax = Inf, interval = 0.2, loop = FALSE, title = "First year of type B")
 
 ## ----imdepi_untied-----------------------------------------------------------------
 eventDists <- dist(coordinates(imdepi$events))
-(minsep <- min(eventDists[eventDists > 0]))
+minsep <- min(eventDists[eventDists > 0])
 set.seed(321)
 imdepi_untied <- untie(imdepi, amount = list(s = minsep / 2))
 
 ## ----imdepi_untied_infeps----------------------------------------------------------
 imdepi_untied_infeps <- update(imdepi_untied, eps.s = Inf)
 
-## ----imdsts_plot, fig.cap="IMD cases (joint types) aggregated as an \\class{sts} object by month and district.", fig.subcap=c("Time series of monthly counts.", "Disease incidence (per 100\\,000 inhabitants)."), fig.width=5, fig.height=5, out.width="0.47\\linewidth", fig.pos="ht", echo=-2----
+## ----imdsts_plot, fig.cap="IMD cases (joint types) aggregated as an \\class{sts} object by month and district.", fig.subcap=c("Time series of monthly counts.", "Disease incidence (per 100\\,000 inhabitants)."), fig.width=5, fig.height=5, out.width="0.5\\linewidth", fig.pos="ht", echo=-2----
 imdsts <- epidataCS2sts(imdepi, freq = 12, start = c(2002, 1), tiles = districtsD)
 par(las = 1, lab = c(7,7,7), mar = c(5,5,1,1))
 plot(imdsts, type = observed ~ time)

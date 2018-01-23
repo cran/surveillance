@@ -6,9 +6,9 @@
 ### Methods for objects of class "twinstim", specifically:
 ### vcov, logLik, print, summary, plot, R0, residuals, update, terms, all.equal
 ###
-### Copyright (C) 2009-2017 Sebastian Meyer
-### $Revision: 1870 $
-### $Date: 2017-06-12 15:42:49 +0200 (Mon, 12. Jun 2017) $
+### Copyright (C) 2009-2018 Sebastian Meyer
+### $Revision: 2048 $
+### $Date: 2018-01-16 16:14:52 +0100 (Tue, 16. Jan 2018) $
 ################################################################################
 
 ## extract the link function used for the epidemic predictor (default: log-link)
@@ -823,6 +823,11 @@ terms.twinstim <- function (x, component=c("endemic", "epidemic"), ...)
 ## just like all.equal.hhh4()
 all.equal.twinstim <- function (target, current, ..., ignore = NULL)
 {
+    if (!inherits(target, "twinstim"))
+        return("'target' is not a \"twinstim\" object")
+    if (!inherits(current, "twinstim"))
+        return("'current' is not a \"twinstim\" object")
+
     ignore <- unique.default(c(ignore, "runtime", "call"))
     target[ignore] <- current[ignore] <- list(NULL)
     NextMethod("all.equal")

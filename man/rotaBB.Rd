@@ -12,7 +12,7 @@
   A \code{sts} object. 
 }
 \source{
-  The data are queried on 19 Feb 2014 from the Survstat@RKI database of the German
-  Robert Koch Institute (\url{http://www3.rki.de/SurvStat/}). 
+  The data were queried on 19 Feb 2014 from the Survstat@RKI database of the German
+  Robert Koch Institute (\url{https://survstat.rki.de/}). 
 }  
 \keyword{datasets}

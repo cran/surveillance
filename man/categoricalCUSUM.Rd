@@ -66,9 +66,9 @@ categoricalCUSUM(stsObj,control = list(range=NULL,h=5,pi0=NULL,
   etc. slots trimmed to the \code{control$range} indices.
 }
 \references{
-  Höhle, M. (2010):
+  \enc{Höhle}{Hoehle}, M. (2010):
   Online Change-Point Detection in Categorical Time Series.
-  Book chapter in T. Kneib and G. Tutz (Eds.), Statistical
+  In: T. Kneib and G. Tutz (Eds.), Statistical
   Modelling and Regression Structures, Physica-Verlag.
 
   Salmon, M., Schumacher, D. and \enc{Höhle}{Hoehle}, M. (2016):
@@ -125,8 +125,8 @@ if (require("gamlss")) {
   # redundant, but generalizes easier to k>2 categories.
   ######################################################################
 
-  abattoir2 <- new("sts",epoch=1:nrow(abattoir), start=c(2006,1),freq=52,
-    observed=cbind(abattoir@observed,abattoir@populationFrac -abattoir@observed),
+  abattoir2 <- sts(epoch=1:nrow(abattoir), start=c(2006,1), freq=52,
+    observed=cbind(abattoir@observed, abattoir@populationFrac-abattoir@observed),
     populationFrac=cbind(abattoir@populationFrac,abattoir@populationFrac),
     state=matrix(0,nrow=nrow(abattoir),ncol=2),
     multinomialTS=TRUE)

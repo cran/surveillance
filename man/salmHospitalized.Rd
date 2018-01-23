@@ -12,6 +12,6 @@
 }
 \source{
   The data are queried from the Survstat@RKI database of the German
-  Robert Koch Institute (http://www3.rki.de/SurvStat/).
+  Robert Koch Institute (\url{https://survstat.rki.de/}).
 }
 \keyword{datasets}

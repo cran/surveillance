@@ -1,6 +1,12 @@
-######################################################################
-#Conversion between ts objects and sts objects
-######################################################################
+################################################################################
+### Conversion between "ts" and "sts", and from "sts" to "data.frame"
+###
+### Copyright (C) 2014 Michael Hoehle, 2015-2017 Sebastian Meyer
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
+################################################################################
 
 ### Convert a simple "ts" object to an "sts" object
 
@@ -44,27 +50,31 @@ as.xts.sts <- function (x, order.by = epoch(x, as.Date = TRUE), ...)
 }
 
 
-######################################################################
-#Method to convert sts object to a data frame suitable for regression
-#Params:
-# row.names - from generic R function
-# optional  - from generic R function
-# freqByWeek -- if TRUE use information in week (supposed to be Dates)
-#               to freq (e.g. used for regression model)
-######################################################################
+### Convert an "sts" object to a data frame suitable for regression
 
-setMethod("as.data.frame", signature(x="sts"), function(x,row.names = NULL, optional = FALSE, as.Date=x@epochAsDate, ...) {
+setMethod("as.data.frame", signature(x = "sts"),
+          function(x, row.names = NULL, optional = FALSE, # from the generic
+                   tidy = FALSE, as.Date = x@epochAsDate, ...) {
+  if (tidy)
+    return(tidy.sts(x, ...))
+
   #Convert object to data frame and give names
-  res <- data.frame("observed"=x@observed, "epoch"=epoch(x,as.Date=as.Date), "state"=x@state, "alarm"=x@alarm,"upperbound"=x@upperbound,"population"=x@populationFrac)
+  res <- data.frame("observed" = x@observed,
+                    "epoch" = epoch(x, as.Date = as.Date),
+                    "state" = x@state,
+                    "alarm" = x@alarm,
+                    "upperbound" = x@upperbound,
+                    "population" = x@populationFrac,
+                    check.names = FALSE)
 
-  if (ncol(x) > 1) {
-    colnames(res) <-  c(paste("observed.",colnames(x@observed),sep=""),"epoch",
-                        paste("state.",colnames(x@observed),sep=""),
-                        paste("alarm.",colnames(x@observed),sep=""),
-                        paste("upperbound.",colnames(x@upperbound),sep=""),
-                        paste("population.",colnames(x@observed),sep=""))
+  names(res) <- if (ncol(x) > 1) {
+    ## names from data.frame() above should already be as intended
+    namesObs <- colnames(x@observed, do.NULL = FALSE, prefix = "observed")
+    c(paste0("observed.", namesObs), "epoch",
+      paste0("state.", namesObs), paste0("alarm.", namesObs),
+      paste0("upperbound.", namesObs), paste0("population.", namesObs))
   } else {
-      colnames(res) <-  c("observed","epoch","state","alarm","upperbound","population")
+    c("observed", "epoch", "state", "alarm", "upperbound", "population")
   }
 
   #Find out how many epochs there are each year
@@ -76,7 +86,7 @@ setMethod("as.data.frame", signature(x="sts"), function(x,row.names = NULL, opti
                        "365" = "%j")
     years <- unique(as.numeric(formatDate(date,"%Y")))
     dummyDates <- as.Date(paste(rep(years,each=6),"-12-",26:31,sep=""))
-    maxEpoch <- tapply( as.numeric(formatDate(dummyDates, epochStr)), rep(years,each=6), max)
+    maxEpoch <- c(tapply(as.numeric(formatDate(dummyDates, epochStr)), rep(years,each=6), max))
     maxEpoch[pmatch(formatDate(date,"%Y"),names(maxEpoch),duplicates.ok=TRUE)]
   } else { # just replicate the fixed frequency
     x@freq
@@ -89,3 +99,38 @@ setMethod("as.data.frame", signature(x="sts"), function(x,row.names = NULL, opti
 })
 
 
+### convert an "sts" object to a "data.frame" in long (tidy) format
+
+tidy.sts <- function (x, ...)
+{
+    unitNames <- colnames(x, do.NULL = FALSE, prefix = "observed")
+    v.names <- c("observed", "state", "alarm", "upperbound", "population")
+    stswide <- as.data.frame(x, tidy = FALSE, as.Date = FALSE)
+    ## nrow(stswide) = nrow(x), i.e., one row per epoch
+    stswide$year <- year(x)
+    stswide$epochInYear <- epochInYear(x)
+    stswide$date <- tryCatch(
+        epoch(x, as.Date = TRUE),  # only works for particular values of x@freq
+        error = function (e) {message("Note: ", e$message); as.Date(NA)}
+    )
+    if ((nUnit <- ncol(x)) == 1L) {
+        stslong <- data.frame(stswide, "unit" = factor(unitNames),
+                              check.names = FALSE)
+    } else {
+        ## we have observed/population/... columns for each unit
+        varying <- sapply(X = v.names, FUN = paste, unitNames, sep = ".",
+                          simplify = FALSE, USE.NAMES = TRUE)
+        stslong <- reshape(
+            data = stswide, direction = "long",
+            varying = varying, v.names = v.names,
+            timevar = "unit", times = unitNames,
+            idvar = "epoch")
+        stslong$unit <- factor(stslong$unit, levels = unitNames)
+        attr(stslong, "reshapeLong") <- NULL
+    }
+    row.names(stslong) <- NULL
+    ## reorder variables (ordering from above differs depending on nUnit)
+    stslong[c("epoch", "unit",
+              "year", "freq", "epochInYear", "epochInPeriod", "date",
+              v.names)]
+}

@@ -8,7 +8,7 @@
 
 \title{
   Non-parametric back-projection of incidence cases to exposure cases
-  using a known incubation time as in Becker et al (1991).
+  using a known incubation time as in Becker et al (1991)
 }
 
 \description{
@@ -166,8 +166,8 @@ backprojNP(sts, incu.pmf,
 
   Associations of Age and Sex on Clinical Outcome and Incubation Period
   of Shiga toxin-producing Escherichia coli O104:H4 Infections, 2011
-  (2013), Werber D, King LA, Müller L, Follin P, Buchholz U, Bernard H,
-  Rosner BM, Ethelberg S, de Valk H, Höhle M, American Journal of
+  (2013), Werber D, King LA, \enc{Müller}{Mueller} L, Follin P, Buchholz U, Bernard H,
+  Rosner BM, Ethelberg S, de Valk H, \enc{Höhle}{Hoehle} M, American Journal of
   Epidemiology, 178(6):984-992.
 }
 
@@ -202,10 +202,10 @@ symptomTimes <- exposureTimes + rincu(n)
 X <- table( factor(exposureTimes,levels=1:(max(symptomTimes)+dmax)))
 Y <- table( factor(symptomTimes,levels=1:(max(symptomTimes)+dmax)))
 #Convert Y to an sts object
-sts <- new("sts", epoch=1:length(Y),observed=matrix(Y,ncol=1))
+Ysts <- sts(Y)
 
 #Plot the outbreak
-plot(sts, xaxis.labelFormat=NULL, legend=NULL)
+plot(Ysts, xaxis.labelFormat=NULL, legend=NULL)
 #Add true number of exposures to the plot
 lines(1:length(Y)+0.2,X,col="red",type="h",lty=2)
 
@@ -220,7 +220,7 @@ plotIt <- function(cur.sts) {
 bpnp.control <- list(k=0,eps=rep(0.005,2),iter.max=rep(250,2),B=-1,hookFun=plotIt,verbose=TRUE)
 
 #Fast C version (use argument: eq3a.method="C")! 
-system.time(sts.bp <- backprojNP(sts, incu.pmf=inc.pmf,
+system.time(sts.bp <- backprojNP(Ysts, incu.pmf=inc.pmf,
     control=modifyList(bpnp.control,list(eq3a.method="C")), ylim=c(0,max(X,Y))))
 
 #Show result
@@ -248,7 +248,7 @@ bpnp.control2 <- modifyList(bpnp.control, list(hookFun=NULL,k=2,B=10,eq3a.method
 \dontrun{
 bpnp.control2 <- modifyList(bpnp.control, list(hookFun=NULL,k=2,B=1000,eq3a.method="C"))
 }
-sts.bp2 <- backprojNP(sts, incu.pmf=inc.pmf, control=bpnp.control2)
+sts.bp2 <- backprojNP(Ysts, incu.pmf=inc.pmf, control=bpnp.control2)
 
 ######################################################################
 # Plot the result. This is currently a manual routine.

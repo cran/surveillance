@@ -8,8 +8,6 @@
 
 \description{
 Calculate proper scoring rules based on simulated predictive distributions.
-Be aware, though, that this implementation can only compute
-\emph{univariate scores}, i.e., independently for each time point.
 }
 
 \usage{
@@ -42,6 +40,18 @@ Be aware, though, that this implementation can only compute
   \item{\dots}{
     unused (argument of the generic).
   }
+}
+
+\details{
+  This implementation can only compute \emph{univariate scores}, i.e.,
+  independently for each time point.
+  
+  The logarithmic score is badly estimated if the domain is large and
+  there are not enough samples to cover the underlying distribution in
+  enough detail (the score becomes infinite when an observed value does
+  not occur in the samples). An alternative is to use kernel density
+  estimation as implemented in \code{\link[scoringRules]{logs_sample}}
+  in the \R package \CRANpkg{scoringRules}.
 }
 
 \author{

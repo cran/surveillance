@@ -68,18 +68,3 @@ plot(algo.bayes(aggregate(ha), control = ctrl))
 }
 
 \keyword{hplot}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-% magic.dim

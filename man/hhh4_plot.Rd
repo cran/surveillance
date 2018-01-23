@@ -41,14 +41,14 @@ plotHHH4_fitted(x, units = 1, names = NULL,
                 par.settings = list(),
                 legend = TRUE, legend.args = list(),
                 legend.observed = FALSE,
-                decompose = NULL, meanHHH = NULL, ...)
+                decompose = NULL, total = FALSE, meanHHH = NULL, ...)
 
 plotHHH4_fitted1(x, unit = 1, main = NULL,
                  col = c("grey85", "blue", "orange"),
                  pch = 19, pt.cex = 0.6, pt.col = 1, border = col, 
                  start = x$stsObj@start, end = NULL, xaxis = NULL,
                  xlim = NULL, ylim = NULL, xlab = "", ylab = "No. infected",
-                 hide0s = FALSE, decompose = NULL, meanHHH = NULL)
+                 hide0s = FALSE, decompose = NULL, total = FALSE, meanHHH = NULL)
 
 plotHHH4_season(..., components = NULL, intercept = FALSE,
                 xlim = NULL, ylim = NULL,
@@ -135,6 +135,10 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     \code{colnames(x$stsObj)}, the fitted mean will be decomposed
     into the contributions from each single unit and the endemic part
     instead of the default endemic + AR + neighbours decomposition.}
+  \item{total}{logical indicating if the fitted components should be
+    summed over all units to be compared with the total observed
+    counts at each time point. If \code{total=TRUE}, the
+    \code{units}/\code{unit} argument is ignored.}
   \item{start,end}{time range to plot specified by vectors of length two
     in the form \code{c(year,number)}, see \code{"\linkS4class{sts}"}.}
   \item{xaxis}{if this is a list (of arguments for
@@ -325,6 +329,9 @@ plot(measlesFit, units=bigunits,
 
 ## plot completely decomposed mean structure (useless without 'ne' component)
 plot(measlesFit, units=bigunits, col=rainbow(measlesFit$nUnit), decompose=TRUE)
+
+## sum fitted components over all units
+plot(measlesFit, total=TRUE)
 }
 
 \keyword{hplot}

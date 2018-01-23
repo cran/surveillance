@@ -33,7 +33,10 @@
 \section{Warning}{
   Aggregation by unit sets the upperbound slot to
   \code{NA} and the \code{map} slot is left as-is, but the object 
-  cannot be plotted by unit any longer. 
+  cannot be plotted by unit any longer.
+  The populationFrac slot is aggregated just like the observed slot
+  and population fractions are recomputed. This might not be
+  intended, especially for aggregation over time.
 }
   
 \seealso{

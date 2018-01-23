@@ -8,9 +8,9 @@
 ### Journal of Statistical Software, 77(11), 1-55.
 ### https://doi.org/10.18637/jss.v077.i11
 ###
-### Changes to the original replication script are marked with a "#M" comment.
+### Changes to the original replication script are marked with a "##M" comment.
 ###
-### Copyright (C) 2017 Sebastian Meyer, Leonhard Held, Michael Hoehle
+### Copyright (C) 2017-2018 Sebastian Meyer, Leonhard Held, Michael Hoehle
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -374,13 +374,15 @@ stopifnot(identical(
                 which = "logs", individual = TRUE))))
 
 SCORES <- c("logs", "rps", "dss", "ses")
-measlesScores1 <- lapply(measlesPreds1, scores, which = SCORES, individual = TRUE)
+measlesScores1 <- lapply(measlesPreds1, scores, which = SCORES, individual = TRUE,
+                         reverse = TRUE)  ##M for replication with surveillance >= 1.16.0
 t(sapply(measlesScores1, colMeans, dims = 2))
 
 measlesPreds2 <- lapply(mget(models2compare), oneStepAhead,
   tp = tp, type = "rolling", which.start = "final",
   cores = 2 * (.Platform$OS.type == "unix"))
-measlesScores2 <- lapply(measlesPreds2, scores, which = SCORES, individual = TRUE)
+measlesScores2 <- lapply(measlesPreds2, scores, which = SCORES, individual = TRUE,
+                         reverse = TRUE)  ##M for replication with surveillance >= 1.16.0
 t(sapply(measlesScores2, colMeans, dims = 2))
 
 set.seed(321)

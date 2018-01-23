@@ -1,14 +1,16 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.15.0
-Date: 2017-10-06
+Version: 1.16.0
+Date: 2018-01-24
 Authors@R: c(MH = person("Michael", "Höhle",
                   email = "hoehle@math.su.se",
-                  role = c("aut", "ths")),
+                  role = c("aut", "ths"),
+                  comment = c(ORCID = "0000-0002-0423-6702")),
              SM = person("Sebastian", "Meyer",
                   email = "seb.meyer@fau.de",
-                  role = c("aut", "cre")),
+                  role = c("aut", "cre"),
+                  comment = c(ORCID = "0000-0002-1791-9449")),
              MP = person("Michaela", "Paul", role = "aut"),
              LH = person("Leonhard", "Held",
                   email = "Leonhard.Held@uzh.ch",
@@ -29,23 +31,37 @@ Authors@R: c(MH = person("Michael", "Höhle",
              person("R Core Team", role = "ctb",
                     comment = "A few code segments are modified versions of
                                code from base R"))
-Author: Michael Höhle [aut, ths], Sebastian Meyer [aut, cre],
-        Michaela Paul [aut], Leonhard Held [ctb, ths], Howard Burkom [ctb],
-        Thais Correa [ctb], Mathias Hofmann [ctb], Christian Lang [ctb],
-        Juliane Manitz [ctb], Andrea Riebler [ctb], Daniel Sabanés Bové [ctb],
-        Maëlle Salmon [ctb], Dirk Schumacher [ctb], Stefan Steiner [ctb],
-        Mikko Virtanen [ctb], Wei Wei [ctb], Valentin Wimmer [ctb], R Core Team [ctb]
-        (A few code segments are modified versions of code from base R)
+Author: Michael Höhle <https://orcid.org/0000-0002-0423-6702> [aut, ths],
+  Sebastian Meyer <https://orcid.org/0000-0002-1791-9449> [aut, cre],
+  Michaela Paul [aut],
+  Leonhard Held [ctb, ths],
+  Howard Burkom [ctb],
+  Thais Correa [ctb],
+  Mathias Hofmann [ctb],
+  Christian Lang [ctb],
+  Juliane Manitz [ctb],
+  Andrea Riebler [ctb],
+  Daniel Sabanés Bové [ctb],
+  Maëlle Salmon [ctb],
+  Dirk Schumacher [ctb],
+  Stefan Steiner [ctb],
+  Mikko Virtanen [ctb],
+  Wei Wei [ctb],
+  Valentin Wimmer [ctb],
+  R Core Team [ctb] (A few code segments are modified versions of code
+    from base R)
 Maintainer: Sebastian Meyer <seb.meyer@fau.de>
 Depends: R (>= 3.2.0), methods, grDevices, graphics, stats, utils, sp
-        (>= 1.0-15), xtable (>= 1.7-0), polyCub (>= 0.6.0)
-Imports: Rcpp (>= 0.11.1), MASS, Matrix, nlme, spatstat (>= 1.36-0)
+        (>= 1.0-15), xtable (>= 1.7-0)
+Imports: Rcpp (>= 0.11.1), polyCub (>= 0.6.0), MASS, Matrix, nlme,
+        spatstat (>= 1.36-0)
 LinkingTo: Rcpp, polyCub
 Suggests: parallel, grid, xts, gridExtra, lattice, colorspace, scales,
-        animation, msm, spc, quadprog, memoise, polyclip, rgeos,
-        gpclib, maptools, intervals, spdep, numDeriv, maxLik, gsl,
-        fanplot, hhh4contacts, testthat (>= 0.11.0), coda, splancs,
-        gamlss, INLA (>= 0.0-1458166556), runjags, ggplot2, MGLM, knitr
+        animation, rmapshaper, msm, spc, quadprog, memoise, polyclip,
+        rgeos, gpclib, maptools, intervals, spdep, numDeriv, maxLik,
+        gsl, fanplot, hhh4contacts, testthat (>= 0.11.0), coda,
+        splancs, gamlss, INLA (>= 0.0-1458166556), runjags, ggplot2,
+        MGLM (>= 0.1.0), knitr
 Description: Statistical methods for the modeling and monitoring of time series
         of counts, proportions and categorical data, as well as for the modeling
         of continuous-time point processes of epidemic phenomena.
@@ -84,6 +100,6 @@ Encoding: latin1
 VignetteBuilder: utils, knitr
 RoxygenNote: 6.0.1
 NeedsCompilation: yes
-Packaged: 2017-10-06 17:09:04 UTC; smeyer
+Packaged: 2018-01-23 15:14:06 UTC; smeyer
 Repository: CRAN
-Date/Publication: 2017-10-06 20:34:46 UTC
+Date/Publication: 2018-01-23 21:47:50 UTC

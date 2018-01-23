@@ -96,8 +96,7 @@ Surveillance of Monotonic Changes, Sequential Analysis 28(4):434-454.
 y <- matrix(c(1,0,3,1,2,3,5,4,7,3,5,8,16,23,33,34,48),ncol=1)
 
 #Generate sts object with these observations
-mysts <- new("sts", observed=y, epoch=1:length(y), alarm=y*0,
-                    start=c(2000,1), freq=52)
+mysts <- sts(y, alarm=y*0)
 
 #Run the algorithm and present results
 #Only the value of outbreakP statistic

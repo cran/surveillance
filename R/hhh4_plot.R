@@ -5,9 +5,9 @@
 ###
 ### Plot-method(s) for fitted hhh4() models
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2012-2017 Sebastian Meyer
-### $Revision: 1843 $
-### $Date: 2017-03-28 16:37:16 +0200 (Tue, 28. Mar 2017) $
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2018 Sebastian Meyer
+### $Revision: 2070 $
+### $Date: 2018-01-22 17:50:23 +0100 (Mon, 22. Jan 2018) $
 ################################################################################
 
 
@@ -38,13 +38,17 @@ plotHHH4_fitted <- function (x, units = 1, names = NULL,
                              par.settings = list(),
                              legend = TRUE, legend.args = list(),
                              legend.observed = FALSE,
-                             decompose = NULL, meanHHH = NULL, ...)
+                             decompose = NULL, total = FALSE, meanHHH = NULL, ...)
 {
-    if (is.null(units)) units <- seq_len(x$nUnit)
+    if (total) {
+        units <- "Overall"  # only used as a label
+    } else if (is.null(units)) {
+        units <- seq_len(x$nUnit)
+    }
     if (!is.null(names)) stopifnot(length(units) == length(names))
     if (isTRUE(decompose)) decompose <- colnames(x$stsObj)
 
-    ## get decomposed mean
+    ## get decomposed mean => no need to compute it in each plotHHH4_fitted1()
     if (is.null(meanHHH)) {
         meanHHH <- if (is.null(decompose)) {
             meanHHH(x$coefficients, terms.hhh4(x))
@@ -59,7 +63,7 @@ plotHHH4_fitted <- function (x, units = 1, names = NULL,
         pt.col <- col[4L]
         rev(col[-4L])
     } else {
-        plotHHH4_fitted_check_col_decompose(col, decompose, dimnames(meanHHH)[[3L]][-1L])
+        plotHHH4_fitted_check_col_decompose(col, decompose)
     }
 
     ## setup graphical parameters
@@ -100,20 +104,20 @@ plotHHH4_fitted <- function (x, units = 1, names = NULL,
     meanHHHunits <- vector(mode="list", length=length(units))
     names(meanHHHunits) <- if (is.character(units)) units else colnames(x$stsObj)[units]
     for(i in seq_along(units)) {
-        meanHHHunits[[i]] <- plotHHH4_fitted1(x, units[i], main=names[i],
+        meanHHHunits[[i]] <- plotHHH4_fitted1(x, unit=units[i], main=names[i],
                                               col=col, pch=pch, pt.cex=pt.cex, pt.col=pt.col,
-                                              decompose=decompose, meanHHH=meanHHH, ...)
+                                              decompose=decompose, total=total, meanHHH=meanHHH, ...)
         if (i %in% legend) do.call("legend", args=legend.args)
     }
     invisible(meanHHHunits)
 }
 
-plotHHH4_fitted_check_col_decompose <- function (col, decompose, unitNames)
+plotHHH4_fitted_check_col_decompose <- function (col, decompose)
 {
     if (is.null(decompose)) {
         stopifnot(length(col) == 3L)
     } else {
-        nUnit <- length(unitNames)
+        nUnit <- length(decompose)
         if (length(col) == nUnit) {
             col <- c("grey85", col)  # first color is for "endemic"
         } else if (length(col) != 1L + nUnit) {
@@ -132,17 +136,19 @@ plotHHH4_fitted1 <- function(x, unit=1, main=NULL,
                              pch=19, pt.cex=0.6, pt.col=1, border=col,
                              start=x$stsObj@start, end=NULL, xaxis=NULL,
                              xlim=NULL, ylim=NULL, xlab="", ylab="No. infected",
-                             hide0s=FALSE, decompose=NULL, meanHHH=NULL)
+                             hide0s=FALSE, decompose=NULL, total=FALSE, meanHHH=NULL)
 {
     stsObj <- x$stsObj
-    if (is.character(unit) &&
+    if (!total && is.character(unit) &&
         is.na(unit <- match(.unit <- unit, colnames(stsObj))))
         stop("region '", .unit, "' does not exist")
-    if (is.null(main)) main <- colnames(stsObj)[unit]
-    if (isTRUE(decompose)) decompose <- colnames(stsObj)
+    if (is.null(main))
+        main <- if (total) "Overall" else colnames(stsObj)[unit]
+    if (isTRUE(decompose))
+        decompose <- colnames(stsObj)
 
     ## get observed counts
-    obs <- observed(stsObj)[,unit]
+    obs <- if (total) rowSums(observed(stsObj)) else observed(stsObj)[,unit]
 
     ## time range for plotting
     start0 <- yearepoch2point(stsObj@start, stsObj@freq, toleft=TRUE)
@@ -163,16 +169,27 @@ plotHHH4_fitted1 <- function(x, unit=1, main=NULL,
     }
 
     ## get fitted component means
+    if (is.null(meanHHH)) {
+        meanHHH <- if (is.null(decompose)) {
+            meanHHH(x$coefficients, terms.hhh4(x))
+        } else {
+            decompose.hhh4(x)
+        }
+    }
     meanHHHunit <- if (is.null(decompose)) {
-        if (is.null(meanHHH))
-            meanHHH <- meanHHH(x$coefficients, terms.hhh4(x))
-        sapply(meanHHH, "[", i=TRUE, j=unit)
+        if (total) {
+            sapply(meanHHH, rowSums)
+        } else {
+            sapply(meanHHH, "[", i=TRUE, j=unit)
+        }
     } else {
-        if (is.null(meanHHH))
-            meanHHH <- decompose.hhh4(x)
         if (!setequal(decompose, dimnames(meanHHH)[[3L]][-1L]))
             stop("'decompose' must be (a permutation of) the fitted units")
-        meanHHH[,unit,c("endemic",decompose)]
+        if (total) {
+            apply(meanHHH[,,c("endemic",decompose)], c(1L, 3L), sum)
+        } else {
+            meanHHH[,unit,c("endemic",decompose)]
+        }
     }
     stopifnot(is.matrix(meanHHHunit), !is.null(colnames(meanHHHunit)),
               nrow(meanHHHunit) == length(x$control$subset))
@@ -189,9 +206,9 @@ plotHHH4_fitted1 <- function(x, unit=1, main=NULL,
         pt.col <- col[4L]
         rev(col[-4L])
     } else {
-        plotHHH4_fitted_check_col_decompose(col, decompose, colnames(meanHHHunit)[-1L])
+        plotHHH4_fitted_check_col_decompose(col, decompose)
     }
-    
+
     ## establish basic plot window
     if (is.null(ylim)) ylim <- c(0, max(obs[tpInRange],na.rm=TRUE))
     plot(c(start,end), ylim, xlim=xlim, xlab=xlab, ylab=ylab, type="n",
@@ -211,7 +228,7 @@ plotHHH4_fitted1 <- function(x, unit=1, main=NULL,
         plotComponentPolygons(x = tp[tpInSubset], y = meanHHHunit[, non0, drop = FALSE],
                               col = col[non0], border = border[non0], add = TRUE)
     }
-    
+
     ## add observed counts within [start;end]
     ptidx <- if (hide0s) intersect(tpInRange, which(obs > 0)) else tpInRange
     points(tp[ptidx], obs[ptidx], col=pt.col, pch=pch, cex=pt.cex)
@@ -231,16 +248,16 @@ plotComponentPolygons <- function (x, y, col = 1:6, border = col, add = FALSE)
     yc <- if ((nPoly <- ncol(y)) > 1L) {
         apply(X = y, MARGIN = 1L, FUN = cumsum) # nPoly x nTime
     } else t(y)
-    
+
     if (!add) {
         ## establish basic plot window
         plot(range(x), range(yc[nPoly,]), type = "n")
     }
-    
+
     ## recycle graphical parameters
     col <- rep_len(col, nPoly)
     border <- rep_len(border, nPoly)
-    
+
     ## draw polygons
     xpoly <- c(x[1L], x, x[length(x)])
     for (poly in nPoly:1) {
@@ -262,34 +279,34 @@ plotHHH4_maps <- function (x,
     map = x$stsObj@map, meanHHH = NULL)
 {
     which <- match.arg(which, several.ok = TRUE)
-    
+
     ## extract district-specific mean components
     if (is.null(meanHHH)) {
         meanHHH <- meanHHH(x$coefficients, terms.hhh4(x))
     }
-    
+
     ## select relevant components and convert to an array
     meanHHH <- simplify2array(
         meanHHH[c("mean", "endemic", "epi.own", "epi.neighbours")],
         higher = TRUE)
-    
+
     ## convert to proportions
     if (prop) {
         meanHHH[,,-1L] <- meanHHH[,,-1L,drop=FALSE] / c(meanHHH[,,1L])
     }
-    
+
     ## select only 'which' components
     meanHHH <- meanHHH[,,which,drop=FALSE]
-    
+
     ## check map
     map <- as(map, "SpatialPolygonsDataFrame")
     if (!all(dimnames(meanHHH)[[2L]] %in% row.names(map))) {
         stop("'row.names(map)' do not cover all fitted districts")
     }
-    
+
     ## average over time
     comps <- as.data.frame(colMeans(meanHHH, dims = 1))
-    
+
     ## attach to map data
     map@data <- cbind(map@data, comps[row.names(map),,drop=FALSE])
 
@@ -307,7 +324,7 @@ plotHHH4_maps <- function (x,
     if (!is.null(layout.labels <- layout.labels(map, labels))) {
         sp.layout <- c(sp.layout, list(layout.labels))
     }
-    
+
     ## produce maps
     grobs <- mapply(
         FUN = function (zcol, main, zmax)
@@ -339,20 +356,20 @@ plotHHH4_ri <- function (x, component, labels = FALSE, sp.layout = NULL,
     if (is.na(comp <- pmatch(component, colnames(ranefmatrix))))
         stop("'component' must (partially) match one of ",
              paste(dQuote(colnames(ranefmatrix)), collapse=", "))
-    
+
     map <- as(x$stsObj@map, "SpatialPolygonsDataFrame")
     if (length(map) == 0L) stop("'x$stsObj' has no map")
     map$ranef <- ranefmatrix[,comp][row.names(map)]
-    
+
     if (is.list(gpar.missing) && any(is.na(map$ranef))) {
-        sp.layout <- c(sp.layout, 
+        sp.layout <- c(sp.layout,
                        c(list("sp.polygons", map[is.na(map$ranef),]),
                          gpar.missing))
     }
     if (!is.null(layout.labels <- layout.labels(map, labels))) {
         sp.layout <- c(sp.layout, list(layout.labels))
     }
-    
+
     spplot(map[!is.na(map$ranef),], zcol = "ranef",
            sp.layout = sp.layout, ...)
 }
@@ -434,10 +451,10 @@ createLambda <- function (object)
         attr(Lambda, "type") <- "zero"
         return(Lambda)
     }
-    
+
     meanHHH <- meanHHH(object$coefficients, terms(object),
                        subset=seq_len(nTime))
-    
+
     W <- getNEweights(object)
     Wt <- if (is.null(W)) {
         NULL
@@ -476,7 +493,7 @@ maxEV <- function (Lambda,
     } else {
         eigen(Lambda, symmetric = symmetric, only.values = TRUE)$values[1L]
     }
-    
+
     ## dominant eigenvalue may be complex
     if (is.complex(maxEV)) {
         if (Im(maxEV) == 0) { # if other eigenvalues are complex
@@ -536,8 +553,8 @@ plotHHH4_season <- function (...,
             setNames(rep(list(x), length(defaults)), names(defaults))
         } else stop("'", deparse(substitute(x)), "' is not suitably specified")
     }
-    
-    ## component-specific arguments 
+
+    ## component-specific arguments
     ylim <- withDefaults(ylim,
                          list(ar=NULL, ne=NULL, end=NULL, maxEV=NULL))
     ylab <- withDefaults(ylab,
@@ -547,7 +564,7 @@ plotHHH4_season <- function (...,
                               maxEV="dominant eigenvalue"))
     main <- withDefaults(main,
                          list(ar="autoregressive component",
-                              ne="spatiotemporal component",    
+                              ne="spatiotemporal component",
                               end="endemic component",
                               maxEV="dominant eigenvalue"))
     anyMain <- any(unlist(lapply(main, nchar),
@@ -637,7 +654,7 @@ getSeason <- function(x, component = c("end", "ar", "ne"), unit = 1)
     startseason <- getSeasonStart(x)
     freq <- x$stsObj@freq
     if (is.character(unit)) unit <- match(unit, colnames(x$stsObj))
-    
+
     ## return -Inf is component is not in the model (-> exp(-Inf) = 0)
     if (!component %in% componentsHHH4(x))
         return(list(intercept=-Inf, season=rep.int(-Inf, freq)))
@@ -703,11 +720,11 @@ getMaxEV_season <- function (x)
                     "covariates/offsets not accounted for;\n",
                     "  use getMaxEV() or plotHHH4_maxEV()")
     }
-    
+
     ## global intercepts and seasonality
     s2.lambda <- getSeason(x, "ar")
     s2.phi <- getSeason(x, "ne")
-    
+
     ## unit-specific intercepts
     ris <- ranef.hhh4(x, tomatrix=TRUE)
     ri.lambda <- ris[,pmatch("ar.ri", colnames(ris), nomatch=0L),drop=TRUE]
@@ -779,7 +796,7 @@ plotHHH4_neweights <- function (x, plotter = boxplot, ...,
                                 exclude = 0, maxlag = Inf)
 {
     plotter <- match.fun(plotter)
-    
+
     ## orders of neighbourhood (o_ji)
     nbmat <- neighbourhood(x$stsObj)
     if (all(nbmat %in% 0:1)) {
@@ -842,7 +859,7 @@ getHHH4list <- function (..., .names = NA_character_)
     if (length(freq)>1)
         stop("supplied hhh4-models obey different frequencies")
     attr(objects, "freq") <- freq
-    
+
     ## done
     return(objects)
 }

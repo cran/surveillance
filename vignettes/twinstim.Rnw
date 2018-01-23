@@ -1,6 +1,6 @@
 %\VignetteIndexEntry{twinstim: An endemic-epidemic modeling framework for spatio-temporal point patterns}
 %\VignetteEngine{knitr::knitr}
-%\VignetteDepends{surveillance, lattice, polyclip, memoise, maptools, spdep, colorspace, scales}
+%\VignetteDepends{surveillance, lattice, polyclip, memoise, maptools, spdep, colorspace, scales, rmapshaper}
 
 <<setup, cache = FALSE, include = FALSE, purl = FALSE>>=
 ## purl=FALSE => not included in the tangle'd R script
@@ -10,6 +10,18 @@ knitr::opts_chunk$set(echo = TRUE, tidy = FALSE, results = 'markup',
                       cache = FALSE, error = FALSE, warning = FALSE, message = FALSE)
 knitr::render_sweave()             # use Sweave environments
 knitr::set_header(highlight = '')  # no \usepackage{Sweave} (part of jss class)
+## add a chunk option "strip.white.output" to remove leading and trailing white
+## space (empty lines) from output chunks ('strip.white' has no effect)
+local({
+    default_output_hook <- knitr::knit_hooks$get("output")
+    knitr::knit_hooks$set(output = function (x, options) {
+        if (isTRUE(options[["strip.white.output"]])) {
+            x <- sub("[[:space:]]+$", "\n", # set a single trailing \n
+                     sub("^[[:space:]]+", "", x)) # remove leading space
+        }
+        default_output_hook(x, options)
+    })
+})
 ## R settings
 options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE)  # JSS
 options(width = 85, digits = 4)
@@ -305,7 +317,7 @@ which are represented by polygons (as is~$\bm{W}$).
 Similar integrals appear in the score function, where $f(\norm{\bm{s}})$ is
 replaced by partial derivatives with respect to kernel parameters.
 Calculation of these integrals is trivial for (piecewise) constant~$f$, but otherwise requires
-numerical integration. For this purpose, the \proglang{R}~package
+numerical integration. The \proglang{R}~package
 \CRANpkg{polyCub} \citep{R:polyCub} offers cubature methods for polygonal
 domains as described in \citet[Supplement~B, Section~2]{meyer.held2013}.
 % For Gaussian~$f$, we apply a midpoint rule with $\sigma$-adaptive bandwidth
@@ -316,8 +328,7 @@ domains as described in \citet[Supplement~B, Section~2]{meyer.held2013}.
 % For the recently implemented power-law kernels,
 In particular, we established an efficient cubature method which takes
 advantage of the assumed isotropy of spatial interaction
-such that numerical integration remains in only one dimension
-\citep[Supplement~B, Section~2.4]{meyer.held2013}.
+such that numerical integration remains in only one dimension.
 We \CRANpkg{memoise} \citep{R:memoise} the cubature function during
 log-likelihood maximization to avoid integration
 for unchanged parameters of~$f$.
@@ -491,8 +502,8 @@ in the point process log-likelihood~\eqref{eqn:twinstim:loglik},
 the more detailed the polygons of \code{W} are
 the longer it will take to fit a \code{twinstim}.
 It is thus advisable to sacrifice some shape details for speed by reducing
-the polygon complexity, e.g., by applying one of the simplification methods
-available at \href{www.MapShaper.org}{MapShaper.org}.
+the polygon complexity, e.g., by applying \code{ms_simplify}
+from the \CRANpkg{rmapshaper} package \citep{R:rmapshaper}.
 Alternative tools in \proglang{R} are
 \CRANpkg{spatstat}'s \code{simplify.owin} procedure \citep{R:spatstat} and the function
 \code{thinnedSpatialPoly} in package \CRANpkg{maptools} \citep{R:maptools}, which
@@ -598,7 +609,7 @@ plot(as.stepfun(imdepi), xlim = summary(imdepi)$timeRange, xaxs = "i",
 
 \pagebreak[1]
 The \code{plot}-method for \class{epidataCS} offers aggregation of the events over time or space:
-<<imdepi_plot, fig.cap="Occurrence of the two finetypes viewed in the temporal and spatial dimensions.", fig.subcap=c("Temporal pattern.","Spatial pattern."), fig.width=5, fig.height=6, echo=c(2,4,5), out.width="0.47\\linewidth">>=
+<<imdepi_plot, fig.cap="Occurrence of the two finetypes viewed in the temporal and spatial dimensions.", fig.subcap=c("Temporal pattern.","Spatial pattern."), fig.width=5, fig.height=6, echo=c(2,4,5), out.width="0.5\\linewidth", fig.pos="!htb">>=
 par(las = 1)
 plot(imdepi, "time", col = c("indianred", "darkblue"), ylim = c(0, 20))
 par(mar = c(0, 0, 0, 0))
@@ -606,6 +617,8 @@ plot(imdepi, "space", lwd = 2,
   points.args = list(pch = c(1, 19), col = c("indianred", "darkblue")))
 layout.scalebar(imdepi$W, scale = 100, labels = c("0", "100 km"), plot = TRUE)
 @
+
+\pagebreak[1]
 The time-series plot (Figure~\ref{fig:imdepi_plot1}) shows the monthly aggregated number of cases by finetype in
 a stacked histogram as well as each type's cumulative number over time.
 The spatial plot (Figure~\ref{fig:imdepi_plot2}) shows the observation window \code{W} with the locations of all
@@ -622,8 +635,7 @@ the B-type in a weekly sequence of snapshots in a web browser (using facilities 
 <<imdepi_animate_saveHTML, eval=FALSE>>=
 animation::saveHTML(
   animate(subset(imdepi, type == "B"), interval = c(0, 365), time.spacing = 7),
-  nmax = Inf, interval = 0.2, loop = FALSE,
-  title = "Animation of the first year of type B events")
+  nmax = Inf, interval = 0.2, loop = FALSE, title = "First year of type B")
 @
 Selecting events from \class{epidataCS} as for the animation above is enabled
 by the \code{[}- and \code{subset}-methods, which return a new
@@ -647,7 +659,7 @@ Lacking a suitable shapefile,
 vector with length up to half the observed minimum spatial separation:
 <<imdepi_untied>>=
 eventDists <- dist(coordinates(imdepi$events))
-(minsep <- min(eventDists[eventDists > 0]))
+minsep <- min(eventDists[eventDists > 0])
 set.seed(321)
 imdepi_untied <- untie(imdepi, amount = list(s = minsep / 2))
 @
@@ -662,17 +674,15 @@ object. For unbounded spatial interaction:
 imdepi_untied_infeps <- update(imdepi_untied, eps.s = Inf)
 @
 
-Last but not least, \class{epidataCS} can be converted to the other classes
-\class{epidata} (described in \code{vignette("twinSIR")})
-and \class{sts} (described in, e.g., \code{vignette("hhh4_spacetime")})
-by aggregation.
+Last but not least, \class{epidataCS} can be aggregated to
+\class{epidata} (from \code{vignette("twinSIR")})
+or \class{sts} (from \code{vignette("hhh4_spacetime")}).
 The method \code{as.epidata.epidataCS} aggregates events by region (\code{tile}),
 and the function \code{epidataCS2sts} yields counts by region and time interval.
-The data could then, e.g., be analyzed by the
-areal time-series model presented in \code{vignette("hhh4\_spacetime")}.
-We can also use visualization tools of the \class{sts} class, e.g., to produce
-Figure~\ref{fig:imdsts_plot}:
-<<imdsts_plot, fig.cap="IMD cases (joint types) aggregated as an \\class{sts} object by month and district.", fig.subcap=c("Time series of monthly counts.", "Disease incidence (per 100\\,000 inhabitants)."), fig.width=5, fig.height=5, out.width="0.47\\linewidth", fig.pos="ht", echo=-2>>=
+The latter could be analyzed by an
+areal time-series model such as \code{hhh4} (see \code{vignette("hhh4\_spacetime")}).
+We can also use \class{sts} visualizations, e.g.\ (Figure~\ref{fig:imdsts_plot}):
+<<imdsts_plot, fig.cap="IMD cases (joint types) aggregated as an \\class{sts} object by month and district.", fig.subcap=c("Time series of monthly counts.", "Disease incidence (per 100\\,000 inhabitants)."), fig.width=5, fig.height=5, out.width="0.5\\linewidth", fig.pos="ht", echo=-2>>=
 imdsts <- epidataCS2sts(imdepi, freq = 12, start = c(2002, 1), tiles = districtsD)
 par(las = 1, lab = c(7,7,7), mar = c(5,5,1,1))
 plot(imdsts, type = observed ~ time)
@@ -767,9 +777,9 @@ Poisson regression model, the coefficients can be interpreted as
 log rate ratios in the usual way. For instance, the endemic rate is estimated to
 decrease by \code{1 - exp(coef(imdfit_endemic)[2])} $=$
 \Sexpr{round(100*(1-exp(coef(imdfit_endemic)[2])),1)}\% per year.
-Coefficient correlations can be retrieved by the argument
+Coefficient correlations can be retrieved via the argument
 \code{correlation = TRUE} in the \code{summary} call just like for
-\code{summary.glm}, but may also be extracted via the standard
+\code{summary.glm}, or via
 \code{cov2cor(vcov(imdfit_endemic))}.
 
 <<twinstim-methods, echo=FALSE, results="asis", purl=FALSE>>=
@@ -883,9 +893,8 @@ The estimated standard deviation $\hat\sigma$ of the Gaussian kernel is:
 exp(cbind("Estimate" = coef(imdfit_Gaussian)["e.siaf.1"],
           confint(imdfit_Gaussian, parm = "e.siaf.1")))
 @
-\citet{meyer.held2013} found that a power-law decay of spatial interaction is
-more appropriate than a Gaussian kernel to describe the spread of human infectious
-diseases.
+\citet{meyer.held2013} found that a power-law decay of spatial interaction
+more appropriately describes the spread of human infectious diseases.
 The power-law kernel concentrates on short-range interaction, but also exhibits a
 heavier tail reflecting occasional transmission over large distances.
 %This result is supported by the power-law distribution of short-time human
@@ -1141,7 +1150,7 @@ and otherwise corresponds to the row index of the infective source.
 Rbib0 <- knitr::write_bib(
     c("polyCub", "memoise", "sp", "rgdal", "polyclip",
       ## spatstat, # non-standard author entries
-      "maptools", "animation", "xtable"),
+      "maptools", "animation", "rmapshaper", "xtable"),
     file = NULL, tweak = FALSE, prefix = "R:")
 ## package spatstat yields a bad automatic bib entry
 Rbib1 <- sapply(c("spatstat"), function (pkg) {

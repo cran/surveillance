@@ -6,8 +6,8 @@
 
 \title{Plot-Methods for Surveillance Time-Series Objects}
 \description{
-  This page gives an overview of plot types which can be
-  produced from objects of class \code{"sts"}.
+  This page gives an overview of plot types
+  for objects of class \code{"sts"}.
 }
 
 \usage{
@@ -31,17 +31,19 @@
   
   \describe{
     \item{\code{observed ~ time | unit}}{The default type shows
-      \code{ncol(x)} plots with each containing the time series of one
+      \code{ncol(x)} plots, each containing the time series of one
       observational unit. The actual plotting per unit is done by the
       function \code{\link{stsplot_time1}}, called sequentially from
-      \code{\link{stsplot_time}}.
+      \code{\link{stsplot_time}}.\cr
+      A \CRANpkg{ggplot2}-based alternative for this type of plot is
+      provided through an \code{\link[=autoplot.sts]{autoplot}}-method
+      for \code{"sts"} objects.
     }
     
     \item{\code{observed ~ time}}{The observations in \code{x} are
-      aggregated over units and the resulting univariate time-series
-      is plotted. The plotting is done by the function
-      \code{\link{stsplot_time}}, which takes the same arguments as the
-      old \code{\link{plot.survRes}} function.}
+      first \code{\link[=aggregate,sts-method]{aggregated}} over units
+      and the resulting univariate time-series is plotted via the
+      function \code{\link{stsplot_time}}.}
     
     \item{\code{alarm ~ time}}{Generates a so called alarmplot for a
       multivariate \code{sts} object. For each time point and each

@@ -24,8 +24,9 @@ plot(abattoir)
 population(abattoir) 
 }
 \references{
-  Höhle, M. (2010), Changepoint detection in categorical time series, 
-  Book chapter to appear in T. Kneib and G. Tutz (Eds.), Statistical
-  Modelling and Regression Structures, Springer.
+  \enc{Höhle}{Hoehle}, M. (2010):
+  Online change-point detection in categorical time series.
+  In: T. Kneib and G. Tutz (Eds.), Statistical
+  Modelling and Regression Structures, Physica-Verlag.
 }
 \keyword{datasets}

@@ -295,9 +295,8 @@ do.call("plot",modifyList(plotOpts,list(x=salm.noufaily,ylim=c(0,y.max))))
 ###################################################
 # Load data and create \code{sts}-object
 data("campyDE")
-cam.sts <- new("sts",epoch=as.numeric(campyDE$date),
-               observed=campyDE$case,  state=campyDE$state,
-               epochAsDate=TRUE)
+cam.sts <- sts(epoch=as.numeric(campyDE$date), epochAsDate=TRUE,
+               observed=campyDE$case, state=campyDE$state)
 par(las=1)
 # Plot
 y.max <- max(observed(cam.sts),upperbound(cam.sts),na.rm=TRUE)
@@ -324,9 +323,8 @@ axis(side=4, at=seq(0,2500,by=500),labels=seq(0,50,by=10),las=1,cex.lab=cex.text
 getOption("SweaveHooks")[["fig"]]()
 # Load data and create \code{sts}-object
 data("campyDE")
-cam.sts <- new("sts",epoch=as.numeric(campyDE$date),
-               observed=campyDE$case,  state=campyDE$state,
-               epochAsDate=TRUE)
+cam.sts <- sts(epoch=as.numeric(campyDE$date), epochAsDate=TRUE,
+               observed=campyDE$case, state=campyDE$state)
 par(las=1)
 # Plot
 y.max <- max(observed(cam.sts),upperbound(cam.sts),na.rm=TRUE)
@@ -352,9 +350,8 @@ axis(side=4, at=seq(0,2500,by=500),labels=seq(0,50,by=10),las=1,cex.lab=cex.text
 ### code chunk number 24: campyDElongVersion (eval = FALSE)
 ###################################################
 ## data("campyDE")
-## cam.sts <- new("sts", epoch = as.numeric(campyDE$date),
-##                observed = campyDE$case, state = campyDE$state,
-##                epochAsDate = TRUE)
+## cam.sts <- sts(epoch = as.numeric(campyDE$date), epochAsDate = TRUE,
+##                observed = campyDE$case, state = campyDE$state)
 ## plot(cam.sts, legend = NULL, xlab = "time [weeks]", ylab = "No. reported",
 ##      col = "gray", cex = 2, cex.axis = 2, cex.lab = 2)
 ## lines(campyDE$hum * 50, col = "darkblue", lwd = 2)
@@ -469,8 +466,8 @@ combineSTS <- function(stsList) {
    alarm <- cbind(alarm,alarms(stsList[[i]]))
  }
  colnames(observed) <- colnames(alarm) <- names(stsList)
- res <- new("sts", epoch=as.numeric(epoch),
-            observed=observed, alarm=alarm,epochAsDate=TRUE)
+ res <- sts(epoch=as.numeric(epoch), epochAsDate=TRUE,
+            observed=observed, alarm=alarm)
  return(res)
 }
 
@@ -638,7 +635,7 @@ pi1m <- rbind(pi1, 1-pi1)
 ##                       population(salmHospitalized) -
 ## 					  observed(salmHospitalized))
 ## nrowHosp <- nrow(salmHospitalized)
-## salmHospitalized.multi <- new("sts", freq = 52, start = c(2004, 1),
+## salmHospitalized.multi <- sts(freq = 52, start = c(2004, 1),
 ##                               epoch = as.numeric(epoch(salmHospitalized)),
 ##                               epochAsDate = TRUE,
 ##                               observed = observedHosp,
@@ -653,7 +650,7 @@ pi1m <- rbind(pi1, 1-pi1)
 # Create the \code{sts}-object with the counts for the 2 categories
 population <- population(salmHospitalized)
 observed <- observed(salmHospitalized)
-salmHospitalized.multi <- new("sts", freq=52, start=c(2004,1),
+salmHospitalized.multi <- sts(freq=52, start=c(2004,1),
                               epoch = as.numeric(epoch(salmHospitalized)),
                               epochAsDate=TRUE,
                               observed = cbind(observed,
@@ -866,7 +863,7 @@ legend(4,0.08,c("Monte Carlo","Markov chain"), lty=1:2,col=1,cex=cex.text,bty="n
 
 
 ###################################################
-### code chunk number 58: monitoringCounts.Rnw:1326-1330
+### code chunk number 58: monitoringCounts.Rnw:1324-1328
 ###################################################
 
 # data("rotaBB")
@@ -883,7 +880,7 @@ data("rotaBB")
 
 
 ###################################################
-### code chunk number 60: monitoringCounts.Rnw:1345-1353
+### code chunk number 60: monitoringCounts.Rnw:1343-1351
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 par(mar=c(5.1,20.1,4.1,0),family="Times")
@@ -897,7 +894,7 @@ mtext("Proportion of reported cases", side=2, line=19, cex=1)
 
 
 ###################################################
-### code chunk number 61: monitoringCounts.Rnw:1361-1388
+### code chunk number 61: monitoringCounts.Rnw:1359-1386
 ###################################################
 # Select a palette for drawing
 pal <- c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00")
@@ -929,7 +926,7 @@ plot(rotaBB.copy)
 
 
 ###################################################
-### code chunk number 62: monitoringCounts.Rnw:1394-1408 (eval = FALSE)
+### code chunk number 62: monitoringCounts.Rnw:1392-1406 (eval = FALSE)
 ###################################################
 ## rotaBB.df <- as.data.frame(rotaBB)
 ## 
@@ -948,7 +945,7 @@ plot(rotaBB.copy)
 
 
 ###################################################
-### code chunk number 63: monitoringCounts.Rnw:1410-1427
+### code chunk number 63: monitoringCounts.Rnw:1408-1425
 ###################################################
 # Convert sts object to data.frame useful for regression modelling
 rotaBB.df <- as.data.frame(rotaBB)
@@ -970,29 +967,29 @@ m0 <- MGLMreg(as.matrix(rotaBB.df[phase1,order])~ -1 + X[phase1,], dist="MN")
 
 
 ###################################################
-### code chunk number 64: monitoringCounts.Rnw:1429-1431
+### code chunk number 64: monitoringCounts.Rnw:1427-1429
 ###################################################
 # Set threshold and option object
 h <- 2
 
 
 ###################################################
-### code chunk number 65: monitoringCounts.Rnw:1436-1442 (eval = FALSE)
+### code chunk number 65: monitoringCounts.Rnw:1434-1440 (eval = FALSE)
 ###################################################
 ## m1 <- m0
 ## 
-## m1$coefficients[1, ] <- m0$coefficients[1, ] + log(7)
+## m1@coefficients[1, ] <- m0@coefficients[1, ] + log(7)
 ## 
 ## pi0 <- t(predict(m0, newdata = X[phase2, ])[, reorder])
 ## pi1 <- t(predict(m1, newdata = X[phase2,])[, reorder])
 
 
 ###################################################
-### code chunk number 66: monitoringCounts.Rnw:1444-1450
+### code chunk number 66: monitoringCounts.Rnw:1442-1448
 ###################################################
 m1 <- m0
 # Out-of control model: shift in all intercept coeffs
-m1$coefficients[1,] <- m0$coefficients[1,] + log(2)
+m1@coefficients[1,] <- m0@coefficients[1,] + log(2)
 # Proportion over time for phase2 based on fitted model (re-order back)
 pi0 <- t(predict(m0, newdata=X[phase2,])[,reorder])
 pi1 <-  t(predict(m1, newdata=X[phase2,])[,reorder])
@@ -1040,14 +1037,14 @@ mean(rlMN)
 
 
 ###################################################
-### code chunk number 69: monitoringCounts.Rnw:1492-1494
+### code chunk number 69: monitoringCounts.Rnw:1490-1492
 ###################################################
 alarmDates <- epoch(surv)[which(alarms(surv)[,1]==1)]
 format(alarmDates,"%b %Y")
 
 
 ###################################################
-### code chunk number 70: monitoringCounts.Rnw:1499-1500 (eval = FALSE)
+### code chunk number 70: monitoringCounts.Rnw:1497-1498 (eval = FALSE)
 ###################################################
 ## dfun <- function(y, size, mu, log = FALSE) {
 ## 	return(dmultinom(x = y, size = size, prob = mu, log = log))
@@ -1059,16 +1056,16 @@ format(alarmDates,"%b %Y")
 
 
 ###################################################
-### code chunk number 71: monitoringCounts.Rnw:1508-1512
+### code chunk number 71: monitoringCounts.Rnw:1506-1510
 ###################################################
 m0.dm <- MGLMreg(as.matrix(rotaBB.df[phase1, 1:5]) ~ -1 + X[phase1, ],
                 dist = "DM")
 
-c(m0$AIC, m0.dm$AIC)
+c(m0@AIC, m0.dm@AIC)
 
 
 ###################################################
-### code chunk number 72: monitoringCounts.Rnw:1520-1538 (eval = FALSE)
+### code chunk number 72: monitoringCounts.Rnw:1518-1536 (eval = FALSE)
 ###################################################
 ## delta <- 2
 ## m1.dm <- m0.dm
@@ -1079,7 +1076,7 @@ c(m0$AIC, m0.dm$AIC)
 ## alpha1 <- exp(X[phase2,] %*% m1.dm$coefficients)
 ## 
 ## dfun <- function(y, size, mu, log = FALSE) {
-## 	dLog <- ddirm(t(y), t(mu))
+## 	dLog <- ddirmn(t(y), t(mu))
 ## 	if (log) { return(dLog) } else { return(exp(dLog)) }
 ## }
 ## 
@@ -1091,21 +1088,21 @@ c(m0$AIC, m0.dm$AIC)
 
 
 ###################################################
-### code chunk number 73: monitoringCounts.Rnw:1540-1561
+### code chunk number 73: monitoringCounts.Rnw:1538-1559
 ###################################################
 # Change intercept in the first class (for DM all 5 classes are modeled)
 delta <- 2
 m1.dm <- m0.dm
-m1.dm$coefficients[1,] <- m0.dm$coefficients[1,] +
+m1.dm@coefficients[1,] <- m0.dm@coefficients[1,] +
                            c(-delta,rep(delta/4,4))
 # Calculate the alphas of the multinomial-Dirichlet in the two cases
-alpha0 <- exp(X[phase2,] %*% m0.dm$coefficients)
-alpha1 <- exp(X[phase2,] %*% m1.dm$coefficients)
+alpha0 <- exp(X[phase2,] %*% m0.dm@coefficients)
+alpha1 <- exp(X[phase2,] %*% m1.dm@coefficients)
 
 # Use alpha vector as mu magnitude
 # (not possible to compute it from mu and size)
 dfun <- function(y, size, mu, log=FALSE) {
-	dLog <- ddirm(t(y), t(mu))
+	dLog <- ddirmn(t(y), t(mu))
 	if (log) { return(dLog) } else {return(exp(dLog))}
 }
 
@@ -1117,7 +1114,7 @@ surv.dm <- categoricalCUSUM(rotaBB,control=control)
 
 
 ###################################################
-### code chunk number 74: monitoringCounts.Rnw:1563-1565 (eval = FALSE)
+### code chunk number 74: monitoringCounts.Rnw:1561-1563 (eval = FALSE)
 ###################################################
 ## matplot(alpha0/rowSums(alpha0),type="l",lwd=3,lty=1,ylim=c(0,1))
 ## matlines(alpha1/rowSums(alpha1),type="l",lwd=1,lty=2)

@@ -12,7 +12,7 @@
   observations starting from week 1 in 2001 to week 35 in 2006. 
 }
 \source{
-Robert Koch-Institut: SurvStat: \url{http://www3.rki.de/SurvStat};
+Robert Koch-Institut: SurvStat: \url{https://survstat.rki.de/};
 Queried on September 2006.
 
 Robert Koch Institut, Epidemiologisches Bulletin 31/2006.

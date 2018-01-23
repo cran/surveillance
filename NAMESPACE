@@ -85,8 +85,6 @@ export(marks)                           # we define an epidataCS-method
 importFrom(spatstat, multiplicity)
 export(multiplicity)                    # we define a Spatial-method
 
-## Note: we depend on instead of import package polyCub to avoid "::" references
-##       in some of the siaf.* generators which create functions in .GlobalEnv
 importFrom(polyCub, polyCub, .polyCub.iso, polyCub.SV, polyCub.midpoint, xylist)
 importMethodsFrom(polyCub, coerce)
 
@@ -117,6 +115,7 @@ export(qlomax)                     # quantile function of the Lomax distribution
 export(plapply)
 export(clapply)
 export(hcl.colors)
+export(fanplot)
 
 # spatial utilities
 export(discpoly)
@@ -198,6 +197,7 @@ exportMethods(toLatex)
 exportMethods(dim, dimnames, epochInYear, year)
 exportMethods(aggregate)
 exportMethods(as.data.frame)
+export(tidy.sts)
 
 # methods for accessing/replacing slots of an sts object (cf. AllGeneric.R)
 exportMethods(epoch,observed,alarms,upperbound,population,control,multinomialTS,neighbourhood)
@@ -211,6 +211,7 @@ export(stsplot_time, stsplot_time1, stsplot_alarm)
 export(addFormattedXAxis, atChange, at2ndChange, atMedian) #for time axis formatting
 export(stsplot_spacetime) # old implementation of (animated) map
 S3method(animate, sts)    # S3-method for an S4 class, see ?Methods
+export(autoplot.sts)
 
 # outbreak detection algorithms (sts-interfaces)
 export(wrap.algo, farrington, bayes, rki, cusum, glrpois, glrnb, outbreakP, boda) # FIXME: rogerson, hmm ??

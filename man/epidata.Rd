@@ -13,7 +13,7 @@ Continuous-Time SIR Event History of a Fixed Population
 
 \description{
   The function \code{as.epidata} is used to generate objects
-  of \code{\link{class}} \code{"epidata"}.  Objects of this class are
+  of class \code{"epidata"}.  Objects of this class are
   specific data frames containing the event history of an epidemic together
   with some additional attributes.  These objects are the basis for fitting
   spatio-temporal epidemic intensity models with the function
@@ -22,8 +22,7 @@ Continuous-Time SIR Event History of a Fixed Population
   Note that the spatial information itself, i.e.
   the positions of the individuals, is assumed to be constant over time.  
   Besides epidemics following the SIR compartmental model, also data from SI,
-  SIRS and SIS epidemics may be supplied.  Inference for the infectious process
-  works as usual and simulation of such epidemics is also possible.
+  SIRS and SIS epidemics may be supplied.
 }
 
 \usage{
@@ -31,10 +30,11 @@ as.epidata(data, ...)
 
 \method{as.epidata}{data.frame}(data, t0,
            tE.col, tI.col, tR.col, id.col, coords.cols,
-           f = list(), w = list(), D = dist, keep.cols = TRUE, ...)
+           f = list(), w = list(), D = dist,
+           max.time = NULL, keep.cols = TRUE, ...)
 \method{as.epidata}{default}(data, id.col, start.col, stop.col,
            atRiskY.col, event.col, Revent.col, coords.cols,
-           f = list(), w = list(), D = dist, ...)
+           f = list(), w = list(), D = dist, .latent = FALSE, ...)
 
 \method{print}{epidata}(x, ...)
 \method{[}{epidata}(x, i, j, drop)
@@ -57,7 +57,8 @@ as.epidata(data, ...)
     For the default method, \code{data} can be a \code{\link{matrix}} or
     a \code{\link{data.frame}}.
     It must contain the observed event history in a form similar to 
-    \code{Surv(, type="counting")} with additional information (variables) along 
+    \code{Surv(, type="counting")} in package \pkg{survival},
+    with additional information (variables) along 
     the process.  Rows will be sorted automatically during conversion.
     The observation period is split up into \emph{consecutive}
     intervals of constant state - thus constant infection intensities.
@@ -73,11 +74,13 @@ as.epidata(data, ...)
     rule follows the point process characteristic that there are no
     concurrent events (infections or removals).
   }
-  \item{t0}{
-    start time of the observation period. Will be subtracted
-    from the time columns \code{tE.col}, \code{tI.col}, \code{tR.col}.
+  \item{t0,max.time}{
+    observation period. In the resulting \code{"epidata"}, the time
+    scale will be relative to the start time \code{t0}.
     Individuals that have already been removed prior to \code{t0}, i.e.,
     rows with \code{tR <= t0}, will be dropped.
+    The end of the observation period (\code{max.time}) will by default
+    (\code{NULL}, or if \code{NA}) coincide with the last observed event.
   }
   \item{tE.col, tI.col, tR.col}{
     single numeric or character indexes of the time columns in
@@ -87,7 +90,8 @@ as.epidata(data, ...)
     SIR, SEI, or SI data. \code{NA} entries mean that the respective
     event has not (yet) occurred. Note that \code{is.na(tE)} implies
     \code{is.na(tI)} and \code{is.na(tR)}, and \code{is.na(tI)} implies
-    \code{is.na(tR)} (and this is checked for the provided data).
+    \code{is.na(tR)} (and this is checked for the provided data).\cr
+    CAVE: Support for latent periods (\code{tE.col}) is experimental!
   }
   \item{id.col}{
     single numeric or character index of the \code{id} column in \code{data}.
@@ -199,6 +203,12 @@ as.epidata(data, ...)
     time-constant individual-specific covariates.
     Alternatively, \code{keep.cols} can be a numeric or character vector
     indexing columns of \code{data} to keep.
+  }
+  \item{.latent}{
+    (internal) logical indicating whether to allow for latent periods
+    (EXPERIMENTAL). Otherwise (default), the function verifies that an
+    event (i.e., switching to the I state) only happens when the
+    respective individual is at risk (i.e., in the S state).
   }
   \item{x,object}{
     an object of class \code{"epidata"}.

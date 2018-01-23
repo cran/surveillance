@@ -26,7 +26,7 @@ twinSIR(formula, data, weights, subset,
   \item{formula}{
     an object of class \code{"\link{formula}"} (or one that can be coerced to
     that class): a symbolic description of the intensity model to be estimated.  
-    The details of model specification are given under Details.
+    The details of the model specification are given below.
   }
   \item{data}{
     an object inheriting from class \code{"\link{epidata}"}.
@@ -44,8 +44,10 @@ twinSIR(formula, data, weights, subset,
   \item{knots}{
     numeric vector or \code{NULL} (the default).  Specification of the knots,
     where we suppose a step of the log-baseline.  With the current 
-    implementation, these must be existing \code{"stop"} time points in 
-    \code{subset(data, atRiskY == 1)}.  The intervals of constant log-baseline 
+    implementation, these must be existing \code{"stop"} time points in the
+    selected \code{subset} of the \code{data}, which is always
+    restricted to \code{atRiskY == 1} rows.
+    The intervals of constant log-baseline 
     hazard rate then are \eqn{(minTime;knots_1]}, \eqn{(knots_1;knots_2]},
     \ldots, \eqn{(knots_K;maxTime]}.
     By default, the \code{knots} are automatically chosen at the quantiles of
@@ -64,14 +66,12 @@ twinSIR(formula, data, weights, subset,
     \enc{Höhle}{Hoehle}, 2009).
   }
   \item{penalty}{
-    either a single number denoting the order of the difference used to
-    penalize  
+    either a single number denoting the order of the difference used to penalize
     the log-baseline coefficients (defaults to 1), or a more specific penalty
     matrix \eqn{K} for the parameter sub-vector \eqn{\beta}. In case of
     non-equidistant knots -- usually the case when using quantile based
-    knot locations -- a 1st order differences penalty matrix as in
-    Fahrmeir and Lang (2001) is available. For non-equidistant knots
-    higher orders than one are not implemented.  
+    knot locations -- only a 1st order differences penalty matrix as in
+    Fahrmeir and Lang (2001) is implemented.
   }
   \item{optim.args}{
     a list with arguments passed to the \code{\link{optim}} function.
@@ -144,7 +144,7 @@ twinSIR(formula, data, weights, subset,
   some variables marked as being endemic by the special function
   \code{\link{cox}}.  The left hand side of the formula is empty and will be
   set internally to \code{cbind(start, stop, event)}, which is similar to
-  \code{Surv(start, stop, event, type="counting")}.
+  \code{Surv(start, stop, event, type="counting")} in package \pkg{survival}.
   
   Basically, the additive-multiplicative model for the infection intensity
   \eqn{\lambda_i(t)} for individual \eqn{i} is
@@ -202,22 +202,20 @@ twinSIR(formula, data, weights, subset,
     marginal likelihood for the smoothing parameter is numerically
     optimized.  
   }
-  Depending on the data convergence might take a couple of iterations.
+  Depending on the data, convergence might take a couple of iterations.
 
   
   Note also that it is unwise to include endemic covariates with huge values,
-  as they affect the intensities on the exponential scale after having been
-  multiplied by the parameter vector \eqn{\beta}. With big covariates the
+  as they affect the intensities on the exponential scale (after
+  multiplication by the parameter vector \eqn{\beta}).
+  With large covariate values, the
   \code{optim} method "L-BFGS-B" will likely terminate due to an infinite 
   log-likelihood or score function in some iteration.
-
-  
 }
 
 \value{
-  \code{twinSIR} returns an object of \code{\link{class}}
-  \code{"twinSIR"}.  An object of this class is a list containing the
-  following components:
+  \code{twinSIR} returns an object of class
+  \code{"twinSIR"}, which is a list containing the following components:
   
   \item{coefficients}{a named vector of coefficients.}
   \item{loglik}{the maximum of the (penalized) log-likelihood function.}
@@ -295,6 +293,9 @@ objects of class \code{"twinSIR"}.
 }
 
 \examples{
+# see vignette("twinSIR") for an example with a real data set
+
+# here is an artificial event history
 data("fooepidata")
 summary(fooepidata)
 
@@ -321,11 +322,26 @@ fit3 <- twinSIR(~ B1 + B2 + cox(z2), data = fooepidata, nIntervals = 9,
         par=c(coef(fit1)[1:2], rep(coef(fit1)[3],9), coef(fit1)[4])))
 fit3
 summary(fit3)
-# plot of the 9 log-baseline levels
-plot(x=fit3$intervals, y=coef(fit3)[c(3,3:11)], type="S")
 
-### -> for more sophisticated intensity plots, see 'plot.twinSIR'
-plot(fit3)
+# plot the estimated log-baseline levels
+plot(x=fit2$intervals, y=coef(fit2)[c(3,3:5)], type="S", xlim=c(0,10))
+lines(x=fit3$intervals, y=coef(fit3)[c(3,3:11)], type="S", col=2)
+legend("right", legend=c("unpenalized 3", "penalized 9"), lty=1, col=1:2, bty="n")
+
+## -> see help('plot.twinSIR') for intensity plots
+
+## special use case: fit the model to a subset of the events only,
+## while preserving epidemic contributions from the remainder
+## (maybe some buffer area nodes)
+fit_subset <- twinSIR(~ B1 + B2 + cox(z2), data = fooepidata, subset = z1 == 1)
+summary(fit_subset)
+
+\dontshow{
+    ## the eventTimes attribute was wrong in surveillance <= 1.15.0
+    stopifnot(
+        length(residuals(fit_subset)) == sum(fit_subset$model$survs$event)
+    )
+}
 }
 
 \keyword{models}

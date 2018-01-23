@@ -22,7 +22,7 @@ data("ha.sts")
 }
 
 \source{
-Robert Koch-Institut: SurvStat: \url{http://www3.rki.de/SurvStat};
+Robert Koch-Institut: SurvStat: \url{https://survstat.rki.de/};
 Queried on 25 August 2006.
 
 Robert Koch Institut, Epidemiologisches Bulletin 33/2006, p.290.

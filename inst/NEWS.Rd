@@ -8,6 +8,81 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.16.0 (2018-01-24)}{
+
+\subsection{NEW FEATURES}{
+  \itemize{
+    \item The \code{as.data.frame()} method for \code{"sts"} objects
+    gained a \code{tidy} argument, which enables conversion to the
+    long data format and is also available as function \code{tidy.sts()}.
+
+    \item A \CRANpkg{ggplot2} variant of \code{stsplot_time()} is now
+    available via \code{autoplot.sts()}.
+    
+    \item \code{as.epidata.data.frame()} gained an argument
+    \code{max.time} to specify the end of the observation period (which
+    by default coincides with the last observed event).
+
+    \item The now exported function \code{fanplot()} wraps
+    \CRANpkg{fanplot}\code{::fan()}. It is used by
+    \code{plot.oneStepAhead()} and \code{plot.hhh4sims()}, which now
+    have an option to add the point forecasts to the fan as well.
+
+    \item \code{plotHHH4_fitted()} (and \code{plotHHH4_fitted1()})
+    gained an option \code{total} to sum the fitted components over all
+    units.
+  }
+}
+
+\subsection{SIGNIFICANT CHANGES}{
+  \itemize{
+    \item Package \CRANpkg{polyCub} is no longer automatically attached
+    (only imported).
+
+    \item \code{scores.oneStepAhead()} no longer reverses the ordering
+    of the time points by default, as announced in 1.15.0.
+  }
+}
+
+\subsection{MINOR CHANGES}{
+  \itemize{
+    \item Some code in \code{vignette("monitoringCounts")} has been
+    adjusted to work with the new version of \CRANpkg{MGLM} (0.0.9).
+
+    \item Added a \code{[}-method for the \code{"hhh4sims"} class to
+    retain the attributes when subsetting simulations.
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item \code{aggregate(stsObj, by = "unit")} no longer results in
+    empty colnames (set to \code{"overall"}).
+    The obsolete map is dropped.
+
+    \item The \code{subset} argument of \code{twinSIR()} was partially
+    ignored:
+    \itemize{
+      \item If \code{nIntervals = 1}, the model \code{summary()}
+      reported the total number of events.
+      \item Automatic \code{knots}, model \code{residuals()}, as well as
+      the rug in \code{intensityplot()} were computed from the whole set
+      of event times.
+    }
+
+    \item The \code{as.epidata.data.frame()} converter did not actually
+    allow for latent periods (via \code{tE.col}). This is now possible
+    but considered experimental (methods for \code{"epidata"} currently
+    ignore latent periods).
+
+    \item The \code{all.equal()} methods for \code{"hhh4"} and
+    \code{"twinstim"} objects now first check for the correct classes.
+  }
+}
+
+}
+  
+
 \section{Changes in surveillance version 1.15.0 (2017-10-06)}{
 
 \subsection{NEW FEATURES}{

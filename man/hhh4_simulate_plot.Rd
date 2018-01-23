@@ -37,8 +37,9 @@ plotHHH4sims_time(x, average = mean, individual = length(x) == 1,
     xlim = NULL, ylim = NULL, add = FALSE, ...)
 
 plotHHH4sims_fan(x, which = 1,
-    fan.args = list(), initial.args = list(), observed.args = list(),
-    key.args = NULL, xlim = NULL, ylim = NULL, add = FALSE, ...)
+    fan.args = list(), observed.args = list(), initial.args = list(),
+    means.args = NULL, key.args = NULL, xlim = NULL, ylim = NULL,
+    add = FALSE, xaxis = list(), ...)
 }
 
 \arguments{
@@ -130,6 +131,11 @@ plotHHH4sims_fan(x, which = 1,
     if a list (of graphical parameters for \code{\link{lines}}),
     the originally observed counts are added to the plot.
   }
+  \item{means.args}{
+    if a list (of graphical parameters for \code{\link{lines}}),
+    the point forecasts are added to the plot (by default as
+    a white line within the fan).
+  }
   \item{key.args}{
     if a list, a color key (in \code{\link[fanplot]{fan}}'s
     \code{"boxfan"}-style) is added to the fan chart. The list may
@@ -139,6 +145,11 @@ plotHHH4sims_fan(x, which = 1,
     The color key is disabled by default.
     An alternative way of labeling the quantiles is via the argument
     \code{ln} in \code{fan.args}, see the Examples.
+  }
+  \item{xaxis}{
+    if a list of arguments for \code{\link{addFormattedXAxis}}, that
+    function is used to draw the time axis, otherwise a default x-axis
+    is drawn.
   }
 
   \item{units}{
@@ -182,9 +193,10 @@ plot(salmSims, type = "size")
 plot(salmSims, type = "time", main = "20-weeks-ahead simulation")
 
 ## fan chart based on the quantiles of the simulated counts at each time point
+## point forecasts are represented by a white line within the fan
 if (requireNamespace("fanplot")) {
     plot(salmSims, type = "fan", main = "20-weeks-ahead simulation",
-         fan.args = list(ln = 1:9/10))
+         fan.args = list(ln = 1:9/10), means.args = list())
 }
 
 

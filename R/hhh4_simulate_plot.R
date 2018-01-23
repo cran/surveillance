@@ -6,9 +6,9 @@
 ### Plots for an array "hhh4sims" of simulated counts from an "hhh4" model,
 ### or a list thereof as produced by different "hhh4" models (same period!)
 ###
-### Copyright (C) 2013-2017 Sebastian Meyer
-### $Revision: 1991 $
-### $Date: 2017-10-06 14:17:06 +0200 (Fri, 06. Oct 2017) $
+### Copyright (C) 2013-2018 Sebastian Meyer
+### $Revision: 2066 $
+### $Date: 2018-01-22 11:46:23 +0100 (Mon, 22. Jan 2018) $
 ################################################################################
 
 plot.hhh4sims <- function (x, ...) {
@@ -81,21 +81,14 @@ as.hhh4simslist.hhh4simslist <- function (x, ...) x
         return(xx)
     }
 
-    ## case 2: subset simulations
+    ## case 2: subset simulations, i.e., index individual arrays
     cl <- sys.call()
     cl[[1L]] <- as.name("[")
     cl[[2L]] <- quote(x)
     cl$drop <- drop
     subseti <- as.function(c(alist(x=), cl), envir = parent.frame())
-    x[] <- lapply(X = x, subseti)
-    if (!missing(i))
-        attr(x, "stsObserved") <- attr(x, "stsObserved")[i,]
-    if (!missing(j)) {
-        attr(x, "stsObserved") <- suppressMessages(attr(x, "stsObserved")[, j])
-        is.na(attr(x, "stsObserved")@neighbourhood) <- TRUE
-        attr(x, "initial") <- attr(x, "initial")[, j, drop = FALSE]
-    }
-    x
+    x[] <- lapply(X = unclass(x), subseti)  # unclass to use default [[
+    subset_hhh4sims_attributes(x, i, j)
 }
 
 ## select a specific "hhh4sims" from the list of simulations
@@ -184,7 +177,8 @@ plotHHH4sims_size <- function (x, horizontal = TRUE, trafo = NULL,
     if (is.null(trafo)) #trafo <- scales::identity_trans()
         trafo <- list(name = "identity", transform = identity)
     if (isTRUE(observed)) observed <- list()
-    nsims <- sapply(X = x, FUN = colSums, dims = 2, # sum over 1:2 (time x unit)
+    nsims <- sapply(X = unclass(x), # simply use the default "[["-method
+                    FUN = colSums, dims = 2, # sum over 1:2 (time x unit)
                     simplify = TRUE, USE.NAMES = TRUE)
     nsimstrafo <- trafo$transform(nsims)
 
@@ -353,8 +347,9 @@ plotHHH4sims_time <- function (
 ### Better for a single model: "fanplot"
 
 plotHHH4sims_fan <- function (x, which = 1,
-    fan.args = list(), initial.args = list(), observed.args = list(),
-    key.args = NULL, xlim = NULL, ylim = NULL, add = FALSE, ...)
+    fan.args = list(), observed.args = list(), initial.args = list(),
+    means.args = NULL, key.args = NULL, xlim = NULL, ylim = NULL,
+    add = FALSE, xaxis = list(), ...)
 {
     x <- as.hhh4simslist(x)[[which]]
     ytInit <- rowSums(attr(x, "initial"))
@@ -362,25 +357,24 @@ plotHHH4sims_fan <- function (x, which = 1,
     ytObs <- rowSums(observed(stsObserved))
     ytSim <- aggregate.hhh4sims(x, units = TRUE, time = FALSE, drop = TRUE)
 
-    ## axis range
+    ## graphical parameters
     if (is.null(xlim) && is.list(initial.args))
         xlim <- c(1 - length(ytInit) - 0.5, length(ytObs) + 0.5)
-    if (is.null(ylim))
-        ylim <- c(0, max(ytObs, ytSim))
-
-    ## graphical parameters
     stopifnot(is.list(fan.args))
     fan.args <- modifyList(
-        list(data = t(ytSim), probs = seq.int(0.01, 0.99, 0.01),
-             fan.col = heat.colors, ln = NULL),
+        list(probs = seq.int(0.01, 0.99, 0.01)),
         fan.args, keep.null = TRUE)
 
-    ## initialize empty plot
-    if (!add)
-        plot(stsObserved, type = observed ~ time, xlim = xlim, ylim = ylim, col = NA, ...)
+    ## compute the quantiles
+    quantiles <- t(apply(ytSim, 1, quantile, probs = fan.args$probs))
 
-    ## add fan
-    do.call(fanplot::fan, fan.args)
+    ## create (or add) the fanplot
+    fanplot(quantiles = quantiles, probs = fan.args$probs,
+            means = rowMeans(ytSim), observed = ytObs,
+            fan.args = fan.args, means.args = means.args,
+            observed.args = observed.args, key.args = key.args,
+            xlim = xlim, ylim = ylim, add = add,
+            xaxt = if (is.list(xaxis)) "n" else "s", ...)
 
     ## add initial counts
     if (is.list(initial.args)) {
@@ -391,29 +385,10 @@ plotHHH4sims_fan <- function (x, which = 1,
         do.call("lines", initial.args)
     }
 
-    ## add observed time series data
-    if (is.list(observed.args)) {
-        observed.args <- modifyList(
-            list(x = seq_along(ytObs), y = ytObs, type = "b", lwd = 2),
-            observed.args)
-        do.call("lines", observed.args)
-    }
-
-    ## add color key
-    if (is.list(key.args)) {
-        key.args <- modifyList(
-            list(start = xlim[2L] - 1, ylim = c(ylim[1L] + mean(ylim), ylim[2L]),
-                 data.type = "values", style = "boxfan", probs = fan.args$probs,
-                 fan.col = fan.args$fan.col, ln = NULL, space = 0.9,
-                 rlab = quantile(fan.args$probs, names = FALSE, type = 1)),
-            key.args)
-        ## convert ylim to data
-        key.args$data <- matrix(seq.int(from = key.args$ylim[1L], to = key.args$ylim[2L],
-                                        length.out = length(fan.args$probs)))
-        key.args$ylim <- NULL
-        tryCatch(do.call(fanplot::fan, key.args), error = function (e)
-            warning("color key could not be drawn, probably due to non-standard 'probs'",
-                    call. = FALSE))
+    ## add time axis
+    if (is.list(xaxis)) {
+        xaxis <- modifyList(list(epochsAsDate = TRUE), xaxis)
+        do.call("addFormattedXAxis", c(list(x = stsObserved), xaxis))
     }
 
     invisible(NULL)

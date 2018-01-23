@@ -25,8 +25,6 @@
     validity = function (object) {
         dimObserved <- dim(object@observed)
         namesObserved <- colnames(object@observed)
-        ## CAVE: NULL colnames are uncommon but possible,
-        ##       e.g., after aggregate(object, by="unit")
         errors <- c(
             if (!isScalar(object@freq) || object@freq <= 0)
                 "'freq' must be a single positive number",
@@ -47,11 +45,15 @@
                 "'neighbourhood' must be a square matrix of size 'ncol(observed)'",
             if (!identical(dim(object@populationFrac), dimObserved))
                 "'populationFrac' must have the same dimensions as 'observed'",
+            ## disallow NULL colnames in *multivariate* "sts" objects
+            if (dimObserved[2L] > 1 && is.null(namesObserved))
+                "units must be named (set 'colnames(observed)')",
+            ## FIXME: should we generally disallow NULL colnames?
+            ## NOTE: aggregate(by="unit") previously (<= 1.15.0) had no colnames
             ## if a map is provided, it must cover all colnames(observed):
             if (length(object@map) > 0 && # i.e., not the empty prototype
                 !all(namesObserved %in% row.names(object@map)))
                 "'map' is incomplete; ensure that all(colnames(observed) %in% row.names(map))",
-            ## FIXME: invalidate objects with a map but NULL colnames?
             ## check booleans
             if (length(object@epochAsDate) != 1 || is.na(object@epochAsDate))
                 "'epochAsDate' must be either TRUE or FALSE",

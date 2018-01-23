@@ -11,7 +11,7 @@
   observations starting from week 1 in 2001 to week 52 in 2004. 
 }
 \source{
-Robert Koch-Institut: SurvStat: \url{http://www3.rki.de/SurvStat};
+Robert Koch-Institut: SurvStat: \url{https://survstat.rki.de/};
 Queried on 11-01-2005.
 }
 \examples{

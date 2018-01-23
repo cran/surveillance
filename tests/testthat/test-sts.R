@@ -38,9 +38,22 @@ test_that("different initializations of \"stsNC\" work as expected", {
 })
 
 test_that("sts(..., population) sets the populationFrac slot", {
-    ## for sts() construction, "population" is an alias for "populationFrac" 
+    ## for sts() construction, "population" is an alias for "populationFrac"
     ## (the internal slot name), introduced in the space-time JSS paper
     sts1 <- sts(cbind(1:3, 11:13), population = c(10, 20))
     sts2 <- sts(cbind(1:3, 11:13), populationFrac = c(10, 20))
     expect_identical(sts1, sts2)
+})
+
+test_that("\"sts\" conversion to a (tidy) data frame works consistently", {
+    ## univariate sts
+    mystsdata <- as.data.frame(mysts, as.Date = FALSE)
+    expect_identical(tidy.sts(mysts)[names(mystsdata)], mystsdata)
+    ## multivariate sts
+    data("momo")
+    momo3tidy_uv <- tidy.sts(momo[,3])
+    momo3tidy_mv <- subset(tidy.sts(momo), unit == levels(unit)[3])
+    momo3tidy_mv$unit <- momo3tidy_mv$unit[drop=TRUE]
+    row.names(momo3tidy_mv) <- NULL
+    expect_identical(momo3tidy_uv, momo3tidy_mv)
 })

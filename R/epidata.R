@@ -6,9 +6,9 @@
 ### Data structure "epidata" representing the SIR event history of a fixed
 ### geo-referenced population (e.g., farms, households) for twinSIR() analysis
 ###
-### Copyright (C) 2008-2010, 2012, 2014-2016 Sebastian Meyer
-### $Revision: 1707 $
-### $Date: 2016-05-03 17:22:12 +0200 (Tue, 03. May 2016) $
+### Copyright (C) 2008-2010, 2012, 2014-2017 Sebastian Meyer
+### $Revision: 2044 $
+### $Date: 2017-11-16 15:34:00 +0100 (Thu, 16. Nov 2017) $
 ################################################################################
 
 ## CAVE:
@@ -32,7 +32,8 @@
 
 as.epidata.data.frame <- function (data, t0, tE.col, tI.col, tR.col,
                                    id.col, coords.cols, f = list(), w = list(),
-                                   D = dist, keep.cols = TRUE, ...)
+                                   D = dist, max.time = NULL,
+                                   keep.cols = TRUE, ...)
 {
     if (missing(t0)) {
         return(NextMethod("as.epidata"))  # as.epidata.default
@@ -50,6 +51,13 @@ as.epidata.data.frame <- function (data, t0, tE.col, tI.col, tR.col,
         }
     }
 
+    ## parse max.time
+    if (is.null(max.time) || is.na(max.time)) { # max(stop) is at last event
+        max.time <- NA_real_
+    } else {
+        stopifnot(max.time > t0)
+    }
+
     ## parse id column
     id <- factor(data[[id.col]]) # removes unused levels
     stopifnot(!anyDuplicated(id), !is.na(id))
@@ -57,6 +65,7 @@ as.epidata.data.frame <- function (data, t0, tE.col, tI.col, tR.col,
 
     ## make time relative to t0
     subtract_t0 <- function (x) as.numeric(x - t0)
+    max.time <- subtract_t0(max.time)
     tI <- subtract_t0(data[[tI.col]])
     tE <- if (missing(tE.col)) tI else subtract_t0(data[[tE.col]])
     tR <- if (missing(tR.col)) rep.int(NA_real_, N) else subtract_t0(data[[tR.col]])
@@ -70,15 +79,22 @@ as.epidata.data.frame <- function (data, t0, tE.col, tI.col, tR.col,
              paste0(id[.wrongsequence], collapse = ", "))
     }
 
+    ## ignore events after max.time
+    if (!is.na(max.time)) {
+        is.na(tE) <- tE > max.time
+        is.na(tI) <- tI > max.time
+        is.na(tR) <- tR > max.time
+    }
+
     ## vector of stop times
-    stopTimes <- c(tE, tI, tR)
+    stopTimes <- c(tE, tI, tR, max.time)
     stopTimes <- stopTimes[!is.na(stopTimes) & stopTimes > 0]
     stopTimes <- sort.int(unique.default(stopTimes), decreasing = FALSE)
     nBlocks <- length(stopTimes)
     if (nBlocks == 0L) {
         stop("nothing happens after 't0'")
     }
-    
+
     ## initialize event history
     evHist <- data.frame(
         id = rep.int(id, nBlocks),
@@ -86,13 +102,13 @@ as.epidata.data.frame <- function (data, t0, tE.col, tI.col, tR.col,
         stop = rep.int(stopTimes, rep.int(N, nBlocks)),
         atRiskY = NA, event = 0, Revent = 0, # adjusted in the loop below
         row.names = NULL, check.rows = FALSE, check.names = FALSE)
-    
+
     ## indexes of the last rows of the time blocks
     blockbase <- c(0, seq_len(nBlocks) * N)
 
     ## which individuals are at risk in the first (next) block
     Y <- is.na(tE) | tE > 0
-    
+
     ## Loop over the blocks/stop times to adjust atRiskY, event and Revent
     for (i in seq_len(nBlocks)) {
         ct <- stopTimes[i]
@@ -102,7 +118,7 @@ as.epidata.data.frame <- function (data, t0, tE.col, tI.col, tR.col,
         ## individuals who become exposed at the current stop time
         ## will no longer be at risk in the next block
         Y[which(tE == ct)] <- FALSE
-        
+
         ## process events at this stop time
         evHist$event[blockbase[i] + which(tI == ct)] <- 1
         evHist$Revent[blockbase[i] + which(tR == ct)] <- 1
@@ -129,7 +145,8 @@ as.epidata.data.frame <- function (data, t0, tE.col, tI.col, tR.col,
         data = evHist,
         id.col = "id", start.col = "start", stop.col = "stop",
         atRiskY.col = "atRiskY", event.col = "event", Revent.col = "Revent",
-        coords.cols = coords.cols, f = f, w = w, D = D)
+        coords.cols = coords.cols, f = f, w = w, D = D,
+        .latent = !missing(tE.col))
 }
 
 
@@ -140,14 +157,15 @@ as.epidata.data.frame <- function (data, t0, tE.col, tI.col, tR.col,
 ################################################################################
 
 as.epidata.default <- function(data, id.col, start.col, stop.col, atRiskY.col,
-    event.col, Revent.col, coords.cols, f = list(), w = list(), D = dist, ...)
+    event.col, Revent.col, coords.cols, f = list(), w = list(), D = dist,
+    .latent = FALSE, ...)
 {
     cl <- match.call()
-    
+
     # If necessary, convert 'data' into a data.frame (also converting
     # column names to syntactically correct names for use in formulae)
     data <- as.data.frame(data, stringsAsFactors = FALSE)
-        
+
     # Use column numbers as indices and check them
     colargs <- c("id.col", "start.col", "stop.col", "atRiskY.col",
                  "event.col", "Revent.col", "coords.cols")
@@ -169,37 +187,41 @@ as.epidata.default <- function(data, id.col, start.col, stop.col, atRiskY.col,
         }
         colidxs[[colarg]] <- colidx
     }
-    
+
     # Rename main columns to default column names
     colidxsVec <- unlist(colidxs)
     colnams <- c("id", "start", "stop", "atRiskY", "event", "Revent")
     colnames(data)[colidxsVec[1:6]] <- colnams
     usedReservedName <- any(colnams %in% colnames(data)[-colidxsVec[1:6]])
-    
+
     # REORDER COLUMNS, so that main columns come first (also for make.unique)
     data <- data[c(colidxsVec, setdiff(seq_len(NCOL(data)), colidxsVec))]
-    
+
     # Make columns names unique (necessary if other column with name in colnams)
     if (usedReservedName) {
         colnames(data) <- make.unique(colnames(data))
         message("Some other columns had reserved names and have been renamed")
     }
-    
+
     # Convert id into a factor (also removing unused levels if it was a factor)
     data[["id"]] <- factor(data[["id"]])
-    
+
     # Check atRiskY, event and Revent for values other than 0 and 1
     for (var in c("atRiskY", "event", "Revent")) {
         data[[var]] <- as.numeric(data[[var]])
         if (any(! data[[var]] %in% c(0,1)))
             stop("'", var, "' column may only assume values 0 and 1")
     }
-    
+
     # Check consistency of atRiskY and event (event only if at-risk)
-    noRiskButEvent <- data[["atRiskY"]] == 0 & data[["event"]] == 1
-    if (noRiskButEventRow <- match(TRUE, noRiskButEvent, nomatch = 0)) {
-        stop("inconsistent atRiskY/event indicators in row ",
-             noRiskButEventRow, ": event only if at risk")
+    if (.latent) {
+        warning("support for latent periods is experimental")
+    } else {
+        noRiskButEvent <- data[["atRiskY"]] == 0 & data[["event"]] == 1
+        if (noRiskButEventRow <- match(TRUE, noRiskButEvent, nomatch = 0)) {
+            stop("inconsistent atRiskY/event indicators in row ",
+                 noRiskButEventRow, ": event only if at risk")
+        }
     }
 
     # Check event (infection) times for ties
@@ -228,18 +250,18 @@ as.epidata.default <- function(data, id.col, start.col, stop.col, atRiskY.col,
                 "existing column has been replaced")
     }
     data[["BLOCK"]] <- match(data[["start"]], histIntervals[,1L])
-    
+
     # SORT by block/id and create indexes for block borders
     data <- data[order(data[["BLOCK"]], data[["id"]]),]
     beginBlock <- match(seq_len(nBlocks), data[["BLOCK"]])
     endBlock <- c(beginBlock[-1L]-1L, nrow(data))
-    
+
     # make block column the first column
     BLOCK.col <- match("BLOCK", colnames(data))
     data <- data[c(BLOCK.col, setdiff(seq_along(data), BLOCK.col))]
     coords.cols <- 1L + 6L + seq_along(colidxs[["coords.cols"]])
 
-    # Check consistency of atRiskY and event (not at-risk after event) 
+    # Check consistency of atRiskY and event (not at-risk after event)
     .checkFunction <- function(eventblock, eventid)
     {
         if (eventblock == nBlocks) return(invisible())
@@ -300,7 +322,7 @@ update.epidata <- function (object, f = list(), w = list(), D = dist, ...)
         object[names(f)] <- 0
         ## keep functions as attribute
         attr(object, "f")[names(f)] <- f
-        
+
         ## check / compute distance matrix
         distmat <- if (is.function(D)) {
             if (length(coords.cols <- attr(object, "coords.cols")) == 0L) {
@@ -330,7 +352,7 @@ update.epidata <- function (object, f = list(), w = list(), D = dist, ...)
         if (any(names(w) %in% names(object))) {
             warning("'w' components replace existing columns of the same name")
         }
-        
+
         ## reset / initialize columns for covariate-based epidemic weights
         object[names(w)] <- 0
         ## keep functions as attribute
@@ -381,7 +403,7 @@ update.epidata <- function (object, f = list(), w = list(), D = dist, ...)
             }
         }
     }
-    
+
     ## restore "epidata" class
     class(object) <- oldclass
     return(object)
@@ -396,12 +418,12 @@ compute_wijlist <- function (w, data)
         varname.i <- names(formals(wFUN))[[1L]]
         substr(varname.i, 1, nchar(varname.i)-2L)
     }, FUN.VALUE = "", USE.NAMES = TRUE)
-    
+
     if (any(wvarNotFound <- !wvars %in% names(data))) {
         stop("'w' function refers to unknown variables: ",
              paste0(names(w)[wvarNotFound], collapse=", "))
     }
-   
+
     ## compute weight matrices w_ij for each of w
     mapply(
         FUN = function (wFUN, wVAR, ids) {
@@ -420,7 +442,7 @@ compute_wijlist <- function (w, data)
 # EXTRACTION OPERATOR FOR 'EPIDATA' OBJECTS
 # Indexing with "[" would be possible (inheriting from data.frame).
 # But using any column index would remove attributes (row indexes would not).
-# Thus, we define an own method to retain and adjust the attributes when 
+# Thus, we define an own method to retain and adjust the attributes when
 # selecting a subset of blocks of the 'epidata'.
 # Selecting a subset of columns will remove class "epidata" (resulting in a
 # simple data.frame)
@@ -431,7 +453,7 @@ compute_wijlist <- function (w, data)
     # use data.frame method first
     xx <- NextMethod("[")
     # then return its result as pure data.frame or assure valid 'epidata'
-    
+
     # if a subset of columns has been selected and attributes have been removed
     if (NCOL(xx) != ncol(x) || any(names(xx) != names(x))) {
         if (inherits(xx, "data.frame")) { # xx could be a vector
@@ -442,13 +464,13 @@ compute_wijlist <- function (w, data)
         return(xx)
     }
     # else there is no effective column selection (e.g. j=TRUE)
-    
+
     if (nrow(xx) == 0) {
         message("Note: no rows selected, dropped class \"epidata\"")
         class(xx) <- "data.frame"
         return(xx[TRUE])   # removes attributes
     }
-    
+
     invalidEpidata <- FALSE
     blocksizesx <- table(x[["BLOCK"]])
     blocksizesxx <- table(xx[["BLOCK"]])
@@ -467,7 +489,7 @@ compute_wijlist <- function (w, data)
                 "only consecutive blocks may be selected")
         invalidEpidata <- TRUE
     }
-    
+
     if (invalidEpidata) {
         class(xx) <- "data.frame"
         xx[TRUE] # removes attributes
@@ -508,17 +530,17 @@ intersperse <- function (epidata, stoptimes, verbose = FALSE)
     if (!is.vector(stoptimes, mode = "numeric")) {
         stop("'stoptimes' must be a numeric vector")
     }
-    
+
     # Identify new 'stoptimes'
     sortedEpiStop <- sort(unique(epidata$stop))
     extraStoptimes <- stoptimes[! stoptimes %in% sortedEpiStop]
-    
+
     # Return original 'epidata' if nothing to do
     if (length(extraStoptimes) == 0) {
 #         message("nothing done: no new stop times")
         return(epidata)
     }
-    
+
 #    # Retain attributes of 'epidata'
 #    .attributes <- attributes(epidata)
 #    .attributes <- .attributes[match(c("eventTimes", "timeRange",
@@ -532,7 +554,7 @@ intersperse <- function (epidata, stoptimes, verbose = FALSE)
         extraStoptimes <- extraStoptimes[inside]
         warning("ignored extra 'stoptimes' outside the observation period")
     }
-    
+
     # Impute blocks for extraStoptimes
     oldclass <- class(epidata)
     class(epidata) <- "data.frame" # Avoid use of [.epidata (not necessary here)
@@ -562,16 +584,16 @@ intersperse <- function (epidata, stoptimes, verbose = FALSE)
       if (verbose) setTxtProgressBar(pb, i)
     }
     if (verbose) close(pb)
-    
+
     # Adjust BLOCK column
     sortedEpiStop <- sort(c(sortedEpiStop, extraStoptimes))
     epidata$BLOCK <- match(epidata$stop, sortedEpiStop)
-    
+
     # Reorder rows by time and id
     epidata <- epidata[order(epidata$BLOCK, epidata$id), ]
     row.names(epidata) <- NULL
     class(epidata) <- oldclass
-    
+
     return(epidata)
 }
 
@@ -593,7 +615,7 @@ intersperse <- function (epidata, stoptimes, verbose = FALSE)
 summary.epidata <- function (object, ...)
 {
     class(object) <- "data.frame"  # avoid use of [.epidata (not necessary here)
-    
+
     # extract coordinates and initially infected individuals
     idlevels <- levels(object[["id"]])
     N <- length(idlevels)
@@ -603,7 +625,7 @@ summary.epidata <- function (object, ...)
     initiallyInfected <- firstDataBlock$id[firstDataBlock$atRiskY == 0]
     m <- length(initiallyInfected)
     n <- N - m
-    
+
     ### summary 1: event table with columns id, time and type (of event, S/I/R)
     # Extract time points of the S events for each id
     StimesID <- by(object[c("atRiskY", "stop")], object["id"],
@@ -623,7 +645,7 @@ summary.epidata <- function (object, ...)
     Itimes[["type"]] <- rep("I", nrow(Itimes))
     Rtimes <- object[object$Revent == 1, c("id", "stop")]
     Rtimes[["type"]] <- rep("R", nrow(Rtimes))
-    
+
     # Combine the three event types into one data.frame
     eventTable <- rbind(Rtimes, Stimes, Itimes)
       # need this order for the counters below in the case of SIS:
@@ -632,7 +654,7 @@ summary.epidata <- function (object, ...)
     eventTable <- eventTable[order(eventTable[["id"]], eventTable[["time"]]), ]
     eventTable[["type"]] <- factor(eventTable[["type"]], levels=c("S","I","R"))
     rownames(eventTable) <- NULL
-    
+
     ### summary 2: type and size of the epidemic
     resusceptibility <- length(StimesVec) > 0
     epitype <-
@@ -649,7 +671,7 @@ summary.epidata <- function (object, ...)
     size <- n - sum(isNeverInfected)
 #     everInfected <- factor(idlevels[isEverInfected], levels = idlevels)
     neverInfected <- factor(idlevels[isNeverInfected], levels = idlevels)
-    
+
     ### summary 3: eventTable by id in wide form
     byID_everInfected <-
         if (nrow(eventTable) == 0) {
@@ -660,7 +682,11 @@ summary.epidata <- function (object, ...)
             .res <- reshape(eventTable, direction = "wide", timevar = "type",
                            idvar = "id")
             attr(.res, "reshapeWide") <- NULL
-            .res
+            if ("time.I" %in% names(.res)) {
+                .res
+            } else { # degenerate case: only R (and S) events in data
+                cbind(.res[1L], "time.I" = NA_real_, .res[-1L])
+            }
         } else {
             rowsPerId <- table(eventTable[["id"]])
             modulo3 <- rowsPerId %% 3
@@ -671,7 +697,7 @@ summary.epidata <- function (object, ...)
                            time = rep(NA_real_, sum(rest1)),
                            type = rep("R", sum(rest1)), row.names = NULL,
                            check.names = FALSE, stringsAsFactors = FALSE)
-            missingS <- 
+            missingS <-
                 data.frame(id = names(rowsPerId)[rest12],
                            time = rep(NA_real_, sum(rest12)),
                            type = rep("S", sum(rest12)), row.names = NULL,
@@ -691,10 +717,10 @@ summary.epidata <- function (object, ...)
         time.I = rep(NA_real_, n-size), time.R = rep(NA_real_, n-size),
         time.S = rep(NA_real_, n-size), row.names = NULL, check.names = FALSE)
     byID_all <- rbind(byID_everInfected,
-                      byID_neverInfected[seq_along(byID_everInfected)])
+                      byID_neverInfected[names(byID_everInfected)])
     byID <- byID_all[order(byID_all[["id"]]),]
     rownames(byID) <- NULL
-    
+
     ### summary 4: upgrade eventTable with
     ###            evolution of numbers of susceptibles, infectious and removed
     counters <- eventTable[order(eventTable[["time"]]),c("time", "type", "id")]

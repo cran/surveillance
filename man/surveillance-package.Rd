@@ -1,4 +1,5 @@
-% Note @ R 3.0.2: Unfortunately, setting \RdOpts{stage=build} globally
+%\RdOpts{stage=build}
+% Note @R-3.0.2 and @R-3.4.2: Setting \RdOpts{stage=build} globally
 % does not work as expected, so we have to specify it in each \Sexpr
 
 \encoding{latin1}
@@ -29,8 +30,10 @@
     Package: \tab \Sexpr[stage=build]{meta$Package}\cr
     Version: \tab \Sexpr[stage=build]{meta$Version}\cr
     License: \tab \Sexpr[stage=build]{meta$License}\cr
-    URL:     \tab \url{http://surveillance.r-forge.r-project.org/}\cr
-    % cannot use \Sexpr within \url; and results=rd with "\\url"-paste is buggy
+    %URL:     \tab \url{\Sexpr[stage=build]{meta$URL}}\cr
+    % \Sexpr within \url does not work (although it works within \email below)
+    % and using results=rd with "\\\\url"-paste doubles \url markup ...
+    URL:     \tab \url{http://surveillance.R-forge.R-project.org/}\cr
   }
   
   The package implements many typical outbreak detection procedures such
@@ -103,10 +106,12 @@
 }
 
 \references{
-  Relevant references can be listed by calling
-  \code{citation(package="surveillance")}.
+  Relevant references are listed in \code{surveillance:::REFERENCES},
+  and \code{citation(package="surveillance")} gives the two main software
+  references for the modeling (Meyer et al., 2017) and the monitoring
+  (Salmon et al., 2016) functionalities.
   
-  If you use functionality of the \pkg{surveillance} package in your own
+  If you use the \pkg{surveillance} package in your own
   work, please do cite the corresponding publications.
 }
 

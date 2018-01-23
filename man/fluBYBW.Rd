@@ -27,7 +27,7 @@
 }
 
 \source{
-  Robert Koch-Institut: SurvStat: \url{http://www3.rki.de/SurvStat};
+  Robert Koch-Institut: SurvStat: \url{https://survstat.rki.de/};
   Queried on 6 March 2009.
 }
 

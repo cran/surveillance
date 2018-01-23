@@ -108,11 +108,17 @@ knox(dt, ds, eps.t, eps.s, simulate.p.value = TRUE, B = 999, ...)
 }
 
 \seealso{
-  the space-time K-function test \code{\link{stKtest}}
-  to combine information from different scales 
-  \code{eps.t} and \code{eps.s} while also handling edge effects,
-  as well as function \code{\link{epitest}} for testing
-  \code{"\link{twinstim}"} models.
+  The function \code{mantel.randtest} in package \pkg{ade4}
+  implements Mantel's (1967) space-time interaction test, i.e., using
+  the Pearson correlation between the spatial and temporal distances of
+  all event pairs as the test statistic, and assessing statistical
+  significance using a Monte Carlo permutation approach as with
+  \code{simulate.p.value} here in the \code{knox} function.
+  To combine information from different scales \code{eps.t} and
+  \code{eps.s} while also handling edge effects, the space-time
+  K-function test available via \code{\link{stKtest}} can be used.
+  Function \code{\link{epitest}} tests epidemicity in a
+  \code{"\link{twinstim}"} point process model.
 }
 
 \references{
@@ -145,19 +151,33 @@ knox(dt, ds, eps.t, eps.s, simulate.p.value = TRUE, B = 999, ...)
 data("imdepi")
 imdepiB <- subset(imdepi, type == "B")
 
-## Obtain the p-value via a Monte Carlo permutation test,
-## where the permutations can be computed in parallel
-## (using forking on Unix-alikes and a cluster on Windows, see ?plapply)
+## Perfom the Knox test using the Poisson approximation
 knoxtest <- knox(
     dt = dist(imdepiB$events$time), eps.t = 30,
     ds = dist(coordinates(imdepiB$events)), eps.s = 50,
-    simulate.p.value = TRUE, B = 199,
-    .parallel = 2, .seed = 1, .verbose = FALSE
+    simulate.p.value = FALSE
 )
 knoxtest
-plot(knoxtest)
+## The Poisson approximation works well for these data since
+## the proportion of close pairs is rather small (204/56280).
 
-toLatex(knoxtest)  # just the contingency table
+## contingency table in LaTeX
+toLatex(knoxtest)
+
+
+if (surveillance.options("allExamples")) {
+    ## Obtain the p-value via a Monte Carlo permutation test,
+    ## where the permutations can be computed in parallel
+    ## (using forking on Unix-alikes and a cluster on Windows, see ?plapply)
+    knoxtestMC <- knox(
+        dt = dist(imdepiB$events$time), eps.t = 30,
+        ds = dist(coordinates(imdepiB$events)), eps.s = 50,
+        simulate.p.value = TRUE, B = 999,
+        .parallel = 2, .seed = 1, .verbose = FALSE
+    )
+    knoxtestMC
+    plot(knoxtestMC)
+}
 }
 
 \keyword{htest}

@@ -18,8 +18,10 @@ poly2adjmat(SpP, ..., zero.policy = TRUE)
 }
 
 \arguments{
-  \item{SpP}{an object inheriting from \code{"\link{SpatialPolygons-class}"}.}
-  \item{\dots}{arguments passed to \code{\link[spdep]{poly2nb}}.}
+  \item{SpP}{an object inheriting from \code{"\linkS4class{SpatialPolygons}"}.}
+  \item{\dots}{arguments passed to \code{\link[spdep]{poly2nb}}.
+    Its \code{snap} argument might be particularly useful to handle maps
+    with sliver polygons.}
   \item{zero.policy}{logical indicating if islands are allowed, see
     \code{\link[spdep]{nb2mat}}.}
 }
@@ -46,6 +48,10 @@ if (requireNamespace("spdep")) {
     ## same as already stored in the neighbourhood slot (in different order)
     stopifnot(all.equal(adjmat,
                         neighbourhood(fluBYBW)[rownames(adjmat),colnames(adjmat)]))
+
+    ## a visual check of the district-specific number of neighbours
+    plot(fluBYBW@map)
+    text(coordinates(fluBYBW@map), labels=rowSums(adjmat==1), font=2, col=2)
 
     ## the neighbourhood graph can be plotted with spdep
     plot(spdep::mat2listw(adjmat), coordinates(fluBYBW@map))

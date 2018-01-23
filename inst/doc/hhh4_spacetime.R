@@ -15,13 +15,15 @@ map <- measlesWeserEms@map
 populationFrac <- measlesWeserEms@populationFrac
 
 ## ----measlesWeserEms_neighbourhood-------------------------------------------------
-weserems_nbOrder <- nbOrder(poly2adjmat(map), maxlag = 10)
+weserems_adjmat <- poly2adjmat(map)
+weserems_nbOrder <- nbOrder(weserems_adjmat, maxlag = Inf)
 
 ## ----measlesWeserEms_construct-----------------------------------------------------
 measlesWeserEms <- sts(counts, start = c(2001, 1), frequency = 52,
   population = populationFrac, neighbourhood = weserems_nbOrder, map = map)
 
-## ----measlesWeserEms, fig.cap="Measles infections in the Weser-Ems region, 2001--2002.", fig.subcap=c("Time series of weekly counts.","Disease incidence (per 100\\,000 inhabitants)."), fig.width=5, fig.height=5, out.width="0.47\\linewidth", fig.pos="htb"----
+## ----measlesWeserEms, fig.cap="Measles infections in the Weser-Ems region, 2001--2002.", fig.subcap=c("Time series of weekly counts.","Disease incidence (per 100\\,000 inhabitants)."), fig.width=5, fig.height=5, out.width="0.5\\linewidth", fig.pos="htb", echo=-1----
+par(mar = c(5,5,1,1))
 plot(measlesWeserEms, type = observed ~ time)
 plot(measlesWeserEms, type = observed ~ unit,
   population = measlesWeserEms@map$POPULATION / 100000,
@@ -29,8 +31,10 @@ plot(measlesWeserEms, type = observed ~ unit,
   sp.layout = layout.scalebar(measlesWeserEms@map, corner = c(0.05, 0.05),
     scale = 50, labels = c("0", "50 km"), height = 0.03))
 
-## ----measlesWeserEms15, fig.cap=paste("Count time series of the", sum(colSums(observed(measlesWeserEms))>0), "affected districts."), out.width="\\linewidth", fig.width=10, fig.height=6, fig.pos="!h"----
+## ----measlesWeserEms15, fig.cap=paste("Count time series of the", sum(colSums(observed(measlesWeserEms))>0), "affected districts."), out.width="\\linewidth", fig.width=10, fig.height=6, fig.pos="!h", eval=-1----
 plot(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
+library("ggplot2")
+autoplot(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
 
 ## ----measlesWeserEms_animation, eval=FALSE-----------------------------------------
 #  animation::saveHTML(
@@ -56,7 +60,7 @@ measlesFit_basic <- hhh4(stsObj = measlesWeserEms, control = measlesModel_basic)
 ## ----measlesFit_basic_summary------------------------------------------------------
 summary(measlesFit_basic, idx2Exp = TRUE, amplitudeShift = TRUE, maxEV = TRUE)
 
-## ----measlesFit_basic_endseason, fig.width=6, fig.height=2.5, out.width=".6\\linewidth", fig.cap="Estimated multiplicative effect of seasonality on the endemic mean.", fig.pos="ht"----
+## ----measlesFit_basic_endseason, fig.width=6, fig.height=2.5, out.width=".5\\linewidth", fig.cap="Estimated multiplicative effect of seasonality on the endemic mean.", fig.pos="ht"----
 plot(measlesFit_basic, type = "season", components = "end", main = "")
 
 ## ----measlesFitted_basic, fig.cap="Fitted components in the initial model \\code{measlesFit\\_basic} for the six districts with more than 20 cases. Dots are only drawn for positive weekly counts.", out.width="\\linewidth", fig.pos="htb"----
@@ -242,6 +246,6 @@ measlesSim <- simulate(measlesFit_ri,
 ## ----------------------------------------------------------------------------------
 summary(colSums(measlesSim, dims = 2))
 
-## ----measlesSim_plot_time, fig.cap="Simulation-based long-term forecast starting from the last week in 2001 (left-hand dot). The plot shows the weekly counts aggregated over all districts. The fan chart represents the 1\\% to 99\\% quantiles of the simulations in each week. The circles correspond to the observed counts.", fig.pos="htb"----
-plot(measlesSim, "fan", ylim = c(0, 140), key.args = list())
+## ----measlesSim_plot_time, fig.cap="Simulation-based long-term forecast starting from the last week in 2001 (left-hand dot). The plot shows the weekly counts aggregated over all districts. The fan chart represents the 1\\% to 99\\% quantiles of the simulations in each week; their mean is displayed as a white line. The circles correspond to the observed counts.", fig.pos="htb"----
+plot(measlesSim, "fan", means.args = list(), key.args = list())
 

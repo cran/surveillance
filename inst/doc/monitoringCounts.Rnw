@@ -611,9 +611,8 @@ humidity on the occurrence of weekly reported campylobacter cases in Germany.
 <<campyDE, fig=FALSE, echo = FALSE, label=campyDE,include = F,results=tex>>=
 # Load data and create \code{sts}-object
 data("campyDE")
-cam.sts <- new("sts",epoch=as.numeric(campyDE$date),
-               observed=campyDE$case,  state=campyDE$state,
-               epochAsDate=TRUE)
+cam.sts <- sts(epoch=as.numeric(campyDE$date), epochAsDate=TRUE,
+               observed=campyDE$case, state=campyDE$state)
 par(las=1)
 # Plot
 y.max <- max(observed(cam.sts),upperbound(cam.sts),na.rm=TRUE)
@@ -650,9 +649,8 @@ axis(side=4, at=seq(0,2500,by=500),labels=seq(0,50,by=10),las=1,cex.lab=cex.text
 
 <<campyDElongVersion, eval=FALSE, fig=FALSE, echo = TRUE, label=campyDElongVersion,include = TRUE,results=tex,keep.source=TRUE>>=
 data("campyDE")
-cam.sts <- new("sts", epoch = as.numeric(campyDE$date),
-               observed = campyDE$case, state = campyDE$state,
-               epochAsDate = TRUE)
+cam.sts <- sts(epoch = as.numeric(campyDE$date), epochAsDate = TRUE,
+               observed = campyDE$case, state = campyDE$state)
 plot(cam.sts, legend = NULL, xlab = "time [weeks]", ylab = "No. reported",
      col = "gray", cex = 2, cex.axis = 2, cex.lab = 2)
 lines(campyDE$hum * 50, col = "darkblue", lwd = 2)
@@ -808,8 +806,8 @@ combineSTS <- function(stsList) {
    alarm <- cbind(alarm,alarms(stsList[[i]]))
  }
  colnames(observed) <- colnames(alarm) <- names(stsList)
- res <- new("sts", epoch=as.numeric(epoch),
-            observed=observed, alarm=alarm,epochAsDate=TRUE)
+ res <- sts(epoch=as.numeric(epoch), epochAsDate=TRUE,
+            observed=observed, alarm=alarm)
  return(res)
 }
 @
@@ -1085,7 +1083,7 @@ observedHosp <- cbind(observed(salmHospitalized),
                       population(salmHospitalized) -
 					  observed(salmHospitalized))
 nrowHosp <- nrow(salmHospitalized)
-salmHospitalized.multi <- new("sts", freq = 52, start = c(2004, 1),
+salmHospitalized.multi <- sts(freq = 52, start = c(2004, 1),
                               epoch = as.numeric(epoch(salmHospitalized)),
                               epochAsDate = TRUE,
                               observed = observedHosp,
@@ -1097,7 +1095,7 @@ salmHospitalized.multi <- new("sts", freq = 52, start = c(2004, 1),
 # Create the \code{sts}-object with the counts for the 2 categories
 population <- population(salmHospitalized)
 observed <- observed(salmHospitalized)
-salmHospitalized.multi <- new("sts", freq=52, start=c(2004,1),
+salmHospitalized.multi <- sts(freq=52, start=c(2004,1),
                               epoch = as.numeric(epoch(salmHospitalized)),
                               epochAsDate=TRUE,
                               observed = cbind(observed,
@@ -1436,7 +1434,7 @@ Based on this, the \textit{in-control} and \textit{out-of-control} proportions a
 <<echo=TRUE,eval=FALSE>>=
 m1 <- m0
 
-m1$coefficients[1, ] <- m0$coefficients[1, ] + log(7)
+m1@coefficients[1, ] <- m0@coefficients[1, ] + log(7)
 
 pi0 <- t(predict(m0, newdata = X[phase2, ])[, reorder])
 pi1 <- t(predict(m1, newdata = X[phase2,])[, reorder])
@@ -1444,7 +1442,7 @@ pi1 <- t(predict(m1, newdata = X[phase2,])[, reorder])
 <<echo=FALSE>>=
 m1 <- m0
 # Out-of control model: shift in all intercept coeffs
-m1$coefficients[1,] <- m0$coefficients[1,] + log(2)
+m1@coefficients[1,] <- m0@coefficients[1,] + log(2)
 # Proportion over time for phase2 based on fitted model (re-order back)
 pi0 <- t(predict(m0, newdata=X[phase2,])[,reorder])
 pi1 <-  t(predict(m1, newdata=X[phase2,])[,reorder])
@@ -1509,7 +1507,7 @@ The Dirichlet distribution is the multicategorical equivalent of the beta-binomi
 m0.dm <- MGLMreg(as.matrix(rotaBB.df[phase1, 1:5]) ~ -1 + X[phase1, ],
                 dist = "DM")
 
-c(m0$AIC, m0.dm$AIC)
+c(m0@AIC, m0.dm@AIC)
 @
 Hence, the above estimated false alarm probability might be too low for the actual monitoring problem, because the variation in the time series is larger than implied by the multinomial. Hence, it appears prudent to repeat the analysis using the more flexible  Dirichlet-multinomial model. This is straightforward with \code{categoricalCUSUM} once the \textit{out-of-control} proportions are specified in terms of the model. Such a specification is, however, hampered by the fact that the two models use different parametrizations.
 
@@ -1527,7 +1525,7 @@ alpha0 <- exp(X[phase2,] %*% m0.dm$coefficients)
 alpha1 <- exp(X[phase2,] %*% m1.dm$coefficients)
 
 dfun <- function(y, size, mu, log = FALSE) {
-	dLog <- ddirm(t(y), t(mu))
+	dLog <- ddirmn(t(y), t(mu))
 	if (log) { return(dLog) } else { return(exp(dLog)) }
 }
 
@@ -1541,16 +1539,16 @@ surv.dm <- categoricalCUSUM(rotaBB, control = control)
 # Change intercept in the first class (for DM all 5 classes are modeled)
 delta <- 2
 m1.dm <- m0.dm
-m1.dm$coefficients[1,] <- m0.dm$coefficients[1,] +
+m1.dm@coefficients[1,] <- m0.dm@coefficients[1,] +
                            c(-delta,rep(delta/4,4))
 # Calculate the alphas of the multinomial-Dirichlet in the two cases
-alpha0 <- exp(X[phase2,] %*% m0.dm$coefficients)
-alpha1 <- exp(X[phase2,] %*% m1.dm$coefficients)
+alpha0 <- exp(X[phase2,] %*% m0.dm@coefficients)
+alpha1 <- exp(X[phase2,] %*% m1.dm@coefficients)
 
 # Use alpha vector as mu magnitude
 # (not possible to compute it from mu and size)
 dfun <- function(y, size, mu, log=FALSE) {
-	dLog <- ddirm(t(y), t(mu))
+	dLog <- ddirmn(t(y), t(mu))
 	if (log) { return(dLog) } else {return(exp(dLog))}
 }
 
