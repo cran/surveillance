@@ -6,8 +6,8 @@
 ### Auxiliary functions for operations on spatial data
 ###
 ### Copyright (C) 2009-2015 Sebastian Meyer
-### $Revision: 1463 $
-### $Date: 2015-09-07 21:06:12 +0200 (Mon, 07. Sep 2015) $
+### $Revision: 2142 $
+### $Date: 2018-05-14 15:03:36 +0200 (Mon, 14. May 2018) $
 ################################################################################
 
 
@@ -92,11 +92,11 @@ unionSpatialPolygons <- function (SpP,
 
 
 ### Compute distance from points to a polygonal boundary
-## nncross.ppp() is about 20 times faster than the previous bdist.points()
-## approach [-> distppl()], since it calls C-code [-> distppllmin()]
+## nncross.ppp() calls C-code and is about 20 times faster than
+## bdist.points(), which uses spatstat.utils::distppl() (pure R)
 ## minor drawback: the polygonal boundary needs to be transformed to "psp"
 
-bdist <- function (xy, poly)
+bdist <- function (xy, poly)  # poly is polygonal "owin" or "psp" (simEpidataCS)
 {
     if (nrow(xy) > 0L) {
         nncross.ppp(
@@ -109,6 +109,24 @@ bdist <- function (xy, poly)
        numeric(0L)
    }
 }
+
+## 20% faster version directly using spatstat.utils::distppllmin(),
+## which is documented as an internal function and thus cannot be relied on
+## bdist <- function (xy, poly)
+## {
+##     if (nrow(xy) > 0L) {
+##         ll <- if (is.polygonal(poly)) {
+##                   edges(poly, check = FALSE)$ends
+##               } else {
+##                   stopifnot(inherits(poly, "psp"))
+##                   poly$ends
+##               }
+##         spatstat.utils::distppllmin(xy, ll)$min.d
+##     } else {
+##         numeric(0L)
+##     }
+## }
+## Try: bdist(coordinates(imdepi$events), as(imdepi$W, "owin"))
 
 
 ### sample n points uniformly on a disc with radius r
@@ -128,7 +146,7 @@ runifdisc <- function (n, r = 1, buffer = 0)
 
 multiplicity.Spatial <- function (x) multiplicity(coordinates(x))
 
-    
+
 ### determines which polygons of a SpatialPolygons object are at the border,
 ### i.e. have coordinates in common with the spatial union of all polygons
 
@@ -176,7 +194,7 @@ layout.labels <- function (obj, labels = TRUE, plot = FALSE)
             obj@data[[labels]]
         } else labels
     }
-    
+
     ## convert labels argument to a list
     labels.args <- if (is.list(labels)) {
         labels

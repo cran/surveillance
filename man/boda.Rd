@@ -1,3 +1,4 @@
+\encoding{latin1}
 \name{boda}
 \alias{boda}
 
@@ -52,7 +53,7 @@ boda(sts, control = list(
       \item{\code{multicore}}{Detect using \code{parallel::detectCores}
 	how many logical cores are available and set INLA to use this number.}
       \item{\code{samplingMethod}}{Should one sample from the parameters joint distribution (joint) or from their respective marginal posterior distribution (marginals)?}
-      \item{quantileMethod}{Character, either \code{MC} or \code{MM}. Indicates how to compute the quantile based on the posterior distribution (no matter the inference method): either by sampling \code{mc.munu} values from the posterior distribution of the parameters and then for each sampled parameters vector sampling \code{mc.y} response values so that one gets a vector of response values based on which one computes an empirical quantile (MC method, as explained in Manitz and \enc{Höhle}{Hoehle} 2013); or by sampling \code{mc.munu} from the posterior distribution of the parameters and then compute the quantile of the mixture distribution using bisectionning, which is faster.}
+      \item{quantileMethod}{Character, either \code{MC} or \code{MM}. Indicates how to compute the quantile based on the posterior distribution (no matter the inference method): either by sampling \code{mc.munu} values from the posterior distribution of the parameters and then for each sampled parameters vector sampling \code{mc.y} response values so that one gets a vector of response values based on which one computes an empirical quantile (MC method, as explained in Manitz and \enc{Höhle}{Hoehle} 2013); or by sampling \code{mc.munu} from the posterior distribution of the parameters and then compute the quantile of the mixture distribution using bisectioning, which is faster.}
     }
   }
 }

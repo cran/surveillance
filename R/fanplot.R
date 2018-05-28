@@ -13,6 +13,10 @@ fanplot <- function (quantiles, probs, means = NULL, observed = NULL,
     key.args = NULL, xlim = NULL, ylim = NULL,
     xlab = "Time", ylab = "No. infected", add = FALSE, ...)
 {
+    if (!requireNamespace("fanplot", quietly = TRUE))
+        stop("package ", sQuote("fanplot"), " is missing; ",
+             "do 'install.packages(\"fanplot\")'")
+
     stopifnot(is.matrix(quantiles), length(probs) == ncol(quantiles),
               is.null(means) || length(means) == nrow(quantiles),
               is.null(observed) || length(observed) == nrow(quantiles),

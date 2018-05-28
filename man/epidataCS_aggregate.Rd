@@ -72,7 +72,13 @@ epidataCS2sts(object, freq, start, neighbourhood,
 }
 
 \details{
-  Some comments on the conversion from \code{"epidataCS"} to \code{"epidata"}:
+  Conversion to \code{"\linkS4class{sts}"} only makes sense if the time
+  intervals (\code{BLOCK}s) of the \code{stgrid} are regularly spaced
+  (to give \code{freq} intervals per year). Note that events of the
+  prehistory (not covered by \code{stgrid}) are not included in the
+  resulting \code{sts} object.
+  
+  Some comments on the conversion to \code{"epidata"}:
   the conversion results into SIS epidemics only,
   i.e. the at-risk indicator is set to 1 immediately after
   recovery. A tile is considered infective if at least one individual
@@ -111,10 +117,10 @@ load(system.file("shapes", "districtsD.RData", package="surveillance"))
 imdsts <- epidataCS2sts(imdepi, freq = 12, start = c(2002, 1),
                         neighbourhood = NULL, # not needed here
                         tiles = districtsD)
-\dontshow{
-stopifnot(isTRUE(all.equal(colSums(imdsts@observed),
-                           c(table(imdepi$events$tile)))))
-}
+
+## check the overall number of events by district
+stopifnot(all.equal(colSums(observed(imdsts)),
+                    c(table(imdepi$events$tile))))
 
 ## compare plots of monthly number of cases
 opar <- par(mfrow = c(2, 1))
@@ -128,7 +134,7 @@ plot(imdsts, type = observed ~ unit)
 
 ## also test conversion to an SIS event history ("epidata") of the "tiles"
 if (requireNamespace("intervals")) {
-    imdepi_short <- subset(imdepi, time < 50)
+    imdepi_short <- subset(imdepi, time < 50)  # to reduce the runtime
     imdepi_short$stgrid <- subset(imdepi_short$stgrid, start < 50)
     imdepidata <- as.epidata(imdepi_short,
                              tileCentroids = coordinates(districtsD))

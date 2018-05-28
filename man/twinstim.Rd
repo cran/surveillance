@@ -504,7 +504,7 @@ rug(imdepiC_infeps$events$time)
 rug(imdepiC_infeps$events$time[s$nSources == 0], col = 2, lwd = 3)
 ## An endemic component would catch such events (from unobserved sources),
 ## otherwise a longer infectious period would need to be assumed and
-## for the first event to happen, a pre-history is required (e.g., t0 = 31).
+## for the first event to happen, a prehistory is required (e.g., t0 = 31).
 ## As an example, we fit the data only until T = 638 (all events have ancestors)
 m_epi <- twinstim(epidemic = ~1, data = imdepiC_infeps, t0 = 31, T = 638)
 summary(m_epi)

@@ -7,9 +7,9 @@
 ### class "twinstim". The function basically uses Ogata's modified thinning
 ### algorithm (cf. Daley & Vere-Jones, 2003, Algorithm 7.5.V.).
 ###
-### Copyright (C) 2010-2017 Sebastian Meyer
-### $Revision: 1993 $
-### $Date: 2017-10-06 15:25:39 +0200 (Fri, 06. Oct 2017) $
+### Copyright (C) 2010-2018 Sebastian Meyer
+### $Revision: 2116 $
+### $Date: 2018-04-18 17:22:12 +0200 (Wed, 18. Apr 2018) $
 ################################################################################
 
 ### CAVE:
@@ -91,6 +91,10 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     	unionSpatialPolygons(tiles)
     } else check_W(W)  # does as(W, "SpatialPolygons")
 
+    if (!.skipChecks) {
+        cat("Checking 'tiles' ...\n")
+        ## we always check 'tiles', but quietly in the simulate-method
+    }
     tileLevels <- levels(stgrid$tile)
     tiles <- check_tiles(tiles, tileLevels,
                          areas.stgrid = stgrid[["area"]][seq_along(tileLevels)],
@@ -198,6 +202,8 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     if (Nout > 0L) {
         check_tiles_events(tiles, events)
         eventCoords <- coordinates(events)
+        rownames(eventCoords) <- NULL  # to avoid duplicates ("" for new events)
+                                       # which disturb the final SpatialPointsDataFrame()
         eventData <- events@data
         ## check presence of unpredictable marks
         if (length(.idx <- which(!unpredMarks %in% names(eventData)))) {
@@ -287,7 +293,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
             # actually, the process might be endemic offset-only, which I don't care about ATM
         }
         if (Nout == 0L) {
-            stop("missing 'events' pre-history (no endemic component)")
+            stop("missing 'events' prehistory (no endemic component)")
         }
     }
 
@@ -325,7 +331,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
         structure(mmhEvents, offset = model.offset(mfhEvents))
     }
 
-    # actually, we don't need the endemic model matrix for the pre-history events at all
+    # actually, we don't need the endemic model matrix for the prehistory events at all
     # this is just to test consistence with 'beta' and for the names of 'beta'
     mmh <- buildmmh(eventData[0L,])
     if (ncol(mmh) != p) {

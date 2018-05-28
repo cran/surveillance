@@ -119,7 +119,6 @@ export(fanplot)
 
 # spatial utilities
 export(discpoly)
-#export(runifdisc)           # CAVE: spatstat has similar function of same name
 export(unionSpatialPolygons)
 export(inside.gpc.poly)
 S3method(scale, gpc.poly)   # redefined method for gpc.poly in spatial_stuff.R
@@ -231,7 +230,6 @@ export(sts_observation)
 export(create.disProg, readData, toFileDisProg)
 S3method(print, disProg)
 S3method(plot, disProg)
-S3method(plot, disProg.one)
 S3method(aggregate, disProg)
 
 export(sim.pointSource, sim.seasonalNoise)
@@ -264,7 +262,6 @@ export(algo.farrington.assign.weights,
 
 S3method(plot, atwins)
 S3method(plot, survRes)
-S3method(plot, survRes.one)
 S3method(print, algoQV)
 S3method(xtable, algoQV)
 

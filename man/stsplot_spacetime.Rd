@@ -1,3 +1,4 @@
+\encoding{latin1}
 \name{stsplot_spacetime}
 \alias{stsplot_spacetime}
 \title{
@@ -8,7 +9,7 @@
   For each period (row) or for the overall period of the
   \code{observed} matrix of the \code{"\linkS4class{sts}"} object, a map
   showing the counts by region is produced.
-  It is possible to redirect the output into files, e.g. to generate an
+  It is possible to redirect the output into files, e.g., to generate an
   animated GIF.
 }
 
@@ -55,11 +56,12 @@ stsplot_spacetime(x, type, legend = NULL, opts.col = NULL, labels = TRUE,
   }
   \item{verbose}{\code{Boolean} whether to write out extra information
   }
-  \item{dev.printer}{Either \code{NULL}, which means that plotting is
-    only to the screen otherwise a list with elements \code{device},
+  \item{dev.printer}{Either \code{NULL} (default), which means that plotting is
+    only to the screen, or a list with elements \code{device},
     \code{extension}, \code{width}, \code{height}, and \code{name}
     (with defaults \code{png}, \code{".png"}, \code{640}, \code{480},
-    and \code{"Rplot"}, respectively).
+    and \code{"Rplot"}, respectively) to \code{\link{dev.print}} the
+    plots to files (only works in interactive sessions).
     This option is more or less obsolete since the \pkg{animation}
     package provides better features for output to files.
   }

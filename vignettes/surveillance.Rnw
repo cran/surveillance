@@ -30,12 +30,12 @@ Germany }
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Sweave 
+% Sweave
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage{Sweave}
 %Put all in another directory
 \SweaveOpts{prefix.string=plots/surveillance, width=9, height=4.5}
- \setkeys{Gin}{width=1\textwidth} 
+ \setkeys{Gin}{width=1\textwidth}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Initial R code
@@ -56,7 +56,7 @@ CACHEFILE <- "surveillance-cache.RData"
 compute <- !file.exists(CACHEFILE)
 message("Doing computations: ", compute)
 if(!compute) load(CACHEFILE)
-@ 
+@
 
 
 
@@ -92,7 +92,7 @@ instead of \texttt{disProg} is encouraged to encapsulate time series data.
   set of time series. Being an open-source package it should be easy
   to integrate new algorithms; as an example of this process, a
   simple Bayesian surveillance algorithm is described, implemented and evaluated.\\
-  \noindent{\bf Keywords:} infectious disease, monitoring, aberrations, 
+  \noindent{\bf Keywords:} infectious disease, monitoring, aberrations,
   outbreak, time series of counts.
 \end{abstract}
 
@@ -151,17 +151,17 @@ maintained by the Robert Koch Institute, Germany~\citep{survstat}.
 For example the object \texttt{k1} describes Kryptosporidosis
 surveillance data for the German federal state Baden-W\"{u}rttemberg
 2001-2005. The peak in 2001 is due to an outbreak of Kryptosporidosis
-among a group of army-soldiers in boot-camp~\citep{bulletin3901}. In
-\surveillance\ the \texttt{readData} function is used to bring the
-time series on \texttt{disProg} form. The SurvStat@RKI database
-uses a 53 weeks a
-year format; therefore a conversion with \texttt{correct53to52} is
-necessary.
+among a group of army-soldiers in boot-camp~\citep{bulletin3901}.
+%% In \surveillance\ the \texttt{readData} function is used to bring the
+%% time series on \texttt{disProg} form. The SurvStat@RKI database
+%% uses a 53 weeks a
+%% year format; therefore a conversion with \texttt{correct53to52} is
+%% necessary.
 
 <<fig=T>>=
 data(k1)
 plot(k1,main="Kryptosporidiosis in BW 2001-2005")
-@ 
+@
 
 For evaluation purposes it is also of interest to generate
 surveillance data using simulation. The package contains functionality
@@ -195,9 +195,9 @@ log-link mean depending on a seasonal effect and time trend, i.e.\
 \beta t.
 \]
 In case of an outbreak $(X_t=1)$ the mean increases with a value of
-$K$, altogether  
+$K$, altogether
 \begin{equation}\label{eq:hmm}
-  Y_t \sim \operatorname{Po}(\mu_t + K \cdot X_t). 
+  Y_t \sim \operatorname{Po}(\mu_t + K \cdot X_t).
 \end{equation}
 The model in (\ref{eq:hmm}) corresponds to a single-source,
 common-vehicle outbreak, where the length of an outbreak is controlled
@@ -210,7 +210,7 @@ diffusion of the peak. The advantage of (\ref{eq:hmm}) is that
 estimation can be done by a generalized linear model (GLM) using $X_t$
 as covariate and that it allows for an easy definition of a correctly
 identified outbreak: each $X_t=1$ has to be identified. More advanced
-setups would require more involved definitions of an outbreak, e.g.\ 
+setups would require more involved definitions of an outbreak, e.g.\
 as a connected series of time instances, where the number of outbreak
 cases is greater than zero.  Care is then required in defining what a
 correctly identified outbreak for time-wise overlapping outbreaks means.
@@ -225,7 +225,7 @@ sts <- sim.pointSource(p = 0.99, r = 0.5, length = 400,
                        A = 1, alpha = 1, beta = 0, phi = 0,
                        frequency = 1, state = NULL, K = 1.7)
 plot(sts)
-@ 
+@
 
 \section{Surveillance Algorithms}\label{sec:algo}
 Surveillance data often exhibit strong seasonality, therefore most
@@ -275,8 +275,8 @@ predict. Thus, $\lambda \sim \text{Ga}(\alpha, \beta)$ and
 $y_i|\lambda \sim \text{Po}(\lambda)$, $i = 1,\ldots,{n}$. Standard
 derivations show that the posterior distribution is
 \begin{equation*}
-\lambda|y_1, \ldots, y_{n} \sim \text{Ga}(\alpha + \sum_{i=1}^{n} y_i, 
-\beta + n). 
+\lambda|y_1, \ldots, y_{n} \sim \text{Ga}(\alpha + \sum_{i=1}^{n} y_i,
+\beta + n).
 \end{equation*}
 Computing the predictive distribution
 \begin{equation*}
@@ -286,11 +286,11 @@ f(\lambda|y_1,\ldots,y_{n})}\, d\lambda
 \end{equation*}
 we get the Poisson-Gamma-distribution
 \begin{equation*}
- y_{0:t}|y_1,\ldots,y_{n} \sim 
+ y_{0:t}|y_1,\ldots,y_{n} \sim
 \text{PoGa}(\alpha + \sum_{i=1}^{n} y_i, \beta + n),
 \end{equation*}
 which is a generalization of the negative Binomial distribution,
-i.e.\ 
+i.e.\
 \[
 y_{0:t}|y_1,\ldots,y_{n} \sim \text{NegBin}(\alpha + \sum_{i=1}^{n}
 y_i, \tfrac{\beta + n}{\beta + n + 1}).
@@ -308,7 +308,7 @@ Using a quantile-parameter $\alpha$, the smallest value $y_\alpha$ is computed, 
 \begin{equation*}
   P(y \leq y_\alpha) \geq 1-\alpha.
 \end{equation*}
-Now 
+Now
 \begin{equation*}
          A_{0:t} = I(y_{0:t} \geq y_\alpha),
 \end{equation*}
@@ -321,7 +321,7 @@ as reference values, i.e.\ $R(w,w_0,b)=(6,6,0)$, and is applied to the
 k1.b660 <- algo.bayes(k1,
   control = list(range = 27:192, b = 0, w = 6, alpha = 0.01))
 plot(k1.b660, disease = "k1", firstweek = 1, startyear = 2001)
-@ 
+@
 
 Several extensions of this simple Bayesian approach are imaginable,
 for example the inane over-dispersion of the data could be modeled by
@@ -358,7 +358,7 @@ if (compute) {
 par(mfcol=c(1,2))
 plot(sts.cdc, legend.opts=NULL)
 plot(sts.farrington, legend.opts=NULL)
-@ 
+@
 
 
 Typically, one is interested in evaluating the performance of the
@@ -377,7 +377,7 @@ To compute various performance scores the function
 
 <<>>=
 print(algo.quality(k1.b660))
-@ 
+@
 This computes the number of false positives, true negatives, false
 negatives, the sensitivity and the specificity. Furthermore, \texttt{dist}
 is defined as
@@ -395,37 +395,36 @@ To compare the results of several algorithms on a single time series
 we declare a list of control objects -- each containing the name and
 settings of the algorithm we want to apply to the data.
 <<CONTROL>>=
-control = list(
-  list(funcName = "rki1"),
-  list(funcName = "rki2"),
-  list(funcName = "rki3"),
-  list(funcName = "bayes1"),
-  list(funcName = "bayes2"),
-  list(funcName = "bayes3"),
-  list(funcName = "cdc",alpha=0.05),
-  list(funcName = "farrington",alpha=0.05))
-control <- lapply(control,function(ctrl) {
-  ctrl$range <- 300:400;return(ctrl)})
-@ 
+control <- list(
+  list(funcName = "rki1"), list(funcName = "rki2"),
+  list(funcName = "rki3"), list(funcName = "bayes1"),
+  list(funcName = "bayes2"), list(funcName = "bayes3"),
+  list(funcName = "cdc", alpha=0.05),
+  list(funcName = "farrington", alpha=0.05)
+)
+control <- lapply(control, function(ctrl) {
+  ctrl$range <- 300:400; return(ctrl)
+})
+@
 %
 In the above, \texttt{rki1}, \texttt{rki2} and \texttt{rki3} are three
 methods with reference values $R_\text{rki1}(6,6,0)$,
-$R_\text{rki2}(6,6,1)$ and $R_\text{rki3}(4,0,2)$ all called with
-$\alpha=0.05$. The methods \texttt{bayes1}-\texttt{bayes3} is the
-Bayesian algorithm using the same setup of reference values. The CDC
-Method is special, since it operates on aggregated four-week blocks.
-To make everything comparable a common $\alpha=0.05$ level is used for
-all algorithms. All algorithms in \texttt{control} are applied to
-\texttt{sts} using:
+$R_\text{rki2}(6,6,1)$ and $R_\text{rki3}(4,0,2)$, all called with
+$\alpha=0.05$. The \texttt{bayes*} methods use the
+Bayesian algorithm with the same setup of reference values. The CDC
+method is special since it operates on aggregated four-week blocks.
+To make everything comparable, a common $\alpha=0.05$ level is used for
+all algorithms.
+All algorithms in \texttt{control} are applied to \texttt{sts} using:
 <<echo=T,eval=F>>=
 algo.compare(algo.call(sts, control = control))
 @
-<<echo=F,eval=T>>= 
+<<echo=F,eval=T>>=
 if (compute) {
   acall <- algo.call(sts, control = control)
 }
 print(algo.compare(acall), digits = 3)
-@ 
+@
 
 A test on a set of time series can be done as follows. Firstly, a list
 containing 10 simulated time series is created. Secondly, all the
@@ -439,25 +438,25 @@ ten <- lapply(1:10,function(x) {
   sim.pointSource(p = 0.975, r = 0.5, length = 400,
                   A = 1, alpha = 1, beta = 0, phi = 0,
                   frequency = 1, state = NULL, K = 1.7)})
-@ 
+@
 <<TENSURV,echo=true,eval=false>>=
 #Do surveillance on all 10, get results as list
-ten.surv <- lapply(ten,function(ts) { 
+ten.surv <- lapply(ten,function(ts) {
   algo.compare(algo.call(ts,control=control))
 })
-@ 
+@
 <<echo=false,eval=true,results=hide>>=
 if (compute) {
 <<TENSURV>>
 }
-@ 
+@
 <<echo=T,eval=F>>=
 #Average results
 algo.summary(ten.surv)
-@ 
+@
 <<echo=F,eval=T>>=
 print(algo.summary(ten.surv), digits = 3)
-@ 
+@
 
 A similar procedure can be applied when evaluating the 14 surveillance
 series drawn from SurvStat@RKI~\citep{survstat}. A problem is however,
@@ -471,17 +470,25 @@ the evaluation can be done on all 209 values.
 <<eval=T>>=
 #Update range in each - cyclic continuation
 range = (2*4*52) +  1:length(k1$observed)
-control <- lapply(control,function(cntrl) { 
+control <- lapply(control,function(cntrl) {
   cntrl$range=range;return(cntrl)})
 
+#Auxiliary function to enlarge data
+enlargeData <- function(disProgObj, range = 1:156, times = 1){
+  disProgObj$observed <- c(rep(disProgObj$observed[range], times),
+                           disProgObj$observed)
+  disProgObj$state <- c(rep(disProgObj$state[range], times),
+                        disProgObj$state)
+  return(disProgObj)
+}
+
 #Outbreaks
-outbrks <- c("m1", "m2", "m3", "m4", "m5", "q1_nrwh", "q2", 
+outbrks <- c("m1", "m2", "m3", "m4", "m5", "q1_nrwh", "q2",
              "s1", "s2", "s3", "k1", "n1", "n2", "h1_nrwrp")
 
 #Load and enlarge data.
 outbrks <- lapply(outbrks,function(name) {
-  #Load with data
-  eval(substitute(data(name),list(name=name)))
+  data(list=name)
   enlargeData(get(name),range=1:(4*52),times=2)
 })
 
@@ -489,16 +496,16 @@ outbrks <- lapply(outbrks,function(name) {
 one.survstat.surv <- function(outbrk) {
   algo.compare(algo.call(outbrk,control=control))
 }
-@ 
+@
 <<echo=T,eval=F>>=
 algo.summary(lapply(outbrks,one.survstat.surv))
-@ 
+@
 <<echo=F,eval=T>>=
 if (compute) {
   res.survstat <- algo.summary(lapply(outbrks,one.survstat.surv))
 }
 print(res.survstat, digits=3)
-@ 
+@
 
 In both this study and the earlier simulation study the Bayesian
 approach seems to do quite well. However, the extent of the
@@ -535,8 +542,8 @@ par(mar=c(0,0,0,0))
 plot(measlesWeserEms@map[-c(1,5),], col=grey.colors(15,start=0.4,end=1))
 text(coordinates(measlesWeserEms@map[-c(1,5),]),
      labels=row.names(measlesWeserEms@map)[-c(1,5)], font=2)
-@ 
-  \caption{Map of the administrative district ``Weser-Ems''}     
+@
+  \caption{Map of the administrative district ``Weser-Ems''}
   \label{fig:map}
 \end{figure}
 
@@ -545,13 +552,13 @@ in the form of a \texttt{disProg}-object.
 
 <<fig=T>>=
 data("measles.weser")
-plot(measles.weser, title="measles in Weser-Ems 2001-2002", 
+plot(measles.weser, title="measles in Weser-Ems 2001-2002",
      xaxis.years=TRUE, startyear= 2001, firstweek=1)
 @
 
 The number of counts for each area can also be looked at and plotted
 as individual time series.
-Here, the x-axis is the week number since 1st of January 2001 and the 
+Here, the x-axis is the week number since 1st of January 2001 and the
 y-axis is the number of measles cases.
 
 <<fig=T,width=10,height=6>>=
@@ -579,15 +586,15 @@ is fitted to the data.
 <<cntrl>>=
 cntrl <- list(linear = TRUE, nseason = 1, neighbours = TRUE,
               negbin = "single", lambda = TRUE)
-@ 
+@
 The counts are assumed to be negative binomial distributed
 with mean $\mu_{it}$ and variance $\mu_{it} +\mu_{it}^2/\psi$.
 A linear time trend $\beta$, seasonal parameters $\gamma_1$ and $\beta_1$ (i.e.\ $S=1$)
 as well as the autoregressive parameters $\lambda$ and $\phi$ are included
 to specify the mean.
 All in all, there are %21 parameters to be estimated.
-$2S+m+4$ parameters to be estimated for the negative binomial model. 
-In case of a Poisson model, the number of parameters reduces by one 
+$2S+m+4$ parameters to be estimated for the negative binomial model.
+In case of a Poisson model, the number of parameters reduces by one
 as the overdispersion parameter $\psi$ is omitted.
 
 <<measles.hhh, echo=T, eval=F>>=
@@ -610,8 +617,8 @@ until either all starting values are used or a time limit \texttt{maxTime} (in s
 is exceeded. The result with the highest likelihood is returned.
 
 <<measles.hhh.grid, echo=T,eval=F>>=
-grid <- create.grid(measles.weser, control = cntrl, 
-  params = list(endemic = c(lower=-0.5, upper=0.5, length=3), 
+grid <- create.grid(measles.weser, control = cntrl,
+  params = list(endemic = c(lower=-0.5, upper=0.5, length=3),
                 epidemic = c(0.1, 0.9, 5),
                 negbin = c(0.3, 12, 5)))
 measles.hhh.grid <- algo.hhh.grid(measles.weser,
@@ -622,7 +629,7 @@ if (compute) {
 message("running a grid search for up to 5 minutes")
 <<measles.hhh.grid>>
 }
-@ 
+@
 
 <<>>=
 print(measles.hhh.grid, digits = 3)

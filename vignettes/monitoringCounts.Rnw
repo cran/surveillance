@@ -1705,14 +1705,13 @@ results <- farringtonFlexible(salmNewport[, c("Baden.Wuerttemberg",
                                              "North.Rhine.Westphalia")],
                   control = algoParameters)
 
-start <- isoWeekYear(epoch(salmNewport)[range(range)[1]])
-end <- isoWeekYear(epoch(salmNewport)[range(range)[2]])
-caption <- paste("Results of the analysis of reported S. Newport
-                 counts in two German federal states for the weeks W-",
-                 start$ISOWeek, "-", start$ISOYear, " - W-", end$ISOWeek,
-                 "-", end$ISOYear, " performed on ", Sys.Date(),
-                 ". Bold upperbounds (UB) indicate weeks with alarms.",
-                 sep="")
+start <- isoWeekYear(epoch(salmNewport)[min(rangeAnalysis)])
+end <- isoWeekYear(epoch(salmNewport)[max(rangeAnalysis)])
+caption <- paste0("Results of the analysis of reported S. Newport ",
+                  "counts in two German federal states for the weeks ",
+                  start$ISOYear, "-W", start$ISOWeek, " to ",
+                  end$ISOYear, "-W", end$ISOWeek,
+                  ". Bold red counts indicate weeks with alarms.")
 toLatex(results, caption = caption)
 @
 <<testLabel, echo = FALSE, results = tex>>=
@@ -1722,26 +1721,25 @@ toLatex(results, caption = caption)
 today <- which(epoch(salmNewport)==as.Date("2013-12-23"))
 # The analysis will be performed for the given week
 # and the 4 previous ones
-range <- (today-4):today
+rangeAnalysis <- (today-4):today
 in2013 <- which(isoWeekYear(epoch(salmNewport))$ISOYear==2013)
 # Control argument for using the improved method
-control2 <- list(range=range,noPeriods=10,populationBool=FALSE,
+control2 <- list(range=rangeAnalysis,noPeriods=10,populationBool=FALSE,
                  b=4,w=3,weightsThreshold=2.58,pastWeeksNotIncluded=26,
                  pThresholdTrend=1,thresholdMethod="nbPlugin",alpha=0.05,
-				 limit54=c(0,50))
+                 limit54=c(0,50))
 # Run farringtonFlexible
 results <- farringtonFlexible(salmNewport[,c("Baden.Wuerttemberg",
                                              "North.Rhine.Westphalia")],
                   control=control2)
 # Export the results as a tex table
-start <- isoWeekYear(epoch(salmNewport)[range(range)[1]])
-end <- isoWeekYear(epoch(salmNewport)[range(range)[2]])
-caption <- paste("Results of the analysis of reported S. Newport
-                 counts in two German federal states for the weeks W-",
-				 start$ISOWeek," ",start$ISOYear," - W-",end$ISOWeek,
-				 " ",end$ISOYear," performed on ",Sys.Date(),
-				 ". Bold upperbounds (thresholds) indicate weeks with alarms.",
-				 sep="")
+start <- isoWeekYear(epoch(salmNewport)[min(rangeAnalysis)])
+end <- isoWeekYear(epoch(salmNewport)[max(rangeAnalysis)])
+caption <- paste0("Results of the analysis of reported S. Newport ",
+                  "counts in two German federal states for the weeks ",
+                  start$ISOYear, "-W", start$ISOWeek, " to ",
+                  end$ISOYear, "-W", end$ISOWeek, #" performed on ", Sys.Date(),
+                  ". Bold red counts indicate weeks with alarms.")
 toLatex(results, table.placement="h", size = "normalsize",
         sanitize.text.function = identity,
         NA.string = "-",include.rownames=FALSE,

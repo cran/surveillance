@@ -6,7 +6,7 @@ dir.create("figs")
 
 
 ###################################################
-### chunk number 1: 
+### chunk number 1:
 ###################################################
 library("surveillance")
 options(width=70)
@@ -35,7 +35,7 @@ plot(aggregate(ha),main="Hepatitis A in Berlin 2001-2006")
 
 
 ###################################################
-### chunk number 3: 
+### chunk number 3:
 ###################################################
 opendevice(file="figs/002.pdf")
 data("ha")
@@ -44,16 +44,16 @@ dev.off()
 
 
 ###################################################
-### chunk number 4: 
+### chunk number 4:
 ###################################################
-sps <- sim.pointSource(p = 0.99, r = 0.5, length = 400, 
-     A = 1, alpha = 1, beta = 0, phi = 0, frequency = 1, 
+sps <- sim.pointSource(p = 0.99, r = 0.5, length = 400,
+     A = 1, alpha = 1, beta = 0, phi = 0, frequency = 1,
      state = NULL, K = 1.7)
 plot(sps,xaxis.years=FALSE)
 
 
 ###################################################
-### chunk number 5: 
+### chunk number 5:
 ###################################################
 opendevice(file="figs/003.pdf")
 plot(sps,xaxis.years=FALSE,legend.opts=list(x="topleft"))
@@ -68,7 +68,7 @@ dev.off()
 
 
 ###################################################
-### chunk number 7: 
+### chunk number 7:
 ###################################################
 ha.b662 <- algo.bayes(aggregate(ha), control = list(range = 209:290, b = 2, w = 6, alpha = 0.01))
 plot(ha.b662, firstweek=1, startyear = 2005)
@@ -86,7 +86,7 @@ dev.off()
 
 
 ###################################################
-### chunk number 9: 
+### chunk number 9:
 ###################################################
 cntrl <- list(range = 300:400, m = 1, w = 3, b = 5, alpha = 0.01)
 sps.cdc <- algo.cdc(sps, control = cntrl)
@@ -94,7 +94,7 @@ sps.farrington <- algo.farrington(sps, control = cntrl)
 
 
 ###################################################
-### chunk number 10: 
+### chunk number 10:
 ###################################################
 opendevice(file="figs/farringtoncdc.pdf")
 par(mfcol = c(1, 2),cex=0.8)
@@ -111,7 +111,7 @@ dev.off()
 
 
 ###################################################
-### chunk number 12: 
+### chunk number 12:
 ###################################################
 opendevice(file="figs/hacusum.pdf")
 kh <- find.kh(ARLa=500,ARLr=7)
@@ -124,15 +124,15 @@ beta <- coef(ha.cusum$control$m.glm)
 
 
 ###################################################
-### chunk number 13: 
+### chunk number 13:
 ###################################################
 print(algo.quality(ha.b662))
 
 
 ###################################################
-### chunk number 14: 
+### chunk number 14:
 ###################################################
-#This chunk contains stuff the reader should not see, but which is necessary 
+#This chunk contains stuff the reader should not see, but which is necessary
 #for the visual block to work.
 control = list(
   list(funcName = "rki1"),
@@ -152,14 +152,20 @@ data("k1")
 range = (2*4*52) +  1:length(k1$observed)
 aparv.control <- lapply(control,function(cntrl) { cntrl$range=range;return(cntrl)})
 
+#Auxiliary function to enlarge data
+enlargeData <- function(disProgObj, range = 1:156, times = 1){
+  disProgObj$observed <- c(rep(disProgObj$observed[range], times), disProgObj$observed)
+  disProgObj$state <- c(rep(disProgObj$state[range], times), disProgObj$state)
+  return(disProgObj)
+}
+
 #Outbreaks
-outbrks <- c("m1", "m2", "m3", "m4", "m5", "q1_nrwh", "q2", 
+outbrks <- c("m1", "m2", "m3", "m4", "m5", "q1_nrwh", "q2",
               "s1", "s2", "s3", "k1", "n1", "n2", "h1_nrwrp")
 
 #Load and enlarge data.
 outbrks <- lapply(outbrks,function(name) {
-  #Load with data
-  eval(substitute(data(name),list(name=name)))
+  data(list=name)
   enlargeData(get(name),range=1:(4*52),times=2)
 })
 
@@ -177,9 +183,9 @@ surv.one <- function(outbrk) {
 ## surv.one <- function(outbrk) {
 ##   algo.compare(algo.call(outbrk,control=aparv.control))
 ## }
-## 
+##
 ## algo.summary(lapply(outbrks, surv.one))
-## 
+##
 
 
 ###################################################
@@ -189,7 +195,7 @@ res <- algo.summary(lapply(outbrks,surv.one))
 
 
 ###################################################
-### chunk number 17: 
+### chunk number 17:
 ###################################################
 print(res,digits=3)
 
@@ -208,7 +214,7 @@ print(res,digits=3)
 ##                                 populationFrac= "matrix",
 ##                                 map = "SpatialPolygonsDataFrame",
 ##                                 control = "list"))
-## 
+##
 
 
 ###################################################
@@ -217,11 +223,11 @@ print(res,digits=3)
 ## shp <- system.file("shapes/berlin.shp",package="surveillance")
 ## ha <- disProg2sts(ha, map=maptools::readShapePoly(shp,IDvar="SNAME"))
 ## plot(ha,type=observed ~ 1 | unit)
-## 
+##
 
 
 ###################################################
-### chunk number 20: 
+### chunk number 20:
 ###################################################
 opendevice(file="figs/ha-1unit.pdf",width=7,height=7)
 par(mar=c(0,0,0,0))
@@ -242,7 +248,7 @@ dev.off()
 
 
 ###################################################
-### chunk number 22: 
+### chunk number 22:
 ###################################################
 opendevice(file="figs/ha-timeunit.pdf",width=7,height=5)
 ha4 <- aggregate(ha[,c("pank","mitt","frkr","scho","chwi","neuk")],nfreq=13)

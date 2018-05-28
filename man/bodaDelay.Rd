@@ -1,3 +1,4 @@
+\encoding{latin1}
 \name{bodaDelay}
 \alias{bodaDelay}
 \title{Bayesian Outbreak Detection in the Presence of Reporting Delays}

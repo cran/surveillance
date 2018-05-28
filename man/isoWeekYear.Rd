@@ -15,8 +15,8 @@
   strings to this function, if the \code{.Platform$OS.type}
   information reveals a Windows system. The function also provides three
   additional \code{strptime} formatting strings: "\%Q" (the quarter of a
-  date as a numeric), "%OQ" (the quarter of a date in roman) and "%q"
-  (day within the quarter). These are, e.g., used by \code{linelist2sts}.  
+  date as a numeric), "\%OQ" (the quarter of a date in roman) and "\%q"
+  (day within the quarter). These are, e.g., used by \code{linelist2sts}.
 }
 \source{
   The code to find the ISO week and year on Windows is by Gustaf Rydevik

@@ -28,7 +28,8 @@ autoplot.sts <- function (object, population = FALSE,
 
     p <- ggplot2::ggplot(
         data = data,
-        mapping = ggplot2::aes_(x = ~date, y = ~observed, group = ~unit)
+        mapping = ggplot2::aes_(x = ~date, y = ~observed, group = ~unit),
+        environment = parent.frame()
     )
     if (as.one) {
         p <- p + ggplot2::geom_line(ggplot2::aes_(colour = ~unit))

@@ -1,3 +1,4 @@
+\encoding{latin1}
 \name{stsNewport}
 \alias{stsNewport}
 \docType{data}

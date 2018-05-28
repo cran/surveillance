@@ -1,3 +1,4 @@
+\encoding{latin1}
 \name{twinstim_epitest}
 \alias{epitest}
 \alias{coef.epitest}

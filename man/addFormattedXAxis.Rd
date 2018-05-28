@@ -1,3 +1,4 @@
+\encoding{latin1}
 \name{addFormattedXAxis}
 \alias{addFormattedXAxis}
 % helper functions for time axis formatting

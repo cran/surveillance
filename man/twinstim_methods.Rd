@@ -136,7 +136,7 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
   returned otherwise. 
   The \code{logLik} and \code{nobs} methods return the maximum
   log-likelihood value of the model, and the number of events (excluding
-  events of the pre-history), respectively.
+  events of the prehistory), respectively.
   
   The \code{summary} method returns a list containing some summary
   statistics of the model, which is nicely printed by the corresponding

@@ -4,12 +4,16 @@
 \encoding{latin1}
 
 \title{Plot a survRes object}
-\description{Plotting of a (multivariate) \code{survRes} object. The function \code{plot.survRes.one} is used as a helper function to plot a univariate time series.
+\description{
+  Plotting a (multivariate) \code{survRes} object. The internal
+  function \code{plot.survRes.one} is used as a helper function
+  to plot a univariate time series.
 }
 \usage{
   \method{plot}{survRes}(x, method=x$control$name, disease=x$control$data, 
-  xaxis.years=TRUE,startyear = 2001, firstweek = 1, same.scale=TRUE,\dots)
-  \method{plot}{survRes.one}(x, method=x$control$name, disease=x$control$data,
+  xaxis.years=TRUE,startyear = 2001, firstweek = 1, same.scale=TRUE, ...)
+
+  plot.survRes.one(x, method=x$control$name, disease=x$control$data,
    domany=FALSE,ylim=NULL,xaxis.years=TRUE,startyear = 2001, firstweek = 1, 
    xlab="time", ylab="No. infected", main=NULL, type="hhs",
    lty=c(1,1,2),col=c(1,1,4), 
@@ -51,14 +55,12 @@
             just provided as additional elements of this list,
             e.g. \code{horiz=TRUE}.  
           }
-        \item{...}{further arguments for the function \code{matplot}. If e.g. \code{xlab} or \code{main} are provided they overwrite the default values.}
+        \item{...}{arguments passed to \code{plot.survRes.one}.
+            From there, further arguments are passed to \code{\link{matplot}}.}
 }
 \value{
   none. A plot showing the number of infected, the threshold for recognizing an
   outbreak, the alarm status and the outbreak status is generated.
-}
-\details{
-  The \code{plot.survRes.one} is intended for internal use. At the moment none of the surveillance methods support multivariate \code{survRes} objects. New versions of the packages currently under development will handle this.
 }
 \author{M. \enc{Höhle}{Hoehle}}
 \examples{

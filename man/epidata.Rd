@@ -1,3 +1,4 @@
+\encoding{latin1}
 \name{epidata}
 \alias{as.epidata}
 \alias{as.epidata.data.frame}

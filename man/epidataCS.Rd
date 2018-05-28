@@ -13,6 +13,7 @@
 \alias{print.summary.epidataCS}
 \alias{as.stepfun.epidataCS}
 \alias{getSourceDists}
+\alias{coerce,epidataCS,SpatialPointsDataFrame-method}
 
 \title{
   Continuous Space-Time Marked Point Patterns with Grid-Based Covariates
@@ -64,9 +65,10 @@ getSourceDists(object, dimension = c("space", "time"))
       \item{time}{time point of event. Will be converted to a numeric
         variable by \code{as.numeric}. There should be no concurrent
         events (but see \code{\link{untie}} for an ex post adjustment)
-        and the event times must be covered by \code{stgrid}, 
-        i.e. belong to the time interval \eqn{(t_0,T]}, where \eqn{t_0}
-        is \code{min(stgrid$start)} and \code{T} is described below.}
+        and there cannot be events beyond \code{stgrid}
+        (i.e., \code{time<=T} is required). Events at or before time
+        \eqn{t_0} = \code{min(stgrid$start)} are allowed and form the
+        prehistory of the process.}
       \item{tile}{the spatial region (tile) where the event is located.
       This links to the tiles of \code{stgrid}.}
       \item{type}{optional type of event in a marked \code{twinstim}
@@ -119,7 +121,7 @@ getSourceDists(object, dimension = c("space", "time"))
     The remaining columns are endemic covariates.
     Note that the column name \code{"BLOCK"} is reserved
     (a column which will be added automatically for indexing the time
-    intervals of \code{stgrid}).  
+    intervals of \code{stgrid}).
   }
 
   \item{W}{
@@ -209,12 +211,12 @@ getSourceDists(object, dimension = c("space", "time"))
   \code{"epidataCS"}, which is the data structure required for
   \code{\link{twinstim}} models.
 
-  The extraction method for class \code{"epidataCS"}
+  The \code{[}-method for class \code{"epidataCS"}
   ensures that the subsetted object will be valid, for instance, it
   updates the auxiliary list of potential transmission paths stored
-  in the object. This \code{[}-method is also the basis for the
-  \code{subset.epidataCS}-method, which is implemented similar to the
-  \code{\link{subset.data.frame}}-method.
+  in the object. The \code{[}-method is used in
+  \code{subset.epidataCS}, which is implemented similar to
+  \code{\link{subset.data.frame}}.
   
   The \code{print} method for \code{"epidataCS"} prints some metadata
   of the epidemic, e.g., the observation period, the dimensions of the
@@ -236,7 +238,7 @@ getSourceDists(object, dimension = c("space", "time"))
     The added auxiliary columns are:
     \describe{
       \item{\code{.obsInfLength}}{observed length of the infectious period
-	(being part [0,T]), i.e. \code{pmin(T-time, eps.t)}.}
+	(possibly truncated at \code{T}), i.e., \code{pmin(T-time, eps.t)}.}
       \item{\code{.sources}}{a list of numeric vectors of potential sources of
         infection (wrt the interaction ranges eps.s and eps.t) for each
         event. Row numbers are used as index.}
@@ -325,10 +327,13 @@ getSourceDists(object, dimension = c("space", "time"))
   There is also an \code{\link[=update.epidataCS]{update}} method for the
   \code{"epidataCS"} class.
 
-  Models for \code{"epidataCS"} can be fitted with \code{\link{twinstim}}.
-  It is also possible to convert the data to \code{\link{epidata}}
-  objects (discrete space) for analysis with \code{\link{twinSIR}}
-  (see \code{\link{as.epidata.epidataCS}}).
+  To re-extract the \code{events} point pattern from \code{"epidataCS"},
+  use \code{as(object, "SpatialPointsDataFrame")}.
+
+  It is possible to convert an \code{"epidataCS"} point pattern to
+  an \code{"\link{epidata}"} object (\code{\link{as.epidata.epidataCS}}),
+  or to aggregate the events into an \code{"\linkS4class{sts}"} object
+  (\code{\link{epidataCS2sts}}).
 }
 
 \examples{
@@ -370,34 +375,46 @@ subset(imdepi, type=="B")   # only consider event type B
 
 
 ###
-### reconstruct the "imdepi" object from its components
+### reconstruct the "imdepi" object
 ###
 
-## events
-events <- marks(imdepi)
-coordinates(events) <- c("x", "y")  # promote to a "SpatialPointsDataFrame"
-proj4string(events) <- proj4string(imdepi$events)       # ETRS89 projection
-summary(events)
-
-## endemic covariates
-head(stgrid <- imdepi$stgrid[,-1])
-
-## (Simplified) observation region (as "SpatialPolygons")
+## observation region
 load(system.file("shapes", "districtsD.RData", package="surveillance"),
      verbose = TRUE)
+summary(stateD)
+
+## extract point pattern of events from the "imdepi" data
+data(imdepi)
+events <- marks(imdepi)  # data frame with coordinate columns
+coordinates(events) <- c("x", "y")  # promote to a "SpatialPointsDataFrame"
+#proj4string(events) <- proj4string(stateD)
+events@proj4string <- stateD@proj4string  # exact copy (avoid CRS reformatting)
+
+## or, much simpler, use the corresponding coerce-method
+\dontshow{
+events@coords.nrs <- numeric(0L)
+stopifnot(all.equal(as(imdepi, "SpatialPointsDataFrame"), events))
+}
+events <- as(imdepi, "SpatialPointsDataFrame")
+summary(events)
 
 ## plot observation region with events
 plot(stateD, axes=TRUE); title(xlab="x [km]", ylab="y [km]")
 points(events, pch=unclass(events$type), cex=0.5, col=unclass(events$type))
 legend("topright", legend=levels(events$type), title="Type", pch=1:2, col=1:2)
 
+## space-time grid with endemic covariates
+head(stgrid <- imdepi$stgrid[,-1])
+
 ## reconstruct the "imdepi" object from its components
 myimdepi <- as.epidataCS(events = events, stgrid = stgrid,
                          W = stateD, qmatrix = diag(2), nCircle2Poly = 16)
-## -> equal to 'imdepi' as long as the internal structures of the embedded
-##    classes ("owin", "SpatialPolygons", ...), and the calculation of the
-##    influence regions by "polyclip" do not change:
-##all.equal(imdepi, myimdepi, tolerance=1E-6)
+\dontrun{
+## This reconstructed object is equal to 'imdepi' as long as the internal
+## structures of the embedded classes ("owin", "SpatialPolygons", ...), and
+## the calculation of the influence regions by "polyclip" have not changed:
+stopifnot(all.equal(imdepi, myimdepi))
+}
 }
 
 \keyword{spatial}

@@ -84,27 +84,26 @@ print(algo.quality(k1.b660))
 ###################################################
 ### code chunk number 9: CONTROL
 ###################################################
-control = list(
-  list(funcName = "rki1"),
-  list(funcName = "rki2"),
-  list(funcName = "rki3"),
-  list(funcName = "bayes1"),
-  list(funcName = "bayes2"),
-  list(funcName = "bayes3"),
-  list(funcName = "cdc",alpha=0.05),
-  list(funcName = "farrington",alpha=0.05))
-control <- lapply(control,function(ctrl) {
-  ctrl$range <- 300:400;return(ctrl)})
+control <- list(
+  list(funcName = "rki1"), list(funcName = "rki2"),
+  list(funcName = "rki3"), list(funcName = "bayes1"),
+  list(funcName = "bayes2"), list(funcName = "bayes3"),
+  list(funcName = "cdc", alpha=0.05),
+  list(funcName = "farrington", alpha=0.05)
+)
+control <- lapply(control, function(ctrl) {
+  ctrl$range <- 300:400; return(ctrl)
+})
 
 
 ###################################################
-### code chunk number 10: surveillance.Rnw:420-421 (eval = FALSE)
+### code chunk number 10: surveillance.Rnw:419-420 (eval = FALSE)
 ###################################################
 ## algo.compare(algo.call(sts, control = control))
 
 
 ###################################################
-### code chunk number 11: surveillance.Rnw:423-427
+### code chunk number 11: surveillance.Rnw:422-426
 ###################################################
 if (compute) {
   acall <- algo.call(sts, control = control)
@@ -113,7 +112,7 @@ print(algo.compare(acall), digits = 3)
 
 
 ###################################################
-### code chunk number 12: surveillance.Rnw:436-441
+### code chunk number 12: surveillance.Rnw:435-440
 ###################################################
 #Create 10 series
 ten <- lapply(1:10,function(x) {
@@ -126,51 +125,59 @@ ten <- lapply(1:10,function(x) {
 ### code chunk number 13: TENSURV (eval = FALSE)
 ###################################################
 ## #Do surveillance on all 10, get results as list
-## ten.surv <- lapply(ten,function(ts) { 
+## ten.surv <- lapply(ten,function(ts) {
 ##   algo.compare(algo.call(ts,control=control))
 ## })
 
 
 ###################################################
-### code chunk number 14: surveillance.Rnw:449-452
+### code chunk number 14: surveillance.Rnw:448-451
 ###################################################
 if (compute) {
 #Do surveillance on all 10, get results as list
-ten.surv <- lapply(ten,function(ts) { 
+ten.surv <- lapply(ten,function(ts) {
   algo.compare(algo.call(ts,control=control))
 })
 }
 
 
 ###################################################
-### code chunk number 15: surveillance.Rnw:454-456 (eval = FALSE)
+### code chunk number 15: surveillance.Rnw:453-455 (eval = FALSE)
 ###################################################
 ## #Average results
 ## algo.summary(ten.surv)
 
 
 ###################################################
-### code chunk number 16: surveillance.Rnw:458-459
+### code chunk number 16: surveillance.Rnw:457-458
 ###################################################
 print(algo.summary(ten.surv), digits = 3)
 
 
 ###################################################
-### code chunk number 17: surveillance.Rnw:471-491
+### code chunk number 17: surveillance.Rnw:470-498
 ###################################################
 #Update range in each - cyclic continuation
 range = (2*4*52) +  1:length(k1$observed)
-control <- lapply(control,function(cntrl) { 
+control <- lapply(control,function(cntrl) {
   cntrl$range=range;return(cntrl)})
 
+#Auxiliary function to enlarge data
+enlargeData <- function(disProgObj, range = 1:156, times = 1){
+  disProgObj$observed <- c(rep(disProgObj$observed[range], times),
+                           disProgObj$observed)
+  disProgObj$state <- c(rep(disProgObj$state[range], times),
+                        disProgObj$state)
+  return(disProgObj)
+}
+
 #Outbreaks
-outbrks <- c("m1", "m2", "m3", "m4", "m5", "q1_nrwh", "q2", 
+outbrks <- c("m1", "m2", "m3", "m4", "m5", "q1_nrwh", "q2",
              "s1", "s2", "s3", "k1", "n1", "n2", "h1_nrwrp")
 
 #Load and enlarge data.
 outbrks <- lapply(outbrks,function(name) {
-  #Load with data
-  eval(substitute(data(name),list(name=name)))
+  data(list=name)
   enlargeData(get(name),range=1:(4*52),times=2)
 })
 
@@ -181,13 +188,13 @@ one.survstat.surv <- function(outbrk) {
 
 
 ###################################################
-### code chunk number 18: surveillance.Rnw:493-494 (eval = FALSE)
+### code chunk number 18: surveillance.Rnw:500-501 (eval = FALSE)
 ###################################################
 ## algo.summary(lapply(outbrks,one.survstat.surv))
 
 
 ###################################################
-### code chunk number 19: surveillance.Rnw:496-500
+### code chunk number 19: surveillance.Rnw:503-507
 ###################################################
 if (compute) {
   res.survstat <- algo.summary(lapply(outbrks,one.survstat.surv))
@@ -207,16 +214,16 @@ text(coordinates(measlesWeserEms@map[-c(1,5),]),
 
 
 ###################################################
-### code chunk number 21: surveillance.Rnw:546-549
+### code chunk number 21: surveillance.Rnw:553-556
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 data("measles.weser")
-plot(measles.weser, title="measles in Weser-Ems 2001-2002", 
+plot(measles.weser, title="measles in Weser-Ems 2001-2002",
      xaxis.years=TRUE, startyear= 2001, firstweek=1)
 
 
 ###################################################
-### code chunk number 22: surveillance.Rnw:557-558
+### code chunk number 22: surveillance.Rnw:564-565
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 plot(measles.weser,as.one=FALSE,xaxis.years=FALSE)
@@ -238,8 +245,8 @@ cntrl <- list(linear = TRUE, nseason = 1, neighbours = TRUE,
 ###################################################
 ### code chunk number 25: measles.hhh.grid (eval = FALSE)
 ###################################################
-## grid <- create.grid(measles.weser, control = cntrl, 
-##   params = list(endemic = c(lower=-0.5, upper=0.5, length=3), 
+## grid <- create.grid(measles.weser, control = cntrl,
+##   params = list(endemic = c(lower=-0.5, upper=0.5, length=3),
 ##                 epidemic = c(0.1, 0.9, 5),
 ##                 negbin = c(0.3, 12, 5)))
 ## measles.hhh.grid <- algo.hhh.grid(measles.weser,
@@ -247,12 +254,12 @@ cntrl <- list(linear = TRUE, nseason = 1, neighbours = TRUE,
 
 
 ###################################################
-### code chunk number 26: surveillance.Rnw:620-624
+### code chunk number 26: surveillance.Rnw:627-631
 ###################################################
 if (compute) {
 message("running a grid search for up to 5 minutes")
-grid <- create.grid(measles.weser, control = cntrl, 
-  params = list(endemic = c(lower=-0.5, upper=0.5, length=3), 
+grid <- create.grid(measles.weser, control = cntrl,
+  params = list(endemic = c(lower=-0.5, upper=0.5, length=3),
                 epidemic = c(0.1, 0.9, 5),
                 negbin = c(0.3, 12, 5)))
 measles.hhh.grid <- algo.hhh.grid(measles.weser,
@@ -261,13 +268,13 @@ measles.hhh.grid <- algo.hhh.grid(measles.weser,
 
 
 ###################################################
-### code chunk number 27: surveillance.Rnw:627-628
+### code chunk number 27: surveillance.Rnw:634-635
 ###################################################
 print(measles.hhh.grid, digits = 3)
 
 
 ###################################################
-### code chunk number 28: surveillance.Rnw:632-638
+### code chunk number 28: surveillance.Rnw:639-645
 ###################################################
 if (compute) { # save computed results
     save(list=c("sts.cdc","sts.farrington","acall","res.survstat",

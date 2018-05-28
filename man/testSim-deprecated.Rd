@@ -1,4 +1,4 @@
-\name{testSim}
+\name{testSim-deprecated}
 \alias{testSim}
 \encoding{latin1}
 \title{Print xtable for a Simulated Disease and the Summary}
@@ -39,7 +39,9 @@ one printed LaTeX xtable and a result plot
 }
 \author{M. \enc{Höhle}{Hoehle}, A. Riebler, C. Lang}
 \examples{
+\dontrun{
 testSim(K = 2)
 testSim(r = 0.5, K = 5)
+}
 }
 \keyword{misc}

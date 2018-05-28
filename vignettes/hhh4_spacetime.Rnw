@@ -32,6 +32,7 @@ if (!COMPUTE) load("hhh4_spacetime-cache.RData", verbose = TRUE)
 
 
 \documentclass[nojss,nofooter,article]{jss}
+\usepackage[latin1]{inputenc} % Rnw is ASCII, but automatic package bib isn't
 
 \title{%
   \vspace{-1.5cm}
@@ -58,7 +59,6 @@ if (!COMPUTE) load("hhh4_spacetime-cache.RData", verbose = TRUE)
 \usepackage{amsmath,amsfonts} % amsfonts defines \mathbb
 \usepackage{mathtools}        % tools for math typesetting + amsmath-bugfixes
 \usepackage{bm}               % \bm: alternative to \boldsymbol from amsfonts
-\usepackage{bbm}              % \mathbbm: alternative to \mathbb from amsfonts
 
 %% Packages for figures and tables
 \usepackage{booktabs}         % make tables look nicer
@@ -72,7 +72,7 @@ if (!COMPUTE) load("hhh4_spacetime-cache.RData", verbose = TRUE)
 \newcommand{\dif}{\,\mathrm{d}}
 \newcommand{\IR}{\mathbb{R}}
 \newcommand{\IN}{\mathbb{N}}
-\newcommand{\ind}{\mathbbm{1}}
+\newcommand{\ind}{\mathbb{I}}
 \DeclareMathOperator{\Po}{Po}
 \DeclareMathOperator{\NegBin}{NegBin}
 \DeclareMathOperator{\N}{N}
@@ -312,8 +312,7 @@ equivalent \code{autoplot}-method (Figure~\ref{fig:measlesWeserEms15}),
 which is based on \CRANpkg{ggplot2} \citep{R:ggplot2}:
 <<measlesWeserEms15, fig.cap=paste("Count time series of the", sum(colSums(observed(measlesWeserEms))>0), "affected districts."), out.width="\\linewidth", fig.width=10, fig.height=6, fig.pos="!h", eval=-1>>=
 plot(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
-library("ggplot2")
-autoplot(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
+autoplot.sts(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
 @
 The districts
 \Sexpr{paste0(paste0(row.names(measlesWeserEms@map), " (", measlesWeserEms@map[["GEN"]], ")")[colSums(observed(measlesWeserEms)) == 0], collapse = " and ")}

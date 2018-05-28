@@ -1,4 +1,4 @@
-\name{enlargeData}
+\name{enlargeData-deprecated}
 \alias{enlargeData}
 \title{Data Enlargement}
 \description{
@@ -25,11 +25,11 @@ and the state chain (extended with cyclic data generation)
   we enlarge observed and state once with the first three existing years, assuming a year
   has 52 weeks.
 }
-\seealso{\code{\link{readData}}}
 \examples{
-obj <- readData("k1")
-
-enlargeData(obj) # enlarge once with part 1:156
-enlargeData(obj, 33:36, 10) # enlarge 10 times with part 33:36
+\dontrun{
+data("k1")
+enlargeData(k1) # enlarge once with part 1:156
+enlargeData(k1, 33:36, 10) # enlarge 10 times with part 33:36
+}
 }
 \keyword{utilities}

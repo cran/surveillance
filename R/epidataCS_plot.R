@@ -6,8 +6,8 @@
 ### plot-method for "epidataCS" objects
 ###
 ### Copyright (C) 2009-2015 Sebastian Meyer
-### $Revision: 1507 $
-### $Date: 2015-11-04 01:09:33 +0100 (Wed, 04. Nov 2015) $
+### $Revision: 2100 $
+### $Date: 2018-04-12 16:51:42 +0200 (Thu, 12. Apr 2018) $
 ################################################################################
 
 
@@ -59,7 +59,7 @@ epidataCSplot_time <- function (x, subset, by = type,
     if (identical(breaks, "stgrid")) {
         breaks <- c(timeRange[1L], unique.default(x$stgrid$stop))
         if (any(eventTimesTypes$time < timeRange[1L])) {
-            message("Note: ignoring events of the pre-history (before \"stgrid\")")
+            message("Note: ignoring events of the prehistory (before \"stgrid\")")
             eventTimesTypes <- base::subset(eventTimesTypes, time >= timeRange[1L])
             if (nrow(eventTimesTypes) == 0L) stop("no events left to plot")
         }
@@ -77,11 +77,11 @@ epidataCSplot_time <- function (x, subset, by = type,
         }
         if (is.null(cumulative[["axis"]])) cumulative[["axis"]] <- TRUE
     }
-    
+
     eventTimesTypes$type <- as.integer(eventTimesTypes$type)
     typesEffective <- sort(unique(eventTimesTypes$type))
     col <- rep_len(col, nTypes)
-    
+
     if (!is.null(t0.Date)) {
         stopifnot(length(t0.Date) == 1L)
         t0.Date <- as.Date(t0.Date)
@@ -101,7 +101,7 @@ epidataCSplot_time <- function (x, subset, by = type,
         ## as.Date("2009-12-31")). The following would fail:
         ## data("imdepi"); plot(imdepi, t0.Date = "2002-01-15", breaks = "months")
     }
-    
+
     gethistdata <- function (breaks, types = seq_len(nTypes)) {
         times <- eventTimesTypes$time[eventTimesTypes$type %in% types]
         if (is.null(t0.Date)) {
@@ -116,7 +116,7 @@ epidataCSplot_time <- function (x, subset, by = type,
         ## hist.Date() drops the Date class, but we need it for later re-use
         class(histdata$breaks) <- "Date"
     }
-    
+
     ## establish the basic plot window
     if (!add) {
         if (is.null(xlim)) xlim <- timeRange
@@ -126,7 +126,7 @@ epidataCSplot_time <- function (x, subset, by = type,
         if (is.null(ylab)) {
             ylab <- if (freq) "Number of cases" else "Density of cases"
         }
-        
+
         if (is.null(mar)) {
             mar <- par("mar")
             if (is.list(cumulative) && cumulative$axis) mar[4L] <- mar[2L]
@@ -189,7 +189,7 @@ epidataCSplot_time <- function (x, subset, by = type,
             legend.types)
         do.call("legend", legend.types)
     }
-    
+
     invisible(histdata)
 }
 
@@ -252,7 +252,7 @@ epidataCSplot_space <- function (x, subset, by = type, tiles = x$W, pop = NULL,
         points.args_pointwise[styleArgs], "[",
         eventCoordsTypesCounts$type)
     points.args_pointwise$cex <- points.args_pointwise$cex * cex.fun(pointCounts)
-    
+
     ## plot
     if (is.null(pop)) {
         ## classical plotting system

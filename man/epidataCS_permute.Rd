@@ -23,7 +23,7 @@ permute.epidataCS(x, what = c("time", "space"), keep)
   \item{keep}{optional logical expression to be evaluated in the context
     of \code{x$events@data}, determining for which events the time and
     location should be kept as is. For instance, to keep some
-    \dQuote{pre-history} before time point 30 unchanged, use
+    \dQuote{prehistory} before time point 30 unchanged, use
     \code{keep = time <= 30}.}
 }
 

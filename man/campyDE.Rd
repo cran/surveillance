@@ -1,3 +1,4 @@
+\encoding{latin1}
 \name{campyDE}
 \alias{campyDE}
 \docType{data}

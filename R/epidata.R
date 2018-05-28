@@ -6,9 +6,9 @@
 ### Data structure "epidata" representing the SIR event history of a fixed
 ### geo-referenced population (e.g., farms, households) for twinSIR() analysis
 ###
-### Copyright (C) 2008-2010, 2012, 2014-2017 Sebastian Meyer
-### $Revision: 2044 $
-### $Date: 2017-11-16 15:34:00 +0100 (Thu, 16. Nov 2017) $
+### Copyright (C) 2008-2010, 2012, 2014-2018 Sebastian Meyer
+### $Revision: 2109 $
+### $Date: 2018-04-18 10:54:00 +0200 (Wed, 18. Apr 2018) $
 ################################################################################
 
 ## CAVE:
@@ -683,13 +683,21 @@ summary.epidata <- function (object, ...)
                            idvar = "id")
             attr(.res, "reshapeWide") <- NULL
             if ("time.I" %in% names(.res)) {
-                .res
+                .res[c("id", "time.I", "time.R")]  # ensure natural order
             } else { # degenerate case: only R (and S) events in data
                 cbind(.res[1L], "time.I" = NA_real_, .res[-1L])
             }
         } else {
-            rowsPerId <- table(eventTable[["id"]])
+            eventTable3 <- if (m > 0) { # workaround for initially infected
+                rbind(data.frame(id = initiallyInfected, time = NA_real_, type = "I",
+                                 row.names = NULL, check.names = FALSE,
+                                 stringsAsFactors = FALSE),
+                      eventTable)
+            } else eventTable
+            rowsPerId <- table(eventTable3[["id"]])
             modulo3 <- rowsPerId %% 3
+            ## if this is 1, we need to append NAs for R and S events
+            ## if 2, only append NA for the final S (occurs for SIRS, not SIS)
             rest1 <- modulo3 == 1
             rest12 <- modulo3 >= 1
             missingR <-
@@ -702,7 +710,7 @@ summary.epidata <- function (object, ...)
                            time = rep(NA_real_, sum(rest12)),
                            type = rep("S", sum(rest12)), row.names = NULL,
                            check.names = FALSE, stringsAsFactors = FALSE)
-            eventTable3 <- rbind(eventTable, missingR, missingS)
+            eventTable3 <- rbind(eventTable3, missingR, missingS)
             eventTable3 <- eventTable3[order(eventTable3[["id"]]),]
             .res <- data.frame(
                 eventTable3[eventTable3$type == "I", c("id", "time")],

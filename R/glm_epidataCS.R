@@ -6,9 +6,9 @@
 ### Formulation of an endemic-only twinstim as a Poisson-GLM with response the
 ### number of events per space-time cell of stgrid and offset log(dt*ds)
 ###
-### Copyright (C) 2013-2014 Sebastian Meyer
-### $Revision: 967 $
-### $Date: 2014-08-25 10:42:07 +0200 (Mon, 25. Aug 2014) $
+### Copyright (C) 2013-2014,2018 Sebastian Meyer
+### $Revision: 2111 $
+### $Date: 2018-04-18 15:05:00 +0200 (Wed, 18. Apr 2018) $
 ################################################################################
 
 
@@ -27,8 +27,9 @@ glm_epidataCS <- function (formula, data, ...)
     typeSpecificModel <- "type" %in% all.vars(formula)
     typeNames <- levels(data$events@data$type)
     nTypes <- length(typeNames)
-    
+
     ## aggregated number of events in each cell of the stgrid
+    ## (prehistory events have a missing BLOCK and are thus ignored)
     if (typeSpecificModel) {
         .stgrid <- do.call("rbind", lapply(typeNames, function (type) {
             cbind(data$stgrid, type=type, deparse.level=0)
@@ -47,7 +48,7 @@ glm_epidataCS <- function (formula, data, ...)
             .stgrid$tile, .stgrid$BLOCK, sep=".")]
     }
     .stgrid$nEvents[is.na(.stgrid$nEvents)] <- 0L
-    stopifnot(sum(.stgrid$nEvents) == nobs(data))
+    ##stopifnot(sum(.stgrid$nEvents) == sum(!is.na(data$events$BLOCK)))
 
     ## Fit corresponding Poisson-GLM
     environment(formula) <- environment() # to see typeSpecificModel and nTypes

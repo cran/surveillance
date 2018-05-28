@@ -19,7 +19,7 @@
   (\code{"response"} or, equivalently, \code{"mean"}) is on the 
   scale of the response variable (mean = endemic plus epidemic components).
   The alternatives are: \code{"endemic"}, \code{"epidemic"},
-  \code{"epi.own"} (i.e. the autoregresssive part), and
+  \code{"epi.own"} (i.e. the autoregressive part), and
   \code{"epi.neighbours"} (i.e. the spatio-temporal part).}
 \item{\dots}{unused (argument of the generic).}
 }

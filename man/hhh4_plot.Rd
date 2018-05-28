@@ -1,3 +1,4 @@
+\encoding{latin1}
 \name{plot.hhh4}
 \alias{plot.hhh4}
 \alias{plotHHH4_fitted}
@@ -197,7 +198,7 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     maps. The default is to use the same scale for the component maps
     and a separate scale for the map showing the overall mean.}
   \item{col.regions}{a vector of colors used to encode the fitted
-    component means (see \code{\link{levelplot}}).}
+    component means (see \code{\link[lattice]{levelplot}}).}
   \item{map}{an object inheriting from \code{"\linkS4class{SpatialPolygons}"}
     with \code{row.names} covering \code{colnames(x)}.}
   \item{component}{component for which to plot the estimated
@@ -244,13 +245,13 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
   \code{plotHHH4_maxEV} (invisibly) and \code{getMaxEV} return the
   dominant eigenvalue of the \eqn{\Lambda_t} matrix for all time points
   \eqn{t} of \code{x$stsObj}.\cr
-  \code{plotHHH4_maps} returns a \code{\link{trellis.object}} if
+  \code{plotHHH4_maps} returns a \code{\link[lattice]{trellis.object}} if
   \code{length(which) == 1} (a single \code{\link{spplot}}), and
   otherwise uses \code{\link[gridExtra]{grid.arrange}} from the
   \pkg{gridExtra} package to arrange all \code{length(which)}
   \code{\link{spplot}}s on a single page.
   \code{plotHHH4_ri} returns the generated \code{\link{spplot}}, i.e.,
-  a \code{\link{trellis.object}}.\cr
+  a \code{\link[lattice]{trellis.object}}.\cr
   \code{plotHHH4_neweights} eventually calls \code{plotter} and
   thus returns whatever is returned by that function.
 }

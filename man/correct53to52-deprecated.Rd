@@ -1,4 +1,4 @@
-\name{correct53to52}
+\name{correct53to52-deprecated}
 \alias{correct53to52}
 \title{Data Correction from 53 to 52 weeks}
 \description{
@@ -23,6 +23,7 @@ and the state chain (corrected to 52 weeks instead of 53 weeks a year)
 }
 \seealso{\code{\link{readData}}}
 \examples{
+\dontrun{
 #This calls correct53to52 automatically
 obj <- readData("k1",week53to52=TRUE)
 correct53to52(obj) # first entry is the first week of the year
@@ -30,5 +31,6 @@ correct53to52(obj) # first entry is the first week of the year
 obj <- readData("n1",week53to52=FALSE)
 correct53to52(obj, firstweek = 5) # now it's assumed that the fifth
                                   # entry is the first week of the year
+}
 }
 \keyword{utilities}

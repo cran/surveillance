@@ -36,7 +36,7 @@ stsplot_space(x, tps = NULL, map = x@map, population = NULL,
   \item{tps}{
     a numeric vector of one or more time points.
     The unit-specific \emph{sum} over all time points \code{tps} is
-    plotted. The default \code{tps=NULL} means cumulation over the whole
+    plotted. The default \code{tps=NULL} means accumulation over the whole
     time period \code{1:nrow(x)}.
   }
   \item{map}{

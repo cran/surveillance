@@ -5,9 +5,9 @@
 ###
 ### Some internal helper functions for "twinstim".
 ###
-### Copyright (C) 2009-2016 Sebastian Meyer
-### $Revision: 1750 $
-### $Date: 2016-06-06 20:29:40 +0200 (Mon, 06. Jun 2016) $
+### Copyright (C) 2009-2016,2018 Sebastian Meyer
+### $Revision: 2100 $
+### $Date: 2018-04-12 16:51:42 +0200 (Thu, 12. Apr 2018) $
 ################################################################################
 
 
@@ -76,7 +76,7 @@ determineSources.epidataCS <- function (object, method = c("C", "R"))
         lapply(seq_along(eventTimes), function (i) {
             determineSources1(i, eventTimes, removalTimes, eventDists[i,],
                               object$events@data$eps.s, object$events@data$type,
-                              object$qmatrix) 
+                              object$qmatrix)
         })
     } else {
         determineSources(eventTimes = object$events$time, eps.t = object$events$eps.t,
@@ -119,18 +119,19 @@ checkQ <- function (qmatrix, typeNames)
 gridcellOfEvent <- function (t, tilename, stgrid)
 {
     ## idx <- with(stgrid, which(tile == tilename & start < t & stop >= t))
-    
+    ## lidx <- length(idx)
+    ## if (lidx == 0L) NA_integer_ else if (lidx == 1L) idx else {
+    ##     stop("'stgrid' has overlapping spatio-temporal grid cells")
+    ## }
+
     ## ~5x faster alternative assuming a full BLOCK x tile grid, which is
     ## sorted by BLOCK and tile (tile varying first), specifically there must be
     ## all levels(stgrid$tile) in every BLOCK in that order;
     ## this structure is guaranteed by check_stgrid()
-    blockstart <- match(TRUE, stgrid$stop >= t)
+    if (t <= stgrid$start[1L]) return(NA_integer_)  # prehistory event
+    blockstart <- match(TRUE, stgrid$stop >= t)     # NA if t is beyond
     idx <- blockstart + match(tilename, levels(stgrid$tile)) - 1L
-    
-    lidx <- length(idx)
-    if (lidx == 0L) NA_integer_ else if (lidx == 1L) idx else {
-        stop("'stgrid' has overlapping spatio-temporal grid cells")
-    }
+    return(idx)
 }
 
 
@@ -158,10 +159,10 @@ crudebeta0 <- function (nEvents, offset.mean, W.area, period, nTypes)
 ){
     ## the following variables are unused here, because the environment of
     ## FUN will be set to the parent.frame(), where the variables exist
-    ## they are only included to avoid the notes in R CMD check 
+    ## they are only included to avoid the notes in R CMD check
     iRareas <- influenceRegion <- eventTypes <- eps.s <- bdist <- effRanges <- NULL
-    
-    ## define the siaf integration function depending on the siaf specification 
+
+    ## define the siaf integration function depending on the siaf specification
     FUN <- if (attr(siaf, "constant"))
     {
         if (exists("iRareas", where=parent.frame(), mode="numeric")) {
@@ -216,7 +217,7 @@ crudebeta0 <- function (nEvents, offset.mean, W.area, period, nTypes)
             effRangeTypes <- rep_len(siaf$effRange(siafpars), nTypes),
             effRanges <- effRangeTypes[eventTypes]   # N-vector
             ),
-            parallel = parallel)        
+            parallel = parallel)
         if (exists("effRangeTypes", where=parent.frame(), mode="numeric")) {
             ## in simEpidataCS effRangeTypes is pre-calculated outside siafInt to
             ## save computation time ('siafpars' is constant during simulation)
@@ -224,7 +225,7 @@ crudebeta0 <- function (nEvents, offset.mean, W.area, period, nTypes)
         }
         .ret
     }
-    
+
     ## set the environment of the siafInt function to the callers environment
     ## (i.e. inside twinstim() or simEpidataCS())
     ## where the variables used in the function are defined
@@ -242,9 +243,9 @@ crudebeta0 <- function (nEvents, offset.mean, W.area, period, nTypes)
 {
     ## the following variables are unused here, because the environment of
     ## FUN will be set to the parent.frame(), where the variables exist
-    ## they are only included to avoid the notes in R CMD check 
+    ## they are only included to avoid the notes in R CMD check
     gIntLower <- gIntUpper <- eventTypes <- tiaf <- NULL
-    
+
     ## from, to and type may be vectors of compatible lengths
     FUN <- function(tiafpars, from = gIntLower, to = gIntUpper,
                     type = eventTypes, G = tiaf$G)
@@ -253,7 +254,7 @@ crudebeta0 <- function (nEvents, offset.mean, W.area, period, nTypes)
         tiafIntLower <- G(from, tiafpars, type)
         tiafIntUpper - tiafIntLower
     }
-    
+
     ## set the environment of the tiafInt function to the callers environment
     ## (i.e. inside twinstim() or simEpidataCS())
     ## where the default argument values are defined

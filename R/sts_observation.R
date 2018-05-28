@@ -1,11 +1,9 @@
 ################################################################################
 #' Function for creating a sts-object with a given observation date
 ################################################################################
-# Parameters
-###
 #' @param sts sts-object we want to set at a previous state. Needs to include a reporting triangle.
 #' @param dateObservation Date for which we want the state. Needs to be in the reporting triangle dates.
-#' @param cut Boolean indicating wether to have 0 counts after the observation date or to simply cut the sts-object
+#' @param cut Boolean indicating whether to have 0 counts after the observation date or to simply cut the sts-object
 #' @examples
 #' data("salmAllOnset")
 #' salmAllOnsety2013m01d20 <- sts_observation(salmAllOnset,

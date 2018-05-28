@@ -7,8 +7,8 @@
 ### vcov, logLik, print, summary, plot, R0, residuals, update, terms, all.equal
 ###
 ### Copyright (C) 2009-2018 Sebastian Meyer
-### $Revision: 2048 $
-### $Date: 2018-01-16 16:14:52 +0100 (Tue, 16. Jan 2018) $
+### $Revision: 2100 $
+### $Date: 2018-04-12 16:51:42 +0200 (Thu, 12. Apr 2018) $
 ################################################################################
 
 ## extract the link function used for the epidemic predictor (default: log-link)
@@ -65,7 +65,7 @@ extractAIC.twinstim <- function (fit, scale, k = 2, ...)
     c(edf = edf, AIC = -2 * c(loglik) + penalty)
 }
 
-## Number of events (excluding the pre-history)
+## Number of events (excluding the prehistory)
 nobs.twinstim <- function (object, ...) length(object$fitted)
 
 ## print-method

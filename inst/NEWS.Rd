@@ -8,6 +8,36 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.16.1 (2018-05-28)}{
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item \code{autoplot.sts()} now sets the calling environment as
+    the \code{plot_env} of the result.
+
+    \item Several \code{twinstim}-related functions finally allow for
+    prehistory events (long supported by \code{twinstim()} itself):
+    \code{as.epidataCS()}, \code{glm_epidataCS()},
+    \code{as.epidata.epidataCS()}.
+
+    \item The \code{summary()} for SI[R]S-type \code{"epidata"} failed
+    if there were initially infectious individuals.
+  }
+}
+
+\subsection{DEPRECATED AND DEFUNCT}{
+  \itemize{
+    \item Several ancient functions have been deprecated and may be
+    removed in future versions of \pkg{surveillance}: \code{qlomax()},
+    \code{readData()}, \code{toFileDisProg()}, \code{correct53to52()},
+    \code{enlargeData()}, \code{compMatrix.writeTable()},
+    \code{test()}, \code{testSim()}, \code{makePlot()}.
+  }
+}
+
+}
+
+
 \section{Changes in surveillance version 1.16.0 (2018-01-24)}{
 
 \subsection{NEW FEATURES}{
@@ -1894,7 +1924,6 @@
     \code{twinstim}.
     \item Simulation from the Lomax kernel is now correct (via polar
     coordinates).
-    \item Fixed \code{modifyListcall()} to also work with updated \code{NULL} arguments.
     \item Fixed wrong Fisher information entry for the overdispersion
     parameter in \code{hhh4}-models.
     \item Fixed wrong entries in penalized Fisher information wrt the

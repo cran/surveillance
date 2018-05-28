@@ -44,6 +44,7 @@ if (!COMPUTE) load("twinstim-cache.RData", verbose = TRUE)
 
 
 \documentclass[nojss,nofooter,article]{jss}
+\usepackage[latin1]{inputenc} % Rnw is ASCII, but automatic package bib isn't
 
 \title{%
   \vspace{-1.5cm}
@@ -70,7 +71,6 @@ if (!COMPUTE) load("twinstim-cache.RData", verbose = TRUE)
 \usepackage{amsmath,amsfonts} % amsfonts defines \mathbb
 \usepackage{mathtools}        % tools for math typesetting + amsmath-bugfixes
 \usepackage{bm}               % \bm: alternative to \boldsymbol from amsfonts
-\usepackage{bbm}              % \mathbbm: alternative to \mathbb from amsfonts
 
 %% Packages for figures and tables
 \usepackage{booktabs}         % make tables look nicer
@@ -84,7 +84,7 @@ if (!COMPUTE) load("twinstim-cache.RData", verbose = TRUE)
 \newcommand{\dif}{\,\mathrm{d}}
 \newcommand{\IR}{\mathbb{R}}
 \newcommand{\IN}{\mathbb{N}}
-\newcommand{\ind}{\mathbbm{1}}
+\newcommand{\ind}{\mathbb{I}}
 \DeclareMathOperator{\Po}{Po}
 \DeclareMathOperator{\NegBin}{NegBin}
 \DeclareMathOperator{\N}{N}

@@ -6,9 +6,9 @@
 ### Data structure for CONTINUOUS SPATIO-temporal infectious disease case data
 ### and a spatio-temporal grid of endemic covariates
 ###
-### Copyright (C) 2009-2017 Sebastian Meyer
-### $Revision: 1939 $
-### $Date: 2017-07-31 15:50:20 +0200 (Mon, 31. Jul 2017) $
+### Copyright (C) 2009-2018 Sebastian Meyer
+### $Revision: 2103 $
+### $Date: 2018-04-12 17:20:33 +0200 (Thu, 12. Apr 2018) $
 ################################################################################
 
 
@@ -106,12 +106,18 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
     nEvents <- length(events)
     timeRange <- with(stgrid, c(start[1], stop[length(stop)]))
 
-    # Are event times covered by stgrid?
-    if (verbose) cat("Checking if all events are covered by 'stgrid' ...\n")
-    ## FIXME: what about pre-history events? don't need stgrid-data for them
-    if (events$time[1L] <= timeRange[1L] || events$time[nEvents] > timeRange[2L]) {
-        stop("event times are not covered by 'stgrid': must be in (",
-             timeRange[1L],",",timeRange[2L],"]")
+    # Are events covered by stgrid?
+    if (verbose) {
+        cat("Checking if all events are covered by 'stgrid' ...\n")
+        ## surveillance > 1.16.0: prehistory events are allowed => BLOCK is NA
+        if (events$time[1L] <= timeRange[1L]) {
+            cat("  Note: ", sum(events$time <= timeRange[1L]),
+                " prehistory events (time <= ", timeRange[1L], ")\n", sep = "")
+        }
+    }
+    if (events$time[nEvents] > timeRange[2L]) {
+        stop("found ", sum(events$time > timeRange[2L]),
+             " events beyond 'stgrid' (time > ", timeRange[2L], ")")
     }
 
     # Are all events$tile references really part of the stgrid?
@@ -123,17 +129,13 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
     events$tile <- .events.tile
 
     # Map events to corresponding grid cells
+    ## FIXME: could use plapply() but then also need a .parallel argument
     if (verbose) cat("Mapping events to 'stgrid' cells ...\n")
     withPB <- verbose && interactive()
     gridcellsOfEvents <- integer(nEvents)
     if (withPB) pb <- txtProgressBar(min=0, max=nEvents, initial=0, style=3)
     for (i in seq_len(nEvents)) {
-        idx <- gridcellOfEvent(events$time[i], events$tile[i], stgrid)
-        if (is.na(idx)) {
-            stop("could not find information for time point ", events$time[i],
-                 " and tile \"", events$tile[i], "\" in 'stgrid'")
-        }
-        gridcellsOfEvents[i] <- idx
+        gridcellsOfEvents[i] <- gridcellOfEvent(events$time[i], events$tile[i], stgrid)
         if (withPB) setTxtProgressBar(pb, i)
     }
     if (withPB) close(pb)
@@ -248,11 +250,11 @@ check_events <- function (events, dropTypes = TRUE, verbose = TRUE)
     if (verbose) cat("\tChecking event times for ties ...\n")
     timeIsDuplicated <- duplicated(events$time)
     if (any(timeIsDuplicated)) {
-        duplicatedTimes <- unique(events$time[timeIsDuplicated])
-        warning("detected non-unique event times: ",
-                "concurrent events at time ",
-                if (length(duplicatedTimes) == 1L) "point " else "points\n",
-                paste(duplicatedTimes, collapse = ", "))
+        duplicatedTimes <- sort.int(unique(events$time[timeIsDuplicated]))
+        warning("detected concurrent events at ", length(duplicatedTimes),
+                " time point", if (length(duplicatedTimes) > 1L) "s", ": ",
+                paste(head(duplicatedTimes, 6L), collapse = ", "),
+                if (length(duplicatedTimes) > 6L) ", ...")
     }
 
     # Sort events chronologically
@@ -399,7 +401,7 @@ check_W_area <- function (W, area.other, other, tolerance = 0.001)
 
 
 
-### CHECK FUNCTION FOR tiles ARGUMENT IN as.epidataCS
+### CHECK FUNCTION FOR tiles ARGUMENT IN simEpidataCS()
 
 check_tiles <- function (tiles, levels,
                          events = NULL, areas.stgrid = NULL, W = NULL,
@@ -460,7 +462,7 @@ check_tiles_events <- function (tiles, events)
             which(eventtiles != as.character(events$tile)),
             which_not_in_tiles)
         if (length(which_disagree))
-            message("'over(events, tiles)' disagrees with 'events$tile': ",
+            message("'over(events, tiles)' disagrees with 'events$tile' for events ",
                     paste0("\"", eventIDs[which_disagree], "\"", collapse=", "))
     }
     invisible()
@@ -503,6 +505,7 @@ check_tiles_areas <- function (areas.tiles, areas.stgrid, tolerance = 0.05)
         )
 
     eventCoords <- coordinates(events)
+    ## FIXME: could use plapply() but then also need a .parallel argument
     res <- mapply(
         function (x, y, eps, bdist) {
             center <- c(x,y)

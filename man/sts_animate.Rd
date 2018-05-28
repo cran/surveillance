@@ -85,7 +85,7 @@
   (invisibly) a list of the \code{length(tps)} sequential plot objects
   of class \code{"\code{\link[gtable]{gtable}}"}
   (if the the \code{timeplot} is active) or of class
-  \code{"\code{\link[=trellis.object]{trellis}"}
+  \code{"\code{\link[lattice:trellis.object]{trellis}"}
   (otherwise).
 }
 
@@ -119,12 +119,14 @@ if (require("animation")) {
     setwd(oldwd)
 }
 
+\dontrun{
 ## animate the weekly incidence of measles (per 100'000 inhabitants),
 ## and label the time series plot with dates in a specified format
 animate(measlesWeserEms, tps=12:16,
         population = measlesWeserEms@map$POPULATION / 100000,
         timeplot = list(as.Date = TRUE,
                         scales = list(x = list(format = "\%G/\%V"))))
+}
 }
 
 \keyword{hplot}

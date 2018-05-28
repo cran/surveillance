@@ -123,6 +123,7 @@ The contributed \R package \pkg{animation}.
 data("imdepi")
 imdepiB <- subset(imdepi, type == "B")
 
+\dontrun{
 # Animate the first year of type B with a step size of 7 days
 animate(imdepiB, interval=c(0,365), time.spacing=7, nmax=Inf, sleep=0.1)
 
@@ -131,6 +132,7 @@ animate(imdepiB, interval=c(0,365), time.spacing=NULL, sleep=0.1)
 
 # Animate the whole time range but with nmax=20 snapshots only
 animate(imdepiB, time.spacing=NA, nmax=20, sleep=0.1)
+}
 
 # Such an animation can be saved in various ways using the tools of
 # the animation package, e.g., saveHTML()

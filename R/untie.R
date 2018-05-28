@@ -5,9 +5,9 @@
 ###
 ### Spatial and temporal tie-breaking of events
 ###
-### Copyright (C) 2012-2014 Sebastian Meyer
-### $Revision: 1005 $
-### $Date: 2014-09-10 23:55:11 +0200 (Wed, 10. Sep 2014) $
+### Copyright (C) 2012-2014,2018 Sebastian Meyer
+### $Revision: 2120 $
+### $Date: 2018-04-19 11:30:21 +0200 (Thu, 19. Apr 2018) $
 ################################################################################
 
 
@@ -58,6 +58,12 @@ untie.epidataCS <- function (x,
     if (keep.sources) {
         res$events$.sources <- x$events$.sources
     }
+    if (do.temporal) {
+        prehistevents <- function (x)
+            row.names(x$events@data)[x$events$time <= x$stgrid$start[1L]]
+        if (!setequal(prehistevents(x), prehistevents(res)))
+            warning("temporal jittering has changed the set of prehistory events")
+    }
 
     ## Done
     res
@@ -95,7 +101,7 @@ untie.default <- function (x, amount = NULL, minsep = 0,
         right = function (x) x + runif(length(x), 0, amount),
         left = function (x) x - runif(length(x), 0, amount))
     res <- .untie(x, shiftFUN, minsep)
-    
+
     if (sort) base::sort(res) else res
 }
 

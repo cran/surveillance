@@ -1,3 +1,4 @@
+\encoding{latin1}
 \docType{data}
 \name{salmAllOnset}
 \alias{salmAllOnset}

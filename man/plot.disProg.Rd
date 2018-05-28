@@ -4,15 +4,20 @@
 \encoding{latin1}
 \title{Plot Generation of the Observed and the Defined Outbreak States of a 
   (Multivariate) Time Series}
-\description{Plotting a disProg object.}
+\description{
+  Plotting a (multivariate) \code{disProg} object. The internal
+  function \code{plot.disProg.one} is used as a helper function
+  to plot a univariate time series.
+}
 \usage{
   \method{plot}{disProg}(x, title = "", xaxis.years=TRUE, startyear = x$start[1],
-   firstweek = x$start[2], as.one=TRUE, same.scale=TRUE, \dots)
-  \method{plot}{disProg.one}(x, title = "", xaxis.years=TRUE, quarters=TRUE, 
-  startyear =  x$start[1], firstweek = x$start[2], ylim=NULL, xlab="time",
-   ylab="No. infected",type="hh",lty=c(1,1),col=c(1,1), 
-   outbreak.symbol = list(pch=3, col=3), legend.opts=list(x="top", 
-   legend=c("Infected", "Outbreak"), lty=NULL,pch=NULL,col=NULL), \dots)
+    firstweek = x$start[2], as.one=TRUE, same.scale=TRUE, ...)
+
+  plot.disProg.one(x, title = "", xaxis.years=TRUE, quarters=TRUE, 
+    startyear =  x$start[1], firstweek = x$start[2], ylim=NULL, xlab="time",
+    ylab="No. infected",type="hh",lty=c(1,1),col=c(1,1), 
+    outbreak.symbol = list(pch=3, col=3), legend.opts=list(x="top", 
+    legend=c("Infected", "Outbreak"), lty=NULL,pch=NULL,col=NULL), ...)
 }
 \arguments{
   \item{x}{object of class \code{disProg}}
@@ -47,7 +52,8 @@
     just provided as additional elements of this list,
     e.g. \code{horiz=TRUE}.  
   }
-  \item{\dots}{further arguments for the function \code{matplot}}
+  \item{\dots}{arguments passed to \code{plot.disProg.one}.
+    From there, further arguments are passed to \code{\link{matplot}}.}
 }
 \value{
   a plot showing the number of infected and the defined alarm status

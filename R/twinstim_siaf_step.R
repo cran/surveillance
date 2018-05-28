@@ -5,9 +5,9 @@
 ###
 ### twinstim's spatial interaction function as a step function
 ###
-### Copyright (C) 2014 Sebastian Meyer
-### $Revision: 820 $
-### $Date: 2014-03-06 15:46:29 +0100 (Thu, 06. Mar 2014) $
+### Copyright (C) 2014,2018 Sebastian Meyer
+### $Revision: 2143 $
+### $Date: 2018-05-14 15:13:20 +0200 (Mon, 14. May 2018) $
 ################################################################################
 
 
@@ -40,10 +40,10 @@ siaf.step <- function (knots, maxRange = Inf, nTypes = 1, validpars = NULL)
         bdist <- bdist(cbind(0,0), polydomain)
         ## distance to farest vertex (-> later steps not relevant)
         R <- sqrt(max(polyvertices[["x"]]^2 + polyvertices[["y"]]^2))
-        sliceAreas <- sapply(allknotsPos[-1L], function (r) {
+        sliceAreas <- vapply(X = allknotsPos[-1L], FUN = function (r) {
             if (r <= bdist) pi * r^2 else if (r >= R) polyarea else
             area.owin(intersectPolyCircle.owin(polydomain,c(0,0),r,npoly=npoly))
-        }, simplify=TRUE, USE.NAMES=FALSE)
+        }, FUN.VALUE = 0, USE.NAMES = FALSE)
         diff.default(c(0,sliceAreas))
     }
     ## since this is the most cumbersome task, use memoization (result does not
@@ -102,7 +102,7 @@ siaf.step <- function (knots, maxRange = Inf, nTypes = 1, validpars = NULL)
         ## sample points from these rings
         runifdisc(n, knots2upper[rings], c(0,knots2upper)[rings])
     }
-    
+
     ## Done
     res <- list(f = f, F = F, Fcircle = Fcircle,
                 deriv = deriv, Deriv = Deriv,

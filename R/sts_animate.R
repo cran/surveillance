@@ -5,9 +5,9 @@
 ###
 ### Animated map (and time series chart) of an sts-object (or matrix of counts)
 ###
-### Copyright (C) 2013-2016 Sebastian Meyer
-### $Revision: 1802 $
-### $Date: 2016-12-01 15:11:02 +0100 (Thu, 01. Dec 2016) $
+### Copyright (C) 2013-2016,2018 Sebastian Meyer
+### $Revision: 2123 $
+### $Date: 2018-05-03 16:29:46 +0200 (Thu, 03. May 2018) $
 ################################################################################
 
 
@@ -52,21 +52,7 @@ animate.sts <- function (object, tps = NULL, cumulative = FALSE,
         ls <- stsplot_space(object, tps=tps[cti], population=population,
                             at=at, ...)
         if (is.list(timeplot) && requireNamespace("gridExtra")) {
-            ## For gridExtra 0.9.1, loading its namespace is not sufficient
-            ## since it does not register its S3 methods, especially
-            ## "drawDetails.lattice". The consequence: The below call of
-            ## gridExtra::grid.arrange would produce an empty plot.
-            ## Since CRAN now disallows require("gridExtra") in package code,
-            ## the user has to manually attach the package beforehand, or we
-            ## register the relevant S3 method here:
-            if (packageVersion("gridExtra") == "0.9.1" &&
-                !"gridExtra" %in% .packages()) {
-                registerS3method(genname = "drawDetails", class = "lattice",
-                                 method = "drawDetails.lattice",
-                                 envir = getNamespace("gridExtra"))
-            }
-            ## NOTE: in gridExtra's development version, S3 methods are properly
-            ## registered, see https://github.com/baptiste/gridextra
+            stopifnot(packageVersion("gridExtra") >= "2.0.0")
             lt <- do.call("stsplot_timeSimple", c(
                 list(x=object, tps=tps, highlight=cti),
                 timeplot))

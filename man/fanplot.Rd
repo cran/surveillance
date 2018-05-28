@@ -65,6 +65,8 @@ fanplot(quantiles, probs, means = NULL, observed = NULL, start = 1,
   }
   \item{\dots}{
     further arguments are passed to \code{\link{plot.default}}.
+    For instance, \code{panel.first} could be used to initialize the
+    plot with \code{\link{grid}(nx=NA, ny=NULL)} lines.
   }
 }
 

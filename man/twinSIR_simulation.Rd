@@ -153,6 +153,7 @@ simEpidata(formula, data, id.col, I0.col, coords.cols, subset,
     Therefore, it will not become at-risk (S) again and re-infections are not
     possible.  Alternatively, always returning 0 as length of the removal 
     period corresponds to a SIS epidemic.  Any other values correspond to SIRS.
+    Note that \code{end} should be set to a finite value in these cases.
   }
   \item{end}{
     a single positive numeric value specifying the time point at which the
@@ -277,20 +278,26 @@ models to epidemic data.
 set.seed(1234)
 n <- 100
 pos <- matrix(rnorm(n*2), ncol=2, dimnames=list(NULL, c("x", "y")))
-pop <- data.frame(id=1:n,x=pos[,1], y=pos[,2], 
+pop <- data.frame(id=1:n, x=pos[,1], y=pos[,2], 
                   gender=sample(0:1, n, replace=TRUE),
-                  I0col=rep(0,n),start=rep(0,n),stop=rep(Inf,n))
+                  I0col=c(rep(1,3),rep(0,n-3)), # 3 initially infectious
+                  start=rep(0,n), stop=rep(Inf,n))
 
-## Simulate an epidemic in this population
-set.seed(1)
-epi <- simEpidata(cbind(start,stop) ~ cox(gender), 
-                  data = pop, 
-                  id = "id", I0.col = "I0col", coords.cols = c("x","y"),
-                  beta = c(-2), h0 = -1, alpha = c(B1 = 0.1),
-                  f = list(B1 = function(u) u <= 1),
-                  infPeriod = function(ids) rexp(length(ids), rate=1))
+## Simulate an SIR epidemic in this population
+set.seed(123)
+infPeriods <- setNames(c(1:3/10, rexp(n-3, rate=1)), 1:n)
+epi <- simEpidata(
+    cbind(start,stop) ~ cox(gender), data = pop,
+    id = "id", I0.col = "I0col", coords.cols = c("x","y"),
+    beta = c(-2), h0 = -1, alpha = c(B1=0.1), f = list(B1=function(u) u<=1),
+    infPeriod = function(ids) infPeriods[ids],
+    ##remPeriod = function(ids) rexp(length(ids), rate=0.1), end = 30   # -> SIRS
+)
 
-# Plot the numbers of susceptible, infectious and removed individuals
+## extract event times by id
+head(summary(epi)$byID)
+
+## Plot the numbers of susceptible, infectious and removed individuals
 plot(epi)
 
 

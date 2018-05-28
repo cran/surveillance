@@ -1,5 +1,5 @@
 ###################################################
-### chunk number 1: 
+### chunk number 1:
 ###################################################
 ###################################################################
 # Average Run Lengths for CUSUMs using Markov Chain approach
@@ -120,7 +120,7 @@ commonDenom <- function(x,y,digits=1){
 
 
 ###################################################
-### chunk number 2: 
+### chunk number 2:
 ###################################################
 #################################################################
 # find reference value k for a Poisson /Binomial CUSUM
@@ -162,7 +162,7 @@ findK <- function(theta0,theta1,distr=c("poisson","binomial"),roundK=FALSE,digit
 
 
 ###################################################
-### chunk number 3: 
+### chunk number 3:
 ###################################################
 ##################################################################
 # function to find the decision limit h so that the
@@ -287,31 +287,13 @@ hValues <- function(theta0,ARL0,rel.tol=0.02,s=1,roundK=TRUE,digits=1,distr=c("p
 }
 
 
-
 ##################################################################
-# get the decision limit h for CUSUM with
+# get decision interval h and reference value k for CUSUM with
 # in-control parameter theta using a "table" of h values
 #
 #  theta - in-control parameter
 #  hValues - matrix with columns c(theta, h)
 ##################################################################
-getH <- function(theta,hValues){
-  one<- function(theta){
-    theta.diff <- abs(hValues[,1]-theta)
-    idx <- which.min(theta.diff)
-    h <- hValues[idx,2]
-
-    if(theta.diff[idx] > 0.05)
-      warning("table doesn't contain h value for theta = ",theta,"\n")
-
-    return(h)
-  }
-  sapply(theta,one)
-}
-
-#####################################################################
-# get decision interval h and reference value k
-#####################################################################
 getHK <- function(theta,hValues){
   one<- function(theta){
     theta.diff <- abs(hValues[,1]-theta)
@@ -367,7 +349,7 @@ logInterpolation <- function(f,x0,x1,f0,f1){
 
 
 ###################################################
-### chunk number 4: 
+### chunk number 4:
 ###################################################
 #  control - list with
 #     range - vector of indices in the observed matrix to monitor
@@ -458,7 +440,6 @@ algo.rogerson <- function(disProgObj,
                 digits=control$digits, n=nt[t,])   #
 
     #for given k_t (theta0t) and ARL_0 choose h_t
-    #ht <- getH(lambda0t[t],control$hValues)
     ht <- hkt[,"h"]
     ct <- h/ht
 
@@ -478,13 +459,13 @@ algo.rogerson <- function(disProgObj,
     alarm[t+1,] <- cusum[t+1,] >= h
     # in case speed is premium then one might want to comment this line
     if((control$limit >= 0) & any(alarm[t,]==1)) {
-      upperbound[t+1,] <- ceiling( (h-cusum.t)/ct + kt) 
+      upperbound[t+1,] <- ceiling( (h-cusum.t)/ct + kt)
     } else {
-      upperbound[t+1,] <- ceiling( (h-cusum[t,])/ct + kt) 
+      upperbound[t+1,] <- ceiling( (h-cusum[t,])/ct + kt)
     }
 
     #Ensure upperbound is positive (this should always be the case)
-    if (upperbound[t+1,] < 0) { upperbound[t+1,] <- 0}    
+    if (upperbound[t+1,] < 0) { upperbound[t+1,] <- 0}
   }
 
 

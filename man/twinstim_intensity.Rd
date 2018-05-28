@@ -159,7 +159,7 @@ intensity.twinstim(x,
   the endemic and epidemic intensity (but these are not vectorized).
   
   If \code{plot = TRUE} and \code{aggregate = "space"}, the
-  \code{\link{trellis.object}} of the spatial plot is returned.
+  \code{\link[lattice]{trellis.object}} of the spatial plot is returned.
 }
 
 \author{

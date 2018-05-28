@@ -33,8 +33,7 @@ plot(measlesWeserEms, type = observed ~ unit,
 
 ## ----measlesWeserEms15, fig.cap=paste("Count time series of the", sum(colSums(observed(measlesWeserEms))>0), "affected districts."), out.width="\\linewidth", fig.width=10, fig.height=6, fig.pos="!h", eval=-1----
 plot(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
-library("ggplot2")
-autoplot(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
+autoplot.sts(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
 
 ## ----measlesWeserEms_animation, eval=FALSE-----------------------------------------
 #  animation::saveHTML(

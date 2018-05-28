@@ -1,3 +1,4 @@
+\encoding{latin1}
 \name{husO104Hosp}
 \alias{husO104Hosp}
 \docType{data}

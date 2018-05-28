@@ -11,7 +11,7 @@ sts_observation(sts, dateObservation, cut = TRUE)
 
 \item{dateObservation}{Date for which we want the state. Needs to be in the reporting triangle dates.}
 
-\item{cut}{Boolean indicating wether to have 0 counts after the observation date or to simply cut the sts-object}
+\item{cut}{Boolean indicating whether to have 0 counts after the observation date or to simply cut the sts-object}
 }
 \description{
 Function for creating a sts-object with a given observation date

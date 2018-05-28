@@ -1,5 +1,5 @@
 ###################################################
-### chunk number 1: 
+### chunk number 1:
 ###################################################
 
 
@@ -11,6 +11,7 @@
 #       abb : abbreviation of the disease
 #       week53to52: Boolean indicating whether to convert RKI 53 Weeks System to 52 weeks a year
 readData <- function(abb,week53to52=TRUE,sysPath=TRUE){
+  .Deprecated(new = "data", package = "surveillance")
   #Read depending on which path is requested
   if (sysPath) {
     #Prepend the systempath/data to the filename
@@ -26,19 +27,19 @@ readData <- function(abb,week53to52=TRUE,sysPath=TRUE){
   fileTable <- read.table( file=file, header=TRUE )
   observed <- fileTable$observed
   state <- fileTable$state
-  
+
   result = list(observed=observed, state=state)
-  
+
   class(result) = "disProg" # for disease progress
-  
+
   #Convert to 52 week system...
   if (week53to52) {
     result <- correct53to52(result)
   }
-  
+
   result$freq <- 52
   result$start <- c(2001,1)
-  
+
   return(result)
 }
 
@@ -46,10 +47,11 @@ readData <- function(abb,week53to52=TRUE,sysPath=TRUE){
 
 
 ###################################################
-### chunk number 2: 
+### chunk number 2:
 ###################################################
 
 toFileDisProg <- function(disProgObj, toFile){
+    .Deprecated(package = "surveillance")
 
         length <- length(disProgObj$observed)
 
@@ -67,7 +69,7 @@ toFileDisProg <- function(disProgObj, toFile){
 
 
 ###################################################
-### chunk number 3: 
+### chunk number 3:
 ###################################################
 
 # 'correct53to52' sums up and cuts a value from a splited last and first week of a year
@@ -80,6 +82,7 @@ toFileDisProg <- function(disProgObj, toFile){
 
 
 correct53to52 <- function(disProgObj, firstweek = 1){
+    .Deprecated(package = "surveillance")
 
         if(firstweek > length(disProgObj$observed)){
                 stop("firstweek doesn't exist")
@@ -134,10 +137,11 @@ correct53to52 <- function(disProgObj, firstweek = 1){
 
 
 ###################################################
-### chunk number 4: 
+### chunk number 4:
 ###################################################
 
 enlargeData <- function(disProgObj, range = 1:156, times = 1){
+    .Deprecated(package = "surveillance")
 
         # enlarge observed
         disProgObj$observed <- c(rep(disProgObj$observed[range], times), disProgObj$observed)
@@ -146,6 +150,3 @@ enlargeData <- function(disProgObj, range = 1:156, times = 1){
 
         return(disProgObj)
 }
-
-
-

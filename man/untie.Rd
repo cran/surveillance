@@ -38,18 +38,6 @@ untie(x, amount, ...)
     the minimum separation of the data points for the non-symmetric
     default method and its half for the symmetric default method and the
     \code{matrix} method. 
-    
-    For numeric vectors (default method), the jittered version is the
-    same as for \code{jitter(x, amount=amount)} if
-    \code{direction="symmetric"} (and \code{amount} is non-\code{NULL}),
-    and \code{x} \dQuote{+-} \code{runif(length(x), 0, amount)}
-    (otherwise).\cr
-    For matrices, a vector uniformly drawn from the disc with radius
-    \code{amount} is added to each point (row).\cr
-    For \code{"epidataCS"}, \code{amount} is a list stating the amounts
-    for the temporal and/or spatial dimension, respectively. It then
-    uses the specific methods with arguments \code{constraint=x$W},
-    \code{direction}, and \code{sort=TRUE}.
   }
   \item{minsep}{minimum separation of jittered points. Can only be
     obeyed if much smaller than \code{amount} (also depending on the
@@ -90,6 +78,25 @@ untie(x, amount, ...)
     Unused in other methods.
   }
   \item{verbose}{logical passed to \code{\link{as.epidataCS}}.}
+}
+
+\details{
+  For numeric vectors (default method), the jittered version is the
+  same as for \code{\link{jitter}(x, amount=amount)}, if
+  \code{direction="symmetric"} (and \code{amount} is non-\code{NULL}),
+  and otherwise uses
+  \code{x} \dQuote{+-} \code{runif(length(x), 0, amount)}.
+  
+  For matrices, a vector uniformly drawn from the disc with radius
+  \code{amount} is added to each point (row).
+  
+  For \code{"epidataCS"}, \code{amount} is a list stating the amounts
+  for the temporal and/or spatial dimension, respectively. It then
+  uses the specific methods with arguments \code{constraint=x$W},
+  \code{direction}, and \code{sort=TRUE}. Note that this implements a
+  simplistic approach of tie-breaking where all events are assumed to be
+  subject to the same amounts of censoring, and the default amounts may
+  not be sensible choices.
 }
 
 \value{
