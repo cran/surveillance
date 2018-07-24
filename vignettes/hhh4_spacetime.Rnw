@@ -310,7 +310,7 @@ The default plot \code{type} is \code{observed ~ time | unit} and displays
 the district-specific time series. Here we show the output of the
 equivalent \code{autoplot}-method (Figure~\ref{fig:measlesWeserEms15}),
 which is based on \CRANpkg{ggplot2} \citep{R:ggplot2}:
-<<measlesWeserEms15, fig.cap=paste("Count time series of the", sum(colSums(observed(measlesWeserEms))>0), "affected districts."), out.width="\\linewidth", fig.width=10, fig.height=6, fig.pos="!h", eval=-1>>=
+<<measlesWeserEms15, fig.cap=paste("Count time series of the", sum(colSums(observed(measlesWeserEms))>0), "affected districts."), out.width="\\linewidth", fig.width=10, fig.height=6, fig.pos="htb", eval=-1>>=
 plot(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
 autoplot.sts(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
 @
@@ -439,19 +439,50 @@ for $j\ne i$ \citep{paul-etal-2008}.
 If the dominant eigenvalue is smaller than 1, it can be interpreted as the
 epidemic proportion of disease incidence. In the above model, the
 estimate is \Sexpr{round(100*getMaxEV(measlesFit_basic)[1])}\%.
+
 Another way to judge the relative importance of the three model
 components is via a plot of the fitted mean components along with the observed counts.
-Figure~\ref{fig:measlesFitted_basic} shows this for the six districts
-with more than 20 cases:
-<<measlesFitted_basic, fig.cap="Fitted components in the initial model \\code{measlesFit\\_basic} for the six districts with more than 20 cases. Dots are only drawn for positive weekly counts.", out.width="\\linewidth", fig.pos="htb">>=
-districts2plot <- which(colSums(observed(measlesWeserEms)) > 20)
-plot(measlesFit_basic, type = "fitted", units = districts2plot, hide0s = TRUE)
+Figure~\ref{fig:measlesFitted_basic} shows this for the five districts
+with more than 50 cases as well as for the sum over all districts:
+<<measlesFitted_basic, fig.cap="Fitted components in the initial model \\code{measlesFit\\_basic} for the five districts with more than 50 cases as well as summed over all districts (bottom right). Dots are only drawn for positive weekly counts.", out.width="\\linewidth", fig.pos="htb">>=
+districts2plot <- which(colSums(observed(measlesWeserEms)) > 50)
+par(mfrow = c(2,3), mar = c(3, 5, 2, 1), las = 1)
+plot(measlesFit_basic, type = "fitted", units = districts2plot,
+     hide0s = TRUE, par.settings = NULL, legend = 1)
+plot(measlesFit_basic, type = "fitted", total = TRUE,
+     hide0s = TRUE, par.settings = NULL, legend = FALSE) -> fitted_components
 @
-The largest portion of the fitted mean indeed results from the within-district
+We can see from the plots that
+the largest portion of the fitted mean indeed results from the within-district
 autoregressive component with very little contribution of cases from adjacent
 districts and a rather small endemic incidence.
 
-The \code{overdisp} parameter from the model summary and its 95\% confidence interval
+The \code{plot} method invisibly returns the component values in
+a list of matrices (one by unit). In the above code, we have assigned the
+result from plotting the overall fit (via \code{total = TRUE}) to the
+object \code{fitted_components}. Here we show the values for the weeks
+20 to 22 (corresponding to the weeks 21 to 23 of the measles time series):
+<<>>=
+fitted_components$Overall[20:22,]
+@
+The first column of this matrix refers to the fitted mean (epidemic + endemic).
+The four following columns refer to the epidemic (own + neighbours),
+endemic, autoregressive (``own''), and neighbourhood components of the
+mean. The last three columns refer to the point estimates of $\lambda$,
+$\phi$, and $\nu_t$, respectively.
+These values allow us to calculate the (time-averaged) proportions of the
+mean explained by the different components:
+<<>>=
+colSums(fitted_components$Overall)[3:5] / sum(fitted_components$Overall[,1])
+@
+Note that the ``epidemic proportion'' obtained here
+(\Sexpr{round(100*sum(fitted_components$Overall[,2]) / sum(fitted_components$Overall[,1]))}\%)
+is a function of the observed time series (so could be called
+``empirical''), whereas the dominant eigenvalue calculated further above
+is a theoretical property derived from the autoregressive parameters alone.
+
+Finally,
+the \code{overdisp} parameter from the model summary and its 95\% confidence interval
 <<>>=
 confint(measlesFit_basic, parm = "overdisp")
 @
@@ -777,8 +808,12 @@ summary, since random effects invalidate simple AIC-based model comparisons.
 Of course we can plot the fitted values (Figure~\ref{fig:measlesFitted_ri})
 and visually compare their quality
 with the initial fit shown in Figure~\ref{fig:measlesFitted_basic}:
-<<measlesFitted_ri, out.width="0.93\\linewidth", fig.pos="htb", fig.cap="Fitted components in the random effects model \\code{measlesFit\\_ri} for the six districts with more than 20 cases. Compare to Figure~\\ref{fig:measlesFitted_basic}.">>=
-plot(measlesFit_ri, type = "fitted", units = districts2plot, hide0s = TRUE)
+<<measlesFitted_ri, out.width="\\linewidth", fig.pos="htb", fig.cap="Fitted components in the random effects model \\code{measlesFit\\_ri} for the five districts with more than 50 cases as well as summed over all districts. Compare to Figure~\\ref{fig:measlesFitted_basic}.">>=
+par(mfrow = c(2,3), mar = c(3, 5, 2, 1), las = 1)
+plot(measlesFit_ri, type = "fitted", units = districts2plot,
+     hide0s = TRUE, par.settings = NULL, legend = 1)
+plot(measlesFit_ri, type = "fitted", total = TRUE,
+     hide0s = TRUE, par.settings = NULL, legend = FALSE)
 @
 For some of these districts, a great amount of cases is now explained via transmission from
 neighboring regions while others are mainly influenced by the local
@@ -858,14 +893,20 @@ measlesPreds2 <- lapply(mget(models2compare), oneStepAhead,
 Figure~\ref{fig:measlesPreds2_plot} shows \CRANpkg{fanplot}s \citep{R:fanplot} of
 the sequential one-week-ahead forecasts from the random effects models for the
 same districts as in Figure~\ref{fig:measlesFitted_ri}:
-<<measlesPreds2_plot, fig.cap = "Fan charts of rolling one-week-ahead forecasts during the second quarter of 2002, as produced by the random effects model \\code{measlesFit\\_ri}, for the six most affected districts.", out.width="\\linewidth", echo=-1>>=
+<<measlesPreds2_plot, fig.cap = "Fan charts of rolling one-week-ahead forecasts during the second quarter of 2002, as produced by the random effects model \\code{measlesFit\\_ri}, for the five most affected districts.", out.width="\\linewidth", echo=-1>>=
 par(mfrow = sort(n2mfrow(length(districts2plot))), mar = c(4.5,4.5,2,1))
 for (unit in names(districts2plot))
   plot(measlesPreds2[["measlesFit_ri"]], unit = unit, main = unit,
     key.args = if (unit == tail(names(districts2plot),1)) list())
 @
-Note that \code{quantile} and \code{confint} methods are also available
-for \class{oneStepAhead} predictions.
+The \code{plot}-method for \class{oneStepAhead} predictions is based on the
+associated \code{quantile}-method (a \code{confint}-method is also
+available).
+Note that the sum of these negative binomial distributed
+forecasts over all districts is not negative binomial distributed.
+The package \CRANpkg{distr} \citep{ruckdeschel.kohl2014} could be used to
+approximate the distribution of the aggregated one-step-ahead forecasts
+(not shown here).
 
 Looking at the average scores of these forecasts over all weeks and districts,
 the most parsimonious initial model \code{measlesFit_basic}
@@ -905,8 +946,8 @@ Thus, there is no evidence of miscalibrated predictions from the random effects
 model. \citet{czado-etal-2009} describe an alternative informal approach to
 assess calibration: probability integral transform
 (PIT) histograms for count data (Figure~\ref{fig:measlesPreds2_pit}).
-<<measlesPreds2_pit, fig.width=8, fig.height=3, out.width="0.93\\linewidth", fig.cap="PIT histograms of competing models to check calibration of the one-week-ahead predictions during the second quarter of 2002.", echo=-1, fig.pos="hbt">>=
-par(mfrow = sort(n2mfrow(length(measlesPreds2))), mar = c(4.5,4.5,2,1))
+<<measlesPreds2_pit, fig.width=8, fig.height=2.5, out.width="0.93\\linewidth", fig.cap="PIT histograms of competing models to check calibration of the one-week-ahead predictions during the second quarter of 2002.", echo=-1, fig.pos="hbt">>=
+par(mfrow = sort(n2mfrow(length(measlesPreds2))), mar = c(4.5,4.5,2,1), las = 1)
 for (m in models2compare)
   pit(measlesPreds2[[m]], plot = list(ylim = c(0, 1.25), main = m))
 @

@@ -78,7 +78,7 @@ grid1 <- create.grid(meningo.age, model1,
                      
 # try multiple starting values, print progress information
 algo.hhh.grid(meningo.age, control=model1, thetastartMatrix=grid1,
-               verbose=TRUE)
+              verbose=interactive())
 
 
 ## more sophisticated models with a much longer runtime follow

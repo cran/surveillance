@@ -11,7 +11,7 @@ and optionally adding point predictions and observed values.
 \usage{
 fanplot(quantiles, probs, means = NULL, observed = NULL, start = 1,
         fan.args = list(), means.args = list(), observed.args = list(),
-        key.args = NULL, xlim = NULL, ylim = NULL,
+        key.args = NULL, xlim = NULL, ylim = NULL, log = "",
         xlab = "Time", ylab = "No. infected", add = FALSE, ...)
 }
 
@@ -57,6 +57,10 @@ fanplot(quantiles, probs, means = NULL, observed = NULL, start = 1,
   \item{xlim,ylim}{
     axis ranges.
   }
+  \item{log}{
+    a character string specifying which axes are to be logarithmic,
+    e.g., \code{log="y"} (see \code{\link{plot.default}}).
+  }
   \item{xlab,ylab}{
     axis labels.
   }
@@ -92,9 +96,9 @@ if (requireNamespace("fanplot")) {
     y <- rlnorm(length(means), log(means), 0.5)
     quantiles <- sapply(1:99/100, qlnorm, log(means), seq(.5,.8,length.out=length(means)))
     
-    ## default style with added point predictions and color key
+    ## default style with point predictions, color key and log-scale
     fanplot(quantiles = quantiles, probs = 1:99/100, means = means,
-            observed = y, key.args = list(start = 1, space = .3))
+            observed = y, key.args = list(start = 1, space = .3), log = "y")
     
     ## with contour lines instead of a key, and different colors
     pal <- colorRampPalette(c("darkgreen", "gray93"))

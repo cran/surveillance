@@ -61,7 +61,7 @@ categoricalCUSUM(stsObj,control = list(range=NULL,h=5,pi0=NULL,
   Once an alarm is found the CUSUM scheme is reset (to zero) and
   monitoring continues from there.
 }
-\seealso{\code{\link{categoricalCUSUM}}}
+\seealso{\code{\link{LRCUSUM.runlength}}}
 \value{An \code{sts} object with \code{observed}, \code{alarm},
   etc. slots trimmed to the \code{control$range} indices.
 }

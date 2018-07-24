@@ -78,7 +78,7 @@ export(fixef, ranef)  # we define corresponding methods for "hhh4" models
 
 importFrom(spatstat, area.owin, as.im.function, coords.ppp, diameter,
                      diameter.owin, disc, edges, inside.owin, intersect.owin,
-                     is.polygonal, as.polygonal, nncross.ppp, ppp, runifpoint,
+                     is.polygonal, as.polygonal, bdist.points, ppp, runifpoint,
                      shift.owin, spatstat.options, vertices)
 importFrom(spatstat, marks)
 export(marks)                           # we define an epidataCS-method

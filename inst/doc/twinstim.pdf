@@ -5,7 +5,7 @@
 stream
 2 0 3 67 4 578 5 760 6 1031 7 1073 8 1206 9 1407 10 1719 11 1868 12 2169 13 2220 14 2896 15 3237 16 3637 17 3904 18 4699 19 5268 20 5690 21 6052 22 6292 23 6537 24 6931 25 7207 26 7659 27 7989 28 8138 29 8287 30 8434 31 8583 32 8729 33 9352 34 9645 35 9980 36 10296 37 10687 38 11093 39 11266 40 11492 41 11510 42 11649 43 11797 44 11944 45 12091 46 12238 47 12383 48 12532 49 12679 50 12827 51 12973 52 13122 53 13311 54 13498 55 13684 56 13872 57 14058 58 14244 59 14432 60 14619 61 14806 62 15002 63 15197 64 15374 65 15556 66 15732 67 15907 68 16092 69 16276 70 16466 71 16641 72 16892 73 16969 74 17255 75 17384 76 17547 77 17668
 << /Metadata 78 0 R /Outlines 6 0 R /Pages 4 0 R /Type /Catalog >>
-<< /Author (Sebastian Meyer, Leonhard Held, Michael Höhle) /CreationDate (D:20180528163447+02'00') /Creator (LaTeX with hyperref package) /Keywords (spatio-temporal point pattern, endemic-epidemic modeling, infectious disease epidemiology, self-exciting point process, spatial interaction function, branching process with immigration) /ModDate (D:20180528163447+02'00') /Producer (GPL Ghostscript 9.18) /Subject () /Title (twinstim: An endemic-epidemic modeling framework for spatio-temporal point patterns) >>
+<< /Author (Sebastian Meyer, Leonhard Held, Michael Höhle) /CreationDate (D:20180724145205+02'00') /Creator (LaTeX with hyperref package) /Keywords (spatio-temporal point pattern, endemic-epidemic modeling, infectious disease epidemiology, self-exciting point process, spatial interaction function, branching process with immigration) /ModDate (D:20180724145205+02'00') /Producer (GPL Ghostscript 9.18) /Subject () /Title (twinstim: An endemic-epidemic modeling framework for spatio-temporal point patterns) >>
 << /Count 19 /Kids [ 5 0 R 8 0 R 9 0 R 80 0 R 81 0 R 139 0 R 157 0 R 174 0 R 185 0 R 158 0 R 159 0 R 212 0 R 160 0 R 245 0 R 247 0 R 282 0 R 249 0 R 11 0 R 103 0 R ] /Type /Pages >>
 << /Annots [ 10 0 R 251 0 R 252 0 R 253 0 R 254 0 R 255 0 R 256 0 R 257 0 R 258 0 R 259 0 R 260 0 R 261 0 R 262 0 R ] /Contents 308 0 R /MediaBox [ 0 0 595.28 841.89 ] /Parent 4 0 R /Resources << /ExtGState 273 0 R /Font 274 0 R /ProcSet [ /PDF /Text ] >> /Type /Page >>
 << /Count 4 /First 7 0 R /Last 250 0 R >>
@@ -56,7 +56,7 @@ stream
 << /Border [ 0 0 0 ] /C [ 0 1 0 ] /Dest [ 11 0 R /XYZ 53.727 340.875 null ] /Rect [ 114.549 260.696 173.857 273.598 ] /Subtype /Link /Type /Annot >>
 << /A << /S /URI /Type /Action /URI (https://CRAN.R-project.org/package=spatstat) >> /Border [ 0 0 0 ] /C [ 0 1 1 ] /Rect [ 388.779 668.708 522.996 680.701 ] /Subtype /Link /Type /Annot >>
 << /A << /S /URI /Type /Action /URI (https://CRAN.R-project.org/package=spatstat) >> /Border [ 0 0 0 ] /C [ 0 1 1 ] /Rect [ 90.913 655.159 207.45 667.152 ] /Subtype /Link /Type /Annot >>
-<< /A << /S /URI /Type /Action /URI (https://CRAN.R-project.org/package=rgdal) >> /Border [ 0 0 0 ] /C [ 0 1 1 ] /Rect [ 285.258 618.353 516.839 630.346 ] /Subtype /Link /Type /Annot >>
+<< /A << /S /URI /Type /Action /URI (https://CRAN.R-project.org/package=rgdal) >> /Border [ 0 0 0 ] /C [ 0 1 1 ] /Rect [ 279.803 618.353 511.384 630.346 ] /Subtype /Link /Type /Annot >>
 << /A << /S /URI /Type /Action /URI (https://CRAN.R-project.org/package=maptools) >> /Border [ 0 0 0 ] /C [ 0 1 1 ] /Rect [ 237.216 581.547 485.979 593.54 ] /Subtype /Link /Type /Annot >>
 << /A << /S /URI /Type /Action /URI (https://CRAN.R-project.org/package=xtable) >> /Border [ 0 0 0 ] /C [ 0 1 1 ] /Rect [ 90.913 544.741 328.221 556.734 ] /Subtype /Link /Type /Annot >>
 << /A << /S /URI /Type /Action /URI (http://dx.doi.org/10.1002/bimj.201200037) >> /Border [ 0 0 0 ] /C [ 0 1 1 ] /Rect [ 304.582 457.277 455.484 470.178 ] /Subtype /Link /Type /Annot >>
@@ -89,14 +89,14 @@ stream
 <?adobe-xap-filters esc="CRLF"?>
 <x:xmpmeta xmlns:x='adobe:ns:meta/' x:xmptk='XMP toolkit 2.9.1-13, framework 1.6'>
 <rdf:RDF xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#' xmlns:iX='http://ns.adobe.com/iX/1.0/'>
-<rdf:Description rdf:about='uuid:d1e1722c-9aa0-11f3-0000-e3e8e6ec4d75' xmlns:pdf='http://ns.adobe.com/pdf/1.3/'><pdf:Producer>GPL Ghostscript 9.18</pdf:Producer>
+<rdf:Description rdf:about='uuid:ea975d4f-c75c-11f3-0000-b58524255375' xmlns:pdf='http://ns.adobe.com/pdf/1.3/'><pdf:Producer>GPL Ghostscript 9.18</pdf:Producer>
 <pdf:Keywords>spatio-temporal point pattern, endemic-epidemic modeling, infectious disease epidemiology, self-exciting point process, spatial interaction function, branching process with immigration</pdf:Keywords>
 </rdf:Description>
-<rdf:Description rdf:about='uuid:d1e1722c-9aa0-11f3-0000-e3e8e6ec4d75' xmlns:xmp='http://ns.adobe.com/xap/1.0/'><xmp:ModifyDate>2018-05-28T16:34:47+02:00</xmp:ModifyDate>
-<xmp:CreateDate>2018-05-28T16:34:47+02:00</xmp:CreateDate>
+<rdf:Description rdf:about='uuid:ea975d4f-c75c-11f3-0000-b58524255375' xmlns:xmp='http://ns.adobe.com/xap/1.0/'><xmp:ModifyDate>2018-07-24T14:52:05+02:00</xmp:ModifyDate>
+<xmp:CreateDate>2018-07-24T14:52:05+02:00</xmp:CreateDate>
 <xmp:CreatorTool>LaTeX with hyperref package</xmp:CreatorTool></rdf:Description>
-<rdf:Description rdf:about='uuid:d1e1722c-9aa0-11f3-0000-e3e8e6ec4d75' xmlns:xapMM='http://ns.adobe.com/xap/1.0/mm/' xapMM:DocumentID='uuid:d1e1722c-9aa0-11f3-0000-e3e8e6ec4d75'/>
-<rdf:Description rdf:about='uuid:d1e1722c-9aa0-11f3-0000-e3e8e6ec4d75' xmlns:dc='http://purl.org/dc/elements/1.1/' dc:format='application/pdf'><dc:title><rdf:Alt><rdf:li xml:lang='x-default'>twinstim: An endemic-epidemic modeling framework for spatio-temporal point patterns</rdf:li></rdf:Alt></dc:title><dc:creator><rdf:Seq><rdf:li>Sebastian Meyer, Leonhard Held, Michael HÃ¶hle</rdf:li></rdf:Seq></dc:creator><dc:description><rdf:Alt><rdf:li xml:lang='x-default'></rdf:li></rdf:Alt></dc:description></rdf:Description>
+<rdf:Description rdf:about='uuid:ea975d4f-c75c-11f3-0000-b58524255375' xmlns:xapMM='http://ns.adobe.com/xap/1.0/mm/' xapMM:DocumentID='uuid:ea975d4f-c75c-11f3-0000-b58524255375'/>
+<rdf:Description rdf:about='uuid:ea975d4f-c75c-11f3-0000-b58524255375' xmlns:dc='http://purl.org/dc/elements/1.1/' dc:format='application/pdf'><dc:title><rdf:Alt><rdf:li xml:lang='x-default'>twinstim: An endemic-epidemic modeling framework for spatio-temporal point patterns</rdf:li></rdf:Alt></dc:title><dc:creator><rdf:Seq><rdf:li>Sebastian Meyer, Leonhard Held, Michael HÃ¶hle</rdf:li></rdf:Seq></dc:creator><dc:description><rdf:Alt><rdf:li xml:lang='x-default'></rdf:li></rdf:Alt></dc:description></rdf:Description>
 </rdf:RDF>
 </x:xmpmeta>
                                                                         
@@ -462,25 +462,19 @@ endobj
 311 0 obj
 << /Filter /FlateDecode /Length 4200 >>
 stream
-xœ­[ÍwÛ6¿û”=ä®[¡}M|yoùèn’:iêx·Û—ì¶‡‰dª"¼ç€$ Kvb»=D$Á ˜ùÍoğŸ“²à“ÿÿ,÷ö•›œµ{åälïÏ=N_'ñŸ“åäñ´0Ş¾ô|rô~/tåÇ'VÛÂK=9Zî1î¦G¡±Wic'Á…‡G§{oÙÏÓ²(µrÂ{vü>¥ßÒòÒ³ùt†^–Ú±e}wÆ±Ù<}ZQ/í•s¬Ş""|!RÊ¢´‚-›éL€ÒN›mƒ¹‹ú<ùt{sÖ¼?½â¬]%Mª®nf]&c¹
-i£Y³®ØSà¸,~0 Æõò¬ëG,—œ‹]§šµÓÿ½Àıá®
-©ŒÀ%÷¾ĞB‰ÉLêÂş„Xå¬“lş„p£Ø|=??™·ã›(3Ûów¢°Ò‚PSH|‡BW§ß³‡‹ìéÛt¦„†•0ìÑümpi¦`)e©»HÄd³Í¤¬£/Ùá ÅÁ4q=y)21Çé‚~Š­K	Ö„ÀV¼cú¿›qI-O§/JèàeoÅ°÷>zÛÓvU÷p:3†àš½Oœ„ƒMà®+».{MÚË%L6¾ÃO8e›Â‡i‡~`-h(aÀ_@ÜhßÚºÅ‰Š8ö²¡vÎkv:_$óÑ„fÜë‚;5™qYhåE˜È?ë®«ÏÏ@æ:è_//É¦¢eŸ'ß¦ÖÀ‚YËæm7Ø_´¤ƒËÓ™ª¡*ãA_›ÛøÉBÁÏOÕl³²´ì3ífÉeîëtŠ¢´g¼ĞzÆQÇR†ıûğ€ûùhï·½²Ğ„Wëİğfå6x“ÎÖê‰±¢@Œ{Ë>tİª}¸¿ÿäğÑ«âpJ *ÅVëæãü¤æ3Ş’ë…ÕvWPàlUàÿÑ®‚å d5~Ñ&•V£]¡Apâf¸şøa& {µ®ZjCæVåÀ;Â¢¡	4cØ‡_2g+é?ôÍ`¥Ø!öe/[Ü’ª{‚a^ícÜKX3Õ›Í:Ø³•ìì´JœMqÃ+˜Ôù)˜oC„NÉŞ7k|€Ï¥AHEİïÃßsÒã§Íƒ“‚zM–=vé§QîÓª«FÁ£O·İzpøô•èn —^ëw;¨ã´`Õªõ·­î#Uaç‰û N ëH ë+İ†â‡1½Ûµ™Ám(€	n#f¢|@/îÈe„3`q`’‚ƒë¨«\¼»w™Ô/Ö´Ù£&?ìˆS‚_¢Bt‹_¾×-$l¶‡ÀŒn!£ådú%3ûÙ/aÙÁ*š±»f¯ÆÎdşv§ùk_>˜ÿ²Zu éÀR‹l"£IZDb‹tèE°`î7ÃĞ. 6¹…t
-­L‰¬×sİ à¸B?›Tç§Ô™=ËB¾%ó½ÒXûJBöK…z0ø_?Â€èAœ³“ÁCXWHmÂ2ô;f^ÇIÑômğ±5˜Œ¸ò½B MfâAô/îÊ1¤C<Ñ¸ÆİÀ1ÈšE{ßP8ºË´èW¸”ô%ó§Õ‡àÂ–ŠáFEüôéãhŞ@€È¨Í.£<(,ûÚUÇ)¹˜“9£û)äb£¥}]l,w ñ.X4D…Äú{‘‘$’ÕŠNà@ø› AÂfrVA7è¯Á}æÿîaŞdfñGô DŒìåÁvƒ-Á¢NàZÏWd ¸b¥»¶1ÆXb;¹œİÊvhÁ%Â¶j9ÁÀİ¨çøjûRpÌ"~Ø>ikç·±N	«"„NuˆÖ)”¡/Ö¹È–	Ò
-)JB¯§/p}¸'şüL,`;Ü†ÛgO³MŠşÙ·6
-ĞzÚ‹5d÷¥Üæº°#N8<HPš¼è9Ô@jvŞZàÁşF0?½„"ô€•ò™¦fÜ¦8‚‡ÑupQTÈu(w%Az[.š™üQ0H›huĞİŒ¶í|ˆC¨nH—p7„$G}³H3´å<®2¤èÏ%­/¸’°ÿsŠIy© {
-™µt‚uÈ´fÈMp>ìÊú›Ğ1R^&Éˆ;ÀÃ^f]ºTVÍò4ÂA¦Á-ŞoµÈ4D9XÍæVDŞØ[
-W×)öÕî7—!„sDi_Úşf”Òb@XZeİOF:€†·#»S¶0¥MğN4=&R2”¬X¶`§™ºu“ö)Æ•z“¼^‘ÕK)ÊzJ¶W"åH30cÊ‹®êxLÂtPĞ ÁYˆ4XTgz>Á^å,¯ïÙCïfı©øç©¾_õ¥ËJ@MZR)˜tv)â ;&	´ªÖ´>ëçbìğ7ÑÊÏPCH,1Z¾ÆÎáï"1ÔEl¹ÑËØv“b´@¬šRä{/ÑZâ„ı‘:˜<ÌšTm¶‡Õ¢î(¼9ë	’IÛçá6*gYy/=ëj‚ï
-JBÓqŞïRù$­üuõ`/ÍEbFm¿L27ÈÍ©Íc;ŒYYêóPfÊzÔ‹E•j”1Â‘uÜş~÷ëL«ipS.=öß¶F02›ÔV×ÍrŞ­£sø€ö€%Z¥Ù‹æbİWhu¶9·Oö¥ˆìûA(è›61…1ÀC­b“àµôzÇ€öŞĞê„ºïÀsî¢FSêB[?Q _8mê‡ĞŒØ?®—4ü`ßŞ¢Ğ¢´*”³Ã ”H+émğ^#Ã\_4.U¸c Hî°ÔBuOé)àß¸†
-ıÉƒDo®«­@r‰*îÈj{Âøí$+dçÛsÂõ9£Rõ '¹€&†ÛK„¦°Ú%AÄPVH³/	ã®&ÍØÈêkJ„´È@°4[¬–bpt§¤Y	Up“jÇªYÀš×«[ÑfH-Í´èi3x>~ÉãË/Y|ÉƒM’3Ç”1³—H¨…³Ti>ÌL<Ã»:Ğ,\á×±CdÊ»-ÖÇËØH„ó2v(1pMIyJßE¤ËDt{Š`NÅKHŞö½c,‚&Y¦w±¬ÎCWÊª"{JK}çõ2+Àï ¾šê=rD»^§¤¾&²cFÏd`<Y¬è†ª…‚$0Û…ÏDÊÍD|¢qËqB,Œå·3O‹Ú¶è"îªª.Àu)'À†
-éB}\æË—/Å²m‡½®a_ÃvÂFâş‘ãÜÅ1W.8"9<Á—,½|™yÆ·Ài.ŸAI¥ˆ¾ÁŸXğ³×”ù‡¨1rü]Hê0:lÕ“ôáâëßÖ“_>¹8ªäUw±&ƒbó`v¨Yóyz{ˆW0«Öìi³¬êü_”®°.…ne‘Sr“©øk—Öôä‚àµaea
-<ÛÁÔÕ¥»Sä–°xÚİ¤ÜÈ«+àF{©psúrƒÔœSu!ÍHèøtvü¾¨«6¶SzÑ7‚ßÏşJ™µR“ŠĞH§I…·%¥G÷QË%ø$æ”5lòlrwÖˆv&AÈ6¥€dvfD,f(>ú¾ÃÅ ©®Hˆ°şêJï“PĞ¬Ã,Ğ@£ºDnBGÂ°* yJù‡C¡6à5òxj_ªf¤¡0MÊ¢ÚØû$íÑçwFåï³: FgpêÚLˆÓª/sp;Ù`V[§¹–õ®)eç\9yMü‹”íÈ~°ğ
-3‘!ùi·e$àPà8şª¼Æ1¾gÜw%6‚-KÊ³Miï w PJeå­ÀT¬5YrÿíŒ¡KùÄ¢úÇ"cx··ÄDˆN9*¾Şµw…*-d^ SØµnKL!àS*6Ò‚jıµşLà[·û\—è]V•·áĞênNb&… /7âÜS
-³½’;*?Ëó¹ÓğÅƒGÄŸ.’E¨ªğ•—ìŞk#±ÂØ—V¾LÅæ1ÁlQQ†jV<p÷ï»ğÔFõ0¤¥:‰ªİ¨şÒ¤e“¶×Ê__vAelIÖ¤W©Ä	Ô’ïª” ûñp5!õçœéI¬•«İ•ÒùP?œ-?ïgoºª«Ûn&)ºÇ¯Æ$SÄ&[!	İ†;;B’ÄÃé7\Üç`;wJXÖğ™à¥%x M=*	®ö¹JhÓ£_½±JŞŠ"  oÉ€w6XºÁW©Øí`#l%ŞÎÈ/ôÀ"ë[ çŠ°F ˆ;›@)oB87@›MŠ¯·€•„†Vr¤/ŠSUÙ†¢÷˜çÌ4İ‹qì^^·OHÚîû‘œ(Ş´T\ÏK
-Õ/ºÅ>^ÁD•åUH‡Ûv4JwAi2¹†;O…RešåÎOU¿0>»yØnTĞ/±À>fwéŠÏ#PdF ¾îÊµÃhÓã€¾NÍ7î<l¯Sï$`´·Û•@=œôõEæ˜¾õ§ŠNŞ8î‡ôjß4ï»/YîUÍwœCa-D]Ÿ¦ĞQlbíNJ7Nàã<«EÈiø}­ï†ĞYÈ ¢Û(¡sFÚıàø0˜Á[¶iùØ¶ÅçÒÚ¢æü6pƒ`*Í„ãı`’ëáƒö7ÂÊUİ¥|S„;uìw:1{]§¥ÅOÁ,55xş —¦Ùá_m»Ø6ú×ïÔPüÏß@<ÚµFREÒ<Oî¨Ìd®ŸnœéÊ“ÈÌ`,fÇô{XÉhı@Ò²ÖÀ¾7ÎÌ‚ê¯¡Ğ¹5[ŞrdÔgË4sÀÌ$ÏÌsİuq÷é2•KwÂOŠífX–XÓİvo‡;9e8rÌÈZO;­ÏSÎcşˆµ-L¦ tÆs¬Õ¸²Èÿ: Š÷%¨›÷HwO‘iÛo<µÈP¿®èì,Ì7;Úo³?5è¹H²Ë‰è²nÛ¼>Ñ-ë^7¬ô¿U0ÖÙ]õ¾‘ÔàA9ıÈÑz2S©ø`ïèïo·ÜÉbƒ‰B¨s—ÈbÖ
-ãõ2»†5\èûßÚZÕ§óeU›ñïöÛ®Üqî¯Šì‚qÜ_	ä»aÜÍ!|p}_Ü	‚K@p®Å„]ã›çÜ@JŞ¶İm˜2q°Öóm6ÖßXöä¢W%ÙxÁÚ—ú6S€ôŠ®¡§£ÅêÎ]¾ şëY¸b­•Ñşˆ?éú‡7¾9ı‘HO4B´"E‚öDõ»3`êÀ·!u¸ë˜§©ëìòÏŸ©W1À	ğÍ‚ğ’oÖÍ’‡
-ÖYpû>Â¦‘sèÓ05¼„²|EcSôM©ıP£KBa6¡E¿
-f;=Ç17+¢}‡]ï´3­R
-{£8ë`<ÛÁhV™ÀÅH[ñ²¢­Ú†ëuš¶.©,çá¦E iì{´âÆcß¶mÂQmëjø³Kg-ÿhçjlLnc8ù]EKUFŠ+Ã<xÈßöşÛÓuçendstream
+xœ­[ÍwÛ6¿û”=ä®[¡}M|yoùèn’&iêx·Û—ì¶e‡‰dª"¼ç€$ Kvb»=D$0˜ùÍoğŸ“²à“ÿÿ/÷ö”›œµ{åälïÏ=N_'ñŸãåäñ!´0Ş¾ô|rxººò‰ã«má¥.÷wÓÃĞØ«´±“…àÂC‡Ã“½wìçiY”Z9á=;O~ŸĞoiyéÙ|:Ã/KíØ²>;ãØl>­¨—öÊ9Vo¾)eQZÁ–Ít&`ÒN›mƒ¹‹ú<ùt{sÖœ†Ÿ^qÖ®’&UW7³.“±\…´Ñ¬YWì)p\?ã‡óò¬ëG,—œ‹]§3k§ÿ;|ûÃ'\R*÷¾ĞB‰ÉLêÂ@B¬rÖI6?%!ä(6_ÏÏçíø&ÊÌö|Æ(¬´ Ôß¡ĞÇÕÉ÷ìá"{ú6)¡A†=z€¿ªöp
+–R–Ê°‹DL¶ÚLÊ:Jñ’R,õÉK‘‰9Jú)¶.%Xc[ñ	èÿ~ZD•Z._”ĞÁËŞŠaï5|ô
+¶§íªîátf$Á5{Ÿ8	›À]W
+v]:ö†fo,—°pØø?á’mş	7–úµ<¢¡„q£!|kënLÄ±Wµs^³“ù"YïŒ4ã^Ü©ÉŒËB+/ÂBşYw]}~r4×aşõòb‘l*Zöyòıpj(ÌZ6o»Áşr| •._Lg.LPóµ¹OÑ!üüTÁ6+Kú`Ÿi7K.s÷\·0§(J{Æmf%Î±T0GÃş}ğ’&öóáŞo{e¡	¯Ö»áÍÊmğ&/¬ÕcE÷}èºUûpÿÉÁ£×ÅÁ&6¨[­›óã.˜ÏLxK®´íjPàlUãÿÑ®‚å d†iş0ü¢M*­&F»B;‚àÅÍPÿøa& {µ®ZjCæVåÀ;Â¢¡	4cØ‡_2g+é?ôÍ@Óìû²—-îIÕ‚=?Á0¯ö1î%èLõf³öl%;;©RƒgS\Àğ
+u~æÛÂ¡S²Ófğ¹4©(Â û}˜ã{Nóøé_óà¤0½¦ËŠ;ôÓ(÷iÕU£àÑ'Ún=8ü1úJt7€K¯õ†»½¬â²@kÕúÛV÷‘ª°‚óÄ} 'Ğu$€õ•nCñÃ˜Şm„Ú€Ìà6ÀŒ·‘3ù †%GN#\YXï'Fppu•Ó€÷N“zÆš¶{œÉû±B‚Ë%Sˆ¡ÀñË÷:†„íöšÑ1d´—™J¿d†?û%(ì¢ù»közìL`w:€ö…áƒ,«U ,!µÉö!b1¥E,¶H€`æ~£1ín“cH§Ğ.À˜È~=gÑ +ô¤±Iu~BÙ³,8á[2`˜Wb_IØ~)¢P&ÿëÑG}ˆsv¼#|ë
+©MPÃ°s°P`9)¾>!¶†ƒ1Wş _b0“™xıÄ‹»réO4ªÂ¸8ÙC³hoã
+GwÙ,z—’¾d¾ñ´ú<BØR1ÜH£ˆ¡>}Í(µÙeÔ\+A³¯]u”Ò‹9™3ºŸB66ZÚ×ÕÀgÀrï‚EC\H¬¿i"Y½¡ø„¿ÙK4HØLÎ*èı5¸Ïü¿Ñ=¬cÁ;‡Ì,ş€j€‘½z¹İ`K°h£ÀÖÄô(j¬t× 7FK|Ç ›³[ù)\"p»` –Üz¯&°/Ç<â‡í“¶v~ë” !t:‡hBú²a‹LMXHQz=}úáô0µ€ípnŸ=Í^4)úgßÚ(@ëi/Öİ—r7˜ëÂ$8añ Aiò¢ç8 ©ÙyˆûÁüä"PŠĞ"TÊhš^˜9²›şáF×A¥¨íPöJ‚ô¶l$43ù'"7`6™Õq@w0Ú¶ó ,F¸!aÂİ’aäôÍ"ÍÑ–ó¨eHÒŸ?,JZ_p%7`ÿç“òbAörkéëkÍ„z8ü°+ïoB3ÄHy™&#î {•uéRa¡¶ úUØ´a„h>Øßœ­·Zä¢¬fs+"sl‚­ ‰«êûê÷›KÈÂ9¢4‡/mÿsJi1 ,­²îÇ#@ÃÛ‘ß)[˜Ò&x'š)J4–)ì$›nİ¤}Š^û†½M^¯H—Òc’²’í•H9Òœ#Ì˜ô¢«:Ó0¦h€à,Ä,ª³‘¿ÎY^ÿŞ³?†ŞÍúS1¦ğÏÓù>~İ{,+5I¥`ÒÙ$Šƒì˜&V#¬ifø¬_‹U°ÃÜDo(C{‰3ô–¢åŒ!à,ş.C]Ä½Ša7)FÄª™‘!I¾÷
+­Õ NØ©„yÀÃ¬IÕf{X-êÂ›³ ™¦ q»â:ÜFí,+ğe¢g]M°à]Aih:Îé®)§µ¿®ì¥¹HÌ¨íÕ$sƒÜ\Ú<¶Ã(¦>…¦¬G½XTé,ÃdŒ0FäA·¿ßıÄ:Óz¤œÅ”KO€ı·­QŒÌ&ÕÕÇu³œwëèÆ\> =`‘Viö¢¹X÷5$ÒÎ6çöàÉ¾‘}?%]cÓ&¦0¸ch¡Ul²Q¼VÃ¼Ş3à‡½w´:¡î;ğœ»¨Ò”ºĞÖOdÈNšú!4ãÀöêåÇ¿Ø··(µ(­
+åì0H %ÒJz¼×È°ÖÍ‡K5î˜Q$wXl¡Ê§ôğo\E…ş€äA¢7×UW ¹Dwdµ=aüvœ…ƒ²ó€í9aÈúœQ1‡ŠĞ“\À
+ÃíEBSXí’ b(«¤Ù—„qW“fldõ5EBR2,`1T#¤<àèNI³ªàş&ÕU³ ×«[ÑfH-ÍfÑÓfğ|ü’Ç—_²ø’›:%=g)cf¯Pg©Ö|™x†wu Y¨á7±CdÊ»-ôãF‹…l$Ây!;”¸¦¤<¥Î§céòÃ"˜S±Á’·}ï‹ I–é],«óĞ•²ªÈÒbßy½ÌJğ;¨¯¦ºAFÑ®7i ©/‡‰,Æ˜Ñ3ØÏE+º¡j¡ 	Ìvá3‘ƒr3‘ŸèBÜrœ#DùÇíÌÓ¢¶-ú£ˆ»ª«0F]Ê	°!ªÆ¡¹¢Ï€Ë|ùò¥X6°í°×5ìkØÎØHÜ?rœÛ 8¦âÊeG$Ç³'µQ|•yÆ·Ài.ŸBI¥ˆ¾ÅŸXğ³×”ù‡¨1rü]Hê0:lÕ“ôáâ+àÖ“_>¹8êäUw±&ƒbó`v8³æóçiì5 N\Á¬[³§Í²ªwğQºÂºº•ENIÈM¦â¯AnTèôä‚àµaea
+ş ¤®(İ"·åiw“r"7jÿVÀö"ÒIÀÍéËMRsNÕ…4#¡<ĞÙü¢®ÚØLéEß~?û+ExdÔJ	L*B#&Ş–”İ{D-”à“DXSÖ°É³ÉİY#ÚmX!;Ú”’Ùe8š±˜¡øP4êûW¤º"!Âúw¨+&¡ Y‡U Æ9è¹	-Ãª ä)å…Ú€×4Èà=NûR5#…iR§½Ó}~gTş>{ #jt§®Í„hbZ‘`"v²;Æ:­¶N)v1–?Ö”²s®œ‰¼&şÅÊ€vd?Xx…ˆ™Èü´Û2p(pU^ã€†ß‹3î»A‰–%åÙ¦´÷ˆ; (¥x*˜`ÍÆZ“%7ğßşÇº”O,ª/‘q,2à	9†wËÀqKL„èœÓ©âëmPKpW¨ÒBæ2…Që¶´À>¥b#-¨Ö_ëÏ¾ÕQ»Ïu‰ŞeUy. i iws3)}¹àR˜è•ÜQñøYÏ„/<êeüé"yP„ª
+_yÉî½!@1+Œ}iåËTlÌUÀe¨fÅwÿ¾+Omœ>†´´B#qj7ª¿4iÙ¤ígå¯/»àdlIÖ¤W©Ä	œ%ßU) öãájBêÏ78=Ò“X+W»+¥ó¡~:9[~âÏŞvUW·İLRt7_I¦ˆM¶Bºwv„$ ‰‡Ó!n¸¸ÏÁvî”°¬à3ÁkJğ@›zT\ís•Ğ¦G¿>zk•¼E2@ÿ Ş’ïl°tƒ¯R±ÛÁFØJ¼;‘_é%ë[ çŠ°F ˆ;›@)oB¸6@›MŠ¯·€•„†Vr¤/ŠSUÙ†¢÷˜çÌ4İŒqì^^·OHÚî’œ(Ş´T\ÏK
+Õ¯ºÅ>^ÂÄ)Ëª·í6h•nƒÒbòî<J'Ó,w~ªzÅøìîa»QA¿Äû˜İ¥ŸG È>ˆ |İ¥9j†Ñ¦Ç}šoÜyØ^§ŞIÀho·+€4z8éë‹Ì1}ëO¼p8ÜéÔ¾mN»/YnVÍwœCa-D]Ÿ¦ĞQlbíNJ7.à=ã<«EÈiø}­ï†ĞYÈ ¢Û(¡sFÚıàø0˜Á{¶iùØ¶ÅçÒÚ¢æü6pƒ`*Í„ãa’ëáƒö7ÂÊUİ¥|S„[uìw:1{]§¥ÅOÁ,55xş —¦ÙÁ_m»Ø6ú×ïÔPüÏß@<ÚµFREÒ<Oî¨Ìd. nœéÊ“ÈÌ`,fGô{XÉhı@Ò²ÖÀ¾7ÎÌÂ,Ô%^%B¡sk¶¼åÈ¨Ï–iå€™I™çºë<ãîÓe*—î„Ÿ5ÚÍ2°,±¦»íæ:wrÊpä˜‘µvZŸ§œÆük[˜LAÿè<ŒçX«qe‘ÿ}@ïKP7îÿĞÜy<E'òßxj‘¡~]ÑÙYX ov´ßflĞr‘d—Ñeİ¶y}¢[ÖıÜ°"ĞÿVyÀXg·ÕûFRƒåô7"3Dë]ÈL¥â—{‡·åNLB»ôD³V¯—Ù5¬ár@ßßğüÖÖª>™/ë¬²ØŒ÷x·ßwåˆsUdŒØàşJ ßãf¸h†á#€ëûâN\‚s-&èß<oäRò¶íæ˜hÃŠ	ˆ[€µÆ˜o³±î€øÆ²'—e¸¸*ÉÆ+Ö¾Ô·Y¤Wt=-^Qwîòõ_ÏÂ%k-¨ŒöGüI×8¼	ğÍéÏDz¢j ),° ªßS¾©Ã]Ç<M]g—şL¸ŠNèà€ÿèşz$J›u³ä!ƒ‚uÜ¾°…eäú$,/¡¬C€_ÑØ}SAj?Ôè’P˜-hÑkÁl§ç8æfE´ï°ë/v£UJaoGb= Œg;8Í*¸i+^– ò@´U;ÂÂp½NÓÖ%•ƒå<Ü´ ı`¶SÜxcìÛ¶M8ªÁ¢m]8pé¬EàŸí\Ém'¿«h©ÊHqe¸“çïƒ‚G€ümïÿÒvOendstream
 endobj
 312 0 obj
 << /Filter /FlateDecode /Subtype /Type1C /Length 4471 >>
@@ -829,10 +823,10 @@ endobj
 << /Filter /FlateDecode /Length 1215 >>
 stream
 xœ­VKoÛF¾ëWğæ!`®÷ıĞCâ¤1Ò8mdmáôÀÊ´ÅX‘	?ŞS™}P";mmC-wçµ3ß7³3JXFı/ıÏW“£©´ÙU;¡ÙÕäã„…Ó,ıÍWÙ³J8‰;ÄQÇ²Ùå$ª²ŒYM¨ÎŒ2Ä	•ÍV“s8Ë)¡JFTyá?,ÊYø{pP¶]]®óBšNG’_r®‰³Fl½‚ ”Zx=:iÖÛ‹¡ŸíEïDÃIÒQNZË‹|ÿ,K´,à´çÜßGË±©‘ÇeŠ€“†bË(¦¹ÖÜü5{…¹Ój˜;!ÁlÒlv1æòÙ‡I!%Ë
-Ü·Zûísø-ç–P‘õ^ÔSX„ĞÔnß	<ƒvUb<Ò'MÂ‹´Ü¹p¯°ÍáYı9WX.j \D.’ˆr0MKgá=pÊìûœäñ†ê/1ÂÆKœC»y’ÒJÔ”p¼Õ¹­Z´jhHU¹öŞ´CA5ïM®¡Lr¸hû—Í6èÀÙ&œ{MÄË2I`"—]™ß–]æ,š÷‘Vß©x9›at©ÒVÃuyUBƒÏ!ı”‰ lë!Ò¼ÿÂ—“¡ï‚	¢¤ãÑ/#¼0‡	zŞM_‡h_Ì&o'”¨@Ÿíİl3âV¶IK¸á™¡–(Ù¶èºMûäèèxúô™x]å“‹÷Ü6ªyGšíÕÑ¦œûûıÔnQü€ì7RšÜM‰6nàÓëÑËçD±„àYn==¤#øÓ y1ûXûÅ]-aÀµ xzè×(ï–Ò—‡1™ÌEM„ÚËe¯Àà—´´æß€-tŸíªÜ´‹2¡Ğ¨¶é½0=Fz]­;ôâ@,!ØøpvV¨Aµ=ğ§zöèËªG|Ó·Î
+Ü·Zûísø-ç–P‘õ^ÔSX„ĞÔnß	<ƒvUb<Ò'MÂ‹´Ü¹p¯°ÍáYı9WX.j \D.’ˆr0MKgá=pÊìûœäñ†ê/1ÂÆKœC»y’ÒJÔ”p¼Õ¹­Z´jhHU¹öŞ´CA5ïM®¡Lr¸hû—Í6èÀÙ&œ{MÄË2I`"—]™ß–]æ,š÷‘Vß©x9›at©ÒVÃuyUBƒÏ!ı”‰ lë!Ò¼ÿÂ—“¡ï‚	¢¤ãÑ/#¢`‡	zŞM_‡h_Ì&o'”¨@Ÿíİl3âV¶IK¸á™¡–(Ù¶èºMûäèèxúô™x]å“‹÷Ü6ªyGšíÕÑ¦œûûıÔnQü€ì7RšÜM‰6nàÓëÑËçD±„àYn==¤#øÓ y1ûXûÅ]-aÀµ xzè×(ï–Ò—‡1™ÌEM„ÚËe¯Àà—´´æß€-tŸíªÜ´‹2¡Ğ¨¶é½0=Fz]­;ôâ@,!ØøpvV¨Aµ=ğ§zöèËªG|Ó·Î
 è÷7C^2n Î=e˜ÒàÛÛ‡ƒ½÷_SÀF¢«İ)Ô¬Û[YÃ‘5Z'>§ªJ,Õ=°­™ö˜şIÚ3IôLòÍQëI\VdR4¥P‚½7u÷G£†hœNÚp"•º_úòcÀé°±6Œ£O1“á$G¥Şñ{@\;¸^øR®0ChÌY'>[Î·s¹›kitãL'9$Ë«Ã¤Œ8ı:œYË›¬‹¦‘8;8n`v\As½÷ş|¿Ü2wq‹ãh‘t74VÕª©Û
 ù¤Œ
-ê§a'ÀëÂ¢ÍæÒ¯½€†Ÿsãg"ÿÓz~7šJie3@sFã4È£=N?Ú*Jm†‰NsAŞ£ñ‰™ùohf„%4óĞr	Î<¼´ĞD¸{€9åûAHÖá)1ˆ!YX"eêÔ˜%²TqøÓ/ñ…€³öÇ0ÑÈÎ\_½r]¯$|ãeŞ Î‚4,¼ô-ĞƒB*Ãv\m¿ô³ƒÅş/Q×waÏ­Şp›ƒzİ¯œuxŠÏÔyÛ+Ûø~éŞÅ‡aşıĞÕ£aĞÕUo1Ü5½–€ãØ™öÚ·æªVêF„E„¬Â›3îFÏˆÑc¾ëç‚à$cÃW±wËÛ^@—ÿ¯o‹ğÃjïp.çøÌÀ1—iJ‰àúHßAæ!XWØ#4—Ã0"Øƒ½·“o]endstream
+ê§a'ÀëÂ¢ÍæÒ¯½€†Ÿsãg"ÿÓz~7šJie3@sFã4È£=N?Ú*Jm†‰NsAŞ£ñ‰™ùohf„%4óĞr	Î<¼´ĞD¸{€9åûAHÖá)1ˆ!YX"eêÔ˜%²TqøÓ/ñ…€³öÇ0ÑÈÎ\_½r]¯$|ãeŞ Î‚4,¼ô-ĞƒB*Ãv\m¿ô³ƒÅş/Q×waÏ­Şp›ƒzİ¯œuxŠÏÔyÛ+Ûø~éŞÅ‡aşıĞÕ£aĞÕUo1Ü5½–€ãØ™öÚ·æªVêF„E„¬Â›3îFÏˆÑc¾ëç‚à$cÃW±wËÛ^@—ÿ¯o‹ğÃjïp.çøÌÀ1—iJ‰àúHßAæ!XWØ#4—Ã0"Øƒ½·“oÔúendstream
 endobj
 336 0 obj
 << /Filter /FlateDecode /Subtype /Type1C /Length 595 >>
@@ -2961,7 +2955,7 @@ stream
 xœŒ±BAÅúLñ&I.¹$ ÑÀ—(ø¬Ï€,—öábUØ>ô&­Ü¡"l	›>¡6œû7¼H°àpÅ¾‘f«ÃÅ‹İÆ­w–Î\	=È9zdàKŠÓò¹Ç?Ê+é¸EWendstream
 endobj
 530 0 obj
-<< /Type /XRef /Length 2655 /W [ 1 3 1 ] /Info 3 0 R /Root 2 0 R /Size 531 /ID [<7f2f204287197521369d70ccf89cab0a><eb4219048132afee398320dce3fad474>] >>
+<< /Type /XRef /Length 2655 /W [ 1 3 1 ] /Info 3 0 R /Root 2 0 R /Size 531 /ID [<7ccb74f63a8910df706e449ba69d70e9><8df259b1b30b2adf75c26b7cb15194fa>] >>
 stream
                              	  
                                                !  "  #  $  %  &  '  (  )  *  +  ,  -  .  /  0  1  2  3  4  5  6  7  8  9  :  ;  <  =  >  ?  @  A  B  C  D  E  F  G  H  I  J  K H’  P2   O   O  O  O  O  O  O  O  O  O	  O

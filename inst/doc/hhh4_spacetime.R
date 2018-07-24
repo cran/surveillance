@@ -31,7 +31,7 @@ plot(measlesWeserEms, type = observed ~ unit,
   sp.layout = layout.scalebar(measlesWeserEms@map, corner = c(0.05, 0.05),
     scale = 50, labels = c("0", "50 km"), height = 0.03))
 
-## ----measlesWeserEms15, fig.cap=paste("Count time series of the", sum(colSums(observed(measlesWeserEms))>0), "affected districts."), out.width="\\linewidth", fig.width=10, fig.height=6, fig.pos="!h", eval=-1----
+## ----measlesWeserEms15, fig.cap=paste("Count time series of the", sum(colSums(observed(measlesWeserEms))>0), "affected districts."), out.width="\\linewidth", fig.width=10, fig.height=6, fig.pos="htb", eval=-1----
 plot(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
 autoplot.sts(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
 
@@ -62,9 +62,19 @@ summary(measlesFit_basic, idx2Exp = TRUE, amplitudeShift = TRUE, maxEV = TRUE)
 ## ----measlesFit_basic_endseason, fig.width=6, fig.height=2.5, out.width=".5\\linewidth", fig.cap="Estimated multiplicative effect of seasonality on the endemic mean.", fig.pos="ht"----
 plot(measlesFit_basic, type = "season", components = "end", main = "")
 
-## ----measlesFitted_basic, fig.cap="Fitted components in the initial model \\code{measlesFit\\_basic} for the six districts with more than 20 cases. Dots are only drawn for positive weekly counts.", out.width="\\linewidth", fig.pos="htb"----
-districts2plot <- which(colSums(observed(measlesWeserEms)) > 20)
-plot(measlesFit_basic, type = "fitted", units = districts2plot, hide0s = TRUE)
+## ----measlesFitted_basic, fig.cap="Fitted components in the initial model \\code{measlesFit\\_basic} for the five districts with more than 50 cases as well as summed over all districts (bottom right). Dots are only drawn for positive weekly counts.", out.width="\\linewidth", fig.pos="htb"----
+districts2plot <- which(colSums(observed(measlesWeserEms)) > 50)
+par(mfrow = c(2,3), mar = c(3, 5, 2, 1), las = 1)
+plot(measlesFit_basic, type = "fitted", units = districts2plot,
+     hide0s = TRUE, par.settings = NULL, legend = 1)
+plot(measlesFit_basic, type = "fitted", total = TRUE,
+     hide0s = TRUE, par.settings = NULL, legend = FALSE) -> fitted_components
+
+## ----------------------------------------------------------------------------------
+fitted_components$Overall[20:22,]
+
+## ----------------------------------------------------------------------------------
+colSums(fitted_components$Overall)[3:5] / sum(fitted_components$Overall[,1])
 
 ## ----------------------------------------------------------------------------------
 confint(measlesFit_basic, parm = "overdisp")
@@ -178,8 +188,12 @@ for (comp in c("ar", "ne", "end")) {
     at = seq(-1.6, 1.6, length.out = 15)))
 }
 
-## ----measlesFitted_ri, out.width="0.93\\linewidth", fig.pos="htb", fig.cap="Fitted components in the random effects model \\code{measlesFit\\_ri} for the six districts with more than 20 cases. Compare to Figure~\\ref{fig:measlesFitted_basic}."----
-plot(measlesFit_ri, type = "fitted", units = districts2plot, hide0s = TRUE)
+## ----measlesFitted_ri, out.width="\\linewidth", fig.pos="htb", fig.cap="Fitted components in the random effects model \\code{measlesFit\\_ri} for the five districts with more than 50 cases as well as summed over all districts. Compare to Figure~\\ref{fig:measlesFitted_basic}."----
+par(mfrow = c(2,3), mar = c(3, 5, 2, 1), las = 1)
+plot(measlesFit_ri, type = "fitted", units = districts2plot,
+     hide0s = TRUE, par.settings = NULL, legend = 1)
+plot(measlesFit_ri, type = "fitted", total = TRUE,
+     hide0s = TRUE, par.settings = NULL, legend = FALSE)
 
 ## ----measlesFitted_maps, fig.cap="Maps of the fitted component proportions averaged over all weeks.", fig.pos="hbt", fig.width=10, fig.height=3.7, out.width="0.93\\linewidth"----
 plot(measlesFit_ri, type = "maps",
@@ -212,7 +226,7 @@ t(sapply(measlesScores1, colMeans, dims = 2))
 #  measlesPreds2 <- lapply(mget(models2compare), oneStepAhead,
 #    tp = tp, type = "rolling", which.start = "final")
 
-## ----measlesPreds2_plot, fig.cap = "Fan charts of rolling one-week-ahead forecasts during the second quarter of 2002, as produced by the random effects model \\code{measlesFit\\_ri}, for the six most affected districts.", out.width="\\linewidth", echo=-1----
+## ----measlesPreds2_plot, fig.cap = "Fan charts of rolling one-week-ahead forecasts during the second quarter of 2002, as produced by the random effects model \\code{measlesFit\\_ri}, for the five most affected districts.", out.width="\\linewidth", echo=-1----
 par(mfrow = sort(n2mfrow(length(districts2plot))), mar = c(4.5,4.5,2,1))
 for (unit in names(districts2plot))
   plot(measlesPreds2[["measlesFit_ri"]], unit = unit, main = unit,
@@ -232,8 +246,8 @@ sapply(SCORES, function (score) permutationTest(
 ## ----measlesPreds2_calibrationTest_echo, eval=FALSE--------------------------------
 #  calibrationTest(measlesPreds2[["measlesFit_ri"]], which = "rps")
 
-## ----measlesPreds2_pit, fig.width=8, fig.height=3, out.width="0.93\\linewidth", fig.cap="PIT histograms of competing models to check calibration of the one-week-ahead predictions during the second quarter of 2002.", echo=-1, fig.pos="hbt"----
-par(mfrow = sort(n2mfrow(length(measlesPreds2))), mar = c(4.5,4.5,2,1))
+## ----measlesPreds2_pit, fig.width=8, fig.height=2.5, out.width="0.93\\linewidth", fig.cap="PIT histograms of competing models to check calibration of the one-week-ahead predictions during the second quarter of 2002.", echo=-1, fig.pos="hbt"----
+par(mfrow = sort(n2mfrow(length(measlesPreds2))), mar = c(4.5,4.5,2,1), las = 1)
 for (m in models2compare)
   pit(measlesPreds2[[m]], plot = list(ylim = c(0, 1.25), main = m))
 

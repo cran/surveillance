@@ -10,7 +10,7 @@
 }
 \usage{
 autoplot.sts(object, population = FALSE, units = NULL,
-             as.one = FALSE, scales = "fixed", ...)
+             as.one = FALSE, scales = "fixed", width = NULL, ...)
 }
 \arguments{
   \item{object}{an object of class \code{"\linkS4class{sts}"}.}
@@ -29,10 +29,12 @@ autoplot.sts(object, population = FALSE, units = NULL,
   \item{as.one}{logical indicating if all time series should be plotted
     in one panel with \code{\link[ggplot2]{geom_line}}.
     By default, the time series are plotted in separate panels (using
-    \code{\link[ggplot2]{geom_bar}}).}
+    \code{\link[ggplot2]{geom_col}}).}
   \item{scales}{passed to \code{\link[ggplot2]{facet_wrap}}
     (for \code{as.one=FALSE}). By default, all panels use a common
     \code{ylim} (and \code{xlim}).}
+  \item{width}{bar width, passed to \code{\link[ggplot2]{geom_col}}.
+    Defaults to 7 for weekly time series.}
   \item{\dots}{unused (argument of the generic).}
 }
 \value{

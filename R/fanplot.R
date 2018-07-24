@@ -10,7 +10,7 @@
 
 fanplot <- function (quantiles, probs, means = NULL, observed = NULL,
     start = 1, fan.args = list(), means.args = list(), observed.args = list(),
-    key.args = NULL, xlim = NULL, ylim = NULL,
+    key.args = NULL, xlim = NULL, ylim = NULL, log = "",
     xlab = "Time", ylab = "No. infected", add = FALSE, ...)
 {
     if (!requireNamespace("fanplot", quietly = TRUE))
@@ -23,10 +23,15 @@ fanplot <- function (quantiles, probs, means = NULL, observed = NULL,
               isScalar(start))
 
     ## axis range
+    ylog <- grepl("y", log)
     if (is.null(xlim))
         xlim <- c(1 - 0.5, nrow(quantiles) + 0.5) + (start-1)
-    if (is.null(ylim))
-        ylim <- c(0, max(quantiles, observed))
+    if (is.null(ylim)) {
+        ylim <- range(quantiles, observed)
+        if (!ylog && ylim[1L] > 0) {
+            ylim[1L] <- 0
+        }
+    }
 
     ## graphical parameters
     stopifnot(is.list(fan.args))
@@ -37,7 +42,8 @@ fanplot <- function (quantiles, probs, means = NULL, observed = NULL,
 
     ## initialize empty plot
     if (!add)
-        plot(xlim, ylim, type = "n", xlab = xlab, ylab = ylab, ...)
+        plot.default(xlim, ylim, type = "n", log = log,
+                     xlab = xlab, ylab = ylab, ...)
 
     ## add fan
     do.call(fanplot::fan, fan.args)
@@ -62,15 +68,25 @@ fanplot <- function (quantiles, probs, means = NULL, observed = NULL,
 
     ## add color key
     if (is.list(key.args)) {
+        defaultyrange <- local({
+            if (ylog) ylim <- log(ylim)
+            {if (ylog) exp else identity}(c(ylim[1L] + mean(ylim), ylim[2L]))
+        })
         key.args <- modifyList(
-            list(start = xlim[2L] - 1, ylim = c(ylim[1L] + mean(ylim), ylim[2L]),
+            list(start = xlim[2L] - 1, ylim = defaultyrange,
                  data.type = "values", style = "boxfan", probs = fan.args$probs,
                  fan.col = fan.args$fan.col, ln = NULL, space = 0.9,
                  rlab = quantile(fan.args$probs, names = FALSE, type = 1)),
             key.args)
         ## convert ylim to data
-        key.args$data <- matrix(seq.int(from = key.args$ylim[1L], to = key.args$ylim[2L],
-                                        length.out = length(fan.args$probs)))
+        yvals <- if (ylog) {
+            exp(seq.int(from = log(key.args$ylim[1L]), to = log(key.args$ylim[2L]),
+                        length.out = length(fan.args$probs)))
+        } else {
+            seq.int(from = key.args$ylim[1L], to = key.args$ylim[2L],
+                    length.out = length(fan.args$probs))
+        }
+        key.args$data <- matrix(yvals)
         key.args$ylim <- NULL
         tryCatch(do.call(fanplot::fan, key.args), error = function (e)
             warning("color key could not be drawn, probably due to non-standard 'probs'",

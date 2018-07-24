@@ -10,10 +10,16 @@
 
 autoplot.sts <- function (object, population = FALSE,
                           units = NULL, as.one = FALSE,
-                          scales = "fixed", ...)
+                          scales = "fixed", width = NULL, ...)
 {
     stopifnot(is(object, "sts"))
     data <- tidy.sts(object)
+
+    ## sensible default width for weekly/daily data
+    if (is.null(width)) {
+        if (object@freq == 52) width <- 7
+        if (object@freq == 365) width <- 1
+    }
 
     ## select subset of units to plot
     if (!is.null(units)) {
@@ -34,7 +40,7 @@ autoplot.sts <- function (object, population = FALSE,
     if (as.one) {
         p <- p + ggplot2::geom_line(ggplot2::aes_(colour = ~unit))
     } else {
-        p <- p + ggplot2::geom_bar(stat = "identity") +
+        p <- p + ggplot2::geom_col(width = width) +
             ggplot2::facet_wrap(~unit, scales = scales, drop = TRUE)
     }
     p + ggplot2::labs(x = "Time", y = if(doInc) "Incidence" else "No. infected")

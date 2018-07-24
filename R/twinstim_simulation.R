@@ -8,8 +8,8 @@
 ### algorithm (cf. Daley & Vere-Jones, 2003, Algorithm 7.5.V.).
 ###
 ### Copyright (C) 2010-2018 Sebastian Meyer
-### $Revision: 2116 $
-### $Date: 2018-04-18 17:22:12 +0200 (Wed, 18. Apr 2018) $
+### $Revision: 2178 $
+### $Date: 2018-07-17 11:04:22 +0200 (Tue, 17. Jul 2018) $
 ################################################################################
 
 ### CAVE:
@@ -102,7 +102,6 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
 
     ## Transform W to class "owin"
     Wowin <- as(W, "owin")
-    Wedges <- edges(Wowin, check = FALSE)
     maxExtentOfW <- diameter.owin(Wowin)
 
 
@@ -461,7 +460,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
         eventTypes <- as.integer(eventData$type)
         eps.s <- eventData$eps.s
         # distance to the border (required for siafInt below, and for epidataCS)
-        bdist <- bdist(eventCoords, Wedges)
+        bdist <- bdist(eventCoords, Wowin)
         # spatial influence regions of the events
         influenceRegion <- if (nrow(eventCoords) > 0L) .influenceRegions(
             events = SpatialPointsDataFrame(

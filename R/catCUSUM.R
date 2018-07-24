@@ -11,6 +11,7 @@
 #         beta-binom, etc.
 #  n   - vector of dim tmax containing the varying sizes
 #  h   - decision threshold of the Categorical CUSUM
+#  calc.at -
 #########################################################################
 
 
@@ -36,7 +37,7 @@ catcusum.LLRcompute <- function(y, pi0, pi1, h, dfun, n, calc.at=TRUE,...) {
 
     #For binomial data it is also possible to compute how many cases it would take
     #to sound an alarm given the past.
-    if (nrow(y) == 2 & calc.at) {
+    if ((nrow(y) == 2) & calc.at) {
       ##For the binomial PMF it is possible to compute the number needed for an
       ##alarm exactly
       if (isBinomialPMF) {
@@ -119,7 +120,12 @@ categoricalCUSUM <- function(stsObj,
   	control$ret <- "value"
 
   ##Extract the important parts from the arguments
-  range <- control$range
+  if (is.numeric(control[["range",exact=TRUE]])) {
+    range <- control$range
+  } else {
+    stop("The range needs to be a vector indices.")
+  }
+
   y <- t(stsObj@observed[range,,drop=FALSE])
   pi0 <- control[["pi0",exact=TRUE]]
   pi1 <- control[["pi1",exact=TRUE]]
@@ -170,7 +176,9 @@ categoricalCUSUM <- function(stsObj,
     ##Run Categorical CUSUM until the next alarm
     res <- catcusum.LLRcompute(y=y, pi0=pi0, pi1=pi1, n=n, h=control$h, dfun=dfun,calc.at=(control$ret=="cases"),...)
 
-    ##In case an alarm found log this and reset the chart at res$N+1
+    ##Note: res$N is the last index investigated in the updated y vector.
+    ##If res$N == ncol(y) no alarm was found in the last segment.
+    ##In case an alarm found put in into the log and reset the chart at res$N+1.
     if (res$N < ncol(y)) {
       ##Put appropriate value in upperbound
       upperbound[1:res$N + doneidx,]  <- matrix(rep(either(control$ret == "value", res$val[1:res$N] ,res$cases[1:res$N]),each=ncol(upperbound)),ncol=ncol(upperbound),byrow=TRUE)
@@ -185,7 +193,8 @@ categoricalCUSUM <- function(stsObj,
       ##Add to the number of alarms
       noofalarms <- noofalarms + 1
     }
-
+    ##cat("doneidx = ",doneidx, "\t res$N =", res$N,"\n")
+    ##Update index of how far we are in the time series
     doneidx <- doneidx + res$N
   }
 

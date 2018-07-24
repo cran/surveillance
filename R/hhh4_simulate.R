@@ -6,8 +6,8 @@
 ### Simulate from a HHH4 model
 ###
 ### Copyright (C) 2012 Michaela Paul, 2013-2016,2018 Sebastian Meyer
-### $Revision: 2064 $
-### $Date: 2018-01-22 11:42:48 +0100 (Mon, 22. Jan 2018) $
+### $Revision: 2182 $
+### $Date: 2018-07-17 17:09:53 +0200 (Tue, 17. Jul 2018) $
 ################################################################################
 
 
@@ -58,11 +58,18 @@ simulate.hhh4 <- function (object, # result from a call to hhh4
             stop("need 'y.start' values for lag=", maxlag, " initial time points")
     }
 
-    ## get fitted components nu_it (with offset), phi_it, lambda_it, t in subset
-    model <- terms.hhh4(object)
-    means <- meanHHH(theta, model, subset=subset)
+    ## store model terms in the hhh4 object because we request them repeatedly
+    ## (within get_exppreds_with_offsets() and directly afterwards)
+    ## CAVE: for an ri()-model, building the terms affects the .Random.seed,
+    ## so doing that twice would yield different simulations than pre-1.16.2
+    if (is.null(object$terms))
+        object$terms <- terms.hhh4(object)
+
+    ## get fitted exppreds nu_it, phi_it, lambda_it (incl. offsets, t in subset)
+    exppreds <- get_exppreds_with_offsets(object, subset = subset, theta = theta)
 
     ## extract overdispersion parameters (simHHH4 assumes psi->0 means Poisson)
+    model <- terms.hhh4(object)
     psi <- splitParams(theta,model)$overdisp
     if (length(psi) > 1) # "NegBinM" or shared overdispersion parameters
         psi <- psi[model$indexPsi]
@@ -73,10 +80,8 @@ simulate.hhh4 <- function (object, # result from a call to hhh4
     ## set predictor to zero if not included ('components' argument)
     stopifnot(length(components) > 0, components %in% c("ar", "ne", "end"))
     getComp <- function (comp) {
-        sel <- if (comp == "end") "endemic" else paste(comp, "exppred", sep=".")
-        res <- means[[sel]]
-        if (!comp %in% components) res[] <- 0
-        res
+        exppred <- exppreds[[comp]]
+        if (comp %in% components) exppred else "[<-"(exppred, value = 0)
     }
     ar <- getComp("ar")
     ne <- getComp("ne")

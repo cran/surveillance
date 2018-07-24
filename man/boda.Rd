@@ -16,6 +16,8 @@
   The Bayesian Outbreak Detection Algorithm (\code{boda}) is due to
   Manitz and \enc{Höhle}{Hoehle} (2013) and its implementation is
   illustrated in Salmon et al. (2016).
+  However, \code{boda} should be considered as an experiment, see the
+  Warning section below!
 }
 
 \usage{
@@ -60,8 +62,9 @@ boda(sts, control = list(
 
 \note{
   This function requires the \R package \pkg{INLA}, which is currently
-  \emph{not} available from CRAN. It can be obtained from an additional
-  repository as described at \url{http://www.r-inla.org/download}.
+  \emph{not} available from CRAN. It can be obtained from INLA's own
+  repository via
+  \code{install.packages("INLA", repos="https://inla.r-inla-download.org/R/stable")}.
 }
 
 \section{Warning}{

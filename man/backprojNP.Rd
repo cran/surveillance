@@ -220,8 +220,8 @@ plotIt <- function(cur.sts) {
 bpnp.control <- list(k=0,eps=rep(0.005,2),iter.max=rep(250,2),B=-1,hookFun=plotIt,verbose=TRUE)
 
 #Fast C version (use argument: eq3a.method="C")! 
-system.time(sts.bp <- backprojNP(Ysts, incu.pmf=inc.pmf,
-    control=modifyList(bpnp.control,list(eq3a.method="C")), ylim=c(0,max(X,Y))))
+sts.bp <- backprojNP(Ysts, incu.pmf=inc.pmf,
+    control=modifyList(bpnp.control,list(eq3a.method="C")), ylim=c(0,max(X,Y)))
 
 #Show result
 plot(sts.bp,xaxis.labelFormat=NULL,legend=NULL,lwd=c(1,1,2),lty=c(1,1,1),main="")

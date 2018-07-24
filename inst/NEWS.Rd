@@ -8,6 +8,40 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.16.2 (2018-07-24)}{
+
+\subsection{MINOR CHANGES}{
+  \itemize{
+    \item \code{autoplot.sts()} gained a \code{width} argument to adjust
+    the bar width, which now defaults to 7 for weekly time series
+    (previously was 90\% of that so there were gaps between the bars).
+    
+    \item \code{"epidataCS"} generation now (again) employs
+    \CRANpkg{spatstat}'s \code{bdist.points()}, which has been
+    accelerated in version 1.56-0. If you use the
+    \code{twinstim()}-related modelling part of \pkg{surveillance}, you
+    are thus advised to update your \pkg{spatstat} installation.
+
+    \item The \code{boda()} examples in
+    \code{vignette("monitoringCounts")} have been updated to also work
+    with recent versions of \pkg{INLA}.
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item Offsets in \code{hhh4}'s epidemic components were ignored by
+    \code{simulate.hhh4()} [spotted by Johannes Bracher] as well as
+    in dominant eigenvalues (\dQuote{maxEV}).
+
+    \item The color key in \code{fanplot()} is no longer distorted by
+    \code{log="y"}.
+  }
+}
+
+}
+
+
 \section{Changes in surveillance version 1.16.1 (2018-05-28)}{
 
 \subsection{BUG FIXES}{

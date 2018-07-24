@@ -154,11 +154,11 @@ library("surveillance")
 library('gamlss')
 @
 <<echo=FALSE>>=
-# This code is the one used for the Salmon et al. 2014 JSS article.
+# This code is the one used for the Salmon et al. (2016) JSS article.
 # Using this code all examples from the article can be reproduced.
 # computeALL is FALSE to avoid the computationally intensive parts
 # of the code (use of simulations to find a threshold value for categoricalCUSUM,
-# use of boda) but one can set it to TRUE to have it run.
+# use of the boda function) but one can set it to TRUE to have it run.
 computeALL <- FALSE
 @
 <<echo=FALSE>>=
@@ -699,17 +699,13 @@ control.boda <- list(range = rangeBoda, X = NULL, trend = TRUE,
 boda <- boda(cam.sts, control = control.boda)
 @
 
-<<boda, echo = F, include = F>>=
-rangeBoda <- which(epoch(cam.sts)>=as.Date("2007-01-01"))
+<<boda, echo = F, include = F, results = hide>>=
 if (computeALL) {
 library("INLA")
-control.boda <- list(range=rangeBoda, X=NULL, trend=TRUE,
-                     season=TRUE, prior='rw1', alpha=0.025,
-                     mc.munu=10000, mc.y=1000,
-                     samplingMethod = "marginals")
-# boda without covariates: trend + spline + periodic spline
-boda <- boda(cam.sts, control=control.boda)
-save(boda, file = "monitoringCounts-cache/boda.RData")
+##hoehle 2018-07-18: changed code to use NICELOOKINGboda, but that's iid. Reason:
+##The option 'rw1' currently crashes INLA.
+<<NICELOOKINGboda>>
+save(file = "monitoringCounts-cache/boda.RData",list=c("boda","control.boda","rangeBoda"))
 } else {
   load("monitoringCounts-cache/boda.RData")
 }
@@ -732,15 +728,10 @@ control.boda2 <- modifyList(control.boda,
                             list(X = campyDE[, covarNames], season = FALSE))
 boda.covars <- boda(cam.sts, control = control.boda2)
 @
-<<boda2, echo = F, include = F>>=
+<<boda2, echo = F, include = F, results = hide>>=
 if (computeALL) {
-# boda with covariates: trend + spline + lagged hum + indicator variables
-covarNames <- c(paste("l",1:4,".hum",sep=""),"newyears","christmas",
-                "O104period")
-control.boda2 <- modifyList(control.boda,
-                            list(X=campyDE[,covarNames],season=FALSE))
-boda.covars <- boda(cam.sts, control=control.boda2)
-save(boda.covars, file = "monitoringCounts-cache/boda.covars.RData")
+<<NICELOOKINGboda2>>
+  save(file = "monitoringCounts-cache/boda.covars.RData",list=c("boda.covars","covarNames", "control.boda2"))
 } else {
   load("monitoringCounts-cache/boda.covars.RData")
 }
@@ -749,6 +740,19 @@ save(boda.covars, file = "monitoringCounts-cache/boda.covars.RData")
 We plot \code{boda.covars} in Figure~\ref{fig:b} and compare the output of the two boda calls with the output of
 \code{farrington},  \code{farringtonFlexible} and \code{bayes} in
 Figure~\ref{fig:alarmplot}.
+
+\fbox{\vbox{
+Note (2018-07-19):
+We currently have to use the argument \code{prior = "iid"} in both calls
+of the \code{boda} function, because the procedure crashes when using
+recent versions of \pkg{INLA} (\code{>= 17.06.20}) with argument
+\code{prior = "rw1"}.
+%(the original results were produced using version 0.0-1458166556,
+%and version 0.0-1485844051 from 2017-01-31 also works)
+This means results in this vignette deviate from the results reported in
+the JSS paper -- in particular we do not get any alarms when using the
+\code{boda} procedure with covariates. We are looking into the problem.
+}}
 
 <<alarmplot2, fig=FALSE, echo = TRUE, eval=FALSE, label=alarmplot2,include = F,results=tex>>=
 cam.surv <- combineSTS(list(boda.covars=boda.covars,boda=boda,bayes=bayes,
@@ -1226,7 +1230,7 @@ pMarkovChain <- sapply( h.grid, function(h) {
   return(tail(TA$cdf, n = 1))
 })
 @
-<<cath, echo = F, include = F>>=
+<<cath, echo = F, include = F, results = hide>>=
 # Values of the threshold to be investigated
 h.grid <- seq(1,10,by=0.5)
 

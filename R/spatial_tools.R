@@ -5,9 +5,9 @@
 ###
 ### Auxiliary functions for operations on spatial data
 ###
-### Copyright (C) 2009-2015 Sebastian Meyer
-### $Revision: 2142 $
-### $Date: 2018-05-14 15:03:36 +0200 (Mon, 14. May 2018) $
+### Copyright (C) 2009-2015,2018 Sebastian Meyer
+### $Revision: 2178 $
+### $Date: 2018-07-17 11:04:22 +0200 (Tue, 17. Jul 2018) $
 ################################################################################
 
 
@@ -92,41 +92,14 @@ unionSpatialPolygons <- function (SpP,
 
 
 ### Compute distance from points to a polygonal boundary
-## nncross.ppp() calls C-code and is about 20 times faster than
-## bdist.points(), which uses spatstat.utils::distppl() (pure R)
-## minor drawback: the polygonal boundary needs to be transformed to "psp"
 
-bdist <- function (xy, poly)  # poly is polygonal "owin" or "psp" (simEpidataCS)
+## since spatstat 1.56-0, bdist.points() interfaces C-code via
+## spatstat.utils:::distppllmin, which is faster than nncross.ppp()
+bdist <- function (xy, poly)  # poly is a polygonal "owin"
 {
-    if (nrow(xy) > 0L) {
-        nncross.ppp(
-            X = ppp(x = xy[,1L], y = xy[,2L], check = FALSE),
-            Y = if (is.polygonal(poly)) edges(poly, check = FALSE) else poly,
-            what = "dist"
-        )
-    } else {
-       ## spatstat 1.41-1 returns a 0-row _data.frame_ for the trivial case
-       numeric(0L)
-   }
+    bdist.points(ppp(x = xy[,1L], y = xy[,2L], window = poly, check = FALSE))
 }
-
-## 20% faster version directly using spatstat.utils::distppllmin(),
-## which is documented as an internal function and thus cannot be relied on
-## bdist <- function (xy, poly)
-## {
-##     if (nrow(xy) > 0L) {
-##         ll <- if (is.polygonal(poly)) {
-##                   edges(poly, check = FALSE)$ends
-##               } else {
-##                   stopifnot(inherits(poly, "psp"))
-##                   poly$ends
-##               }
-##         spatstat.utils::distppllmin(xy, ll)$min.d
-##     } else {
-##         numeric(0L)
-##     }
-## }
-## Try: bdist(coordinates(imdepi$events), as(imdepi$W, "owin"))
+## Example: bdist(coordinates(imdepi$events), as(imdepi$W, "owin"))
 
 
 ### sample n points uniformly on a disc with radius r

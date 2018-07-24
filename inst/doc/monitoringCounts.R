@@ -27,11 +27,11 @@ library('gamlss')
 ###################################################
 ### code chunk number 4: monitoringCounts.Rnw:156-162
 ###################################################
-# This code is the one used for the Salmon et al. 2014 JSS article.
+# This code is the one used for the Salmon et al. (2016) JSS article.
 # Using this code all examples from the article can be reproduced.
 # computeALL is FALSE to avoid the computationally intensive parts
 # of the code (use of simulations to find a threshold value for categoricalCUSUM,
-# use of boda) but one can set it to TRUE to have it run.
+# use of the boda function) but one can set it to TRUE to have it run.
 computeALL <- FALSE
 
 
@@ -372,16 +372,18 @@ axis(side=4, at=seq(0,2500,by=500),labels=seq(0,50,by=10),las=1,cex.lab=cex.text
 ###################################################
 ### code chunk number 26: boda
 ###################################################
-rangeBoda <- which(epoch(cam.sts)>=as.Date("2007-01-01"))
 if (computeALL) {
 library("INLA")
-control.boda <- list(range=rangeBoda, X=NULL, trend=TRUE,
-                     season=TRUE, prior='rw1', alpha=0.025,
-                     mc.munu=10000, mc.y=1000,
+##hoehle 2018-07-18: changed code to use NICELOOKINGboda, but that's iid. Reason:
+##The option 'rw1' currently crashes INLA.
+
+rangeBoda <- which(epoch(cam.sts) >= as.Date("2007-01-01"))
+control.boda <- list(range = rangeBoda, X = NULL, trend = TRUE,
+                     season = TRUE, prior = "iid", alpha = 0.025,
+                     mc.munu = 10000, mc.y = 1000,
                      samplingMethod = "marginals")
-# boda without covariates: trend + spline + periodic spline
-boda <- boda(cam.sts, control=control.boda)
-save(boda, file = "monitoringCounts-cache/boda.RData")
+boda <- boda(cam.sts, control = control.boda)
+save(file = "monitoringCounts-cache/boda.RData",list=c("boda","control.boda","rangeBoda"))
 } else {
   load("monitoringCounts-cache/boda.RData")
 }
@@ -401,13 +403,12 @@ save(boda, file = "monitoringCounts-cache/boda.RData")
 ### code chunk number 28: boda2
 ###################################################
 if (computeALL) {
-# boda with covariates: trend + spline + lagged hum + indicator variables
-covarNames <- c(paste("l",1:4,".hum",sep=""),"newyears","christmas",
-                "O104period")
+covarNames <- c("l1.hum", "l2.hum", "l3.hum", "l4.hum",
+                "newyears", "christmas", "O104period")
 control.boda2 <- modifyList(control.boda,
-                            list(X=campyDE[,covarNames],season=FALSE))
-boda.covars <- boda(cam.sts, control=control.boda2)
-save(boda.covars, file = "monitoringCounts-cache/boda.covars.RData")
+                            list(X = campyDE[, covarNames], season = FALSE))
+boda.covars <- boda(cam.sts, control = control.boda2)
+  save(file = "monitoringCounts-cache/boda.covars.RData",list=c("boda.covars","covarNames", "control.boda2"))
 } else {
   load("monitoringCounts-cache/boda.covars.RData")
 }
@@ -863,7 +864,7 @@ legend(4,0.08,c("Monte Carlo","Markov chain"), lty=1:2,col=1,cex=cex.text,bty="n
 
 
 ###################################################
-### code chunk number 58: monitoringCounts.Rnw:1324-1328
+### code chunk number 58: monitoringCounts.Rnw:1328-1332
 ###################################################
 
 # data("rotaBB")
@@ -880,7 +881,7 @@ data("rotaBB")
 
 
 ###################################################
-### code chunk number 60: monitoringCounts.Rnw:1343-1351
+### code chunk number 60: monitoringCounts.Rnw:1347-1355
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 par(mar=c(5.1,20.1,4.1,0),family="Times")
@@ -894,7 +895,7 @@ mtext("Proportion of reported cases", side=2, line=19, cex=1)
 
 
 ###################################################
-### code chunk number 61: monitoringCounts.Rnw:1359-1386
+### code chunk number 61: monitoringCounts.Rnw:1363-1390
 ###################################################
 # Select a palette for drawing
 pal <- c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00")
@@ -926,7 +927,7 @@ plot(rotaBB.copy)
 
 
 ###################################################
-### code chunk number 62: monitoringCounts.Rnw:1392-1406 (eval = FALSE)
+### code chunk number 62: monitoringCounts.Rnw:1396-1410 (eval = FALSE)
 ###################################################
 ## rotaBB.df <- as.data.frame(rotaBB)
 ## 
@@ -945,7 +946,7 @@ plot(rotaBB.copy)
 
 
 ###################################################
-### code chunk number 63: monitoringCounts.Rnw:1408-1425
+### code chunk number 63: monitoringCounts.Rnw:1412-1429
 ###################################################
 # Convert sts object to data.frame useful for regression modelling
 rotaBB.df <- as.data.frame(rotaBB)
@@ -967,14 +968,14 @@ m0 <- MGLMreg(as.matrix(rotaBB.df[phase1,order])~ -1 + X[phase1,], dist="MN")
 
 
 ###################################################
-### code chunk number 64: monitoringCounts.Rnw:1427-1429
+### code chunk number 64: monitoringCounts.Rnw:1431-1433
 ###################################################
 # Set threshold and option object
 h <- 2
 
 
 ###################################################
-### code chunk number 65: monitoringCounts.Rnw:1434-1440 (eval = FALSE)
+### code chunk number 65: monitoringCounts.Rnw:1438-1444 (eval = FALSE)
 ###################################################
 ## m1 <- m0
 ## 
@@ -985,7 +986,7 @@ h <- 2
 
 
 ###################################################
-### code chunk number 66: monitoringCounts.Rnw:1442-1448
+### code chunk number 66: monitoringCounts.Rnw:1446-1452
 ###################################################
 m1 <- m0
 # Out-of control model: shift in all intercept coeffs
@@ -1037,14 +1038,14 @@ mean(rlMN)
 
 
 ###################################################
-### code chunk number 69: monitoringCounts.Rnw:1490-1492
+### code chunk number 69: monitoringCounts.Rnw:1494-1496
 ###################################################
 alarmDates <- epoch(surv)[which(alarms(surv)[,1]==1)]
 format(alarmDates,"%b %Y")
 
 
 ###################################################
-### code chunk number 70: monitoringCounts.Rnw:1497-1498 (eval = FALSE)
+### code chunk number 70: monitoringCounts.Rnw:1501-1502 (eval = FALSE)
 ###################################################
 ## dfun <- function(y, size, mu, log = FALSE) {
 ## 	return(dmultinom(x = y, size = size, prob = mu, log = log))
@@ -1056,7 +1057,7 @@ format(alarmDates,"%b %Y")
 
 
 ###################################################
-### code chunk number 71: monitoringCounts.Rnw:1506-1510
+### code chunk number 71: monitoringCounts.Rnw:1510-1514
 ###################################################
 m0.dm <- MGLMreg(as.matrix(rotaBB.df[phase1, 1:5]) ~ -1 + X[phase1, ],
                 dist = "DM")
@@ -1065,7 +1066,7 @@ c(m0@AIC, m0.dm@AIC)
 
 
 ###################################################
-### code chunk number 72: monitoringCounts.Rnw:1518-1536 (eval = FALSE)
+### code chunk number 72: monitoringCounts.Rnw:1522-1540 (eval = FALSE)
 ###################################################
 ## delta <- 2
 ## m1.dm <- m0.dm
@@ -1088,7 +1089,7 @@ c(m0@AIC, m0.dm@AIC)
 
 
 ###################################################
-### code chunk number 73: monitoringCounts.Rnw:1538-1559
+### code chunk number 73: monitoringCounts.Rnw:1542-1563
 ###################################################
 # Change intercept in the first class (for DM all 5 classes are modeled)
 delta <- 2
@@ -1114,7 +1115,7 @@ surv.dm <- categoricalCUSUM(rotaBB,control=control)
 
 
 ###################################################
-### code chunk number 74: monitoringCounts.Rnw:1561-1563 (eval = FALSE)
+### code chunk number 74: monitoringCounts.Rnw:1565-1567 (eval = FALSE)
 ###################################################
 ## matplot(alpha0/rowSums(alpha0),type="l",lwd=3,lty=1,ylim=c(0,1))
 ## matlines(alpha1/rowSums(alpha1),type="l",lwd=1,lty=2)
