@@ -202,6 +202,9 @@ plot.disProg.one <- function(x, title = "", xaxis.years=TRUE, quarters=TRUE, sta
 }
 
 plot.disProg <- function(x, title = "", xaxis.years=TRUE, startyear = x$start[1], firstweek = x$start[2], as.one=TRUE, same.scale=TRUE, ...){
+  if (xaxis.years && isTRUE(x[["epochAsDate"]]))
+    warning("plot.disProg can't handle Date entries; axis labels are based on 'start'")
+
   observed <- x$observed
   state    <- x$state
 

@@ -23,7 +23,11 @@ epidataCS2sts(object, freq, start, neighbourhood,
 
 \arguments{
   \item{object, data}{an object of class \code{"\link{epidataCS}"}.}
-  \item{freq,start}{see the description of the \code{"\linkS4class{sts}"} class.}
+  \item{freq,start}{
+    see the description of the \code{"\linkS4class{sts}"} class.
+    The \code{start} specification should reflect the beginning of
+    \code{object$stgrid}, i.e., the start of the first time interval.
+  }
   \item{neighbourhood}{
     binary adjacency or neighbourhood-order matrix of the regions
     (\code{tiles}). If missing but \code{tiles} is given, a binary
@@ -128,8 +132,10 @@ plot(imdepi, "time")
 plot(imdsts, type = observed ~ time)
 par(opar)
 
-## plot number of cases by district
-plot(imdsts, type = observed ~ unit)
+if (surveillance.options("allExamples")) {
+    ## plot number of cases by district
+    plot(imdsts, type = observed ~ unit)
+}
 
 
 ## also test conversion to an SIS event history ("epidata") of the "tiles"

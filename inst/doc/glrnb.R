@@ -46,7 +46,7 @@ plot(survObj,startyear=2003)
 ###################################################
 ### code chunk number 6: glrnb.Rnw:161-164 (eval = FALSE)
 ###################################################
-## control=list(range=range,c.ARL=5, 
+## control=list(range=range,c.ARL=5,
 ##   mu0=NULL, alpha=0, Mtilde=1, M=-1, change="intercept",theta=NULL,
 ##   dir=c("inc","dec"),ret=c("cases","value"))
 

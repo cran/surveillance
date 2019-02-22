@@ -69,7 +69,7 @@ data("measlesWeserEms")
     (neighbourhood orders) instead of just an adjacency indicator matrix
     (special case \code{nbOrder == 1}).
 
-    \item population fractions represent data as of 31/12/2003 (\acronym{NLS},
+    \item population fractions represent data as of 31/12/2003 (\acronym{LSN},
     2004, document \dQuote{A I 2 - hj 2 / 2003}). There are only
     minor differences to the ones used for \code{data("measles.weser")}.
   }
@@ -89,7 +89,7 @@ data("measlesWeserEms")
 
   Population numbers were obtained from the Federal Statistical Office of
   Lower Saxony (\acronym{LSN}):
-  \url{http://www.statistik.niedersachsen.de/startseite/themenbereiche/bevoelkerung/themenbereich-bevoelkerung---statistische-berichte-87679.html}
+  \url{http://www.statistik.niedersachsen.de/themenbereiche/bevoelkerung/}
 
   Vaccination coverage was obtained from the public health department of
   Lower Saxony:

@@ -53,27 +53,31 @@
 # MAIN FUNCTION
 ################################################################################
 
-farringtonFlexible <- function(sts, control = list(range = NULL, b = 3, w = 3,
-													reweight = TRUE,
-													weightsThreshold = 2.58,
-													verbose = FALSE,glmWarnings = TRUE,
-													alpha = 0.01, trend = TRUE,
-													pThresholdTrend = 0.05, limit54=c(5,4),
-													powertrans="2/3",
-													fitFun="algo.farrington.fitGLM.flexible",
-													populationOffset = FALSE,
-													noPeriods = 1, pastWeeksNotIncluded = 26,
-													thresholdMethod = "delta")) {
+farringtonFlexible <- function(sts, control = list(
+    range = NULL,             # range of time points to be monitored
+    b = 5,                    # how many years to go back in time?
+    w = 3,                    # half-window length
+    reweight = TRUE,          # reweighting past outbreaks?
+    weightsThreshold = 2.58,  # with which threshold?
+    verbose = FALSE,          # printing information?
+    glmWarnings = TRUE,       # printing warning from glm.fit?
+    alpha = 0.05,             # approximate (two-sided) (1-alpha)% prediction interval
+    trend = TRUE,             # include a time trend when possible?
+    pThresholdTrend = 0.05,   # which pvalue for the time trend is significant?
+    limit54 = c(5,4),         # ignore if <5 reports during the past 4 weeks
+    powertrans = "2/3",       # power transformation for the data
+    fitFun = "algo.farrington.fitGLM.flexible", # which function to use?
+    populationOffset = FALSE, # use a population offset in the model?
+    noPeriods = 1,            # how many periods between windows around reference weeks?
+    pastWeeksNotIncluded = NULL, # how many past weeks not to take into account?
+    thresholdMethod = "delta" # which method for calculating the threshold?
+    )) {
 
     ######################################################################
     # Use special Date class mechanism to find reference months/weeks/days
     ######################################################################
 
-    if (is.null( sts@epochAsDate)) {
-        epochAsDate <- FALSE
-    } else {
-        epochAsDate <-    sts@epochAsDate
-    }
+    epochAsDate <- sts@epochAsDate
 
     ######################################################################
     # Fetch observed and population
@@ -89,110 +93,48 @@ farringtonFlexible <- function(sts, control = list(range = NULL, b = 3, w = 3,
         epochStr <- "none"
     }
 
-    # Fetch population (if it exists)
-    if (!is.null(population(sts))) {
-        population <- population(sts)
-    } else {
-        population <- rep(1,length(observed))
-    }
+    # Fetch population
+    population <- population(sts)
 
     ######################################################################
     # Fix missing control options
     ######################################################################
-    # How many years to go back in time?
-    if (is.null(control[["b",exact=TRUE]])) { control$b = 5 }
 
-    # Half-window length
-    if (is.null(control[["w", exact = TRUE]])) { control$w = 3 }
+    defaultControl <- eval(formals()$control)
+    control <- modifyList(defaultControl, control, keep.null = TRUE)
 
-    # Range of time points to be evaluated
-    if (is.null(control[["range", exact=TRUE]])) {
-        control$range <- (freq*(control$b)+control$w +1):dim(observed)[1]
+    if (is.null(control$range)) {
+        control$range <- (freq*control$b + control$w + 1):nrow(observed)
+        ## NOTE: this default is different from algo.farrington()
     }
-
-
-
-    # Reweighting past outbreaks?
-    if (is.null(control[["reweight",exact=TRUE]])) {control$reweight=TRUE}
-    # With which threshold?
-    if (is.null(control[["weightsThreshold",exact=TRUE]])) {
-        control$weightsThreshold=2.58
-    }
-
-    # Printing information?
-    if (is.null(control[["verbose",exact=TRUE]]))    {control$verbose=FALSE}
-
-    # Printing warning from glm.fit?
-    if (is.null(control[["glmWarnings",exact=TRUE]]))    {control$glmWarnings=TRUE}
-
-    # An approximate (two-sided) (1 - alpha)% prediction interval is calculated
-    if (is.null(control[["alpha",exact=TRUE]]))        {control$alpha=0.05}
-
-    # Include a time trend when possible?
-    if (is.null(control[["trend",exact=TRUE]]))        {control$trend=TRUE}
-
-    # Which pvalue for the time trend to be significant?
-    if (is.null(control[["pThresholdTrend",exact=TRUE]])){
-        control$pThresholdTrend=0.05}
-
-
-    # No alarm is sounded
-    #    if fewer than cases = 5 reports were received in the past period = 4
-    #    weeks. limit54=c(cases,period) is a vector allowing the user to change
-    #    these numbers
-    if (is.null(control[["limit54",exact=TRUE]]))    {control$limit54=c(5,4)}
-
-    # Power transformation to apply to the data.
-    if (is.null(control[["powertrans",exact=TRUE]])){control$powertrans="2/3"}
-
-    # How many noPeriods between windows around reference weeks?
-    if (is.null(control[["noPeriods",exact=TRUE]])){control$noPeriods=1}
 
     # Use factors in the model? Depends on noPeriods, no input from the user.
-    if (control$noPeriods!=1) {
-        control$factorsBool=TRUE
-    } else {
-        control$factorsBool=FALSE
-    }
-
-    # Use a population offset in the model?
-    if (is.null(control[["populationOffset",exact=TRUE]])) {
-        control$populationOffset=FALSE
-    }
+    control$factorsBool <- control$noPeriods != 1
 
     # How many past weeks not to take into account?
-    if (is.null(control[["pastWeeksNotIncluded",exact=TRUE]])) {
-        control$pastWeeksNotIncluded=control$w
+    if (is.null(control$pastWeeksNotIncluded)) {
+        control$pastWeeksNotIncluded <- control$w
     }
 
-    # Which function to use?
-    # Only one possibility at the moment
-    if (is.null(control[["fitFun",exact=TRUE]])) {
-        control$fitFun="algo.farrington.fitGLM.flexible"
-    } else {
-        control$fitFun <- match.arg(control$fitFun, c(
-            "algo.farrington.fitGLM.flexible"))
-    }
+    # there is only one fitFun at the moment
+    control$fitFun <- match.arg(control$fitFun,
+        c("algo.farrington.fitGLM.flexible"))
 
-    # Which method for calculating the threshold?
-	# Extracting the method
-
-    if (is.null(control[["thresholdMethod",exact=TRUE]])) { control$thresholdMethod="delta"}
-    thresholdMethod<- match.arg(control$thresholdMethod, c("delta","nbPlugin","muan"),several.ok=FALSE)
+    # extract the threshold method
+    thresholdMethod <- match.arg(control$thresholdMethod,
+        c("delta", "nbPlugin", "muan"))
 
     # Adapt the argument for the glm function
-    control$typePred <- switch(thresholdMethod, "delta"="response","nbPlugin"="link","muan"="link")
-
+    control$typePred <- switch(thresholdMethod, "delta" = "response",
+                               "nbPlugin" = "link", "muan" = "link")
 
     # Which threshold function?
     control$thresholdFunction <- switch(thresholdMethod,
-	                                     "delta"="algo.farrington.threshold.farrington",
-										 "nbPlugin"="algo.farrington.threshold.noufaily",
-										 "muan"="algo.farrington.threshold.noufaily")
+        "delta" = "algo.farrington.threshold.farrington",
+        "nbPlugin" = "algo.farrington.threshold.noufaily",
+        "muan" = "algo.farrington.threshold.noufaily")
 
-    ######################################################################
-    # Check options
-    ######################################################################
+    # check options
     if (!((control$limit54[1] >= 0) && (control$limit54[2] > 0))) {
         stop("The limit54 arguments are out of bounds: cases >= 0 and period > 0.")
     }
@@ -200,33 +142,9 @@ farringtonFlexible <- function(sts, control = list(range = NULL, b = 3, w = 3,
     ######################################################################
     # Initialize the necessary vectors
     ######################################################################
-    # Vector for score
-    score <- matrix(data = 0, nrow = length(control$range), ncol = ncol(sts))
-    sts@control$score <- score
-
-    # Vector for time trend
-    trend <- matrix(data = 0, nrow = length(control$range), ncol = ncol(sts))
-
-
-    # Vector for predictive distribution
-    pvalue <- matrix(data = 0, nrow = length(control$range), ncol = ncol(sts))
-    sts@control$pvalue <- pvalue
-
-    # Vector for expected count
-    expected <- matrix(data = 0, nrow = length(control$range), ncol = ncol(sts))
-    sts@control$expected <- expected
-
-    # Vector for mu0 (prediction from glm)
-    mu0Vector <- matrix(data = 0, nrow = length(control$range), ncol = ncol(sts))
-    sts@control$mu0Vector <- mu0Vector
-
-    # Vector for overdispersion phi (from glm)
-    phiVector <- matrix(data = 0, nrow = length(control$range), ncol = ncol(sts))
-    sts@control$phiVector <- phiVector
-
-    # Vector for time trend (from glm)
-    trendVector <- matrix(data = 0, nrow = length(control$range), ncol = ncol(sts))
-    sts@control$trendVector <- trendVector
+    score <- trend <- pvalue <- expected <-
+        mu0Vector <- phiVector <- trendVector <-
+            matrix(data = 0, nrow = length(control$range), ncol = ncol(sts))
 
     # Define objects
     n <- control$b*(2*control$w+1)
@@ -376,26 +294,15 @@ farringtonFlexible <- function(sts, control = list(range = NULL, b = 3, w = 3,
 				}
 			}
         }#done looping over all time points
-    } #end of loop over cols in sts.
-    # Add information about score
-    sts@control$score[,j]     <- score[,j]
-    # Add information about trend
-    sts@control$trend[,j]     <- trend[,j]
+    } #end of loop over cols in sts
 
-    #Add information about predictive distribution
-    sts@control$pvalue[,j]     <- pvalue[,j]
-
-    # Add information about expected value
-    sts@control$expected[,j] <- expected[,j]
-
-    # Add information about mean of the negbin distribution of the observation
-    sts@control$mu0Vector[,j] <- mu0Vector[,j]
-
-    # Add information about overdispersion
-    sts@control$phiVector[,j] <- phiVector[,j]
-
-    # Add information about time trend
-    sts@control$trendVector[,j] <- trendVector[,j]
+    sts@control$score <- score
+    sts@control$pvalue <- pvalue
+    sts@control$expected <- expected
+    sts@control$mu0Vector <- mu0Vector
+    sts@control$phiVector <- phiVector
+    sts@control$trendVector <- trendVector
+    sts@control$trend <- trend
 
     #Done
     return(sts[control$range,])
@@ -632,7 +539,8 @@ algo.farrington.threshold.farrington <- function(predFit,predSeFit,phi,
 	lu[1] <- max(0,lu[1],na.rm=TRUE)
 
 	# probability associated to the observed value as quantile
-	q <- pnorm( y^(1/exponent) , mean=mu0^exponent, sd=se,lower.tail=FALSE)
+        # hoehle 2018-09-12: fixed p-value bug detected by Lore Merdrignac
+        q <- pnorm( y^(exponent), mean=mu0^exponent, sd=se,lower.tail=FALSE)
 
 
 	# calculate score

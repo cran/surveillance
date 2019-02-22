@@ -7,7 +7,7 @@
 anscombe.residuals <- function(m,phi) {
   y <- m$y
   mu <- fitted.values(m)
-  
+
   #Compute raw Anscombe residuals
   a <- 3/2*(y^(2/3) * mu^(-1/6) - mu^(1/2))
   #Compute standardized residuals
@@ -38,7 +38,7 @@ algo.farrington.fitGLM <- function(response,wtime,timeTrend=TRUE,reweight=TRUE,.
 
   #Fit it -- this is slow. An improvement would be to use glm.fit here.
   model <- glm(theModel, family = quasipoisson(link="log"))
-    
+
  #Check convergence - if no convergence we return empty handed.
   if (!model$converged) {
     #Try without time dependence
@@ -47,7 +47,7 @@ algo.farrington.fitGLM <- function(response,wtime,timeTrend=TRUE,reweight=TRUE,.
       #Set model to one without time trend
       theModel <- as.formula("response~1")
       model <- glm(response ~ 1, family = quasipoisson(link="log"))
-    } 
+    }
 
     if (!model$converged) {
       cat("Warning: No convergence in this case.\n")
@@ -58,7 +58,7 @@ algo.farrington.fitGLM <- function(response,wtime,timeTrend=TRUE,reweight=TRUE,.
 
   #Overdispersion parameter phi
   phi <- max(summary(model)$dispersion,1)
-  
+
   #In case reweighting using Anscome residuals is requested
   if (reweight) {
     s <- anscombe.residuals(model,phi)
@@ -68,7 +68,7 @@ algo.farrington.fitGLM <- function(response,wtime,timeTrend=TRUE,reweight=TRUE,.
     #to ensure we don't operate with quantities less than 1.
     phi <- max(summary(model)$dispersion,1)
   } # end of refit.
-  
+
 
   #Add wtime, response and phi to the model
   model$phi <- phi
@@ -79,12 +79,12 @@ algo.farrington.fitGLM <- function(response,wtime,timeTrend=TRUE,reweight=TRUE,.
 }
 
 ######################################################################
-# The algo.farrington.fitGLM function in a version using glm.fit 
-# which is faster than the call using "glm. 
+# The algo.farrington.fitGLM function in a version using glm.fit
+# which is faster than the call using "glm.
 # This saves lots of overhead and increases speed.
 #
 # Author: Mikko Virtanen (@thl.fi) with minor modifications by Michael Hoehle
-# Date:   9 June 2010 
+# Date:   9 June 2010
 #
 # Note: Not all glm results may work on the output. But for the
 # necessary ones for the algo.farrington procedure work.
@@ -94,16 +94,16 @@ algo.farrington.fitGLM.fast <- function(response,wtime,timeTrend=TRUE,reweight=T
   #Create design matrix and formula needed for the terms object
   #Results depends on whether to include a time trend or not.
   if (timeTrend) {
-    design<-cbind(intercept=1,wtime=wtime) 
-    Formula<-response~wtime 
+    design<-cbind(intercept=1,wtime=wtime)
+    Formula<-response~wtime
   } else {
     design<-matrix(1,nrow=length(wtime),dimnames=list(NULL,c("intercept")))
     Formula<-response~1
   }
-  
+
   #Fit it using glm.fit which is faster than calling "glm"
   model <- glm.fit(design,response, family = quasipoisson(link = "log"))
-      
+
    #Check convergence - if no convergence we return empty handed.
    if (!model$converged) {
       #Try without time dependence
@@ -114,7 +114,7 @@ algo.farrington.fitGLM.fast <- function(response,wtime,timeTrend=TRUE,reweight=T
        #Refit
        model <- glm.fit(design,response, family = quasipoisson(link = "log"))
        Formula<-response~1
-     } 
+     }
      #No convergence and no time trend. That's not good.
    }
 
@@ -124,7 +124,7 @@ algo.farrington.fitGLM.fast <- function(response,wtime,timeTrend=TRUE,reweight=T
 
    #Overdispersion parameter phi
    phi <- max(summary.glm(model)$dispersion,1)
-    
+
    #In case reweighting using Anscome residuals is requested
    if (reweight) {
      s <- anscombe.residuals(model,phi)
@@ -134,7 +134,7 @@ algo.farrington.fitGLM.fast <- function(response,wtime,timeTrend=TRUE,reweight=T
      #to ensure we don't operate with quantities less than 1.
      phi <- max(summary.glm(model)$dispersion,1)
    } # end of refit.
-    
+
    model$phi <- phi
    model$wtime <- wtime
    model$response <- response
@@ -148,7 +148,7 @@ algo.farrington.fitGLM.fast <- function(response,wtime,timeTrend=TRUE,reweight=T
 }
 
 ######################################################################
-# Experimental function to include a population offset in the 
+# Experimental function to include a population offset in the
 # farrington procedure based on algo.farrington.fitGLM
 # Alternative: include populationOffset argument in the two other
 # fit functions, but I suspect use of this is not so common
@@ -163,14 +163,14 @@ algo.farrington.fitGLM.populationOffset <- function(response,wtime,population,ti
 
   #Fit it -- this is slow. An improvement would be to use glm.fit here.
   model <- glm(theModel, family = quasipoisson(link="log"))
-    
+
  #Check convergence - if no convergence we return empty handed.
   if (!model$converged) {
     #Try without time dependence
     if (timeTrend) {
      model <- glm(response ~ 1, family = quasipoisson(link="log"))
      cat("Warning: No convergence with timeTrend -- trying without.\n")
-    } 
+    }
 
     if (!model$converged) {
       cat("Warning: No convergence in this case.\n")
@@ -181,7 +181,7 @@ algo.farrington.fitGLM.populationOffset <- function(response,wtime,population,ti
 
   #Overdispersion parameter phi
   phi <- max(summary(model)$dispersion,1)
-  
+
   #In case reweighting using Anscome residuals is requested
   if (reweight) {
     s <- anscombe.residuals(model,phi)
@@ -191,7 +191,7 @@ algo.farrington.fitGLM.populationOffset <- function(response,wtime,population,ti
     #to ensure we don't operate with quantities less than 1.
     phi <- max(summary(model)$dispersion,1)
   } # end of refit.
-  
+
 
   #Add wtime, response and phi to the model
   model$phi <- phi
@@ -213,7 +213,7 @@ algo.farrington.threshold <- function(pred,phi,alpha=0.01,skewness.transform="no
   #Fetch mu0 and var(mu0) from the prediction object
   mu0 <- pred$fit
   tau <- phi + (pred$se.fit^2)/mu0
-  #Standard deviation of prediction, i.e. sqrt(var(h(Y_0)-h(\mu_0))) 
+  #Standard deviation of prediction, i.e. sqrt(var(h(Y_0)-h(\mu_0)))
   switch(skewness.transform,
          "none" = { se <- sqrt(mu0*tau); exponent <- 1},
          "1/2" = { se <- sqrt(1/4*tau); exponent <- 1/2},
@@ -228,9 +228,9 @@ algo.farrington.threshold <- function(pred,phi,alpha=0.01,skewness.transform="no
 
   #Compute quantiles of the predictive distribution based on the
   #normal approximation on the transformed scale
-  q <- pnorm( y^(1/exponent) , mean=mu0^exponent, sd=se)
+  q <- pnorm( y^(exponent) , mean=mu0^exponent, sd=se)
   m <- qnorm(0.5, mean=mu0^exponent, sd=se)^(1/exponent)
-  
+
   #Return lower and upper bounds
   return(c(lu,q=q,m=m))
 }
@@ -252,7 +252,7 @@ algo.farrington.threshold <- function(pred,phi,alpha=0.01,skewness.transform="no
 # Details:
 #  Using the Date class the reference values are formed as follows:
 #   Starting from d0 go i, i in 1,...,b years back in time.
-#   
+#
 # Returns:
 #  a vector of indices in epochs which match
 ######################################################################
@@ -273,7 +273,7 @@ refvalIdxByDate <- function(t0, b, w, epochStr, epochs) {
       dx.forward <- (epochWeekDay - as.numeric(format(refDays,"%w"))) %% 7
       #How many days to go backward to obtain the next "epochWeekDay", i.e. (d - d0) mod 7
       dx.backward <- (as.numeric(format(refDays,"%w")) - epochWeekDay) %% 7
-      #What is shorter - go forward or go backward? 
+      #What is shorter - go forward or go backward?
       #By convention: always go to the closest weekday as t0
       refDays <- refDays + ifelse(dx.forward < dx.backward, dx.forward, -dx.backward)
   }
@@ -286,7 +286,7 @@ refvalIdxByDate <- function(t0, b, w, epochStr, epochs) {
   #Find the index of these reference values
   wtime <- match(as.numeric(refDays), epochs)
   return(wtime)
-} 
+}
 
 
 
@@ -294,46 +294,41 @@ refvalIdxByDate <- function(t0, b, w, epochStr, epochs) {
 ### code chunk number 6: algo_farrington.Rnw:571-769
 ###################################################
 
-algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, reweight=TRUE, verbose=FALSE,alpha=0.01,trend=TRUE,limit54=c(5,4),powertrans="2/3",fitFun=c("algo.farrington.fitGLM.fast","algo.farrington.fitGLM","algo.farrington.fitGLM.populationOffset"))) { 
+algo.farrington <- function(disProgObj, control=list(
+  range=NULL, b=5, w=3, reweight=TRUE, verbose=FALSE, plot=FALSE,
+  alpha=0.05, trend=TRUE, limit54=c(5,4), powertrans="2/3",
+  fitFun="algo.farrington.fitGLM.fast")
+  ) {
   #Fetch observed
   observed <- disProgObj$observed
   freq <- disProgObj$freq
   epochStr <- switch( as.character(freq), "12" = "1 month","52" =  "1 week","365" = "1 day")
   #Fetch population (if it exists)
   if (!is.null(disProgObj$populationFrac)) {
-    population <- disProgObj$populationFrac } 
-  else { 
+    population <- disProgObj$populationFrac }
+  else {
     population <- rep(1,length(observed))
   }
 
   ######################################################################
-  # Fix missing control options
+  # Initialize and check control options
   ######################################################################
+  defaultControl <- eval(formals()$control)
+  control <- modifyList(defaultControl, control, keep.null = TRUE)
   if (is.null(control$range)) {
     control$range <- (freq*control$b - control$w):length(observed)
   }
-  if (is.null(control$b))        {control$b=5}
-  if (is.null(control$w))        {control$w=3}
-  if (is.null(control$reweight)) {control$reweight=TRUE}
-  if (is.null(control$verbose))  {control$verbose=FALSE}
-  if (is.null(control$alpha))    {control$alpha=0.05}
-  if (is.null(control$trend))    {control$trend=TRUE}
-  if (is.null(control$plot))     {control$plot=FALSE}
-  if (is.null(control$limit54))  {control$limit54=c(5,4)}
-  if (is.null(control$powertrans)){control$powertrans="2/3"}
-  if (is.null(control$fitFun))   {
-    control$fitFun="algo.farrington.fitGLM.fast"
-  } else {
-    control$fitFun <- match.arg(control$fitFun, c("algo.farrington.fitGLM.fast","algo.farrington.fitGLM","algo.farrington.fitGLM.populationOffset"))
-  }
+  control$fitFun <- match.arg(control$fitFun,
+    c("algo.farrington.fitGLM.fast", "algo.farrington.fitGLM",
+      "algo.farrington.fitGLM.populationOffset"))
 
   #Use special Date class mechanism to find reference months/weeks/days
-  if (is.null(disProgObj[["epochAsDate",exact=TRUE]])) { 
-    epochAsDate <- FALSE 
-  } else { 
-    epochAsDate <- disProgObj[["epochAsDate",exact=TRUE]] 
+  if (is.null(disProgObj[["epochAsDate",exact=TRUE]])) {
+    epochAsDate <- FALSE
+  } else {
+    epochAsDate <- disProgObj[["epochAsDate",exact=TRUE]]
   }
-    
+
   #check options
   if (!((control$limit54[1] >= 0) &  (control$limit54[2] > 0))) {
     stop("The limit54 arguments are out of bounds: cases >= 0 and period > 0.")
@@ -342,7 +337,7 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
   if (any((control$range < 1) | (control$range > length(disProgObj$observed)))) {
       stop("Range values are out of bounds (has to be within 1..",length(disProgObj$observed)," for the present data).")
   }
-  
+
   # initialize the necessary vectors
   alarm <- matrix(data = 0, nrow = length(control$range), ncol = 1)
   trend <- matrix(data = 0, nrow = length(control$range), ncol = 1)
@@ -352,7 +347,7 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
 
   # Define objects
   n <- control$b*(2*control$w+1)
-  
+
   # 2: Fit of the initial model and first estimation of mean and dispersion
   #    parameter
   for (k in control$range) {
@@ -361,9 +356,9 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
     #shortObserved <- observed[1:(maxRange - k + 1)]
 
     if (control$verbose) { cat("k=",k,"\n")}
-            
+
     #Find index of all epochs, which are to be used as reference values
-    #i.e. with index k-w,..,k+w 
+    #i.e. with index k-w,..,k+w
     #in the years (current year)-1,...,(current year)-b
     if (!epochAsDate) {
       wtimeAll <- NULL
@@ -385,7 +380,7 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
           warning("@ range= ",k,": With current b and w then ",length(wtimeAll) - length(wtime),"/",length(wtimeAll), " reference values did not exist (index<1).")
       }
     }
-    
+
     #Extract values from indices
     response <- observed[wtime]
     pop <- population[wtime]
@@ -421,7 +416,7 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
       atLeastThreeYears <- (control$b>=3)
       #no horrible predictions
       noExtrapolation <- mu0Hat <= max(response)
-     
+
       #All 3 criteria have to be met in order to include the trend. Otherwise
       #it is removed. Only necessary to check this if a trend is requested.
       if (!(atLeastThreeYears && significant && noExtrapolation)) {
@@ -433,7 +428,7 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
     }
     #done with time trend
     ######################################################################
-    
+
     ######################################################################
     # Calculate prediction & confidence interval                         #
     ######################################################################
@@ -470,9 +465,9 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
     #Changed in version 0.9-7 - current week is included now
     enoughCases <- (sum(observed[(k-control$limit54[2]+1):k])>=control$limit54[1])
 
-    #18 May 2006: Bug/unexpected feature found by Y. Le Strat. 
+    #18 May 2006: Bug/unexpected feature found by Y. Le Strat.
     #the okHistory variable meant to protect against zero count problems,
-    #but instead it resulted in exceedance score == 0 for low counts. 
+    #but instead it resulted in exceedance score == 0 for low counts.
     #Now removed to be concordant with the Farrington 1996 paper.
     X <- ifelse(enoughCases,(observed[k] - pred$fit) / (lu[2] - pred$fit),0)
 
@@ -492,13 +487,13 @@ algo.farrington <- function(disProgObj, control=list(range=NULL, b=3, w=3, rewei
   #Add information about predictive distribution
   control$pd   <- pd
 
-  # return alarm and upperbound vectors 
-  result <- list(alarm = alarm, upperbound = upperbound, trend=trend, 
-                 disProgObj=disProgObj, control=control) 
-  class(result) <- "survRes" 
+  # return alarm and upperbound vectors
+  result <- list(alarm = alarm, upperbound = upperbound, trend=trend,
+                 disProgObj=disProgObj, control=control)
+  class(result) <- "survRes"
 
   #Done
-  return(result) 
+  return(result)
 }
 
 

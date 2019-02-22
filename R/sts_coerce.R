@@ -1,7 +1,7 @@
 ################################################################################
 ### Conversion between "ts" and "sts", and from "sts" to "data.frame"
 ###
-### Copyright (C) 2014 Michael Hoehle, 2015-2017 Sebastian Meyer
+### Copyright (C) 2014 Michael Hoehle, 2015-2017,2019 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -79,15 +79,14 @@ setMethod("as.data.frame", signature(x = "sts"),
 
   #Find out how many epochs there are each year
   res$freq <- if (x@epochAsDate) {
-    date <- epoch(x)
-    epochStr <- switch( as.character(x@freq),
-                       "12" = "%m",
-                       "52" =  "%V",
-                       "365" = "%j")
-    years <- unique(as.numeric(formatDate(date,"%Y")))
-    dummyDates <- as.Date(paste(rep(years,each=6),"-12-",26:31,sep=""))
-    maxEpoch <- c(tapply(as.numeric(formatDate(dummyDates, epochStr)), rep(years,each=6), max))
-    maxEpoch[pmatch(formatDate(date,"%Y"),names(maxEpoch),duplicates.ok=TRUE)]
+    year <- strftime(epoch(x), if (x@freq == 52) "%G" else "%Y")
+    epochStr <- switch(as.character(x@freq),
+                       "12" = "%m", "52" = "%V", "365" = "%j")
+    maxEpoch <- vapply(X = unique(year), FUN = function (Y) {
+        dummyDates <- as.Date(paste0(Y, "-12-", 26:31))
+        max(as.numeric(strftime(dummyDates, epochStr)))
+    }, FUN.VALUE = 0, USE.NAMES = TRUE)
+    maxEpoch[year]
   } else { # just replicate the fixed frequency
     x@freq
   }

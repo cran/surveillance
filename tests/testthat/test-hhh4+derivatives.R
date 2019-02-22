@@ -62,6 +62,14 @@ test_that("score vector and Fisher info agree with numerical approximations", {
     test(W_powerlaw(maxlag = 5, normalize = FALSE, log = FALSE))
     ## normalized PL with maxlag < max(nbmat) failed in surveillance < 1.9.0:
     test(W_powerlaw(maxlag = 3, normalize = TRUE, log = TRUE))
+    ## check unconstrained weights
+    test(W_np(maxlag = 5, truncate = TRUE, normalize = FALSE))
+    test(W_np(maxlag = 3, truncate = FALSE, normalize = TRUE))
+    ## test two-component formulations (AR within NE)
+    measlesModel$ar <- list(f = ~ -1)
+    test(W_powerlaw(maxlag = 3, normalize = TRUE, log = TRUE, from0 = TRUE))
+    test(W_np(maxlag = 1, truncate = FALSE, normalize = FALSE, from0 = TRUE))
+    test(W_np(maxlag = 3, truncate = TRUE, normalize = TRUE, from0 = TRUE))
 })
 
 test_that("automatic and manual normalization are equivalent", {
@@ -93,4 +101,38 @@ test_that("automatic and manual normalization are equivalent", {
         )
     expect_equal(measlesFit, measlesFit2, ignore = "control",
                  tolerance = 1e-6) # increased to pass on 32-bit Windows
+})
+
+
+measlesWeserEms2 <- measlesWeserEms
+neighbourhood(measlesWeserEms2) <- neighbourhood(measlesWeserEms2) + 1L
+
+test_that("W_powerlaw(..., from0 = TRUE) equals manual approach", {
+    measlesModel2 <- modifyList(measlesModel, list(
+        ar = list(f = ~ -1),
+        ne = list(weights = W_powerlaw(maxlag = 5, from0 = TRUE))
+        ))
+    measlesFit2 <- hhh4(measlesWeserEms, measlesModel2)
+    ## manual approach
+    measlesModel2_manual <- modifyList(measlesModel2, list(
+        ne = list(weights = W_powerlaw(maxlag = 5 + 1))
+        ))
+    measlesFit2_manual <- hhh4(measlesWeserEms2, measlesModel2_manual)
+    expect_equal(measlesFit2, measlesFit2_manual,
+                 ignore = c("control", "stsObj"))
+})
+
+test_that("W_np(..., from0 = TRUE) equals manual approach", {
+    measlesModel2 <- modifyList(measlesModel, list(
+        ar = list(f = ~ -1),
+        ne = list(weights = W_np(maxlag = 2, from0 = TRUE))
+        ))
+    measlesFit2 <- hhh4(measlesWeserEms, measlesModel2)
+    ## manual approach
+    measlesModel2_manual <- modifyList(measlesModel2, list(
+        ne = list(weights = W_np(maxlag = 2 + 1))
+        ))
+    measlesFit2_manual <- hhh4(measlesWeserEms2, measlesModel2_manual)
+    expect_equal(measlesFit2, measlesFit2_manual,
+                 ignore = c("control", "stsObj"))
 })

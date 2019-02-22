@@ -104,53 +104,54 @@ categoricalCUSUM <- function(stsObj,
                                  pi0=NULL, pi1=NULL, dfun=NULL, ret=c("cases","value")),...) {
 
   ##Set the default values if not yet set
-  if(is.null(control[["pi0",exact=TRUE]])) {
-    stop("Error: No specification of in-control proportion vector pi0!")
+  if(is.null(control[["pi0"]])) {
+    stop("no specification of in-control proportion vector pi0")
   }
-  if(is.null(control[["pi1",exact=TRUE]])) {
-    stop("Error: No specification of out-of-control proportion vector pi1!")
+  if(is.null(control[["pi1"]])) {
+    stop("no specification of out-of-control proportion vector pi1")
   }
-  if(is.null(control[["dfun",exact=TRUE]])) {
-    stop("Error: No specification of the distribution to use, e.g. dbinom, dmultinom or similar!")
+  if(is.null(control[["dfun"]])) {
+    stop("no specification of the distribution to use, e.g. dbinom, dmultinom or similar")
   }
 
-  if(is.null(control[["h",exact=TRUE]]))
+  if(is.null(control[["h"]]))
     control$h <- 5
-  if(is.null(control[["ret",exact=TRUE]]))
+  if(is.null(control[["ret"]]))
   	control$ret <- "value"
 
   ##Extract the important parts from the arguments
-  if (is.numeric(control[["range",exact=TRUE]])) {
+  if (is.numeric(control[["range"]])) {
     range <- control$range
   } else {
-    stop("The range needs to be a vector indices.")
+    stop("the range needs to be an index vector")
   }
-
-  y <- t(stsObj@observed[range,,drop=FALSE])
-  pi0 <- control[["pi0",exact=TRUE]]
-  pi1 <- control[["pi1",exact=TRUE]]
-  dfun <- control[["dfun",exact=TRUE]]
+  stsObj <- stsObj[range,]
+  
+  y <- t(stsObj@observed)
+  pi0 <- control[["pi0"]]
+  pi1 <- control[["pi1"]]
+  dfun <- control[["dfun"]]
   control$ret <- match.arg(control$ret, c("value","cases"))
   ##Total number of objects that are investigated. Note this
   ##can't be deduced from the observed y, because only (c-1) columns
   ##are reported so using: n <- apply(y, 2, sum) is wrong!
   ##Assumption: all populationFrac's contain n_t and we can take just one
-  n <- stsObj@populationFrac[range,1,drop=TRUE]
+  n <- stsObj@populationFrac[,1]
 
   ##Semantic checks
   if ( ((ncol(y) != ncol(pi0)) | (ncol(pi0) != ncol(pi1))) |
       ((nrow(y) != nrow(pi0)) | (nrow(pi0) != nrow(pi1)))) {
-    stop("Error: dimensions of y, pi0 and pi1 have to match")
+    stop("dimensions of y, pi0 and pi1 have to match")
   }
   if ((control$ret == "cases") & nrow(pi0) != 2) {
-    stop("Cases can only be returned in case k=2.")
+    stop("cases can only be returned in case k=2")
   }
   if (length(n) != ncol(y)) {
-    stop("Error: Length of n has to be equal to number of columns in y.")
+    stop("length of n has to be equal to number of columns in y")
   }
   ##Check if all n entries are the same
-  if (!all(apply(stsObj@populationFrac[range,],1,function(x) all.equal(as.numeric(x),rev(as.numeric(x)))))) {
-    stop("Error: All entries for n have to be the same in populationFrac")
+  if (!all(apply(stsObj@populationFrac,1,function(x) all.equal(as.numeric(x),rev(as.numeric(x)))))) {
+    stop("all entries for n have to be the same in populationFrac")
   }
 
   ##Reserve space for the results
@@ -207,28 +208,13 @@ categoricalCUSUM <- function(stsObj,
   control$name <- "categoricalCUSUM"
   control$data <- NULL #not supported anymore
 
-  #New direct calculations on the sts object
-  stsObj@observed <- stsObj@observed[control$range,,drop=FALSE]
-  stsObj@epoch <- stsObj@epoch[control$range,drop=FALSE]
-  stsObj@state <- stsObj@state[control$range,,drop=FALSE]
-  stsObj@populationFrac <- stsObj@populationFrac[control$range,,drop=FALSE]
+  #store results in the sts object
   stsObj@alarm <- alarm
   stsObj@upperbound <- upperbound
   stsObj@control <- control
 
-  #Fix the corresponding start entry
-  if (stsObj@epochAsDate==FALSE){
-    start <- stsObj@start
-    new.sampleNo <- start[2] + min(control$range) - 1
-    start.year <- start[1] + (new.sampleNo - 1) %/% stsObj@freq
-    start.sampleNo <- (new.sampleNo - 1) %% stsObj@freq + 1
-    stsObj@start <- c(start.year,start.sampleNo)
-  } else {
-    stsObj@start <- c(isoWeekYear(epoch(stsObj)[1])$ISOYear,isoWeekYear(epoch(stsObj)[1])$ISOWeek)
-  }
-
-  #Ensure dimnames in the new object ## THIS NEEDS TO BE FIXED!
-  #stsObj <- fix.dimnames(stsObj)
+  #Ensure dimnames in the new object
+  stsObj <- fix.dimnames(stsObj)
 
   #Done
   return(stsObj)

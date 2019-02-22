@@ -8,9 +8,9 @@
 ### Czado, C., Gneiting, T. & Held, L. (2009)
 ### Biometrics 65:1254-1261
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2014-2015,2017-2018 Sebastian Meyer
-### $Revision: 2057 $
-### $Date: 2018-01-19 15:48:44 +0100 (Fri, 19. Jan 2018) $
+### Copyright (C) 2010-2012 Michaela Paul, 2014-2015,2017-2019 Sebastian Meyer
+### $Revision: 2279 $
+### $Date: 2019-02-12 21:57:26 +0100 (Tue, 12. Feb 2019) $
 ################################################################################
 
 
@@ -163,9 +163,6 @@ scores.oneStepAhead <- function (x, which = c("logs","rps","dss","ses"),
     ## reverse order of the time points (historically)
     if (reverse) {
         result <- result[nrow(result):1L,,,drop=FALSE]
-    } else if (missing(reverse)) {
-        message("Note: surveillance 1.16.0 no longer reverses the time points by default.\n",
-                "  Set the 'reverse' argument explicitly to avoid this message.")
     }
 
     ## average over units if requested

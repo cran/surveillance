@@ -107,7 +107,7 @@ export(formatPval)       # yapf -- yet another p-value formatter
 export(anscombe.residuals)
 export(magic.dim, primeFactors, bestCombination)   # similar to n2mfrow
 export(isoWeekYear) #extract ISO 8601 date
-export(formatDate)  #ISO 8601 compatible %G and %V format( ) function.
+export(formatDate)  #format.Date + %Q and %q formatting strings
 export(refvalIdxByDate)
 export(ks.plot.unif)
 export(checkResidualProcess)       # for twinstim and twinSIR
@@ -188,7 +188,10 @@ export(animate_nowcasts)
 
 # conversion of "sts" objects
 S3method(as.ts, sts)
-export(as.xts.sts)  # no registered S3-method since we only suggest "xts"
+export(as.xts.sts)
+if(getRversion() >= "3.6.0") {  # delayed registration
+    S3method(xts::as.xts, sts)
+}
 
 # generics for sts class defined in sts.R
 exportMethods("[", plot)
@@ -211,6 +214,9 @@ export(addFormattedXAxis, atChange, at2ndChange, atMedian) #for time axis format
 export(stsplot_spacetime) # old implementation of (animated) map
 S3method(animate, sts)    # S3-method for an S4 class, see ?Methods
 export(autoplot.sts)
+if(getRversion() >= "3.6.0") {  # delayed registration
+    S3method(ggplot2::autoplot, sts)
+}
 
 # outbreak detection algorithms (sts-interfaces)
 export(wrap.algo, farrington, bayes, rki, cusum, glrpois, glrnb, outbreakP, boda) # FIXME: rogerson, hmm ??
@@ -227,15 +233,13 @@ export(sts_observation)
 
 ### disProg-specific
 
-export(create.disProg, readData, toFileDisProg)
+export(create.disProg)
 S3method(print, disProg)
 S3method(plot, disProg)
 S3method(aggregate, disProg)
 
 export(sim.pointSource, sim.seasonalNoise)
 export(LRCUSUM.runlength, arlCusum, find.kh, findH, hValues, findK)
-export(compMatrix.writeTable, correct53to52, enlargeData)
-export(makePlot)
 export(estimateGLRNbHook)
 export(algo.compare, algo.quality, algo.summary)
 
@@ -264,8 +268,6 @@ S3method(plot, atwins)
 S3method(plot, survRes)
 S3method(print, algoQV)
 S3method(xtable, algoQV)
-
-export(test, testSim)   # FIXME: remove these test functions? -> Demo?
 
 
 ### conversion between old disProg and new sts classes

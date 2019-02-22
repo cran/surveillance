@@ -762,51 +762,49 @@ writeLines(tail(head(capture.output({
 The summary now contains an extra section with the
 estimated variance components $\sigma_\lambda^2$, $\sigma_\phi^2$, and
 $\sigma_\nu^2$.
-We did not assume correlation between the three random intercepts, but this is
+We did not assume correlation between the three random effects, but this is
 possible by specifying \code{ri(corr = "all")} in the component formulae.
 The implementation also supports a conditional autoregressive
 formulation for spatially correlated intercepts via
 \code{ri(type = "car")}.
-The estimated random effects can be extracted by the
-\code{ranef}-method:
+
+The estimated district-specific deviations
+$\alpha_i^{(\cdot)} - \alpha^{(\cdot)}$
+can be extracted by the \code{ranef}-method:
 <<>>=
 head(ranef(measlesFit_ri, tomatrix = TRUE), n = 3)
 @
-They can also be visualized in a map by the plot \code{type = "ri"}
+The \code{exp}-transformed deviations correspond to district-specific
+multiplicative effects on the model components, which can be visualized
+via the plot \code{type = "ri"} as follows
 (Figure~\ref{fig:measlesFit_ri_map}):
-<<measlesFit_ri_map, out.width="0.31\\linewidth", fig.width=3.5, fig.height=3.7, fig.pos="htb", fig.cap="Maps of the estimated random intercepts.", fig.subcap=c("Autoregressive $\\alpha_i^{(\\lambda)}$", "Spatio-temporal $\\alpha_i^{(\\phi)}$", "Endemic $\\alpha_i^{(\\nu)}$"), echo=-1>>=
-stopifnot(ranef(measlesFit_ri) > -1.6, ranef(measlesFit_ri) < 1.6)
+<<measlesFit_ri_map, out.width="0.31\\linewidth", fig.width=3.5, fig.height=3.7, fig.pos="htb", fig.cap="Estimated multiplicative effects on the three components.", fig.subcap=c("Autoregressive", "Spatio-temporal", "Endemic")>>=
 for (comp in c("ar", "ne", "end")) {
-  print(plot(measlesFit_ri, type = "ri", component = comp,
-    col.regions = cm.colors(14), labels = list(cex = 0.6),
-    at = seq(-1.6, 1.6, length.out = 15)))
+  print(plot(measlesFit_ri, type = "ri", component = comp, exp = TRUE,
+    labels = list(cex = 0.6)))
 }
 @
 
 For the autoregressive component in Figure~\ref{fig:measlesFit_ri_map1}, we see
-a pronounced heterogeneity between the three western districts in blue and the
+a pronounced heterogeneity between the three western districts in pink and the
 remaining districts. These three districts have been affected by large local
 outbreaks and are also the ones with the highest overall numbers of cases.
 In contrast, the city of Oldenburg (03403) is estimated with a relatively low
-autoregressive factor $\lambda_i = \exp(\alpha^{(\lambda)} + \alpha_i^{(\lambda)}) =
-\Sexpr{exp(fixef(measlesFit_ri)[1]+ranef(measlesFit_ri, tomatrix=TRUE)["03403",1])}$,
-but it seems to import more cases from other districts than explained by its
+autoregressive coefficient: $\lambda_i = \exp(\alpha_i^{(\lambda)})$
+can be extracted using the \code{intercept} argument as
+<<>>=
+exp(ranef(measlesFit_ri, intercept = TRUE)["03403", "ar.ri(iid)"])
+@
+However, this district seems to import more cases from other districts than explained by its
 population (Figure~\ref{fig:measlesFit_ri_map2}).
 In Figure~\ref{fig:measlesFit_ri_map3}, the two districts without any reported
-measles cases (03401 and 03405) appear in dark pink, which means that they
+measles cases (03401 and 03405) appear in cyan, which means that they
 exhibit a relatively low endemic incidence after adjusting for the
 population and susceptible proportion.
 Such districts could be suspected of a larger amount of underreporting.
 
-Note that the extra flexibility of the random effects model comes at a price.
-First, the estimation runtime increases considerably from
-\Sexpr{round(measlesFit_powerlaw[["runtime"]]["elapsed"], 1)} seconds for the
-previous power-law model \code{measlesFit_powerlaw} to
-\Sexpr{round(measlesFit_ri[["runtime"]]["elapsed"], 1)} seconds with additional
-random effects. Furthermore, we no longer obtain AIC values in the model
-summary, since random effects invalidate simple AIC-based model comparisons.
-Of course we can plot the fitted values (Figure~\ref{fig:measlesFitted_ri})
-and visually compare their quality
+We plot the new model fit (Figure~\ref{fig:measlesFitted_ri})
+for comparison
 with the initial fit shown in Figure~\ref{fig:measlesFitted_basic}:
 <<measlesFitted_ri, out.width="\\linewidth", fig.pos="htb", fig.cap="Fitted components in the random effects model \\code{measlesFit\\_ri} for the five districts with more than 50 cases as well as summed over all districts. Compare to Figure~\\ref{fig:measlesFitted_basic}.">>=
 par(mfrow = c(2,3), mar = c(3, 5, 2, 1), las = 1)
@@ -817,7 +815,9 @@ plot(measlesFit_ri, type = "fitted", total = TRUE,
 @
 For some of these districts, a great amount of cases is now explained via transmission from
 neighboring regions while others are mainly influenced by the local
-autoregression. Note that the decomposition of the estimated mean by district
+autoregression.
+
+The decomposition of the estimated mean by district
 can also be seen from the related plot \code{type = "maps"}
 (Figure~\ref{fig:measlesFitted_maps}):
 <<measlesFitted_maps, fig.cap="Maps of the fitted component proportions averaged over all weeks.", fig.pos="hbt", fig.width=10, fig.height=3.7, out.width="0.93\\linewidth">>=
@@ -826,22 +826,29 @@ plot(measlesFit_ri, type = "maps",
   prop = TRUE, labels = list(cex = 0.6))
 @
 
-However, for quantitative comparisons of model performance we have to resort to
+The extra flexibility of the random effects model comes at a price.
+First, the runtime of the estimation increases considerably from
+\Sexpr{round(measlesFit_powerlaw[["runtime"]]["elapsed"], 1)} seconds for the
+previous power-law model \code{measlesFit_powerlaw} to
+\Sexpr{round(measlesFit_ri[["runtime"]]["elapsed"], 1)} seconds with
+random effects. Furthermore, we no longer obtain AIC values,
+since random effects invalidate simple AIC-based model comparisons.
+For quantitative comparisons of model performance we have to resort to
 more sophisticated techniques presented in the next section.
 
 
 \subsection{Predictive model assessment}
 
 \citet{paul-held-2011} suggest to evaluate one-step-ahead forecasts from
-competing models by proper scoring rules for count data \citep{czado-etal-2009}.
+competing models using proper scoring rules for count data \citep{czado-etal-2009}.
 These scores measure the discrepancy between the predictive distribution $P$
 from a fitted model and the later observed value $y$.
 A well-known example is the squared error score (``ses'') $(y-\mu_P)^2$,
-which is usually averaged over a suitable set of forecasts to obtain the mean
-squared error. More elaborate scoring rules such as the logarithmic score
-(``logs'') or the ranked probability score (``rps'') take into account the whole
-predictive distribution to assess calibration and sharpness simultaneously.
-The so-called Dawid-Sebastiani score (``dss'') is another option.
+which is usually averaged over a set of forecasts to obtain the mean
+squared error. The Dawid-Sebastiani score (``dss'') additionally evaluates
+sharpness. The logarithmic score (``logs'') and the ranked probability
+score (``rps'') assess the whole predictive distribution with respect to
+calibration and sharpness.
 Lower scores correspond to better predictions.
 
 In the \class{hhh4} framework, predictive model assessment is made available by
@@ -988,6 +995,32 @@ Updating a previous model for different numbers of harmonics is even simpler,
 since the \code{update}-method has a corresponding argument \code{S}.
 The plots of \code{type = "season"} and \code{type = "maxEV"} for \class{hhh4} fits
 can visualize the estimated component seasonality.
+
+Performing model selection and interpreting seasonality or other covariate
+effects across \emph{three} different model components may become quiet
+complicated. Power-law weights actually enable a more parsimonious model
+formulation, where the autoregressive and neighbourhood components are
+merged into a single epidemic component:
+\begin{equation}
+  \mu_{it} = e_{it} \, \nu_{it} +
+  \phi_{it} \sum_{j} (o_{ji} + 1)^{-d} \, Y_{j,t-1} \:.
+\end{equation}
+With only two predictors left, model selection and interpretation is
+simpler, and model extensions are more straightforward, for example
+stratification by age group \citep{meyer.held2015} as mentioned further
+below.
+To fit such a two-component model, the autoregressive component has to be
+excluded (\code{ar = list(f = ~ -1)}) and power-law weights have to be
+modified to start from adjacency order~0 (via
+\code{W_powerlaw(..., from0 = TRUE)}).
+<<measlesFit_powerlaw2, include = FALSE>>=
+## a simplified model which includes the autoregression in the power law
+measlesFit_powerlaw2 <- update(measlesFit_powerlaw,
+  ar = list(f = ~ -1),
+  ne = list(weights = W_powerlaw(maxlag = 5, from0 = TRUE)))
+AIC(measlesFit_powerlaw, measlesFit_powerlaw2)
+## simpler is really worse; probably needs random effects
+@
 
 All of our models for the measles surveillance data incorporated an
 epidemic effect of the counts from the local district and its neighbors.

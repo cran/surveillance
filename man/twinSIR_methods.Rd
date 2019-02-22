@@ -149,25 +149,26 @@ Michael \enc{Höhle}{Hoehle} and Sebastian Meyer
 }
 
 \examples{
-data("foofit")
+data("hagelloch")
 
-foofit
+# a simplistic twinSIR model
+fit <- twinSIR(~ household + cox(AGE), data = hagelloch)
 
-coef(foofit)
-vcov(foofit)
-logLik(foofit)
+coef(fit)
+vcov(fit)
+logLik(fit)
 
-summary(foofit, correlation = TRUE, symbolic.cor = TRUE)
+summary(fit, correlation = TRUE, symbolic.cor = TRUE)
 
 # AIC or OSAIC
-AIC(foofit)
-AIC(foofit, one.sided = FALSE)
-extractAIC(foofit)
-extractAIC(foofit, one.sided = FALSE)
+AIC(fit)
+AIC(fit, one.sided = FALSE)
+extractAIC(fit)
+extractAIC(fit, one.sided = FALSE)
 
-# just as a stupid example for the use of AIC with multiple fits
-foofit2 <- foofit
-AIC(foofit, foofit2)   # 2nd column should actually be named "OSAIC" here
+# comparing models via AIC
+fit2 <- update(fit, nIntervals = 2)
+AIC(fit, fit2)   # the 2nd column should be named "OSAIC" here
 }
 
 \keyword{methods}

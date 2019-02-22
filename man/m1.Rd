@@ -52,7 +52,6 @@
   \url{https://survstat.rki.de/};
   m1 and m3 were queried on 10 November 2004. The rest during September 2004.
 }
-\seealso{\code{\link{readData}}}
 \examples{
 data(k1)
 survResObj <- algo.rki1(k1, control=list(range=27:192))

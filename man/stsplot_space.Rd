@@ -147,7 +147,8 @@ plot(measlesWeserEms, type=observed~1|unit)
 # plot cumulative incidence (per 100000 inhabitants), with region labels
 plot(measlesWeserEms, type=observed~unit,
      population=measlesWeserEms@map$POPULATION / 100000,
-     labels=list(labels="GEN", cex=0.7, font=3))
+     labels=list(labels="GEN", cex=0.7, font=3),
+     sub="cumulative incidence (per 100'000 inhabitants)")
 
 # counts in the first week of the second year only (+ display overall)
 plot(measlesWeserEms, type=observed~unit, tps=53, total.args=list())

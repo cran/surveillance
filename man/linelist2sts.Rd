@@ -3,8 +3,8 @@
 \alias{linelist2sts}
 
 \title{
-  Convert individual case information based on dates into an aggregated
-  time series of counts
+  Convert Dates of Individual Case Reports into a
+  Time Series of Counts
 }
 
 \description{
@@ -65,9 +65,9 @@ linelist2sts(linelist,dateCol,
   \code{epochInPeriodStr} parameter.
 
   Please note that the formatting strings are implemented by the
-  internal \code{formatDate} function, which uses the \code{strptime}
-  formatting strings (ISO8601 are made Windows compatible) as well as
-  formatting of quarters using "\%Q", "\%OQ" and "\%q".
+  \code{\link{formatDate}} function, which uses \code{\link{strptime}}
+  formatting strings as well as
+  formatting of quarters via "\%Q", "\%OQ" and "\%q".
 }
 
 \value{
@@ -79,14 +79,8 @@ linelist2sts(linelist,dateCol,
 Michael \enc{Höhle}{Hoehle}
 }
 
-\note{
-  Some of the \code{strptime} ISO 8601 formatting strings have problems
-  on windows. Hence, the surveillance internal \code{formatDate}
-  function is used.
-}
-
 \seealso{
-  See also \code{\link{seq.Date}}, \code{\link{strptime}}, \code{\link{isoWeekYear}}.
+  \code{\link{seq.Date}}, \code{\link{strptime}}, \code{\link{formatDate}}
 }
 
 \examples{

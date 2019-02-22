@@ -55,8 +55,8 @@ vectorOfDates <- as.Date(salmAllOnset@epoch, origin="1970-01-01")
 dayToConsider <- vectorOfDates[rangeTest[1]]
 observed <- salmAllOnset@observed
 population <- salmAllOnset@populationFrac
-dataGLM <- bodaDelay.data.glm(dayToConsider=dayToConsider, 
-                              b=b, freq=freq, 
+dataGLM <- bodaDelay.data.glm(dayToConsider=dayToConsider,
+                              b=b, freq=freq,
                               epochAsDate=epochAsDate,
                               epochStr=epochStr,
                               vectorOfDates=vectorOfDates,w=w,
@@ -64,11 +64,11 @@ dataGLM <- bodaDelay.data.glm(dayToConsider=dayToConsider,
                               observed=observed,population=population,
                               verbose=verbose,
                               pastWeeksNotIncluded=pastWeeksNotIncluded,
-                              reportingTriangle=reportingTriangle, 
-                              delay=delay) 
+                              reportingTriangle=reportingTriangle,
+                              delay=delay)
 delay <- FALSE
-dataGLMNoDelay <- bodaDelay.data.glm(dayToConsider=dayToConsider, 
-                                  b=b, freq=freq, 
+dataGLMNoDelay <- bodaDelay.data.glm(dayToConsider=dayToConsider,
+                                  b=b, freq=freq,
                                   epochAsDate=epochAsDate,
                                   epochStr=epochStr,
                                   vectorOfDates=vectorOfDates,w=w,
@@ -76,7 +76,7 @@ dataGLMNoDelay <- bodaDelay.data.glm(dayToConsider=dayToConsider,
                                   observed=observed,population=population,
                                   verbose=verbose,
                                   pastWeeksNotIncluded=pastWeeksNotIncluded,
-                                  reportingTriangle=reportingTriangle, 
+                                  reportingTriangle=reportingTriangle,
                                   delay=delay)
 test_that("the output is a data.frame",{
   expect_true(class(dataGLM)=="data.frame")
@@ -85,7 +85,7 @@ test_that("the output is a data.frame",{
 
 test_that("the data frame contains all variables",{
   expect_equal(names(dataGLM)==c( "response", "wtime","population","seasgroups","vectorOfDates","delay"),rep(TRUE,6))
-  expect_equal(names(dataGLMNoDelay)==c( "response", "wtime","population","seasgroups","vectorOfDates"),rep(TRUE,5)) 
+  expect_equal(names(dataGLMNoDelay)==c( "response", "wtime","population","seasgroups","vectorOfDates"),rep(TRUE,5))
   })
 
 test_that("the variables have the right class",{
@@ -95,7 +95,7 @@ test_that("the variables have the right class",{
   expect_equal(class(dataGLM$seasgroups),"factor")
   expect_equal(class(dataGLM$vectorOfDates),"Date")
   expect_equal(class(dataGLM$delay),"numeric")
- 
+
   expect_equal(class(dataGLMNoDelay$response),"numeric")
   expect_equal(class(dataGLMNoDelay$wtime),"numeric")
   expect_equal(class(dataGLMNoDelay$population),"numeric")
@@ -106,7 +106,7 @@ test_that("the variables have the right class",{
 test_that("the time variable is ok with diff 1",{
   delayWtime <- as.numeric(levels(as.factor(dataGLM$wtime)))
   expect_equal(diff(delayWtime)==rep(1,length(delayWtime)-1),rep(TRUE,length(delayWtime)-1))
-  
+
   expect_equal(diff(dataGLMNoDelay$wtime)==rep(1,length(dataGLMNoDelay$wtime)-1),rep(TRUE,length(dataGLMNoDelay$wtime)-1))
 })
 
@@ -119,37 +119,25 @@ test_that("the factor variable has the right number of levels",{
 
 ##################################################################
 context("Fit glm function")
-# if (interactive() && require("INLA")) { # do not test INLA-related code on CRAN
-#   ## CAVE: _R_CHECK_TIMINGS_ as queried by surveillance.options("allExamples")
-#   ## is no reliable condition to skip the test on CRAN (see
-#   ## https://stat.ethz.ch/pipermail/r-devel/2012-September/064812.html
-#   ## ), and especially seems not to be set by the daily Windows checks.
-#   argumentsGLM <- list(dataGLM=dataGLM,reportingTriangle=reportingTriangle,
-#                        timeTrend=timeTrend,alpha=alpha,
-#                        populationOffset=populationOffset,
-#                        factorsBool=TRUE,pastAberrations=FALSE,
-#                        glmWarnings=glmWarnings,
-#                        verbose=verbose,delay=delay,k=k,control=controlDelay,
-#                        inferenceMethod="INLA")
-#   
-#   model <- do.call(bodaDelay.fitGLM, args=argumentsGLM)
-#   test_that("The fit glm function gives the right class of output?",{
-#     expect_equal(class(model),"inla")
-#   })
-# }
-
-
 argumentsGLM <- list(dataGLM=dataGLM,reportingTriangle=reportingTriangle,
                      timeTrend=timeTrend,alpha=alpha,
                      populationOffset=populationOffset,
                      factorsBool=TRUE,pastAberrations=FALSE,
                      glmWarnings=glmWarnings,
-                     verbose=verbose,delay=delay,k=k,control=controlDelay,
-                     inferenceMethod="asym")
+                     verbose=verbose,delay=delay,k=k,control=controlDelay)
 
+if(surveillance.options("allExamples") && require("INLA")) { # needs to be attached
+  argumentsGLM$inferenceMethod <- "INLA"
+  model <- do.call(bodaDelay.fitGLM, args=argumentsGLM)
+  test_that("the fitGLM function gives the right class of output",{
+    expect_equal(class(model),"inla")
+  })
+}
+
+argumentsGLM$inferenceMethod <- "asym"
 model <- do.call(bodaDelay.fitGLM, args=argumentsGLM)
-test_that("The fit glm function gives the right class of output?",{
-  expect_equal(class(model)==c("negbin", "glm", "lm" ),rep(TRUE,3))
+test_that("the fitGLM function gives the right class of output",{
+  expect_equal(class(model), c("negbin", "glm", "lm"))
 })
 ################################################################################
 context("formula function")
@@ -160,5 +148,5 @@ test_that("We get the right formula",{
   expect_equal(formulaGLMDelay(timeBool=TRUE,factorsBool=FALSE),"response ~ 1+wtime")
   expect_equal(formulaGLMDelay(timeBool=TRUE,factorsBool=TRUE),"response ~ 1+wtime+as.factor(seasgroups)")
   expect_equal(formulaGLMDelay(timeBool=TRUE,factorsBool=TRUE,delay=TRUE),"response ~ 1+wtime+as.factor(seasgroups)+as.factor(delay)")
-  expect_equal(formulaGLMDelay(timeBool=TRUE,factorsBool=FALSE,outbreak=TRUE),"response ~ 1+wtime+f(outbreakOrNot,model='linear', prec.linear = 1)")  
+  expect_equal(formulaGLMDelay(timeBool=TRUE,factorsBool=FALSE,outbreak=TRUE),"response ~ 1+wtime+f(outbreakOrNot,model='linear', prec.linear = 1)")
 })

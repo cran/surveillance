@@ -30,11 +30,11 @@ Valentin Wimmer$^{(1,2)}$\thanks{Author of correspondence: \texttt{Valentin.Wimm
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Sweave 
+% Sweave
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage{Sweave}
 \SweaveOpts{prefix.string=plots/glrnb}
-\setkeys{Gin}{width=1\textwidth} 
+\setkeys{Gin}{width=1\textwidth}
 
 \DefineVerbatimEnvironment{Sinput}{Verbatim}{fontshape=sl,fontsize=\footnotesize}
 \DefineVerbatimEnvironment{Soutput}{Verbatim}{fontsize=\footnotesize}
@@ -52,19 +52,19 @@ set.seed(247)
 
 ## create directory for plots
 dir.create("plots", showWarnings=FALSE)
-@ 
+@
 
 
 
 \begin{document}
 
-\maketitle  
+\maketitle
 
 \begin{abstract}
-  \noindent The aim of this document is to show the use of the function \verb+algo.glrnb+ for a type of count data regression chart, the generalized likelihood ratio (GLR) statistic. The function is part of the \textsf{R} package \textbf{surveillance} \citep{hoehle-2007}, which provides outbreak detection algorithms for surveillance data. For an introduction to these monitoring features of the package, see \texttt{vignette("surveillance")}. There one can find information about the data structure of the \verb+disProg+ and \verb+SurvRes+ objects. Furthermore tools for outbreak detection, such as a Bayesian approach, procedures described by \citet{stroup89},
-  \citet{farrington96} and the methods used at the Robert Koch Institut, Germany, are explained. 
+  \noindent The aim of this document is to show the use of the function \verb+algo.glrnb+ for a type of count data regression chart, the generalized likelihood ratio (GLR) statistic. The function is part of the \textsf{R} package \textbf{surveillance} \citep{hoehle-2007}, which provides outbreak detection algorithms for surveillance data. For an introduction to these monitoring features of the package, see \texttt{vignette("surveillance")}. There one can find information about the data structure of the \verb+disProg+ and \verb+survRes+ objects. Furthermore tools for outbreak detection, such as a Bayesian approach, procedures described by \citet{stroup89},
+  \citet{farrington96} and the methods used at the Robert Koch Institut, Germany, are explained.
   The function \verb+algo.glrnb+ is the implementation of the control charts for poisson and negative binomial distributions for monitoring time series of counts described in \citet{hoehle.paul2008}. This document gives an overview of the different features of the function and illustrations of its use are given for simulated and real surveillance data. \\
-  
+
     \noindent{\bf Keywords:} change-point detection, generalized regression charts, poisson and negative binomial distribution, increase and decrease
 \end{abstract}
 
@@ -77,13 +77,13 @@ A typical assumption for time series of counts is, that the observed counts at e
 
 In the GLR-scheme, an outbreak can be defined as a change in the intercept. The function \verb+algo.glrnb+ allows the user to specify whether increases or decreases in mean should be regarded. For each time point a GLR-statistic is computed, if this statistic exceeds a threshold value, an alarm is given. The function also provides the possibility to return the number of cases that would have been necessary to produce an alarm.
 
-This vignette is organized as follows: First, in Section \ref{sec:prel} the data structure is explained, in Section \ref{sec:glr} a short introduction in the theory of the GLR-charts is given and Section \ref{sec:control} shows the different \verb+control+-settings. % In Section \ref{sec:extensions} some possible extensions are presented.      
+This vignette is organized as follows: First, in Section \ref{sec:prel} the data structure is explained, in Section \ref{sec:glr} a short introduction in the theory of the GLR-charts is given and Section \ref{sec:control} shows the different \verb+control+-settings. % In Section \ref{sec:extensions} some possible extensions are presented.
 
 
 \section{Preliminaries}\label{sec:prel}
 
 
-Consider the situation, where a time series of counts is collected for surveillance purpose. In each interval, usually one week, the number of cases of the interesting disease in an area (country, district) is counted. The resulting time series is denoted by $\{y_t\>;t=1,\ldots,n\}$. Usually the data are collected on line, so that the time point $n$ is the actual time point. Our aim is to decide with the aid of a statistic for each time point $n$ if there is an outbreak at this or any former time point. If an outbreak is detected, the algorithm gives an alarm. Observed time series of counts are saved in a \verb+disProg+ object, a list containing the time series of counts, the number of weeks and a state chain.  
+Consider the situation, where a time series of counts is collected for surveillance purpose. In each interval, usually one week, the number of cases of the interesting disease in an area (country, district) is counted. The resulting time series is denoted by $\{y_t\>;t=1,\ldots,n\}$. Usually the data are collected on line, so that the time point $n$ is the actual time point. Our aim is to decide with the aid of a statistic for each time point $n$ if there is an outbreak at this or any former time point. If an outbreak is detected, the algorithm gives an alarm. Observed time series of counts are saved in a \verb+disProg+ object, a list containing the time series of counts, the number of weeks and a state chain.
 The state is 1, if e.g. the Robert Koch Institut declares the week to be part of an outbreak and 0 otherwise ~\citep{survstat}. By using the state chain the quality of the surveillance algorithm can be tested.
 %The 'surveillance'-package provides standard plot routines for the surveillance objects.
 As an first example the number of cases of salmonella hadar in the years 2001-2006 is examined.  \\
@@ -92,7 +92,7 @@ As an first example the number of cases of salmonella hadar in the years 2001-20
 <<fig=T,width=10,height=5>>=
 data(shadar)
 plot(shadar,main="Number of salmonella hadar cases in Germany 2001-2006")
-@ 
+@
 
 The package provides the possibility to simulate surveillance data with the functions \verb+sim.pointSource+, \verb+sim.seasonalNoise+ and \verb+sim.HHH+. See \citet{hoehle-2007} and \texttt{vignette("surveillance")} for further information. \\
 
@@ -127,13 +127,13 @@ If $\mu_0$ is unknown one could use a part of the data to estimate it with a gen
 GLR(n)=\max_{1 \leq k \leq n} \sup_{\theta \in \Theta} \left[ \sum_{t=k}^n \log
 \left\{ \frac{f_{\theta}(y_t)}{f_{\theta_0}(y_t)}
 \right\} \right]
-.  
+.
 \end{equation}
 
 Now $N=\inf \{n \geq 1 : GLR(n) \geq c_{\gamma} \}$ is the first time point where the GLR-statistic is above a threshold $c_{\gamma}$. For this time point $N$ an alarm is given. If the parameter $\kappa$ and hence $\theta=\kappa$ is known, the maximisation over $\theta$ can be omitted.
 
-With the function \verb+algo.glrnb+ one can compute the the GLR-statistic for every time point. If the actual value extends the chosen threshold $c_{\gamma}$, an alarm is given. After every alarm, the algorithm gets reset and the surveillance starts again. The result of a call of \verb+algo.glrnb+ is an object of class \verb+SurvRes+. This is basically a list of several arguments. The most important one is the \verb+upperbound+ statistic, which is a vector of length $n$ containing the likelihood-ratio-statistic for every time point under surveillance. The \verb+alarm+-vector contains a boolean for every time point whether there was an alarm or not. \\ 
- 
+With the function \verb+algo.glrnb+ one can compute the the GLR-statistic for every time point. If the actual value extends the chosen threshold $c_{\gamma}$, an alarm is given. After every alarm, the algorithm gets reset and the surveillance starts again. The result of a call of \verb+algo.glrnb+ is an object of class \verb+survRes+. This is basically a list of several arguments. The most important one is the \verb+upperbound+ statistic, which is a vector of length $n$ containing the likelihood-ratio-statistic for every time point under surveillance. The \verb+alarm+-vector contains a boolean for every time point whether there was an alarm or not. \\
+
 
 At this point in the vignette we move more into the applied direction and refer the user to \citet{hoehle.paul2008} for further theoretical details about the GLR procedure. The next example demonstrates the surveillance with the \verb+algo.glrnb+ in a learning by doing type of way. The example should demonstrate primarily the result of the surveillance. More details to the control-options follow in the next section. All control values are set here on default and the first two years are used to find a model for the in-control mean and so surveillance is starting in week 105. A plot of the results can be obtained as follows
 
@@ -142,7 +142,7 @@ survObj <- algo.glrnb(shadar,control=list(range=105:295,alpha=0))
 plot(survObj,startyear=2003)
 @
 
-The default value for $c_{\gamma}$ is 5. The upperbound statistic is above this value several times in the third quarter of 2006 (time points marked by small triangles in the plot). 
+The default value for $c_{\gamma}$ is 5. The upperbound statistic is above this value several times in the third quarter of 2006 (time points marked by small triangles in the plot).
 In the next section follow a description of the control-setting for tuning the behavior of the algorithm, e.g.\ one can search not only for increases in mean as shown in the example but also for decreases.
 
 
@@ -150,7 +150,7 @@ In the next section follow a description of the control-setting for tuning the b
 
 
 
-   
+
 \section{Control-settings}\label{sec:control}
 
 In this section, the purpose and use of the control settings of the \verb+algo.glrnb+ function  are shown and illustrated by the examples from Section \ref{sec:prel}.
@@ -159,7 +159,7 @@ In this section, the purpose and use of the control settings of the \verb+algo.g
 The control-setting is a list of the following arguments.
 
 <<echo=T,eval=F>>=
-control=list(range=range,c.ARL=5, 
+control=list(range=range,c.ARL=5,
   mu0=NULL, alpha=0, Mtilde=1, M=-1, change="intercept",theta=NULL,
   dir=c("inc","dec"),ret=c("cases","value"))
 @
@@ -183,7 +183,7 @@ control=list(range=105:295,alpha=3)
 algo.glrnb(disProgObj=shadar,control=control)
 @
 
-If overdispersion is present in the data, but the dispersion parameter $\alpha$ is unknown, an estimation $\hat{\alpha}$ is calculated as part of the in-control model estimation. Use \verb+alpha=NULL+ to get this estimation. 
+If overdispersion is present in the data, but the dispersion parameter $\alpha$ is unknown, an estimation $\hat{\alpha}$ is calculated as part of the in-control model estimation. Use \verb+alpha=NULL+ to get this estimation.
 
 
 The estimated value $\hat{\alpha}$ is saved in the \verb+survRes+-Object in the \verb+control+-list. Use
@@ -197,11 +197,11 @@ surv$control$alpha
 to get the estimated dispersion parameter for the salmonella data.
 
 \item \verb+mu0+ \\
-This vector contains the values for $\mu_0$ for each time point in the \verb+range+. If it has the value \verb+NULL+  the observed values with indices 1 to \verb+range+-1 are used to fit a GLM. If there is no knowledge about the in-control parameter, one can use the values before the range to find an seasonal model as in equation \ref{mu0}. \verb+mu0+ is at the moment a list of three argument: \verb+S+ is the number of harmonics to include in the model, \verb+trend+ is Boolean whether a linear trend $\beta_1t$ should be considered. The default is to use the same model of $\mu_0$ for the whole surveillance. An alternative is, to fit a new model after every detected outbreak. If refitting should be done, choose \verb+refit=TRUE+ in the \verb+mu0+ list. In this case, the observed value from time point 1 to the time point of the last alarm are used for estimating a GLM. Then we get a new model after every alarm. 
+This vector contains the values for $\mu_0$ for each time point in the \verb+range+. If it has the value \verb+NULL+  the observed values with indices 1 to \verb+range+-1 are used to fit a GLM. If there is no knowledge about the in-control parameter, one can use the values before the range to find an seasonal model as in equation \ref{mu0}. \verb+mu0+ is at the moment a list of three argument: \verb+S+ is the number of harmonics to include in the model, \verb+trend+ is Boolean whether a linear trend $\beta_1t$ should be considered. The default is to use the same model of $\mu_0$ for the whole surveillance. An alternative is, to fit a new model after every detected outbreak. If refitting should be done, choose \verb+refit=TRUE+ in the \verb+mu0+ list. In this case, the observed value from time point 1 to the time point of the last alarm are used for estimating a GLM. Then we get a new model after every alarm.
 
 
-In the following example a model with \verb+S+=2 harmonics and no linear trend is fitted for the Salmonella data. The observed cases from the first two years are used for fitting the GLM. 
-   
+In the following example a model with \verb+S+=2 harmonics and no linear trend is fitted for the Salmonella data. The observed cases from the first two years are used for fitting the GLM.
+
 <<echo=T,eval=F>>=
 control=list(range=105:295,mu0=list(S=2,trend=FALSE))
 algo.glrnb(disProgObj=shadar,control=control)
@@ -220,7 +220,7 @@ with(surv$control,lines(mu0~range,lty=2,lwd=4,col=4))
 @
 
 
-Information about the used model is saved in the \verb+survRes+-object, too. 
+Information about the used model is saved in the \verb+survRes+-object, too.
 
 <<echo=T,eval=F>>=
 surv$control$mu0Model
@@ -247,21 +247,21 @@ estimateGLRNbHook <- function() {
 
   train <- 1:(range[1]-1)
   test <- range
-  
+
   #Weights of training data - sliding window also possible
   weights <- exp(-0.3 * ((max(train)-train)) %/% 12)
 
   data <- data.frame(y=parent.frame()$disProgObj$observed[train],t=train)
-  
+
   formula <- "y ~ 1 "
   if (control$mu0Model$trend) { formula <- paste(formula," + t",sep="") }
   for (s in 1:control$mu0Model$S) {
     formula <- paste(formula,"+cos(2*",s,"*pi/p*t)+ sin(2*",s,"*pi/p*t)",sep="")
   }
-  
+
   m <- eval(substitute(glm(form,family=poisson(),data=data,weights=weights),
                        list(form=as.formula(formula))))
-  return(list(mod=m,pred=as.numeric(predict(m,newdata=data.frame(t=test),   
+  return(list(mod=m,pred=as.numeric(predict(m,newdata=data.frame(t=test),
   type="response"))))
 }
 \end{verbatim}
@@ -269,16 +269,16 @@ estimateGLRNbHook <- function() {
 
 \fi
 
-The fitted model from the call of \verb+estimateGLRNbHook+ is saved. The result of a call of \verb+glm.nb+ is in the standard setting an object of class \verb+negbin+  inheriting from class \verb+glm+. So methods as \verb+summary+, \verb+plot+ of \verb+predict+ can be used on this object. If refitting is done, the list of the used models is saved. Use 
+The fitted model from the call of \verb+estimateGLRNbHook+ is saved. The result of a call of \verb+glm.nb+ is in the standard setting an object of class \verb+negbin+  inheriting from class \verb+glm+. So methods as \verb+summary+, \verb+plot+ of \verb+predict+ can be used on this object. If refitting is done, the list of the used models is saved. Use
 
 <<echo=T,eval=T>>=
 coef(surv$control$mu0Model$fitted[[1]])
 @
 
 to get the estimated values of the first (and in case of \verb+refit=FALSE+ only) model for the parameter vector $\beta$ given in (\ref{mu0}).
- 
+
 \item \verb+c.ARL+ \\
-This is just the threshold $c_{\gamma}$ for the GLR-test (see equation \ref{cusum}). The smaller the value is chosen, the more likely it is to detect an outbreak but on the other hand false alarms can be produced. 
+This is just the threshold $c_{\gamma}$ for the GLR-test (see equation \ref{cusum}). The smaller the value is chosen, the more likely it is to detect an outbreak but on the other hand false alarms can be produced.
 
 <<echo=T,eval=T>>=
 control=list(range=105:295,alpha=0)
@@ -311,7 +311,7 @@ no. of alarms & \Sexpr{num[1]} & \Sexpr{num[2]} & \Sexpr{num[3]} & \Sexpr{num[4]
 
 
 \item \verb+change+ \\
-There are two possibilitys to define an outbreak. The intercept-change is described in Section \ref{sec:glr} and equation \ref{interceptchange}. Use \verb+change="intercept"+ to choose this possibility. The other alternative is the epidemic chart, where an auto-regressive model is used. See \citet{held-etal-2005} and \citet{hoehle.paul2008} for more details. A call with \verb+change="epi"+ in the control-settings leads to this alternative. Note that in the epidemic chart not every feature of \verb+algo.glrnb+ is available. 
+There are two possibilitys to define an outbreak. The intercept-change is described in Section \ref{sec:glr} and equation \ref{interceptchange}. Use \verb+change="intercept"+ to choose this possibility. The other alternative is the epidemic chart, where an auto-regressive model is used. See \citet{held-etal-2005} and \citet{hoehle.paul2008} for more details. A call with \verb+change="epi"+ in the control-settings leads to this alternative. Note that in the epidemic chart not every feature of \verb+algo.glrnb+ is available.
 
 \item \verb+theta+ \\
 If the change in intercept in the intercept-charts is known in advance, this value can be passed to the function (see Section \ref{sec:glr}). These LR-charts are faster but can lead to inferior results if a wrong value of \verb+theta+ is used compared to the actual out-of-control value (\citet{hoehle.paul2008}). If  an increase of 50 percent in cases is common when there is an outbreak which corresponds to a $\kappa$ of $\log(1.5)=0.405$ in equation \ref{interceptchange} use
@@ -321,7 +321,7 @@ control=list(range=105:295,theta=0.4)
 algo.glrnb(disProgObj=shadar,control=control)
 @
 
-If there is no knowledge about this value (which is the usual situation), it is not necessary to specify \verb+theta+. In the GLR-charts, the value for $\kappa$ is calculated by a maximation of the likelihood. Use the call   
+If there is no knowledge about this value (which is the usual situation), it is not necessary to specify \verb+theta+. In the GLR-charts, the value for $\kappa$ is calculated by a maximation of the likelihood. Use the call
 
 <<echo=T,eval=F>>=
 control=list(range=105:295,theta=NULL)
@@ -361,14 +361,14 @@ plot(surv3,startyear=2003)
 The observed number of cases is below the computed threshold several times in 2005 to 2006 and alarms are given.
 
 \item \verb+Mtilde+ and \verb+M+ \\
-These parameters are necessary for the so called ''window-limited'' GLR scheme. Here the maximation is not performed for all $1 \leq k \leq n$ but instead only for a window $k \in \{n-M,...,n-\tilde{M}+1 \}$ of values. Note that $1 \leq \tilde{M} \leq M$, where the minimum delay $\tilde{M}$ is the minimal required sample size to obtain a sufficient estimate of $\theta_1=(\mu_0,\kappa)$ ~\citep{hoehle.paul2008}. The advantage of using a window of values instead of all values is the faster computation, but in the setup with intercept-charts and $\theta_1=\kappa$ this doesn't bother much and $\tilde{M}=1$ is sufficient.      
-   
+These parameters are necessary for the so called ''window-limited'' GLR scheme. Here the maximation is not performed for all $1 \leq k \leq n$ but instead only for a window $k \in \{n-M,...,n-\tilde{M}+1 \}$ of values. Note that $1 \leq \tilde{M} \leq M$, where the minimum delay $\tilde{M}$ is the minimal required sample size to obtain a sufficient estimate of $\theta_1=(\mu_0,\kappa)$ ~\citep{hoehle.paul2008}. The advantage of using a window of values instead of all values is the faster computation, but in the setup with intercept-charts and $\theta_1=\kappa$ this doesn't bother much and $\tilde{M}=1$ is sufficient.
+
 
 \end{itemize}
 
 \section{Discussion}
 
-As seen, the function \verb+algo.glrnb+ allows many possibilities for doing surveillance for a time series of counts. In order to achieve fast computations, the function is implemented in C. An important issue in surveillance is the quality of the used algorithms. This can be measured by the sensitivity and the specificity of the result. The aim of our future work is to provide the possibility for computing the quality and in the next step to include a ROC-approach in order to have a more formal framework for the choice of threshold $c_{\gamma}$. 
+As seen, the function \verb+algo.glrnb+ allows many possibilities for doing surveillance for a time series of counts. In order to achieve fast computations, the function is implemented in C. An important issue in surveillance is the quality of the used algorithms. This can be measured by the sensitivity and the specificity of the result. The aim of our future work is to provide the possibility for computing the quality and in the next step to include a ROC-approach in order to have a more formal framework for the choice of threshold $c_{\gamma}$.
 
 
 

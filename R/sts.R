@@ -1,7 +1,7 @@
 ################################################################################
 ### Initialization and other basic methods for the S4 class "sts"
 ###
-### Copyright (C) 2007-2014 Michael Hoehle, 2012-2017 Sebastian Meyer
+### Copyright (C) 2007-2014 Michael Hoehle, 2012-2019 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -32,15 +32,26 @@ fix.dimnames <- function(x) {
 ## NOTE: NULL arguments are ignored => default slot values
 sts <- function (observed,
                  start = c(2000, 1), frequency = 52, # prototype values
+                 epoch = NULL, # defaults to 1:nrow(observed), can be Date
                  population = NULL, # an alias for "populationFrac"
                  ...) # further named arguments representing "sts" slots
 {
-    slots <- list(observed = observed, start = start, freq = frequency, ...)
+    slots <- list(observed = observed, start = start, freq = frequency,
+                  epoch = epoch, ...)
+
     if (!is.null(population)) {
         if ("populationFrac" %in% names(slots))
             warning("'population' takes precedence over 'populationFrac'")
         slots$populationFrac <- population
     } # else "populationFrac" is a possible element of ...
+
+    if (inherits(epoch, "Date")) {
+        ## FIXME: guess missing start value similar to linelist2sts
+        ## if (missing(start) && frequency == 52)
+        ##     slots$start <- unlist(isoWeekYear(epoch[1L]), use.names = FALSE)
+        slots$epoch <- as.integer(epoch)
+        slots$epochAsDate <- TRUE
+    }
 
     ## call the standard generator function with explicitly set slots
     isNULL <- vapply(X = slots, FUN = is.null,
@@ -188,12 +199,7 @@ sts2disProg <- function(sts) {
 
 setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...) {
 
- by <- match.arg(by, choices = c("time", "unit"))
-
- ## Action of aggregation for populationFrac depends on the type
- binaryTS <- sum( x@populationFrac > 1 ) > 1  # FIXME @ Michael: why not any()?
- ## NOTE: we cannot rely on x@multinomialTS since this is not necessarily set
- ##       if population(x) contains absolute numbers
+  by <- match.arg(by, choices = c("time", "unit"))
 
   #Aggregate time
   if (by == "time") {
@@ -217,25 +223,24 @@ setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...)
     x@state <- as.matrix(aggregate(x@state,by=list(new),sum)[,-1])>0
     x@alarm <- as.matrix(aggregate(x@alarm,by=list(new),sum)[,-1]) # number of alarms
     x@upperbound <- as.matrix(aggregate(x@upperbound,by=list(new),sum)[,-1])
-    x@populationFrac <- as.matrix(aggregate(x@populationFrac,by=list(new),sum)[,-1])
-    ## CAVE: summing population (fractions) over time might not be intended
 
-    #the population fractions need to be recomputed if not a binary ts
-    if (!binaryTS) {
-      sums <- matrix(rep(apply(x@populationFrac,1,sum),times=ncol(x)),ncol=ncol(x))
-      x@populationFrac <-x@populationFrac/sums
+    ## summing population (fractions) over time
+    had_fractions <- !x@multinomialTS && all(rowSums(x@populationFrac) == 1)
+    x@populationFrac <- as.matrix(aggregate(x@populationFrac,by=list(new),sum)[,-1])
+    if (isTRUE(had_fractions)) { # population fractions need to be recomputed
+      x@populationFrac <- x@populationFrac / rowSums(x@populationFrac)
     }
   }
 
   #Aggregate units
   if (by == "unit") {
     #Aggregate units
-    x@observed <- as.matrix(apply(x@observed, MARGIN=1, sum))
-    x@state <- as.matrix(apply(x@state, MARGIN=1, sum))>0
-    x@alarm <- as.matrix(apply(x@alarm, MARGIN=1, sum))>0 # contrary to counting for by="time"!
+    x@observed <- as.matrix(rowSums(x@observed))
+    x@state <- as.matrix(rowSums(x@state))>0
+    x@alarm <- as.matrix(rowSums(x@alarm))>0 # contrary to counting for by="time"!
     #There is no clever way to aggregate the upperbounds
     x@upperbound <- matrix(NA_real_,ncol=ncol(x@alarm),nrow=nrow(x@alarm))
-    x@populationFrac <- as.matrix(apply(x@populationFrac, MARGIN=1, sum))#>0
+    x@populationFrac <- as.matrix(rowSums(x@populationFrac))
     x@neighbourhood <- matrix(NA, 1, 1) # consistent with default for new("sts")
     ## we have lost colnames
     colnames(x@observed) <- "overall"
@@ -259,20 +264,19 @@ setMethod("dimnames", "sts", function (x) dimnames(x@observed))
 
 #Extract which observation within year we have
 setMethod("epochInYear", "sts", function(x,...) {
-  #Strptime format strings available as:
-  #http://www.opengroup.org/onlinepubs/009695399/functions/strptime.html
   if (x@epochAsDate) {
-    epochStr <- switch( as.character(x@freq), "12" = "%m","52" =  "%V","365" = "%j")
-    return(as.numeric(formatDate(epoch(x),epochStr)))
+    epochStr <- switch(as.character(x@freq),
+                       "12" = "%m", "52" = "%V", "365" = "%j")
+    as.numeric(strftime(epoch(x), epochStr))
   } else {
-    return( (x@epoch-1 + x@start[2]-1) %% x@freq + 1)
+    (x@epoch-1 + x@start[2]-1) %% x@freq + 1
   }
 })
 
-#Extract the corresponding year for each observation using
+#Extract the corresponding year for each observation
 setMethod("year", "sts", function(x,...) {
   if (x@epochAsDate) {
-    return(as.numeric(formatDate(epoch(x),"%G")))
+    as.numeric(strftime(epoch(x), if (x@freq == 52) "%G" else "%Y"))
   } else {
     ((x@epoch-1 + x@start[2]-1) + (x@freq*x@start[1])) %/% x@freq
   }
@@ -280,24 +284,43 @@ setMethod("year", "sts", function(x,...) {
 
 
 #####################################################################
-#[-method for accessing the observed, alarm, etc. objects
+#[-method for truncating the time series and/or selecting units
 #####################################################################
 
 setMethod("[", "sts", function(x, i, j, ..., drop) {
-  #default value for i and j
-  if(missing(i)) {i <- min(1,nrow(x@observed)):nrow(x@observed)}
-  if(missing(j)) {j <- min(1,ncol(x@observed)):ncol(x@observed)}
+  nTimeOriginal <- nrow(x@observed)
+  if (missing(i)) { # set default value
+    i <- seq_len(nTimeOriginal)
+  } else if (anyNA(i)) {
+    stop("missing row index values are not supported")
+  } else if (is.logical(i)) { # convert to integer index
+    i <- which(rep_len(i, nTimeOriginal))
+  } else if (is.character(i)) {
+    stop("character row indices are not supported")
+  } else if (any(i < 0)) { # convert to (positive) indices
+    if (any(i > 0)) stop("only 0's may be mixed with negative subscripts")
+    i <- setdiff(seq_len(nTimeOriginal), -i)
+  } else if (any(i0 <- i == 0)) { # drop 0's (for the diff check below)
+    i <- i[!i0]
+  }
+  ## if(missing(j)) j <- seq_len(ncol(x@observed))   # redundant
+  if (!missing(j) && anyNA(j))
+    stop("missing column index values are not supported")
+
+  ## check if i is a regular integer sequence (not invalidating freq)
+  if (any(diff(i) != 1))
+    warning("irregular row index could invalidate \"freq\"")
 
   x@epoch <- x@epoch[i]
   x@observed <- x@observed[i,j,drop=FALSE]
   x@state <- x@state[i,j,drop=FALSE]
   x@alarm <- x@alarm[i,j,drop=FALSE]
 
+  recompute_fractions <- !missing(j) && !x@multinomialTS &&
+      all(rowSums(x@populationFrac) == 1)
   x@populationFrac <- x@populationFrac[i,j,drop=FALSE]
-  #If not binary TS the populationFrac is normed
-  binaryTS <- sum( x@populationFrac > 1 ) > 1 # FIXME @ Michael: why not any()?
-  if (!binaryTS) {
-    x@populationFrac <- x@populationFrac / apply(x@populationFrac,MARGIN=1,sum)
+  if (isTRUE(recompute_fractions)) {
+    x@populationFrac <- x@populationFrac / rowSums(x@populationFrac)
    }
   x@upperbound <- x@upperbound[i,j,drop=FALSE]
 
@@ -309,21 +332,25 @@ setMethod("[", "sts", function(x, i, j, ..., drop) {
   }
   x@neighbourhood <- x@neighbourhood[j,j,drop=FALSE]
 
-  #Fix the corresponding start entry. it can either be a vector of
-  #logicals or a specific index. Needs to work in both cases.
-  #Note: This code does not work if we have week 53s!
-  if (is.logical(i)) {
-    i.min <- which.max(i) #first TRUE entry
-  } else {
-    i.min <- min(i)
+  #Fix the "start" and "epoch" entries (if necessary)
+  if (any(i != 0) && i[1] != 1) {
+    #Note: This code does not work if we have week 53s!
+    i.min <- min(i)  # in regular use, this should actually be i[1]
+    new.sampleNo <- x@start[2] + i.min - 1
+    start.year <- x@start[1] + (new.sampleNo - 1) %/% x@freq
+    start.sampleNo <- (new.sampleNo - 1) %% x@freq + 1
+    x@start <- c(start.year, start.sampleNo)
+    if (!x@epochAsDate) {
+      ## we also have to update epoch since it is relative to start
+      ## and actually it should always equal 1:nrow(observed)
+      x@epoch <- x@epoch - i.min + 1L
+    }
+    ## if (x@epochAsDate && x@freq == 52) {
+    ##   ## FIXME: should we derive start from the first date?
+    ##   ISO <- isoWeekYear(as.Date(x@epoch[1], origin = "1970-01-01"))
+    ##   x@start <- c(ISO$ISOYear, ISO$ISOWeek)
+    ## }
   }
-  start <- x@start
-  new.sampleNo <- start[2] + i.min - 1
-  start.year <- start[1] + (new.sampleNo - 1) %/% x@freq
-  start.sampleNo <- (new.sampleNo - 1) %% x@freq + 1
-  x@start <- c(start.year,start.sampleNo)
-  ## If !epochAsDate, we also have to update epoch since it is relative to start
-  if (!x@epochAsDate) x@epoch <- x@epoch - i.min + 1
 
   ## Note: We do not automatically subset the map according to j, since
   ##       identical(row.names(map), colnames(observed))

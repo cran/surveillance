@@ -72,9 +72,12 @@ checkResidualProcess(object, plot = 1:2, mfrow = c(1,length(plot)), ...)
 }
 
 \examples{
-## load the twinSIR() fit
-data("foofit")
-checkResidualProcess(foofit)
+data("hagelloch")
+fit <- twinSIR(~ household, data = hagelloch)  # a simplistic model
+## extract the "residual process", i.e., the fitted cumulative intensities
+residuals(fit)
+## assess goodness of fit based on these residuals
+checkResidualProcess(fit)  # could be better
 }
 
 \keyword{dplot}

@@ -4,11 +4,11 @@
 \title{Bayesian Outbreak Detection in the Presence of Reporting Delays}
 \usage{
 bodaDelay(sts, control = list(
-  range = NULL, b = 3, w = 3, mc.munu = 100, mc.y = 10,
+  range = NULL, b = 5, w = 3, mc.munu = 100, mc.y = 10,
   pastAberrations = TRUE, verbose = FALSE,
-  alpha = 0.01, trend = TRUE, limit54 = c(5,4), 
+  alpha = 0.05, trend = TRUE, limit54 = c(5,4), 
   inferenceMethod = c("asym","INLA"), quantileMethod = c("MC","MM"),
-  noPeriods = 1, pastWeeksNotIncluded = 26, delay = TRUE))
+  noPeriods = 1, pastWeeksNotIncluded = NULL, delay = FALSE))
 }
 
 \arguments{
@@ -37,9 +37,10 @@ i.e. the \eqn{(1-\alpha)\cdot 100\%} quantile serves as an upperbound.}
 equal to 1 no factor variable is created, the set of reference values is defined as in
 Farrington et al (1996).}
 
-\item{\code{inferenceMethod}}{Which inference method used, as defined in Salmon et al. (2015). If one chooses \code{INLA} then inference is performed with INLA. If one chooses \code{asym} then the asymptotic normal approximation of the posteriori is used.}
+\item{\code{inferenceMethod}}{Which inference method used, as defined in Salmon et al. (2015). If one chooses \code{"INLA"} then inference is performed with INLA. If one chooses \code{"asym"} (default) then the asymptotic normal approximation of the posteriori is used.}
 
-\item{\code{pastWeeksNotIncluded}}{Number of past weeks to ignore in the calculation.}
+\item{\code{pastWeeksNotIncluded}}{Number of past weeks to ignore in the calculation.
+The default (\code{NULL}) means to use the value of \code{control$w}.}
 
 \item{\code{delay}}{Boolean indicating whether to take reporting delays into account.}
 
@@ -51,7 +52,7 @@ when performing Monte Carlo to calculate a threshold}
 \item{\code{limit54}}{c(cases,period) is a vector allowing the
 user to change these numbers.}
 
-\item{\code{quantileMethod}}{Character, either \code{MC} or \code{MM}. Indicates how to compute the quantile based on the posterior distribution (no matter the inference method): either by sampling \code{mc.munu} values from the posterior distribution of the parameters and then for each sampled parameters vector sampling \code{mc.y} response values so that one gets a vector of response values based on which one computes an empirical quantile (MC method, as explained in Salmon et al. 2015); or by sampling \code{mc.munu} from the posterior distribution of the parameters and then compute the quantile of the mixture distribution using bisectioning, which is faster.}
+\item{\code{quantileMethod}}{Character, either \code{"MC"} (default) or \code{"MM"}. Indicates how to compute the quantile based on the posterior distribution (no matter the inference method): either by sampling \code{mc.munu} values from the posterior distribution of the parameters and then for each sampled parameters vector sampling \code{mc.y} response values so that one gets a vector of response values based on which one computes an empirical quantile (MC method, as explained in Salmon et al. 2015); or by sampling \code{mc.munu} from the posterior distribution of the parameters and then compute the quantile of the mixture distribution using bisectioning, which is faster.}
 }
 }
 }
@@ -68,17 +69,16 @@ data("stsNewport")
 salm.Normal <- list()
 salmDelayAsym <- list()
 for (week in 43:45){
-  listWeeks <- as.Date(row.names(stsNewport@control$reportingTriangle$n), origin="1970-01-01")
+  listWeeks <- as.Date(row.names(stsNewport@control$reportingTriangle$n))
   dateObs <- listWeeks[isoWeekYear(listWeeks)$ISOYear==2011 &
                        isoWeekYear(listWeeks)$ISOWeek==week]
   stsC <- sts_observation(stsNewport,
                           dateObservation=dateObs,
                           cut=TRUE)
-  inWeeks <- which(formatDate(epoch(stsC), "\%G") == 2011 & 
-                     isoWeekYear(as.Date(epoch(stsC)))$ISOWeek>=40 & 
-                     isoWeekYear(as.Date(epoch(stsC)))$ISOWeek<=48)
+  inWeeks <- with(isoWeekYear(epoch(stsC)),
+                  ISOYear == 2011 & ISOWeek >= 40 & ISOWeek <= 48)
   
-  rangeTest <- inWeeks
+  rangeTest <- which(inWeeks)
   alpha <- 0.07
 
   # Control slot for Noufaily method          

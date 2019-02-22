@@ -154,14 +154,15 @@ The contributed \R package \pkg{animation}.
 }
 
 \examples{
-data("fooepidata")
-(s <- summary(fooepidata))
+data("hagelloch")
+(s <- summary(hagelloch))
 
 # plot the ordering of the events only
-animate(s, sleep=0.01)   # or: animate(fooepidata)
+animate(s)   # or: animate(hagelloch)
 
 # with timer (animate only up to t=10)
-animate(s, time.spacing=0.1, end=10, sleep=0.01)
+animate(s, time.spacing=0.1, end=10, sleep=0.01,
+        legend.opts=list(x="topleft"))
 
 # Such an animation can be saved in various ways using tools of
 # the animation package, e.g., saveHTML()
@@ -169,7 +170,8 @@ if (interactive() && require("animation")) {
   oldwd <- setwd(tempdir())  # to not clutter up the current working dir
   saveHTML({
     par(bg="white")  # default "transparent" is grey in some browsers
-    animate(s, time.spacing=1, sleep=0, generate.snapshots="epiani")
+    animate(s, time.spacing=1, sleep=0, legend.opts=list(x="topleft"),
+            generate.snapshots="epiani")
   }, use.dev=FALSE, img.name="epiani", ani.width=600, interval=0.5)
   setwd(oldwd)
 }

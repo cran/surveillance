@@ -70,7 +70,9 @@ plotHHH4_maps(x, which = c("mean", "endemic", "epi.own", "epi.neighbours"),
               labels = FALSE, sp.layout = NULL, ...,
               map = x$stsObj@map, meanHHH = NULL)
 
-plotHHH4_ri(x, component, labels = FALSE, sp.layout = NULL,
+plotHHH4_ri(x, component, exp = FALSE,
+            at = list(n = 10), col.regions = cm.colors(100),
+            colorkey = TRUE, labels = FALSE, sp.layout = NULL,
             gpar.missing = list(col = "darkgrey", lty = 2, lwd = 2),
             ...)
 
@@ -175,12 +177,21 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     A seasonality plot of the epidemic dominant eigenvalue
     is also available by including \code{"maxEV"} in \code{components},
     but it only supports models without epidemic covariates/offsets.}
-  \item{intercept}{logical indicating whether to plot seasonality as a
-    multiplicative effect on the respective component (the default
-    \code{intercept=FALSE}), or additionally multiplied by the
-    corresponding intercept (\code{intercept=TRUE}). The latter only
+  \item{intercept}{logical indicating whether to include the global
+    intercept. For \code{plotHHH4_season}, the default (\code{FALSE})
+    means to plot seasonality as a multiplicative effect on the
+    respective component. Multiplication by the intercept only
     makes sense if there are no further (non-centered)
     covariates/offsets in the component.}
+  \item{exp}{logical indicating whether to \code{exp}-transform random
+    effects to show multiplicative effects on the respective components.
+    The default is \code{FALSE}.}
+  \item{at}{a numeric vector of breaks for the color levels (see
+    \code{\link[lattice]{levelplot}}), or a list specifying the number
+    of breaks \code{n} (default: 10) and their \code{range} (default:
+    range of the random effects, extended to be symmetric around 0,
+    or around 1 if \code{exp=TRUE}). If \code{exp=TRUE}, the breaks are
+    generated using \code{scales::\link[scales]{log_breaks}}.}
   \item{matplot.args}{list of line style specifications passed to
     \code{\link{matplot}}, e.g., \code{lty}, \code{lwd}, \code{col}.}
   \item{refline.args}{list of line style specifications (e.g.,
@@ -199,6 +210,9 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     and a separate scale for the map showing the overall mean.}
   \item{col.regions}{a vector of colors used to encode the fitted
     component means (see \code{\link[lattice]{levelplot}}).}
+  \item{colorkey}{a Boolean indicating whether to draw the color key.
+    Alternatively, a list specifying how to draw it, see
+    \code{\link[lattice]{levelplot}}.}
   \item{map}{an object inheriting from \code{"\linkS4class{SpatialPolygons}"}
     with \code{row.names} covering \code{colnames(x)}.}
   \item{component}{component for which to plot the estimated
@@ -292,12 +306,15 @@ measlesFit <- hhh4(measlesWeserEms, measlesModel)
 ## fitted values for a single unit
 plot(measlesFit, units=2)
 
+## sum fitted components over all units
+plot(measlesFit, total=TRUE)
+
 ## 'xaxis' option for a nicely formatted time axis
 ## default tick locations and labels:
-plot(measlesFit, units=2, xaxis=list(epochsAsDate=TRUE, line=1))
+plot(measlesFit, total=TRUE, xaxis=list(epochsAsDate=TRUE, line=1))
 ## an alternative with monthly ticks:
 oopts <- surveillance.options(stsTickFactors = c("\%m"=0.75, "\%Y" = 1.5))
-plot(measlesFit, units=2, xaxis=list(epochsAsDate=TRUE,
+plot(measlesFit, total=TRUE, xaxis=list(epochsAsDate=TRUE,
     xaxis.tickFreq=list("\%m"=atChange, "\%Y"=atChange),
     xaxis.labelFreq=list("\%Y"=atMedian), xaxis.labelFormat="\%Y"))
 surveillance.options(oopts)
@@ -314,8 +331,15 @@ if (requireNamespace("gridExtra"))
     plot(measlesFit, type="maps", labels=list(cex=0.6),
          main=c("Total","Endemic","Within district","From other districts"))
 
-## random intercepts of the endemic component
-plot(measlesFit, type="ri", component="end", labels=list(font=3, labels="GEN"))
+## estimated random intercepts of the endemic component
+fixef(measlesFit)["end.ri(iid)"]     # global intercept (log-scale)
+ranef(measlesFit, tomatrix = TRUE)   # zero-mean deviations
+ranef(measlesFit, intercept = TRUE)  # sum of the above
+exp(ranef(measlesFit))               # multiplicative effects
+plot(measlesFit, type="ri", component="end",
+     main="deviations around the endemic intercept (log-scale)")
+plot(measlesFit, type="ri", component="end", exp=TRUE,
+     main="multiplicative effects", labels=list(font=3, labels="GEN"))
 
 ## neighbourhood weights as a function of neighbourhood order
 plot(measlesFit, type="neweights")  # boring, model has no "ne" component
@@ -330,9 +354,6 @@ plot(measlesFit, units=bigunits,
 
 ## plot completely decomposed mean structure (useless without 'ne' component)
 plot(measlesFit, units=bigunits, col=rainbow(measlesFit$nUnit), decompose=TRUE)
-
-## sum fitted components over all units
-plot(measlesFit, total=TRUE)
 }
 
 \keyword{hplot}

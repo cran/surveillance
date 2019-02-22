@@ -7,9 +7,9 @@
 ### - sequential plots regardless of time between events (i.e. only ordering)
 ### - chronological animation with timer
 ###
-### Copyright (C) 2008-2009, 2012, 2014 Sebastian Meyer
-### $Revision: 1096 $
-### $Date: 2014-10-30 11:59:12 +0100 (Thu, 30. Oct 2014) $
+### Copyright (C) 2008-2009, 2012, 2014, 2019 Sebastian Meyer
+### $Revision: 2357 $
+### $Date: 2019-02-20 16:41:09 +0100 (Wed, 20. Feb 2019) $
 ################################################################################
 
 animate.epidata <- function (object, ...)
@@ -36,7 +36,7 @@ animate.summary.epidata <- function (object,
     eventTable <- counters_noPseudoR[-1, c("time", "type", "id")]
     eventTable[["type"]] <- unclass(eventTable[["type"]])  # get integer codes
     .nTimes <- nrow(eventTable)
-    
+
     # extract initial individual information (id, at-risk, coordinates)
     coords <- object[["coordinates"]]
     d <- ncol(coords)
@@ -47,12 +47,12 @@ animate.summary.epidata <- function (object,
     } else if (d == 0L) {
         stop ("'object' does not contain any defined coordinates")
     }
-    
+
     # plot the initial state
     pch <- rep(pch, length.out = 3)
     col <- rep(col, length.out = 3)
     isInitiallyInfected <- rownames(coords) %in% object[["initiallyInfected"]]
-    plot(coords, pch = ifelse(isInitiallyInfected, pch[2L], pch[1L]), 
+    plot(coords, pch = ifelse(isInitiallyInfected, pch[2L], pch[1L]),
                  col = ifelse(isInitiallyInfected, col[2L], col[1L]),
                  main = main, ...)
     if (is.list(legend.opts)) {
@@ -64,7 +64,7 @@ animate.summary.epidata <- function (object,
         if (is.null(legend.opts$pch)) legend.opts$pch <- pch
         do.call(legend, legend.opts)
     }
-    
+
     # animate the epidemic by iteratively re-drawing points at the coordinates
     sleep <- eval(sleep)
     if (is.null(time.spacing)) { # plot events sequentially
@@ -79,8 +79,10 @@ animate.summary.epidata <- function (object,
             end <- eventTable[.nTimes, "time"] + time.spacing
         timeGrid <- seq(from = time.spacing, to = end, by = time.spacing)
         timeWidth <- nchar(timeGrid[length(timeGrid)])
-        timeDigits <- nchar(strsplit(as.character(time.spacing), ".",
-            fixed = TRUE)[[1L]][2L])
+        timeDigits <- if (grepl(".", as.character(time.spacing), fixed = TRUE)) {
+            nchar(strsplit(as.character(time.spacing), split = ".",
+                           fixed = TRUE)[[1L]][2L])
+        } else 0
         form <- paste("%", timeWidth, ".", timeDigits, "f", sep = "")
         if (is.list(timer.opts)) {
             if (is.null(timer.opts[["x",exact=TRUE]]))

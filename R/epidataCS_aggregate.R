@@ -6,8 +6,8 @@
 ### Convert "epidataCS" to the (aggregated) classes "epidata" or "sts"
 ###
 ### Copyright (C) 2009-2016,2018 Sebastian Meyer
-### $Revision: 2112 $
-### $Date: 2018-04-18 15:09:26 +0200 (Wed, 18. Apr 2018) $
+### $Revision: 2217 $
+### $Date: 2018-09-14 11:07:33 +0200 (Fri, 14. Sep 2018) $
 ################################################################################
 
 
@@ -140,9 +140,9 @@ epidataCS2sts <- function (object, freq, start,
     }
 
     ## prepare sts components
-    epoch <- unique(object$stgrid$BLOCK) # epidataCS is sorted
+    blocks <- unique(object$stgrid$BLOCK) # epidataCS is sorted
     eventsByCell <- with(object$events@data,
-                         table(BLOCK=factor(BLOCK, levels=epoch), tile))
+                         table(BLOCK=factor(BLOCK, levels=blocks), tile))
     if (missing(neighbourhood)) { # auto-detect neighbourhood from tiles
         if (is.null(tiles))
             stop("'tiles' is required for auto-generation of 'neighbourhood'")
@@ -157,12 +157,13 @@ epidataCS2sts <- function (object, freq, start,
         if (popdensity) popByCell <- popByCell * object$stgrid[["area"]]
         totalpop <- sum(popByCell[seq_along(tileLevels)])
         matrix(popByCell/totalpop,
-               nrow=length(epoch), ncol=length(tileLevels),
+               nrow=length(blocks), ncol=length(tileLevels),
                byrow=TRUE, dimnames=dimnames(eventsByCell))
     }
 
-    ## initialize sts object
-    sts(epoch=epoch, frequency=freq, start=start,
+    ## initialize sts object (sts() constructor discards NULL slots)
+    sts(frequency=freq, start=start, # epoch=seq_along(blocks) [default]
+        ##do not set epoch=blocks as blocks[1] could be >1 (from simulation)
         observed=unclass(eventsByCell), neighbourhood=neighbourhood,
-        populationFrac=populationFrac, map=tiles, epochAsDate=FALSE)
+        populationFrac=populationFrac, map=tiles)
 }

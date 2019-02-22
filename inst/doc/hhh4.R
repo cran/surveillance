@@ -4,7 +4,7 @@
 ###################################################
 ### code chunk number 1: setup
 ###################################################
-library("surveillance")  
+library("surveillance")
 options(width=75)
 
 ## create directory for plots
@@ -47,7 +47,7 @@ plot(fluMen, type = observed ~ time | unit, # type of plot (default)
 ### code chunk number 5: readInFlu
 ###################################################
 # read in observed number of cases
-flu.counts <- as.matrix(read.table(system.file("extdata/counts_flu_BYBW.txt", 
+flu.counts <- as.matrix(read.table(system.file("extdata/counts_flu_BYBW.txt",
                                                package = "surveillance"),
                                    check.names = FALSE))
 
@@ -130,7 +130,7 @@ plot(measles2w, type = observed ~ time,  # aggregate counts over all units
 ##     end = list(f = ~ 1,              # formula for log(nu_it)
 ##                offset = 1),          # optional multiplicative offset e_it
 ##     family = "Poisson",              # Poisson or NegBin model
-##     subset = 2:nrow(stsObj),         # subset of observations to be used 
+##     subset = 2:nrow(stsObj),         # subset of observations to be used
 ##     optimizer = list(stop = list(tol = 1e-5, niter = 100), # stop rules
 ##                      regression = list(method = "nlminb"), # for penLogLik
 ##                      variance = list(method = "nlminb")),  # for marLogLik
@@ -138,7 +138,7 @@ plot(measles2w, type = observed ~ time,  # aggregate counts over all units
 ##     start = list(fixed = NULL,       # list with initial values for fixed,
 ##                  random = NULL,      # random, and
 ##                  sd.corr = NULL),    # variance parameters
-##     data = list(t = epoch(stsObj)-1),# named list of covariates 
+##     data = list(t = epoch(stsObj)-1),# named list of covariates
 ##     keep.terms = FALSE               # whether to keep the model terms
 ## )
 
@@ -255,12 +255,12 @@ set.seed(42)
 if(compute){
   result.B2 <- hhh4(fluBYBW, model.B2)
   s.B2 <- summary(result.B2, maxEV = TRUE, idx2Exp = 1:3)
-  
+
   #pred.B2 <- oneStepAhead(result.B2, tp = nrow(fluBYBW) - 2*52)
   predfinal.B2 <- oneStepAhead(result.B2, tp = nrow(fluBYBW) - 2*52,
                                type = "final")
   meanSc.B2 <- colMeans(scores(predfinal.B2))
-  
+
   save(s.B2, meanSc.B2, file="hhh4-cache.RData")
 }
 

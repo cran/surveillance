@@ -38,7 +38,9 @@
     data in \code{object} during \code{subset} are used.
   }
   \item{subset}{
-    time period in which to simulate data. Defaults to the whole period.
+    time period in which to simulate data. Defaults to (and cannot
+    exceed) the whole period defined by the underlying \code{"sts"}
+    object.
   }
   \item{coefs}{
     coefficients used for simulation from the model in \code{object}.

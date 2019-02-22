@@ -2,7 +2,7 @@
 \alias{farringtonFlexible}
 \encoding{latin1}
 
-\title{Surveillance for an univariate count data time series using the improved Farrington method described in Noufaily et al. (2012).}
+\title{Surveillance for Univariate Count Time Series Using an Improved Farrington Method}
 \description{
 %
   The function takes \code{range} values of the surveillance time
@@ -15,18 +15,18 @@
 }
 \usage{
 farringtonFlexible(sts, control = list(
-    range = NULL, b = 3, w = 3,
+    range = NULL, b = 5, w = 3,
     reweight = TRUE, weightsThreshold = 2.58,
     verbose = FALSE, glmWarnings = TRUE,
-    alpha = 0.01, trend = TRUE, pThresholdTrend = 0.05,
+    alpha = 0.05, trend = TRUE, pThresholdTrend = 0.05,
     limit54 = c(5,4), powertrans = "2/3",
     fitFun = "algo.farrington.fitGLM.flexible",
     populationOffset = FALSE,
-    noPeriods = 1, pastWeeksNotIncluded = 26,
+    noPeriods = 1, pastWeeksNotIncluded = NULL,
     thresholdMethod = "delta"))
 }
 \arguments{
-\item{sts}{object of class sts (including the \code{observed} and the \code{state} time series)}
+\item{sts}{object of class \code{\linkS4class{sts}} (including the \code{observed} and the \code{state} time series)}
 \item{control}{Control object given as a \code{list} containing the following components:
     \describe{
     \item{\code{range}}{Specifies the index of all timepoints which
@@ -72,7 +72,10 @@ farringtonFlexible(sts, control = list(
     \item{\code{noPeriods}}{Number of levels in the factor allowing to use more baseline. If
     equal to 1 no factor variable is created, the set of reference values is defined as in
     Farrington et al (1996).}
-     \item{\code{pastWeeksNotIncluded}}{Number of past weeks to ignore in the calculation.}
+    \item{\code{pastWeeksNotIncluded}}{Number of past weeks to ignore in the calculation.
+      The default (\code{NULL}) means to use the value of \code{control$w}.
+      Setting \code{pastWeeksNotIncluded=26} might be preferable
+      (Noufaily et al., 2012).}
     \item{\code{thresholdMethod}}{Method to be used to derive the upperbound.
     Options are \code{"delta"} for the method described in Farrington et al. (1996),
     \code{"Noufaily"} for the method described in Noufaily et al. (2012),
@@ -117,17 +120,17 @@ Warning: monthly data containing the last day of each month as date should be an
 }
 \value{
 An object of class \code{sts} with the slots \code{upperbound} and \code{alarm} filled by appropriate output of the algorithm.
-The slot \code{control} is the usual list but with more items all of length \code{length(range)}:
+The \code{control} slot of the input \code{sts} is amended with the
+following matrix elements, all with \code{length(range)} rows:
 \describe{
-\item{trend}{ is a vector of Booleans indicating whether a time trend was fitted for this time point.}
-\item{trendVector}{ is a vector giving the coefficient of the time trend in the GLM for this time point. If no trend was fitted it is equal to NA.}
-\item{pvalue}{ is a vector giving the probability of observing a value at least equal to the observation under the null hypothesis .}
-\item{expected}{is a vector giving the expectation of the predictive distribution for each timepoint. 
+\item{trend}{Booleans indicating whether a time trend was fitted for this time point.}
+\item{trendVector}{coefficient of the time trend in the GLM for this time point. If no trend was fitted it is equal to NA.}
+\item{pvalue}{probability of observing a value at least equal to the observation under the null hypothesis .}
+\item{expected}{expectation of the predictive distribution for each timepoint. 
 It is only reported if the conditions for raising an alarm are met (enough cases).}
-\item{mu0Vector}{ is a vector giving what is inputed in the negative binomial distribution to get the upperbound as a quantile 
+\item{mu0Vector}{input for the negative binomial distribution to get the upperbound as a quantile 
 (either a plug-in from the GLM or a quantile from the asymptotic normal distribution of the estimator)}
-\item{phiVector}{ is a vector giving the overdispersion of the GLM at each timepoint.}
-
+\item{phiVector}{overdispersion of the GLM at each timepoint.}
 }
 }
 

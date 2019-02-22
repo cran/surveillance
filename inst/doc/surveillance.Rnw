@@ -44,7 +44,6 @@ Germany }
 library("surveillance")
 options(SweaveHooks=list(fig=function() par(mar=c(4,4,2,0)+.5)))
 options(width=70)
-set.seed(1234)
 
 ## create directory for plots
 dir.create("plots", showWarnings=FALSE)
@@ -152,11 +151,6 @@ For example the object \texttt{k1} describes Kryptosporidosis
 surveillance data for the German federal state Baden-W\"{u}rttemberg
 2001-2005. The peak in 2001 is due to an outbreak of Kryptosporidosis
 among a group of army-soldiers in boot-camp~\citep{bulletin3901}.
-%% In \surveillance\ the \texttt{readData} function is used to bring the
-%% time series on \texttt{disProg} form. The SurvStat@RKI database
-%% uses a 53 weeks a
-%% year format; therefore a conversion with \texttt{correct53to52} is
-%% necessary.
 
 <<fig=T>>=
 data(k1)
@@ -220,10 +214,13 @@ simulate such a point-source epidemic; the result is an object of class
 \verb+disProg+.
 
 \label{ex:sts}
-<<fig=T>>=
+<<>>=
+set.seed(1234)
 sts <- sim.pointSource(p = 0.99, r = 0.5, length = 400,
                        A = 1, alpha = 1, beta = 0, phi = 0,
                        frequency = 1, state = NULL, K = 1.7)
+@ 
+<<fig=T>>=
 plot(sts)
 @
 
@@ -373,7 +370,7 @@ could be if at least one of the outbreak weeks is correctly
 identified, see e.g.\ \citet{hutwagner2005}.
 
 To compute various performance scores the function
-\verb+algo.quality+ can be used on a \verb+SurvRes+ object.
+\verb+algo.quality+ can be used on a \verb+survRes+ object.
 
 <<>>=
 print(algo.quality(k1.b660))

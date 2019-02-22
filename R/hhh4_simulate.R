@@ -6,8 +6,8 @@
 ### Simulate from a HHH4 model
 ###
 ### Copyright (C) 2012 Michaela Paul, 2013-2016,2018 Sebastian Meyer
-### $Revision: 2182 $
-### $Date: 2018-07-17 17:09:53 +0200 (Tue, 17. Jul 2018) $
+### $Revision: 2249 $
+### $Date: 2018-11-26 16:45:36 +0100 (Mon, 26. Nov 2018) $
 ################################################################################
 
 
@@ -39,6 +39,7 @@ simulate.hhh4 <- function (object, # result from a call to hhh4
 
     cl <- match.call()
     theta <- if (missing(coefs)) coefs else checkCoefs(object, coefs)
+    stopifnot(subset >= 1, subset <= nrow(object$stsObj))
 
     ## lags
     lag.ar <- object$control$ar$lag

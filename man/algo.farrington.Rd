@@ -2,7 +2,7 @@
 \alias{algo.farrington}
 \encoding{latin1}
 
-\title{Surveillance for a count data time series using the Farrington method.}
+\title{Surveillance for Count Time Series Using the Classic Farrington Method}
 \description{
   The function takes \code{range} values of the surveillance time
   series \code{disProgObj} and for each time point uses a GLM to
@@ -12,11 +12,10 @@
   the prediction interval, then an alarm is raised.
 }
 \usage{
-algo.farrington(disProgObj, control=list(range=NULL, b=3, w=3,
-                reweight=TRUE,verbose=FALSE,alpha=0.01,trend=TRUE,limit54=c(5,4),
-                powertrans="2/3",
-                fitFun=c("algo.farrington.fitGLM.fast","algo.farrington.fitGLM",
-                         "algo.farrington.fitGLM.populationOffset")))
+algo.farrington(disProgObj, control=list(
+    range=NULL, b=5, w=3, reweight=TRUE, verbose=FALSE, plot=FALSE,
+    alpha=0.05, trend=TRUE, limit54=c(5,4), powertrans="2/3",
+    fitFun="algo.farrington.fitGLM.fast"))
 }
 \arguments{
   \item{disProgObj}{
@@ -34,9 +33,9 @@ algo.farrington(disProgObj, control=list(range=NULL, b=3, w=3,
     \item{\code{w}}{windows size, i.e. number of weeks to include
         before and after the current week}
     \item{\code{reweight}}{Boolean specifying whether to perform reweight step}
-    \item{\code{trend}}{If \code{true} a trend is included and kept in
+    \item{\code{trend}}{If \code{TRUE} a trend is included and kept in
         case the conditions documented in Farrington et al. (1996) are met
-        (see the results). If \code{false} then NO trend is fit.}
+        (see the results). If \code{FALSE} then NO trend is fit.}
     \item{\code{verbose}}{Boolean indicating whether to show extra debugging information.}
     \item{\code{plot}}{Boolean specifying whether to show the final GLM model fit graphically (use
         History|Recording to see all pictures).}
@@ -82,7 +81,7 @@ algo.farrington(disProgObj, control=list(range=NULL, b=3, w=3,
 }
 }
 \value{
-An object of class \code{SurvRes}.
+An object of class \code{"survRes"}.
 }
 
 \examples{
@@ -114,7 +113,13 @@ stopifnot(upperbound(sts1) == upperbound(sts2))
 }
 }
 \author{M. \enc{Höhle}{Hoehle}}
-\seealso{\code{\link{algo.farrington.fitGLM}},\code{\link{algo.farrington.threshold}}}
+\seealso{
+  \code{\link{algo.farrington.fitGLM}},
+  \code{\link{algo.farrington.threshold}}
+
+  An improved Farrington algorithm is available as function
+  \code{\link{farringtonFlexible}}.
+}
 \keyword{classif}
 \references{
   A statistical algorithm for the early detection of outbreaks of

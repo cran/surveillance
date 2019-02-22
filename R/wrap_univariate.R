@@ -14,14 +14,14 @@
 wrap.algo <- function(sts, algo, control,
                       control.hook=function(k, control) return(control),
                       verbose=TRUE,...) {
+  stopifnot(is.vector(control[["range"]], mode = "numeric"))
+
   #Number of time series
   nAreas <- ncol(sts@observed)
-  nTimePoints <- nrow(sts@observed)
-  nAlarm <- length(control$range)
 
-  #Create alarm matrix having same size as sts
-  sts@alarm <- matrix(NA,ncol=nAreas,nrow=nTimePoints,dimnames=dimnames(sts@observed))
-  sts@upperbound <- matrix(NA,ncol=nAreas,nrow=nTimePoints,dimnames=dimnames(sts@observed))
+  #Set old alarms and upperbounds to NA
+  sts@alarm[] <- NA
+  sts@upperbound[] <- NA_real_
 
   #Loop over all regions
   for (k in 1:nAreas) {
@@ -40,39 +40,22 @@ wrap.algo <- function(sts, algo, control,
     if (!is.null(survRes.k)) {
       sts@alarm[control$range,k] <- survRes.k$alarm
       sts@upperbound[control$range,k] <- survRes.k$upperbound
-
-      #Control object needs only to be set once
-      sts@control <- survRes.k$control
     }
   }
-
-  #Reduce sts object to only those obervations in range
-  sts@observed <- sts@observed[control$range,,drop=FALSE]
-  sts@state <- sts@state[control$range,,drop=FALSE]
-  sts@populationFrac <- sts@populationFrac[control$range,,drop=FALSE]
-  sts@alarm <- sts@alarm[control$range,,drop=FALSE]
-  sts@upperbound <- sts@upperbound[control$range,,drop=FALSE]
+  #Control object needs only to be set once
+  sts@control <- survRes.k$control
 
   #Set correct theta0t matrix for all
   sts@control$theta0t <- control$theta0t
 
-  #Fix the corresponding start entry
-  start <- sts@start
-  new.sampleNo <- start[2] + min(control$range) - 1
-  start.year <- start[1] + (new.sampleNo - 1) %/% sts@freq
-  start.sampleNo <- (new.sampleNo - 1) %% sts@freq + 1
-  sts@start <- c(start.year,start.sampleNo)
-  sts@epoch <- sts@epoch[control$range]
-  sts@epochAsDate <- sts@epochAsDate
-
-  #Ensure dimnames in the new object
-  sts <- fix.dimnames(sts)
+  #Reduce sts object to only those obervations in range
+  sts <- sts[control$range, ]
 
   return(sts)
 }
 
 #Farrington wrapper
-farrington <- function(sts, control=list(range=NULL, b=3, w=3, reweight=TRUE, verbose=FALSE,alpha=0.01),...) {
+farrington <- function(sts, control=list(range=NULL, b=5, w=3, reweight=TRUE, verbose=FALSE, alpha=0.05),...) {
   wrap.algo(sts,algo="algo.farrington",control=control,...)
 }
 

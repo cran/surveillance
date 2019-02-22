@@ -27,8 +27,9 @@ fit2o <- hhh4(measles2, list(
     ne = list(f = ~1, offset = matrix(o2_ne, nrow(measles2), ncol(measles2)))
     ))
 test_that("model with AR+NE offsets is fitted correctly", {
-    expect_equal(fit2o$coefficients[["ar.1"]], 0)
-    expect_equal(fit2o$coefficients[["ne.1"]], 0)
+    expect_equal(fit2o$coefficients[["ar.1"]], 0, scale = 1)  # use abs. diff
+    expect_equal(fit2o$coefficients[["ne.1"]], 0, scale = 1,
+                 tolerance = 1e-6)  # for ATLAS/MKL/OpenBLAS
     expect_equal(fitted(fit2o), fitted(fit2))
 })
 

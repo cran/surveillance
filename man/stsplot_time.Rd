@@ -168,8 +168,8 @@ plot(ha.sts, hookFunc=hookFunc)
 data("measlesDE")
 plot(measlesDE, units=1:2, as.one=TRUE, legend.opts=list(cex=0.8))
 ## more sophisticated plots are offered by package "xts"
-if (requireNamespace("xts"))
-    plot(as.xts.sts(measlesDE))
+if (require("xts"))
+    plot(as.xts(measlesDE))
 
 ## Use ISO8601 date formatting (see ?strptime) and no legend
 data("salmNewport")

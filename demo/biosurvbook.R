@@ -59,7 +59,7 @@ lines(c(1:nrow(s.far)-0.5,nrow(s.far)+0.5),c(s.far@control$pd[,2],s.far@control$
 text(nrow(s.far)+2,tail(observed(s.far),n=1),expression(hat(mu)[t[0]]))
 
 
-alarmDates <- epoch(s.far[alarms(s.far) == 1,])
+alarmDates <- epoch(s.far)[alarms(s.far) == 1]
 
 
 par(mar=c(4,4,2,2))
@@ -100,7 +100,7 @@ kappa <- 1.2
 s.nb <- glrnb(momo[,"[75,85)"], control=list(range=phase2,alpha=1/m$theta,mu0=mu0,c.ARL=4.75,theta=log(kappa),ret="cases"))
 
 
-alarmDates <- epoch(s.nb[alarms(s.nb) == 1,])
+alarmDates <- epoch(s.nb)[alarms(s.nb) == 1]
 
 
 plot(s.nb,dx.upperbound=0,legend.opts=NULL,ylab="No. of deaths",main="",ylim=c(0,max(observed(s.nb))*1.1),xlab="time (weeks)",col=c("darkgray",NA,1),lwd=c(1,1,2),lty=c(1,1,1),alarm.symbol=list(pch=24,col=1, cex=1))
@@ -134,8 +134,8 @@ simone.TAleq65 <- function(sts, g) {
 
 #Determine run-length using 1000 Monte Carlo samples
 g.grid <- seq(1,8,by=0.5)
-pMC <- sapply(g.grid, function(g) { 
-  mean(replicate(nSims, simone.TAleq65(momo[,"[75,85)"],g))) 
+pMC <- sapply(g.grid, function(g) {
+  mean(replicate(nSims, simone.TAleq65(momo[,"[75,85)"],g)))
 })
 
 
@@ -190,7 +190,7 @@ res.far <- replicate(nSims, simone.TAleq65.far(momo[,"[0,1)"],alpha=0.01,mu0=mu0
 #Run CUSUM
 kappa <- 1.2
 s.nb.01 <- glrnb(momo[,"[0,1)"], control=list(range=phase2,alpha=1/m.01$theta,mu0=mu0.far,c.ARL=2.1,theta=log(kappa),ret="cases"))
-alarmDates <- epoch(s.nb.01[alarms(s.nb.01) == 1,])
+alarmDates <- epoch(s.nb.01)[alarms(s.nb.01) == 1]
 
 mu1 <- kappa*mu0.far
 #Show as usual

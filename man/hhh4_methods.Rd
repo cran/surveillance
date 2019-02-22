@@ -35,7 +35,7 @@ see \code{vignette("hhh4_spacetime")}.
 \method{coef}{hhh4}(object, se = FALSE, reparamPsi = TRUE, 
      idx2Exp = NULL, amplitudeShift = FALSE, ...)
 \method{fixef}{hhh4}(object, ...)
-\method{ranef}{hhh4}(object, tomatrix = FALSE, ...)
+\method{ranef}{hhh4}(object, tomatrix = FALSE, intercept = FALSE, ...)
 \method{coeflist}{hhh4}(x, ...)
 
 \method{formula}{hhh4}(x, ...)
@@ -86,6 +86,11 @@ see \code{vignette("hhh4_spacetime")}.
     in a matrix with as many rows as there are regions and as many
     columns as there are random effects. Here, any CAR-effects are
     transformed to region-specific effects.}
+  \item{intercept}{logical. If \code{FALSE} (default), the returned
+    random effects represent zero-mean deviations around the
+    corresponding global intercepts of the \emph{log}-linear predictors.
+    Setting \code{intercept=TRUE} adds these global intercepts to the
+    result (and implies \code{tomatrix=TRUE}).}
   \item{parm}{a vector of numbers or names, specifying which parameters 
     are to be given confidence intervals. If missing, all parameters
     are considered.}

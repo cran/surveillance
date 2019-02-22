@@ -70,12 +70,4 @@ process fitted by \code{object}. This is the observed residual process.
   Sebastian Meyer
 }
 
-\examples{
-## Load the twinSIR() fit
-data("foofit")
-residuals(foofit)
-## these residuals are, e.g., used by checkResidualProcess()
-checkResidualProcess(foofit)
-}
-
 \keyword{methods}

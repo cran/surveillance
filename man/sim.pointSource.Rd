@@ -36,15 +36,26 @@ sim.pointSource(p = 0.99, r = 0.01, length = 400, A = 1,
 \seealso{\code{\link{sim.seasonalNoise}}}
 \author{M. \enc{Höhle}{Hoehle}, A. Riebler, C. Lang}
 \examples{
-# Plotting of simulated data
+set.seed(123)
 disProgObj <- sim.pointSource(p = 0.99, r = 0.5, length = 208,
                               A = 1, alpha = 1, beta = 0, phi = 0,
                               frequency = 1, state = NULL, K = 2)
-# plot the simulated disease with the defined outbreaks
 plot(disProgObj)
 
+## with predefined state chain
 state <- rep(c(0,0,0,0,0,0,0,0,1,1), 20)
 disProgObj <- sim.pointSource(state = state, K = 1.2)
 plot(disProgObj)
+
+## simulate epidemic, send to RKI 1 system, plot, and compute quality values
+testSim <- function (..., K = 0, range = 200:400) {
+  disProgObj <- sim.pointSource(..., K = K)
+  survResults <- algo.call(disProgObj,
+    control = list(list(funcName = "rki1", range = range)))
+  plot(survResults[[1]], "RKI 1", "Simulation")
+  algo.compare(survResults)
+}
+testSim(K = 2)
+testSim(r = 0.5, K = 5)  # larger and more frequent outbreaks
 }
 \keyword{datagen}

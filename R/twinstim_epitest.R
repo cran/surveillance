@@ -5,9 +5,9 @@
 ###
 ### Monte Carlo Permutation Test for Space-Time Interaction in "twinstim"
 ###
-### Copyright (C) 2015-2016 Sebastian Meyer
-### $Revision: 1542 $
-### $Date: 2016-02-01 15:10:18 +0100 (Mon, 01. Feb 2016) $
+### Copyright (C) 2015-2016,2018 Sebastian Meyer
+### $Revision: 2226 $
+### $Date: 2018-09-26 15:26:29 +0200 (Wed, 26. Sep 2018) $
 ################################################################################
 
 epitest <- function (model, data, tiles, method = "time", B = 199,
@@ -24,7 +24,8 @@ epitest <- function (model, data, tiles, method = "time", B = 199,
         stop("no epidemic component in 'model'")
     }
     if (.epilink(model) == "log") {
-        warning("boundary issues with the epidemic log-link",
+        warning("boundary issues with epidemic log-link; ",
+                "refit with epilink=\"identity\"",
                 immediate. = TRUE)
     }
     if (isTRUE(fixed)) {
@@ -35,7 +36,7 @@ epitest <- function (model, data, tiles, method = "time", B = 199,
     }
     t0 <- model$timeRange[1L]  # will not permute events before t0
     T <- model$timeRange[2L]
-    
+
     ## auxiliary function to compute the LRT statistic
     lrt <- function (m0, m1) {
         l0 <- m0$loglik
@@ -43,7 +44,7 @@ epitest <- function (model, data, tiles, method = "time", B = 199,
         c(l0 = l0, l1 = l1, D = 2 * (l1 - l0),
           converged = isTRUE(m1$converged) && isTRUE(m0$converged))
     }
-    
+
     ## observed test statistic
     m0 <- update.twinstim(model, data = data,
                           epidemic = ~0, siaf = NULL, tiaf = NULL,
@@ -61,7 +62,7 @@ epitest <- function (model, data, tiles, method = "time", B = 199,
     DF <- length(coef(model)) - length(coef(m0)) # number of epidemic parameters
     PVAL_LRT <- pchisq(as.vector(STATISTIC_D), # drop attributes
                        df = DF, lower.tail = FALSE)
-    
+
     ## result template
     res <- list(
         method = "Likelihood Ratio Test for Space-Time Interaction",
@@ -77,7 +78,7 @@ epitest <- function (model, data, tiles, method = "time", B = 199,
         ## we are done
         return(res)
     }
-    
+
     ## otherwise: determine the null distribution via permutation or simulation
     res$method <- if (method == "simulate") {
         paste("Test for Space-Time Interaction (based on", B, "endemic simulations)")
@@ -86,6 +87,11 @@ epitest <- function (model, data, tiles, method = "time", B = 199,
     }
     if (model$npars["q"] > 1L) {
         warning("epidemic covariate effects might not be identifiable for null data",
+                immediate. = TRUE)
+    }
+    if (!is.finite(STATISTIC_R0)) {
+        warning("observed 'simpleR0' test statistic is infinite; ",
+                "maybe specify 'eps.*'",  # or use D-based p.value ...
                 immediate. = TRUE)
     }
 
@@ -105,7 +111,7 @@ epitest <- function (model, data, tiles, method = "time", B = 199,
     } else {
         function() permute.epidataCS(data, what = method, keep = time <= t0)
     }
-    
+
     ## interpret 'verbose' level
     .verbose <- if (is.numeric(verbose)) {
         if (verbose >= 2) {
@@ -148,7 +154,7 @@ epitest <- function (model, data, tiles, method = "time", B = 199,
             siafInt <- with(environment(setup), do.call("..siafInt", .siafInt.args))
         }
     }
-    
+
     ## define the function to be replicated B times:
     ## permute/simulate data, update epidemic model, compute endemic-only model,
     ## and compute test statistics
@@ -192,18 +198,18 @@ epitest <- function (model, data, tiles, method = "time", B = 199,
                 " replications did not return (insufficient memory?)")
         permfits <- permfits[!permIsNull]
     }
-    
+
     ## extract the statistics
     permstats <- as.data.frame(t(vapply(
         X = permfits, FUN = "[[", "stats",
         FUN.VALUE = numeric(5L), USE.NAMES = TRUE
     )))
     permstats$converged <- as.logical(permstats$converged)
-    
+
     ## compute permutation-based p-value
     PVAL_D <- mean(c(STATISTIC_D, permstats[permstats$converged, "D"]) >= STATISTIC_D)
     PVAL_R0 <- mean(c(STATISTIC_R0, permstats[permstats$converged, "simpleR0"]) >= STATISTIC_R0)
-    
+
     ## set results
     res$statistic <- structure(STATISTIC_R0, "D" = unname(STATISTIC_D))
     res$parameter <- c("B" = sum(permstats$converged))

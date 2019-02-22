@@ -6,9 +6,9 @@
 ### Calibration tests for count data based on proper scoring rules
 ### Reference: Wei and Held (2014), Test, 23, 787-805
 ###
-### Copyright (C) 2015 Sebastian Meyer
-### $Revision: 1424 $
-### $Date: 2015-07-15 12:14:54 +0200 (Wed, 15. Jul 2015) $
+### Copyright (C) 2015,2018 Sebastian Meyer
+### $Revision: 2223 $
+### $Date: 2018-09-19 14:49:30 +0200 (Wed, 19. Sep 2018) $
 ################################################################################
 
 
@@ -19,8 +19,8 @@ calibrationTest.default <- function (x, mu, size = NULL,
                                      which = c("dss", "logs", "rps"),
                                      tolerance = 1e-4, method = 2, ...)
 {
-    stopifnot(x >= 0, mu > 0, is.null(size) || size > 0)
-    
+    stopifnot(x >= 0, mu > 0, is.null(size) || all(size > 0))
+
     ## calculate scores
     which <- match.arg(which)
     score <- do.call(which, args = alist(x = x, mu = mu, size = size))
@@ -30,7 +30,7 @@ calibrationTest.default <- function (x, mu, size = NULL,
 
     ## calculate two-sided p-value
     p <- 2 * pnorm(-abs(z))
-    
+
     ## construct an object of class "htest"
     res <- list(
         method = paste0("Calibration Test for Count Data (based on ",
@@ -67,7 +67,7 @@ zScore1 <- function (score, E0, V0)
     ## emean <- mean(E0)
     ## varmean <- sum(V0) / n^2
     ## (mean(score) - emean) / sqrt(varmean)
-    
+
     sum(score - E0) / sqrt(sum(V0))
 }
 

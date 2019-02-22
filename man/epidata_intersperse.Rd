@@ -48,12 +48,13 @@ Sebastian Meyer
 }
 
 \examples{
-data("fooepidata")
-subset(fooepidata, start < 25 & stop > 25, select = 1:7)
-nrow(fooepidata)
-moreStopsEpi <- intersperse(fooepidata, c(25,75))
+data("hagelloch")
+subset(hagelloch, start < 25 & stop > 25 & id \%in\% 9:13, select = 1:7)
+# there is no "stop" time at 25, but we can add this extra stop
+nrow(hagelloch)
+moreStopsEpi <- intersperse(hagelloch, stoptimes = 25)
 nrow(moreStopsEpi)
-subset(moreStopsEpi, stop == 25 | start == 25, select = 1:7)
+subset(moreStopsEpi, (stop == 25 | start == 25) & id \%in\% 9:13, select = 1:7)
 }
 
 \keyword{spatial}

@@ -86,7 +86,7 @@ boda(sts, control = list(
   #Load the campylobacteriosis data for Germany
   data("campyDE")
   #Make an sts object from the data.frame
-  cam.sts <-  sts(epoch=as.numeric(campyDE$date), epochAsDate=TRUE,
+  cam.sts <-  sts(epoch=campyDE$date,
                   observed=campyDE$case, state=campyDE$state)
 
   #Define monitoring period

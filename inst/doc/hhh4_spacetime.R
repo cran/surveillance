@@ -180,13 +180,14 @@ measlesFit_ri <- update(measlesFit_powerlaw,
 ## ----------------------------------------------------------------------------------
 head(ranef(measlesFit_ri, tomatrix = TRUE), n = 3)
 
-## ----measlesFit_ri_map, out.width="0.31\\linewidth", fig.width=3.5, fig.height=3.7, fig.pos="htb", fig.cap="Maps of the estimated random intercepts.", fig.subcap=c("Autoregressive $\\alpha_i^{(\\lambda)}$", "Spatio-temporal $\\alpha_i^{(\\phi)}$", "Endemic $\\alpha_i^{(\\nu)}$"), echo=-1----
-stopifnot(ranef(measlesFit_ri) > -1.6, ranef(measlesFit_ri) < 1.6)
+## ----measlesFit_ri_map, out.width="0.31\\linewidth", fig.width=3.5, fig.height=3.7, fig.pos="htb", fig.cap="Estimated multiplicative effects on the three components.", fig.subcap=c("Autoregressive", "Spatio-temporal", "Endemic")----
 for (comp in c("ar", "ne", "end")) {
-  print(plot(measlesFit_ri, type = "ri", component = comp,
-    col.regions = cm.colors(14), labels = list(cex = 0.6),
-    at = seq(-1.6, 1.6, length.out = 15)))
+  print(plot(measlesFit_ri, type = "ri", component = comp, exp = TRUE,
+    labels = list(cex = 0.6)))
 }
+
+## ----------------------------------------------------------------------------------
+exp(ranef(measlesFit_ri, intercept = TRUE)["03403", "ar.ri(iid)"])
 
 ## ----measlesFitted_ri, out.width="\\linewidth", fig.pos="htb", fig.cap="Fitted components in the random effects model \\code{measlesFit\\_ri} for the five districts with more than 50 cases as well as summed over all districts. Compare to Figure~\\ref{fig:measlesFitted_basic}."----
 par(mfrow = c(2,3), mar = c(3, 5, 2, 1), las = 1)
@@ -250,6 +251,14 @@ sapply(SCORES, function (score) permutationTest(
 par(mfrow = sort(n2mfrow(length(measlesPreds2))), mar = c(4.5,4.5,2,1), las = 1)
 for (m in models2compare)
   pit(measlesPreds2[[m]], plot = list(ylim = c(0, 1.25), main = m))
+
+## ----measlesFit_powerlaw2, include = FALSE-----------------------------------------
+## a simplified model which includes the autoregression in the power law
+measlesFit_powerlaw2 <- update(measlesFit_powerlaw,
+  ar = list(f = ~ -1),
+  ne = list(weights = W_powerlaw(maxlag = 5, from0 = TRUE)))
+AIC(measlesFit_powerlaw, measlesFit_powerlaw2)
+## simpler is really worse; probably needs random effects
 
 ## ----measlesFit_ri_simulate--------------------------------------------------------
 (y.start <- observed(measlesWeserEms)[52, ])

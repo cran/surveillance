@@ -102,7 +102,7 @@
   references for the modeling (Meyer et al., 2017) and the monitoring
   (Salmon et al., 2016) functionalities:
 
-  \Sexpr[stage=build,results=Rd]{
+  \Sexpr[stage=build,results=rd]{
     paste0("\\\itemize{\n", paste0("\\\item ", tools::toRd(
       readCitationFile(list.files(pattern="CITATION", recursive=TRUE), list(Encoding="latin1"))
     ), collapse = "\n\n"), "\n}")

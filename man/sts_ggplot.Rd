@@ -58,9 +58,9 @@ if (requireNamespace("ggplot2")) {
 
 ## weekly incidence: population(measlesDE) gives population fractions,
 ## which we need to multiply by the total population
-if (surveillance.options("allExamples") && requireNamespace("ggplot2")) {
+if (surveillance.options("allExamples") && require("ggplot2")) {
     autoplot.sts(measlesDE, population = 1000000/82314906) +
-        ylab("Weekly incidence [per 1 000 000 inhabitants]")
+        ylab("Weekly incidence [per 1'000'000 inhabitants]")
 }
 }
 

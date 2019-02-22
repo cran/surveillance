@@ -5,9 +5,9 @@
 ###
 ### Standard methods for hhh4-fits
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2012-2018 Sebastian Meyer
-### $Revision: 2048 $
-### $Date: 2018-01-16 16:14:52 +0100 (Tue, 16. Jan 2018) $
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2019 Sebastian Meyer
+### $Revision: 2347 $
+### $Date: 2019-02-19 15:22:29 +0100 (Tue, 19. Feb 2019) $
 ################################################################################
 
 ## NOTE: we also apply print.hhh4 in print.summary.hhh4()
@@ -249,25 +249,34 @@ fixef.hhh4 <- function (object,...)
     } else NULL
 }
 
-ranef.hhh4 <- function (object, tomatrix = FALSE, ...)
+ranef.hhh4 <- function (object, tomatrix = FALSE, intercept = FALSE, ...)
 {
     if (object$dim[2L] > 0){
         ranefvec <- tail(coef.hhh4(object, ...), object$dim[2L])
     } else return(NULL)
+    if (intercept) tomatrix <- TRUE
     if (!tomatrix) return(ranefvec)
 
     ## transform to a nUnits x c matrix (c %in% 1:3)
     model <- terms.hhh4(object)
     idxRE <- model$indexRE
     idxs <- unique(idxRE)
-    names(idxs) <- model$namesFE[idxs]
-    mat <- sapply(idxs, function (idx) {
+    mat <- vapply(X = idxs, FUN = function (idx) {
         RE <- ranefvec[idxRE==idx]
         Z <- model$terms["Z.intercept",][[idx]]
         "%m%" <- get(model$terms["mult",][[idx]])
-        Z %m% RE
-    })
-    rownames(mat) <- colnames(model$response)
+        c(Z %m% RE)
+    }, FUN.VALUE = numeric(model$nUnits), USE.NAMES = FALSE)
+    dimnames(mat) <- list(
+        colnames(model$response),
+        model$namesFE[match(idxs, model$indexFE)]
+    )
+
+    if (intercept) {
+        FE <- object$coefficients[colnames(mat)]
+        mat <- t(t(mat) + FE)
+    }
+
     return(mat)
 }
 

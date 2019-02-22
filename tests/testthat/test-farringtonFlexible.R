@@ -236,16 +236,16 @@ method <- "delta"
 phi <- 1
 
 test_that("the function recognizes wrong exponents",{
-  expect_that(algo.farrington.threshold.farrington(predFit,predSeFit,phi,
-                                                   skewness.transform,
-  												  alpha,y,method),throws_error("proper exponent"))
+  expect_that(algo.farrington.threshold.farrington(
+    predFit, predSeFit, phi, skewness.transform, alpha, y, method
+  ), throws_error("proper exponent"))
 })
 
 test_that("some results we know are found",{
   skewness.transform <- "none"
-  lala <- algo.farrington.threshold.farrington(predFit,predSeFit,phi,
-                                                 skewness.transform,
-												  alpha,y,method)
+  lala <- algo.farrington.threshold.farrington(
+      predFit, predSeFit, phi, skewness.transform, alpha, y, method
+  )
   # Should always be ok
   lala <- as.numeric(lala)
   expect_true(lala[3]<=1&lala[1]>=0)
@@ -253,22 +253,20 @@ test_that("some results we know are found",{
   expect_true(lala[1]>=0)
 
   # Here we know the results
-  expect_equal(abs(as.numeric(lala)-c(1.3073128, 8.6926872, 0.0907246, 0.8124165))<rep(1e-7,4),rep(TRUE,4))
+  expect_equal(abs(as.numeric(lala)-c(1.3073128, 8.6926872, 0.0907246, 0.8124165))<rep(1e-6,4),rep(TRUE,4))
 
+  # Here we calculated some examples
   skewness.transform <- "1/2"
-  lala <- algo.farrington.threshold.farrington(predFit,predSeFit,phi,
-                                                   skewness.transform,
-  												  alpha,y,method)
-
-  expect_equal(abs(as.numeric(lala)-c( 1.9891097, 9.3744842, 0.0000000, 0.6857951))<rep(1e-7,4),rep(TRUE,4))
+  lala <- algo.farrington.threshold.farrington(
+    predFit, predSeFit, phi, skewness.transform, alpha, y, method
+  )
+  expect_equal(abs(as.numeric(lala)-c( 1.9891097, 9.3744842, 0.1189986, 0.6857951))<rep(1e-6,4),rep(TRUE,4))
 
   skewness.transform <- "2/3"
-  lala <- algo.farrington.threshold.farrington(predFit,predSeFit,phi,
-                                                   skewness.transform,
-  												  alpha,y,method)
-
-  expect_equal(abs(as.numeric(lala)-c( 1.808448e+00,  9.115482e+00, 1.596176e-112,  7.289546e-01))<rep(1e-6,4),rep(TRUE,4))
-
+  lala <- algo.farrington.threshold.farrington(
+    predFit, predSeFit, phi, skewness.transform, alpha, y, method
+  )
+  expect_equal(abs(as.numeric(lala)-c( 1.8084477,  9.1154825, 0.1094727,  0.7289546))<rep(1e-6,4),rep(TRUE,4))
 })
 ################################################################################
 # END OF THRESHOLD FUNCTION FARRINGTON TESTS
@@ -287,9 +285,9 @@ alpha <- 0.05
 y <- 11
 phi <- 1.5
 method <- "muan"
-lala <- algo.farrington.threshold.noufaily(predFit,predSeFit,phi,
-                                                 skewness.transform,
-												  alpha,y,method)
+lala <- algo.farrington.threshold.noufaily(
+  predFit, predSeFit, phi, skewness.transform, alpha, y, method
+)
 test_that("some results we know are found",{
   # Should always be ok
   lala <- as.numeric(lala)
@@ -298,27 +296,27 @@ test_that("some results we know are found",{
   expect_true(lala[1]>=0)
 
   # Here we calculated some examples
-  expect_equal(abs(as.numeric(lala)-c(7.0000000, 26.0000000,  0.8597797,  0.3850080))<rep(1e-6,4),rep(TRUE,4))
+  expect_equal(abs(as.numeric(lala)-c(7, 26, 0.8597797, 0.3850080))<rep(1e-6,4),rep(TRUE,4))
   phi <- 1.0
   method <- "muan"
-  lala <- algo.farrington.threshold.noufaily(predFit,predSeFit,phi,
-                                                   skewness.transform,
-  												  alpha,y,method)
-  expect_equal(abs(as.numeric(lala)-c(8.0000000, 24.0000000,  0.9093099 , 0.4193982))<rep(1e-6,4),rep(TRUE,4))
+  lala <- algo.farrington.threshold.noufaily(
+    predFit, predSeFit, phi, skewness.transform, alpha, y, method
+  )
+  expect_equal(abs(as.numeric(lala)-c(8, 24, 0.9093099, 0.4193982))<rep(1e-6,4),rep(TRUE,4))
 
   phi <- 1.5
   method <- "nbPlugin"
-  lala <- algo.farrington.threshold.noufaily(predFit,predSeFit,phi,
-                                                   skewness.transform,
-  												  alpha,y,method)
-  expect_equal(abs(as.numeric(lala)-c(1.00000000, 11.00000000,  0.03763657,  1.00000000))<rep(1e-6,4),rep(TRUE,4))
+  lala <- algo.farrington.threshold.noufaily(
+    predFit, predSeFit, phi, skewness.transform, alpha, y, method
+  )
+  expect_equal(abs(as.numeric(lala)-c(1, 11, 0.03763657, 1))<rep(1e-6,4),rep(TRUE,4))
 
   phi <- 1.0
   method <- "nbPlugin"
-  lala <- algo.farrington.threshold.noufaily(predFit,predSeFit,phi,
-                                                   skewness.transform,
-  												  alpha,y,method)
-  expect_equal(abs(as.numeric(lala)-c( 1.00000000, 10.00000000,  0.01369527,  1.11918153))<rep(1e-6,4),rep(TRUE,4))
+  lala <- algo.farrington.threshold.noufaily(
+    predFit, predSeFit, phi, skewness.transform, alpha, y, method
+  )
+  expect_equal(abs(as.numeric(lala)-c(1, 10, 0.01369527, 1.11918153))<rep(1e-6,4),rep(TRUE,4))
 })
 ################################################################################
 # END OF THRESHOLD FUNCTION NOUFAILY TESTS

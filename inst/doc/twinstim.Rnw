@@ -318,17 +318,18 @@ Similar integrals appear in the score function, where $f(\norm{\bm{s}})$ is
 replaced by partial derivatives with respect to kernel parameters.
 Calculation of these integrals is trivial for (piecewise) constant~$f$, but otherwise requires
 numerical integration. The \proglang{R}~package
-\CRANpkg{polyCub} \citep{R:polyCub} offers cubature methods for polygonal
-domains as described in \citet[Supplement~B, Section~2]{meyer.held2013}.
+\CRANpkg{polyCub} \citep{meyer2019} offers various cubature methods for polygonal
+domains.
 % For Gaussian~$f$, we apply a midpoint rule with $\sigma$-adaptive bandwidth
 % %% combined with an analytical formula via the $\chi^2$ distribution
 % %% if the $6\sigma$-circle around $\bm{s}_i$ is contained in $\bm{R}_i$.
 % and use product Gauss cubature \citep{sommariva.vianello2007}
 % to approximate the integrals in the score function.
 % For the recently implemented power-law kernels,
-In particular, we established an efficient cubature method which takes
+Of particular relevance for \code{twinstim} is the \code{polyCub.iso} method, which takes
 advantage of the assumed isotropy of spatial interaction
-such that numerical integration remains in only one dimension.
+such that numerical integration remains in only one dimension
+\citep[Supplement~B, Section~2]{meyer.held2013}.
 We \CRANpkg{memoise} \citep{R:memoise} the cubature function during
 log-likelihood maximization to avoid integration
 for unchanged parameters of~$f$.
@@ -1148,7 +1149,7 @@ and otherwise corresponds to the row index of the infective source.
 <<Rbib, include = FALSE, purl = FALSE>>=
 ## create automatic references for R packages
 Rbib0 <- knitr::write_bib(
-    c("polyCub", "memoise", "sp", "rgdal", "polyclip",
+    c("memoise", "sp", "rgdal", "polyclip",
       ## spatstat, # non-standard author entries
       "maptools", "animation", "rmapshaper", "xtable"),
     file = NULL, tweak = FALSE, prefix = "R:")

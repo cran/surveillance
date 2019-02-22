@@ -431,20 +431,22 @@ fluModel <- list(
 set.seed(1)  # because random intercepts are initialized randomly
 fluFit <- hhh4(fluBYBW, fluModel)
 
-summary(fluFit, idx2Exp=TRUE, amplitudeShift=TRUE)
+summary(fluFit, idx2Exp = TRUE, amplitudeShift = TRUE)
+
+plot(fluFit, type = "fitted", total = TRUE)
 
 plot(fluFit, type = "season")
+range(plot(fluFit, type = "maxEV"))
 
-plot(fluFit, type = "neweights", xlab = "adjacency order")
+plot(fluFit, type = "maps", prop = TRUE)
 
 gridExtra::grid.arrange(
     grobs = lapply(c("ar", "ne", "end"), function (comp)
         plot(fluFit, type = "ri", component = comp, main = comp,
-             at = seq(-2.6, 2.6, length.out = 15),
-             col.regions = cm.colors(14))),
+             exp = TRUE, sub = "multiplicative effect")),
     nrow = 1, ncol = 3)
 
-range(plot(fluFit, type = "maxEV"))
+plot(fluFit, type = "neweights", xlab = "adjacency order")
 }
 
 

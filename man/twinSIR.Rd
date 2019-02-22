@@ -293,47 +293,39 @@ objects of class \code{"twinSIR"}.
 }
 
 \examples{
-# see vignette("twinSIR") for an example with a real data set
+data("hagelloch")
+summary(hagelloch)
 
-# here is an artificial event history
-data("fooepidata")
-summary(fooepidata)
-
-# fit an overall constant baseline hazard rate
-fit1 <- twinSIR(~ B1 + B2 + cox(z2), data = fooepidata)
+# simple model with an overall constant baseline hazard rate
+fit1 <- twinSIR(~ household + cox(AGE), data = hagelloch)
 fit1
-summary(fit1)
-
-# fit1 is what is used as data("foofit") in other examples
-data("foofit")
-stopifnot(all.equal(fit1, foofit))
+summary(fit1)   # see also help("summary.twinSIR")
+plot(fit1)      # see also help("plot.twinSIR")
+checkResidualProcess(fit1)   # could be better
 
 # fit a piecewise constant baseline hazard rate with 3 intervals using 
 # _un_penalized ML and estimated coefs from fit1 as starting values 
-fit2 <- twinSIR(~ B1 + B2 + cox(z2), data = fooepidata, nIntervals = 3,
-    optim.args = list(par=c(coef(fit1)[1:2],rep(coef(fit1)[3],3),coef(fit1)[4])))
-fit2
+fit2 <- twinSIR(~ household, data = hagelloch, nIntervals = 3,
+                optim.args = list(par = coef(fit1)[c(1,2,2,2)]))
 summary(fit2)
 
-# fit a piecewise constant baseline hazard rate with 9 intervals
-# using _penalized_ ML and estimated coefs from fit1 as starting values 
-fit3 <- twinSIR(~ B1 + B2 + cox(z2), data = fooepidata, nIntervals = 9,
-    lambda.smooth = 0.1, penalty = 1, optim.args = list(
-        par=c(coef(fit1)[1:2], rep(coef(fit1)[3],9), coef(fit1)[4])))
-fit3
+# fit a piecewise constant baseline hazard rate with 7 intervals
+# using _penalized_ ML
+fit3 <- twinSIR(~ household, data = hagelloch, nIntervals = 7,
+                lambda.smooth = 0.1, penalty = 1)
 summary(fit3)
+checkResidualProcess(fit3)
 
 # plot the estimated log-baseline levels
-plot(x=fit2$intervals, y=coef(fit2)[c(3,3:5)], type="S", xlim=c(0,10))
-lines(x=fit3$intervals, y=coef(fit3)[c(3,3:11)], type="S", col=2)
-legend("right", legend=c("unpenalized 3", "penalized 9"), lty=1, col=1:2, bty="n")
+plot(x=fit2$intervals, y=coef(fit2)[c(2,2:4)], type="S", ylim=c(-6, -1))
+lines(x=fit3$intervals, y=coef(fit3)[c(2,2:8)], type="S", col=2)
+legend("right", legend=c("unpenalized 3", "penalized 7"), lty=1, col=1:2, bty="n")
 
-## -> see help('plot.twinSIR') for intensity plots
 
 ## special use case: fit the model to a subset of the events only,
 ## while preserving epidemic contributions from the remainder
 ## (maybe some buffer area nodes)
-fit_subset <- twinSIR(~ B1 + B2 + cox(z2), data = fooepidata, subset = z1 == 1)
+fit_subset <- twinSIR(~ household, data = hagelloch, subset = CL=="preschool")
 summary(fit_subset)
 
 \dontshow{

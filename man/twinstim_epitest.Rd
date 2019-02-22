@@ -6,12 +6,15 @@
 \title{Permutation Test for Space-Time Interaction in \code{"twinstim"}}
 
 \description{
-  The function \code{epitest} takes an epidemic \code{"twinstim"} model
-  (with homogeneous infectivity of events, i.e., \code{epidemic = ~1}),
+  The function \code{epitest} takes a \code{"twinstim"} model
   and tests if the spatio-temporal interaction invoked by the epidemic
-  model component is statistically significant. A permutation test is
-  performed by default, which is only valid if the endemic intensity is
-  space-time separable.
+  model component is statistically significant.
+  The test only works for simple epidemic models, where \code{epidemic = ~1}
+  (no additional parameters for event-specific infectivity),
+  and requires the non-canonical \code{epilink="identity"} (see
+  \code{\link{twinstim}}).
+  A permutation test is performed by default, which is only valid if the
+  endemic intensity is space-time separable.
   The approach is described in detail in Meyer et al. (2016),
   where it is also compared to alternative global tests for clustering
   such as the \code{\link{knox}} test.
@@ -28,15 +31,11 @@ epitest(model, data, tiles, method = "time", B = 199,
 
 \arguments{
   \item{model}{
-    a simple epidemic \code{"\link{twinstim}"} without covariates, i.e.,
-    \code{epidemic = ~1}. This is because covariate effects in the
-    epidemic component are not well identified when there is no
-    space-time interaction such as in the permuted data. Estimating a
-    rich epidemic \code{model} under the null hypothesis of no
-    space-time interaction will most likely result in singular convergence.
+    a simple epidemic \code{"\link{twinstim}"} with \code{epidemic = ~1},
+    fitted using the non-canonical \code{epilink="identity"}.
     Note that the permutation test is only valid for models with
-    a separable endemic intensity, i.e., independent spatial and
-    temporal background processes.
+    a space-time separable endemic intensity, where covariates vary
+    either in space or time but not both.
   }
   \item{data}{
     an object of class \code{"\link{epidataCS}"}, the \code{data} to
@@ -151,6 +150,15 @@ epitest(model, data, tiles, method = "time", B = 199,
 }
 
 \details{
+  This space-time interaction test is limited to models with
+  \code{epidemic = ~1}, since covariate effects are not identifiable
+  under the null hypothesis of no space-time interaction.
+  Estimating a rich epidemic \code{model} based on permuted data
+  will most likely result in singular convergence.
+  A similar issue might arise when the model employs parametric
+  interaction functions, in which case \code{fixed=TRUE} can be used.
+  For further details see Meyer et al. (2016).
+  
   The test statistic is the reproduction number \code{\link{simpleR0}}.
   A likelihood ratio test of the supplied epidemic model against
   the corresponding endemic-only model is also available.

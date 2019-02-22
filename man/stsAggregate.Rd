@@ -34,9 +34,10 @@
   Aggregation by unit sets the upperbound slot to
   \code{NA} and the \code{map} slot is left as-is, but the object 
   cannot be plotted by unit any longer.
-  The populationFrac slot is aggregated just like the observed slot
-  and population fractions are recomputed. This might not be
-  intended, especially for aggregation over time.
+  The \code{populationFrac} slot is aggregated just like \code{observed}.
+  Population fractions are recomputed if and only if \code{x} is no
+  \code{multinomialTS} and already contains population fractions.
+  This might not be intended, especially for aggregation over time.
 }
   
 \seealso{
@@ -44,10 +45,15 @@
 }
 
 \examples{
-  data("ha.sts")
-  dim(ha.sts)
-  dim(aggregate(ha.sts,by="unit"))
-  dim(aggregate(ha.sts,nfreq=13))
+data("ha.sts")
+dim(ha.sts)
+dim(aggregate(ha.sts, by = "unit"))
+dim(aggregate(ha.sts, nfreq = 13))
+\dontshow{
+## population(ha.sts) are trivial fractions, aggregate() should keep them
+stopifnot(population(aggregate(ha.sts)) == 1/ncol(ha.sts))
+## failed in surveillance <= 1.16.2
+}
 }
 
 \keyword{methods}

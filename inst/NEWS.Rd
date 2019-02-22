@@ -8,6 +8,143 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.17.0 (2019-02-22)}{
+
+\subsection{NEW FEATURES}{
+  \itemize{
+    \item \code{W_powerlaw(..., from0 = TRUE)} enables more parsimonious
+    \code{hhh4} models in that the power-law weights are modified to
+    include the autoregressive (0-distance) case (see
+    \code{vignette("hhh4_spacetime")}). The unstructured distance
+    weights \code{W_np()} gained \code{from0} support as well.
+
+    \item \code{sts()} creation can now handle \code{epoch} arguments of
+    class \code{Date} directly.
+
+    \item The \code{ranef()}-method for \code{"hhh4"} fits gained a
+    logical argument \code{intercept} to extract the unit-specific
+    intercepts of the log-linear predictors instead of the default
+    zero-mean deviations around the fixed intercepts.
+    The corresponding \code{plot} method (\code{type="ri"}) gained an
+    argument \code{exp}: if set to \code{TRUE} random effects are
+    \code{exp}-transformed and thus show multiplicative effects.
+    [based on feedback by Tim Pollington]
+  }
+}
+
+\subsection{MINOR CHANGES}{
+  \itemize{
+    \item \code{W_np()}'s argument \code{to0} has been renamed to
+    \code{truncate}. The old name still works but is deprecated.
+
+    \item \code{plotHHH4_ri()} now uses \code{cm.colors(100)} as
+    \code{col.regions}, and 0-centered color breaks by default.
+
+    \item The help pages of \code{twinSIR()} and related functions now
+    give examples based on \code{data("hagelloch")} instead of using the
+    toy dataset \code{data("fooepidata")}. The latter is now obsolete and
+    will be removed in future versions of the package.
+
+    \item The elements of the \code{control} list stored in the result
+    of \code{algo.farrington()} are now consistently ordered as in the
+    default \code{control} argument.
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item Using negative indices to exclude time points from an
+    \code{"sts"} object (e.g., \code{x[-1,]}) is now supported and
+    equivalent to the corresponding subset expression of retained
+    indexes (\code{x[2:nrow(x),]}) in resetting the \code{start} and
+    \code{epoch} slots. [reported by Johannes Bracher]
+
+    \item For weekly \code{"sts"} data with \code{epochAsDate=TRUE},
+    the \code{as.data.frame()} method computed \code{freq} by
+    \code{"\%Y"}-year instead of by \code{"\%G"}-year, which was
+    inconsistent with the \code{epochInPeriod} variable.
+
+    \item For \emph{non}-weekly \code{"sts"} data with \code{epochAsDate=TRUE},
+    \code{year()} as well as the \code{year} column of the
+    \code{tidy.sts()} output corresponded to the ISO week-based year.
+    It now gives the calendar year.
+
+    \item \code{sts_creation()} hard-coded \code{start = c(2006, 1)}.
+
+    \item \code{aggregate()}ing an \code{"sts"} object over time now
+    recomputes fractions from the cumulated population values if and
+    only if this is no \code{multinomialTS} and already contains
+    population fractions. The same rule holds when subsetting units of
+    an \code{"sts"} object. The \code{aggregate}-method previously
+    failed to recompute fractions in some cases.
+    
+    \item For \code{farringtonFlexible()} with multivariate time series,
+    only the last unit had stored the additional control items
+    (exceedence scores, p-values, ...), all others were 0.
+    [reported by Johannes Bracher]
+
+    \item The supplementary p-values returned by \code{farringtonFlexible()}
+    in \code{control$pvalue} were wrong for the default approach,
+    where \code{thresholdMethod="delta"} (the original Farrington method)
+    and a power transformation was applied to the data
+    (\code{powertrans != "none"}). Similarly, \code{algo.farrington()}
+    returned wrong predictive probabilities in \code{control$pd[,1]} if
+    a power transformation was used. [reported by Lore Merdrignac]
+
+    \item The \code{control} argument list of \code{algo.farrington()}
+    as stated in the formal function definition was incomplete
+    (\code{plot} was missing) and partially out of sync with the default
+    values that were actually set inside the function (\code{b=5} and
+    \code{alpha=0.05}). This has been fixed. Results of
+    \code{algo.farrington()} would only be affected if the function was
+    called without any \code{control} options (which is hardly
+    possible). So this can be regarded as a documentation error.
+    The formal \code{control} list of the \code{farrington()}
+    wrapper function has been adjusted accordingly.
+
+    \item The \code{control} argument lists of \code{farringtonFlexible()}
+    and \code{bodaDelay()} as stated in the formal function definitions
+    were partially out of sync with respect to the following default
+    values that were actually set inside these functions: \code{b=5}
+    (not 3), \code{alpha=0.05} (not 0.01), \code{pastWeeksNotIncluded=w}
+    (not 26), and, for \code{bodaDelay()} only, \code{delay=FALSE} (not
+    \code{TRUE}). This has been fixed. Results would only be affected if
+    the functions were called without any \code{control} options (which
+    is hardly possible). So this can be regarded as a documentation error.
+
+    \item \code{pairedbinCUSUM()} did not properly subset the \code{sts}
+    object if a \code{range} was specified, and forgot to store the
+    \code{control} arguments in the result.
+
+    \item \code{wrap.algo()} now aborts if the monitored range is
+    not supplied as a numeric vector.
+
+    \item In \code{vignette("monitoringCounts")}: several
+    inconsistencies between code and output have been fixed.
+
+    \item \code{epidataCS2sts()} no longer transfers the
+    \code{stgrid$BLOCK} indices to the \code{epoch} slot of the
+    resulting \code{"sts"} object (to avoid \code{epoch[1] != 1}
+    scenarios).
+
+    \item The \code{ranef()} matrix extracted from fitted \code{"hhh4"}
+    models could have wrong column names.
+  }
+}
+
+\subsection{DEPRECATED AND DEFUNCT}{
+  \itemize{
+    \item Several ancient functions deprecated in 1.16.1 are now
+    defunct: \code{compMatrix.writeTable()},
+    \code{makePlot()}, \code{test()}, \code{testSim()},
+    \code{readData()} (the raw txt files have been removed as well),
+    \code{correct53to52()}, \code{enlargeData()}, \code{toFileDisProg()}.
+  }
+}
+
+}
+
+
 \section{Changes in surveillance version 1.16.2 (2018-07-24)}{
 
 \subsection{MINOR CHANGES}{

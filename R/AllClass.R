@@ -57,6 +57,9 @@
             ## check booleans
             if (length(object@epochAsDate) != 1 || is.na(object@epochAsDate))
                 "'epochAsDate' must be either TRUE or FALSE",
+            ## FIXME: we should enforce epoch[1L] to correspond to start
+            ## if (!object@epochAsDate && object@epoch[1L] != 1)
+            ##     "'epoch' must be an integer sequence starting at 1",
             if (length(object@multinomialTS) != 1 || is.na(object@multinomialTS))
                 "'multinomialTS' must be either TRUE or FALSE"
         )

@@ -76,8 +76,8 @@ Sebastian Meyer
 }
 
 \examples{
-data("fooepidata")
-s <- summary(fooepidata)
+data("hagelloch")
+s <- summary(hagelloch)
 s          # uses the print method for summary.epidata
 names(s)   # components of the list 's'
 

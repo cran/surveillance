@@ -23,8 +23,8 @@ wrap.algo(sts, algo, control,control.hook=function(k, control)
          return(control),verbose=TRUE,...)
 
 %Derived functions fixing the control object and the "algo" argument
-farrington(sts, control=list(range=NULL, b=3, w=3,reweight=TRUE,
-         verbose=FALSE,alpha=0.01),...)
+farrington(sts, control=list(range=NULL, b=5, w=3, reweight=TRUE,
+         verbose=FALSE, alpha=0.05),...)
 bayes(sts, control = list(range = range, b = 0, w = 6,
          actY = TRUE,alpha=0.05),...)
 rki(sts, control = list(range = range, b = 2, w = 4,
