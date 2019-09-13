@@ -6,8 +6,8 @@
 ### Plot-method(s) for fitted hhh4() models
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2019 Sebastian Meyer
-### $Revision: 2351 $
-### $Date: 2019-02-20 09:25:44 +0100 (Wed, 20. Feb 2019) $
+### $Revision: 2434 $
+### $Date: 2019-07-03 15:53:11 +0200 (Wed, 03. Jul 2019) $
 ################################################################################
 
 
@@ -273,12 +273,13 @@ plotComponentPolygons <- function (x, y, col = 1:6, border = col, add = FALSE)
 
 plotHHH4_maps <- function (x,
     which = c("mean", "endemic", "epi.own", "epi.neighbours"),
-    prop = FALSE, main = which, zmax = NULL,
-    col.regions = hcl.colors(10),
+    prop = FALSE, main = which, zmax = NULL, col.regions = NULL,
     labels = FALSE, sp.layout = NULL, ...,
     map = x$stsObj@map, meanHHH = NULL)
 {
     which <- match.arg(which, several.ok = TRUE)
+    if (is.null(col.regions))
+        col.regions <- .hcl.colors(10)
 
     ## extract district-specific mean components
     if (is.null(meanHHH)) {

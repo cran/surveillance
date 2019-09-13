@@ -6,8 +6,8 @@
 ### Helper functions for neighbourhood weight matrices in hhh4()
 ###
 ### Copyright (C) 2012-2016 Sebastian Meyer
-### $Revision: 1687 $
-### $Date: 2016-04-01 21:40:25 +0200 (Fri, 01. Apr 2016) $
+### $Revision: 2466 $
+### $Date: 2019-09-10 16:40:36 +0200 (Tue, 10. Sep 2019) $
 ################################################################################
 
 
@@ -15,8 +15,6 @@ checkNeighbourhood <- function (neighbourhood)
 {
     ## setValidity() in sts.R only guarantees correct 'dim' and 'dimnames'
     ## we also assert numeric or logical matrix with non-NA entries
-    ## FIXME: However, we currently don't check for symmetry and for zeros on
-    ## the diagonal...
     stopifnot(is.matrix(neighbourhood),
               nrow(neighbourhood) == ncol(neighbourhood),
               is.numeric(neighbourhood) | is.logical(neighbourhood),
@@ -36,12 +34,12 @@ weightedSumNE <- function (observed, weights, lag)
   nTime <- dimY[1L]
   nUnits <- dimY[2L]
   tY <- t(observed)                     # -> nUnits x nTime
-  
+
   res <- apply(weights, 2L, function (wi)
                ## if dim(weights)==2 (time-constant weights), length(wi)=nUnits,
                ## if dim(weights)==3, wi is a matrix of size nUnits x nTime
                .colSums(tY * wi, nUnits, nTime, na.rm=TRUE))
-  
+
   rbind(matrix(NA_real_, lag, nUnits),
         res[seq_len(nTime-lag),,drop=FALSE])
 }
@@ -78,7 +76,7 @@ scaleNEweights.list <- function (weights, scale = NULL, normalize = FALSE)
 {
     if (is.null(scale) && !normalize)
         return(weights)
-    
+
     if (normalize) {
         dprod <- function (u, v, du, dv) du * v + u * dv
         dfrac <- function (u, v, du, dv) (du * v - u * dv) / v^2
@@ -129,7 +127,7 @@ scaleNEweights.list <- function (weights, scale = NULL, normalize = FALSE)
                     FUN = scaleNEweights.default,
                     scale = scale)
     }
-    
+
     ## return list with updated functions
     list(w = w, dw = dw, d2w = d2w, initial = weights$initial)
 }
@@ -206,7 +204,7 @@ checkWeights <- function (weights, nUnits, nTime,
             stop("'", name, "' must be a matrix/array or a list of functions")
         }
     }
-    
+
     ## apply matrix/array checks
     if (is.list(weights)) { # parametric weights
         if (length(dim(testweights)) > 2L)
@@ -234,7 +232,7 @@ checkWeights <- function (weights, nUnits, nTime,
         }
     } else checkWeightsArray(testweights, nUnits, nTime, name = name,
                              check0diag = check0diag)
-    
+
     ## Done
     invisible(TRUE)
 }

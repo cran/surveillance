@@ -7,29 +7,33 @@ test_that("Step kernel of a single type agrees with numerical approximations",
          ##curve(steptiaf$g(x, logvals), 0, 30, n=301)
 
          ## check G
-         expect_equal(steptiaf$G(0:30, logvals), sapply(0:30, function (upper) {
+         Gana <- steptiaf$G(0:30, logvals)
+         Gnum <- sapply(0:30, function (upper) {
              integrate(steptiaf$g, 0, upper, logvals, rel.tol=1e-8)$value
-         }), tolerance=1e-8)
+         })
+         expect_equal(Gana, Gnum, tolerance = 1e-8)
 
          ## check deriv
          if (requireNamespace("maxLik", quietly = TRUE)) {
-             expect_that(maxLik::compareDerivatives(
+             checkderiv <- maxLik::compareDerivatives(
                  f = function(pars, x) steptiaf$g(x, pars),
                  grad = function(pars, x) steptiaf$deriv(x, pars),
                  t0 = logvals, x = c(0.5,2,5,7,10,15,20,25,30),
-                 print = FALSE)$maxRelDiffGrad,
-                         is_less_than(1e-8))
+                 print = FALSE)
+             expect_lt(checkderiv$maxRelDiffGrad, 1e-8)
          }
 
          ## check Deriv
          for (paridx in seq_along(logvals))
-             expect_equal(steptiaf$Deriv(0:30, logvals)[,paridx],
-                          sapply(0:30, function (upper) integrate(
-                              function(...) steptiaf$deriv(...)[,paridx],
-                              0, upper, logvals, rel.tol=1e-6)$value),
-                          tolerance=1e-6,
-                          label=paste0("steptiaf$Deriv()[,",paridx,"]"),
-                          expected.label="integrate() approximation")
+             expect_equal(
+                 steptiaf$Deriv(0:30, logvals)[,paridx],
+                 sapply(0:30, function (upper)
+                     integrate(function(...) steptiaf$deriv(...)[,paridx],
+                               0, upper, logvals, rel.tol=1e-6)$value),
+                 tolerance = 1e-6,
+                 label = paste0("steptiaf$Deriv()[,",paridx,"]"),
+                 expected.label = "integrate() approximation"
+             )
      })
 
 test_that("Step kernel with maxRange>max(eps.t) is equivalent to maxRange=Inf",

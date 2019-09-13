@@ -345,6 +345,15 @@ myEpi <- update(myEpi,
 )
 ## this is now identical to the prepared hagelloch "epidata"
 stopifnot(all.equal(myEpi, hagelloch))
+
+\dontshow{
+## test with precomputed distance matrix D
+myEpi3 <- suppressWarnings( # from overwriting existing f columns
+    update(hagelloch, f = attr(hagelloch, "f"),
+           D = as.matrix(dist(hagelloch.df[c("x.loc", "y.loc")])))
+)
+stopifnot(identical(hagelloch, myEpi3))
+}
 }
 
 \keyword{spatial}

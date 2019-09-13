@@ -4,6 +4,7 @@
 \alias{siaf.step}
 \alias{siaf.gaussian}
 \alias{siaf.powerlaw}
+\alias{siaf.powerlaw1}
 \alias{siaf.powerlawL}
 \alias{siaf.student}
 \alias{tiaf.constant}
@@ -37,6 +38,7 @@ siaf.gaussian(nTypes = 1, logsd = TRUE, density = FALSE,
               F.adaptive = FALSE, F.method = "iso",
               effRangeMult = 6, validpars = NULL)
 siaf.powerlaw(nTypes = 1, validpars = NULL, engine = "C")
+siaf.powerlaw1(nTypes = 1, validpars = NULL, sigma = 1)
 siaf.powerlawL(nTypes = 1, validpars = NULL, engine = "C")
 siaf.student(nTypes = 1, validpars = NULL, engine = "C")
 
@@ -132,6 +134,9 @@ tiaf.exponential(nTypes = 1, validpars = NULL)
     \code{polyCub_iso} C-implementation in \pkg{polyCub} 0.6.0,
     is considerably faster.
   }
+  \item{sigma}{
+    Fixed value of \eqn{\sigma} for the one-parameter power-law kernel.
+  }
 }
 
 \details{
@@ -186,6 +191,11 @@ tiaf.exponential(nTypes = 1, validpars = NULL)
       log-scale to ensure positivity, i.e.
       \eqn{\sigma = \exp(\tilde{\sigma})} and \eqn{d = \exp(\tilde{d})},
       where \eqn{(\tilde{\sigma}, \tilde{d})} is the parameter vector.
+    }
+    \item{\code{siaf.powerlaw1}:}{
+      \eqn{f(s) = (||s|| + 1)^{-d}},\cr
+      i.e., \code{siaf.powerlaw} with fixed \eqn{\sigma = 1}.
+      The decay parameter is estimated on the log-scale.
     }
     \item{\code{siaf.powerlawL}:}{
       \eqn{f(s) = (||s||/\sigma)^{-d}}, for \eqn{||s|| \ge \sigma}, and
@@ -297,6 +307,9 @@ siaf.gaussian()
 
 # Type-independent power-law kernel
 siaf.powerlaw()
+
+# Power-law kernel with fixed sigma = 1
+siaf.powerlaw1()
 
 # "lagged" power-law
 siaf.powerlawL()

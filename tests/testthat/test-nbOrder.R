@@ -30,11 +30,11 @@ nbmat <- structure(
 
 test_that("nbOrder() returns the validated matrix", {
     skip_if_not_installed("spdep")
-    expect_that(suppressMessages(nbOrder(adjmat, maxlag=Inf)),
-                is_identical_to(nbmat))
+    expect_identical(suppressMessages(nbOrder(adjmat, maxlag=Inf)),
+                     nbmat)
 })
 
 test_that("zetaweights(.,maxlag=1,normalize=FALSE) is inverse of nbOrder", {
-    expect_that(zetaweights(nbmat, maxlag=1, normalize=FALSE),
-                is_identical_to(1*adjmat))
+    expect_identical(zetaweights(nbmat, maxlag=1, normalize=FALSE),
+                     1*adjmat)
 })

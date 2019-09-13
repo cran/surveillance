@@ -23,13 +23,14 @@
 % other access methods
 \alias{dim,sts-method}
 \alias{dimnames,sts-method}
-\alias{epochInYear}
-\alias{epochInYear,sts-method}
 \alias{year}
 \alias{year,sts-method}
-% constructor and conversion methods
-\alias{initialize,sts-method}
+\alias{epochInYear}
+\alias{epochInYear,sts-method}
+% conversion methods
+\alias{as.data.frame.sts}
 \alias{as.data.frame,sts-method}
+\alias{as.ts.sts}
 \alias{coerce,sts,ts-method}
 \alias{coerce,ts,sts-method}
 \alias{as.xts.sts}
@@ -132,36 +133,67 @@ sts(observed, start = c(2000, 1), frequency = 52,
 }
 
 \section{Methods}{
-  \describe{ 
-    \item{dim}{\code{signature(x = "sts")}: extract matrix dimensions of
-      \code{observed}.}
-    \item{dimnames}{\code{signature(x="sts")}: extract the \code{\link{dimnames}} of the \code{observed} matrix.}
-    \item{observed}{\code{signature(x = "sts")}: extract the \code{observed}
-      slot of an \code{sts} object.}
-    \item{population}{\code{signature(x = "sts")}: extract the \code{populationFrac}
-      slot of an \code{sts} object.}
-    \item{multinomialTS}{\code{signature(x = "sts")}: extract the
-      \code{multinomialTS} slot of an \code{sts} object.}
-    \item{neighbourhood}{\code{signature(x = "sts")}: extract the
-	  \code{neighbourhood} slot of an \code{sts} object.}
-    \item{alarms}{\code{signature(x = "sts")}: extract the \code{alarm}
-      slot of an \code{sts} object.}
-    \item{upperbound}{\code{signature(x = "sts")}: extract the \code{upperbound}
-      slot of an \code{sts} object.}
-    \item{control}{\code{signature(x = "sts")}: extract the \code{control}
-      slot of an \code{sts} object.}
-    \item{epoch}{\code{signature(x = "sts")}: extract the \code{epoch}
-      slot of an \code{sts} object. If ISO dates are used then the
-      returned object is of class \code{Date}.}
-    \item{epochInYear}{\code{signature(x = "sts")}: Returns the epoch
-      number within the year of the \code{epoch} slot.}
-    \item{initialize}{\code{signature(x="sts")}: the internal function
-      \code{init.sts} is called, which assigns all slots.  }
-    \item{[}{subsetting \code{"sts"} objects, see \code{\link{[,sts-method}}.}
-    \item{aggregate}{\code{signature(x="sts")}: see
-      \code{\link{aggregate,sts-method}}}
+
+  \subsection{Extraction of slots}{
+  There is an extraction (and replacement) method for almost every slot.
+  The name of the method corresponds to the slot name, with two exceptions:
+  the \code{populationFrac} slot is addressed by a \code{population} method,
+  and the \code{alarm} slot is addressed by an \code{alarms} method.
+
+  \describe{
+    \item{epoch}{\code{signature(x = "sts")}:
+      extract the \code{epoch} slot. If the \code{sts} object is indexed
+      by dates (\code{epochAsDate} = TRUE), the returned vector is of
+      class \code{Date}, otherwise numeric (usually the integer
+      sequence \code{1:nrow(x)}).\cr
+      By explicitly requesting \code{epoch(x, as.Date = TRUE)}, dates
+      can also be extracted if the \code{sts} object is not internally
+      indexed by dates but has a standard frequency of 12 (monthly) or
+      52 (weekly). The transformation is based on \code{start} and
+      \code{freq} and will return the first day of each month
+      (\code{freq=12}) and the Monday of each week (\code{freq=52}),
+      respectively.}
+    \item{observed}{\code{signature(x = "sts")}:
+      extract the \code{observed} slot.}
+    \item{alarms}{\code{signature(x = "sts")}:
+      extract the \code{alarm} slot.}
+    \item{upperbound}{\code{signature(x = "sts")}:
+      extract the \code{upperbound} slot.}
+    \item{neighbourhood}{\code{signature(x = "sts")}:
+      extract the \code{neighbourhood} slot.}
+    \item{population}{\code{signature(x = "sts")}:
+      extract the \code{populationFrac} slot.}
+    \item{control}{\code{signature(x = "sts")}:
+      extract the \code{control} slot.}
+    \item{multinomialTS}{\code{signature(x = "sts")}:
+      extract the \code{multinomialTS} slot.}
+  }
+  }
+
+  \subsection{Other extraction methods}{
+  \describe{
+    \item{dim}{\code{signature(x = "sts")}:
+      extract matrix dimensions of \code{observed}.
+      This method also enables \code{nrow(x)} and \code{ncol(x)}.}
+    \item{dimnames}{\code{signature(x = "sts")}:
+      extract the \code{\link{dimnames}} of the \code{observed} matrix.
+      This method also enables \code{rownames(x)} and \code{colnames(x)}.}
     \item{year}{\code{signature(x = "sts")}:
-      extracts the corresponding year of each observation of \code{x}}
+      extract the corresponding year of each observation.}
+    \item{epochInYear}{\code{signature(x = "sts")}:
+      extract the epoch number within the year.}
+
+    \item{[}{\code{signature(x = "sts")}:
+      subset rows (time points) and/or columns (units),
+      see \code{help("\link{[,sts-method}")}.}
+  }
+  }
+
+  \subsection{Transformation methods}{
+  \describe{
+    \item{aggregate}{\code{signature(x = "sts")}:
+      see \code{\link{aggregate.sts}}.}
+
     \item{as.data.frame}{\code{signature(x = "sts")}:
       the default \code{as.data.frame} call will collect the following
       slots into a data frame: \code{observed}, \code{epoch},
@@ -176,26 +208,36 @@ sts(observed, start = c(2000, 1), frequency = 52,
       \dQuote{long} format (one row per epoch and observational unit).
       The tidy format is particularly useful for standard regression
       models and customized plotting.}
-    \item{plot}{\code{signature(x="sts",y="missing")}: this method is
-      the entry point to a collection of plot variants. It is also
-      the successor of the \code{\link{plot.disProg}} and 
-      \code{\link{plot.survRes}} functions. The type of plot is
-      specified using a formula \code{type}.
-      See \code{\link{stsplot}} for details.
-      A \CRANpkg{ggplot2} variant of the standard time-series-type plot
-      is provided via the \code{\link{autoplot.sts}} method.
-    }
-    \item{animate}{see \code{\link{animate.sts}}.}
-    \item{coerce}{\code{signature(from="sts", to="ts")} (can also be
-      called via the S3 generic \code{as.ts}) and the reverse
-      \code{signature(from="ts", to="sts")}.}
-    \item{toLatex}{see \code{\link{toLatex,sts-method}}.}
+
+    \item{coerce}{\code{signature(from="sts", to="ts")} and
+      \code{signature(from="ts", to="sts")},
+      to be called via \code{as(stsObj, "ts")} (or \code{as.ts(stsObj)})
+      and \code{as(tsObj, "sts")}, respectively.}
+
+    \item{as.xts}{convert to the \CRANpkg{xts} package format.}
   }
+  }
+
+  \subsection{Visualization methods}{
+  \describe{
+    \item{plot}{\code{signature(x = "sts", y = "missing")}:
+      entry point to a collection of plot variants.
+      The \code{type} of plot is specified using a formula,
+      see \code{\link{plot.sts}} for details.}
+    \item{autoplot}{a \CRANpkg{ggplot2} variant of the standard
+      time-series-type plot, see \code{\link{autoplot.sts}}.}
+    \item{animate}{see \code{\link{animate.sts}}.}
+    \item{toLatex}{see \code{\link{toLatex.sts}}.}
+  }
+  }
+
 }
 
 \author{Michael \enc{Höhle}{Hoehle} and Sebastian Meyer}
 
 \examples{
+showClass("sts")
+
 ## A typical dataset with weekly counts of measles from several districts
 data("measlesWeserEms")
 measlesWeserEms
@@ -228,3 +270,4 @@ if (require("xts")) {
 }
 
 \keyword{classes}
+\keyword{methods}

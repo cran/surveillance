@@ -23,8 +23,8 @@ measlesFit2 <- suppressWarnings(
 
 ## compare fits
 test_that("AR-hhh4 agrees with using identity W in NE", {
-    expect_that(coef(measlesFit), equals(coef(measlesFit2), check.names=FALSE))
-    expect_that(measlesFit$cov, equals(measlesFit2$cov, check.attributes=FALSE))
-    expect_that(logLik(measlesFit), equals(logLik(measlesFit2)))
-    expect_that(fitted(measlesFit), equals(fitted(measlesFit2)))
+    expect_equivalent(coef(measlesFit2), coef(measlesFit))
+    expect_equivalent(measlesFit2$cov, measlesFit$cov)
+    expect_equal(logLik(measlesFit2), logLik(measlesFit))
+    expect_equal(fitted(measlesFit2), fitted(measlesFit))
 })

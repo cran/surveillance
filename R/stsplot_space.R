@@ -6,8 +6,8 @@
 ### Snapshot map (spplot) of an sts-object or matrix of counts
 ###
 ### Copyright (C) 2013-2014,2016,2017 Sebastian Meyer
-### $Revision: 2028 $
-### $Date: 2017-10-26 09:06:23 +0200 (Thu, 26. Oct 2017) $
+### $Revision: 2434 $
+### $Date: 2019-07-03 15:53:11 +0200 (Wed, 03. Jul 2019) $
 ################################################################################
 
 ## x: "sts" or (simulated) matrix of counts
@@ -63,10 +63,8 @@ stsplot_space <- function (x, tps = NULL, map = x@map, population = NULL,
     ## default color palette
     if (is.null(col.regions)) {
         separate0 <- is.null(population) && at[1] == 0 && at[2] <= 1
-        col.regions <- c(
-            if (separate0) "white",
-            hcl.colors(ncolors=length(at)-1-separate0,
-                       use.color=TRUE))
+        col.regions <- c(if (separate0) "white",
+                         .hcl.colors(length(at)-1-separate0))
     }
     ## colorkey settings
     if (!missing(colorkey) && is.list(colorkey))

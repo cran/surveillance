@@ -66,17 +66,40 @@ salmModel <- list(end = list(f = addSeason2formula(~1 + t)),
                   ar = list(f = ~1), family = "NegBin1", subset = 2:678)
 salmFit <- hhh4(salmAllOnset, salmModel)
 
-## simulate the next 20 weeks ahead
+## simulate the next 20 weeks ahead (with very small 'nsim' for speed)
 salmSims <- simulate(salmFit, nsim = 500, seed = 3, subset = 678 + seq_len(20),
                      y.start = observed(salmAllOnset)[678,])
+if (requireNamespace("fanplot"))
+    plot(salmSims, "fan")
 
-## calculate the RPS at each time point
-scores(salmSims, which = "rps")
 
-## produce a PIT histogram based on the empirical distribution function
-## of the simulated counts as the forecast distribution at each time point
+### calculate scores at each time point
+
+## using empirical distribution of simulated counts as forecast distribution
+scores(salmSims, which = c("rps", "logs", "dss"))
+## observed count sometimes not covered by simulations -> infinite log-score
+## => for a more detailed forecast, either considerably increase 'nsim', or:
+
+## 1. use continuous density() of simulated counts as forecast distribution
+fi <- apply(salmSims, 1, function (x) approxfun(density(x)))
+logs_kde <- mapply(function (f, y) -log(f(y)),
+                   f = fi, y = observed(attr(salmSims,"stsObserved")))
+cbind("empirical" = scores(salmSims, "logs"), "density" = logs_kde)
+## a similar KDE approach is implemented in scoringRules::logs_sample()
+
+## 2. average conditional predictive NegBin's of simulated trajectories,
+##    currently only implemented in HIDDA.forecasting::dhhh4sims()
+
+
+\dontrun{
+### produce a PIT histogram
+
+## using empirical distribution of simulated counts as forecast distribition
 pit(x = observed(attr(salmSims, "stsObserved")),
     pdistr = apply(salmSims, 1:2, ecdf))
+## long-term forecast is badly calibrated (lower tail is unused, see fan above)
+## we also get a warning for the same reason as infinite log-scores
+}
 }
 
 \keyword{univar}

@@ -37,6 +37,9 @@ pit(x, ...)
   }
   \item{relative}{
     logical indicating if relative frequency or the density should be plotted.
+    Due to a historical bug, \code{relative=TRUE} (the default) actually
+    plots a density histogram while \code{relative=FALSE} plots relative
+    frequencies.
   }
   \item{\dots}{
     ignored if \code{pdistr} is a list. Otherwise, such additional
@@ -76,7 +79,7 @@ pdistrs <- list("NB(5,0)"   = function (x) ppois(x, lambda=5),
 ## Reproduce Figure 1
 op <- par(mfrow = c(1,3))
 for (i in seq_along(pdistrs)) {
-    pit(x, pdistr = pdistrs[[i]], J = 10, relative = TRUE,
+    pit(x, pdistr = pdistrs[[i]], J = 10,
         plot = list(ylim = c(0,2.75), main = names(pdistrs)[i]))
     box()
 }

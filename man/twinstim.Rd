@@ -48,7 +48,10 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
       \item a list as returned by \code{\link{siaf}} or by a
       predefined interaction function such as
       \code{\link{siaf.gaussian}} as in Meyer et al. (2012) or
-      \code{\link{siaf.powerlaw}} as in Meyer and Held (2014)
+      \code{\link{siaf.powerlaw}} as in Meyer and Held (2014).
+      The latter requires unique event locations, possibly after random
+      tie-breaking (\code{\link{untie}}) or imputation of
+      interval-censored locations.
       \item a numeric vector corresponding to the knots of a step
       function, i.e. the same as \code{\link{siaf.step}(knots)}
     }
@@ -331,6 +334,7 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
   \item{formula}{a list containing the four main parts of the model
     specification: \code{endemic}, \code{epidemic}, \code{siaf}, and
     \code{tiaf}.}
+  \item{xlevels}{a record of the levels of the factors used in fitting.}
   \item{control.siaf}{see the \dQuote{Arguments} section above.}
   \item{optim.args}{input optimizer arguments used to determine the MLE.}
   \item{functions}{if \code{model=TRUE} this is a \code{list} with
@@ -471,7 +475,7 @@ if (surveillance.options("allExamples"))
 }
 
 \dontrun{
-  ## NB: in contrast to using nlminb() optim's BFGS would miss the
+  ## NB: in contrast to nlminb(), optim's BFGS would miss the
   ##     likelihood maximum wrt the epidemic intercept
   m0_BFGS <- update(m_noepi, epidemic=~1, optim.args = list(method="BFGS"))
   format(cbind(nlminb=coef(m0), BFGS=coef(m0_BFGS)), digits=3, scientific=FALSE)

@@ -89,10 +89,9 @@ stsplot_space(x, tps = NULL, map = x@map, population = NULL,
     than the maximum observed count.
   }
   \item{col.regions}{
-    a vector of fill colors of length \code{length(at)-1}.
-    By default (\code{NULL}), a \dQuote{heat} palette is generated
-    using \code{colorspace::\link[colorspace]{heat_hcl}} (if available)
-    or \code{\link{heat.colors}}.
+    a vector of fill colors, sufficiently long to serve all levels
+    (determined by \code{at}).
+    \dQuote{Heat} colors are used by default (\code{NULL}).
   }
   \item{colorkey}{
     a list describing the color key, see

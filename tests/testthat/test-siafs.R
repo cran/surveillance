@@ -49,6 +49,11 @@ test_that("Power-law implementation agrees with numerical approximation",
                         pargrid=cbind(0.5,log(c(0.1,1,2))),
                         tolerance=0.0005, method="SV", nGQ=13))
 
+test_that("1-parameter power-law agrees with numerical approximations",
+          myexpectation(siaf.powerlaw1(sigma = exp(0.5)),
+                        pargrid=as.matrix(log(c(0.1,1,2))),
+                        tolerance=0.0005, method="SV", nGQ=13))
+
 test_that("Lagged power-law implementation agrees with numeric results",
           myexpectation(siaf.powerlawL(engine = "R"),
                         surveillance:::intrfr.powerlawL,

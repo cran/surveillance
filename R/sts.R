@@ -197,8 +197,8 @@ sts2disProg <- function(sts) {
 #           time instances are summed.
 ###########################################################################
 
-setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...) {
-
+aggregate.sts <- function(x, by="time", nfreq="all", ...)
+{
   by <- match.arg(by, choices = c("time", "unit"))
 
   #Aggregate time
@@ -252,7 +252,9 @@ setMethod("aggregate", signature(x="sts"), function(x,by="time",nfreq="all",...)
   #validObject(x) #just a check
 
   return(x)
-})
+}
+
+setMethod("aggregate", signature(x="sts"), aggregate.sts)
 
 
 #####################################################################
@@ -370,9 +372,8 @@ setMethod("[", "sts", function(x, i, j, ..., drop) {
 ## the specific plot functions are in separate files (stsplot_*.R)
 ########################################################################
 
-setMethod("plot", signature(x="sts", y="missing"),
-          function (x, type = observed ~ time | unit, ...) {
-
+plot.sts <- function (x, type = observed ~ time | unit, ...)
+{
   # catch new implementation of time-aggregate map plot
   if (isTRUE(all.equal(observed ~ unit, type)))
       return(stsplot_space(x, ...))
@@ -412,7 +413,9 @@ setMethod("plot", signature(x="sts", y="missing"),
       return(invisible())
     }
   }
-})
+}
+
+setMethod("plot", signature(x="sts", y="missing"), plot.sts)
 
 
 ## define how "sts" objects get printed

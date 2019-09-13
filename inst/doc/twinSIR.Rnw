@@ -63,7 +63,8 @@ if (!COMPUTE) load("twinSIR-cache.RData", verbose = TRUE)
 %% Packages for figures and tables
 \usepackage{booktabs}         % make tables look nicer
 \usepackage{subcaption}       % successor of subfig, which supersedes subfigure
-\newcommand{\subfloat}[2][need a sub-caption]{\subcaptionbox{#1}{#2}} % -> knitr
+%% knitr uses \subfloat, which subcaption only provides since v1.3 (2019/08/31)
+\providecommand{\subfloat}[2][need a sub-caption]{\subcaptionbox{#1}{#2}}
 
 %% Handy math commands
 \newcommand{\abs}[1]{\lvert#1\rvert}

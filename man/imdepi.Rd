@@ -75,7 +75,7 @@ data("imdepi")
   The district identifier in \code{tile} is indexed according to
   the German official municipality key (
   \dQuote{Amtlicher Gemeindeschl\enc{ü}{ue}ssel}). See
-  \url{http://de.wikipedia.org/wiki/Amtlicher_Gemeindeschl\%C3\%BCssel}
+  \url{https://de.wikipedia.org/wiki/Amtlicher_Gemeindeschl\%C3\%BCssel}
   for details.
   
   The data component \code{stgrid} contains the spatio-temporal grid of 
@@ -98,9 +98,8 @@ data("imdepi")
   boundaries of Germany. It was obtained as
   \code{stateD <- rgeos::gUnaryUnion(districtsD)},
   where \code{districtsD} represents Germany's districts as at
-  2009-01-01 (originally obtained from \url{www.geodatenzentrum.de}),
-  simplified by the \dQuote{modified Visvalingam} algorithm (level
-  6.6\%) available at \url{MapShaper.org} (v. 0.1.17).
+  2009-01-01, simplified by the \dQuote{modified Visvalingam} algorithm
+  (level 6.6\%) available at \url{https://MapShaper.org} (v. 0.1.17).
   The objects \code{districtsD} and \code{stateD} are contained in
   \code{system.file("shapes", "districtsD.RData", package="surveillance")}.
   
@@ -117,8 +116,8 @@ data("imdepi")
   \url{http://www.episcangis.org/} for further details.
 
   Shapefile of Germany's districts as at 2009-01-01:
-  Bundesamt f\enc{ü}{ue}r Kartographie und Geod\enc{ä}{ae}sie, Frankfurt
-  am Main, Germany, \url{www.geodatenzentrum.de}.
+  German Federal Agency for Cartography and Geodesy, Frankfurt
+  am Main, Germany, \url{https://gdz.bkg.bund.de/}.
   %% "Copy, distribution and making available to the public - also in
   %% parts - is allowed with reference."
 }

@@ -11,10 +11,10 @@
 \alias{ranef.hhh4}
 \alias{coeflist.hhh4}
 \alias{confint.hhh4}
-% FIXME: functions without documentation atm
-%% \alias{print.summary.hhh4}
-%% \alias{terms.hhh4}
-%% \alias{residuals.hhh4}
+\alias{residuals.hhh4}
+%% internal methods without need for documentation
+%\alias{print.summary.hhh4}
+%\alias{terms.hhh4}
 
 \title{
 Print, Summary and other Standard Methods for \code{"hhh4"} Objects
@@ -46,6 +46,8 @@ see \code{vignette("hhh4_spacetime")}.
      idx2Exp = NULL, amplitudeShift = FALSE, ...)
 \method{confint}{hhh4}(object, parm, level = 0.95, 
         reparamPsi = TRUE, idx2Exp = NULL, amplitudeShift = FALSE, ...)
+
+\method{residuals}{hhh4}(object, type = c("deviance", "response"), ...)
 }
 
 \arguments{
@@ -95,6 +97,8 @@ see \code{vignette("hhh4_spacetime")}.
     are to be given confidence intervals. If missing, all parameters
     are considered.}
   \item{level}{the confidence level required.}
+  \item{type}{the type of residuals which should be returned. The
+    alternatives are \code{"deviance"} (default) and \code{"response"}.}
 }
 
 \value{
@@ -125,6 +129,10 @@ see \code{vignette("hhh4_spacetime")}.
   available as \code{object$Sigma}.
   The \code{\link{confint}}-method returns Wald-type confidence
   intervals (assuming asymptotic normality).
+
+  The \code{\link{residuals}}-method extracts raw (\code{"response"}) or
+  scaled (\code{"deviance"}) residuals from the model fit similar to
+  \code{\link{residuals.glm}} for Poisson or NegBin GLM's.
 }
 
 \seealso{

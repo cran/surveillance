@@ -65,8 +65,7 @@ plotHHH4_maxEV(...,
 getMaxEV(x)
 
 plotHHH4_maps(x, which = c("mean", "endemic", "epi.own", "epi.neighbours"),
-              prop = FALSE, main = which, zmax = NULL,
-              col.regions = hcl.colors(10),
+              prop = FALSE, main = which, zmax = NULL, col.regions = NULL,
               labels = FALSE, sp.layout = NULL, ...,
               map = x$stsObj@map, meanHHH = NULL)
 
@@ -209,7 +208,9 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     maps. The default is to use the same scale for the component maps
     and a separate scale for the map showing the overall mean.}
   \item{col.regions}{a vector of colors used to encode the fitted
-    component means (see \code{\link[lattice]{levelplot}}).}
+    component means (see \code{\link[lattice]{levelplot}}).
+    For \code{plotHHH4_maps}, the length of this color vector also
+    determines the number of levels, using 10 heat colors by default.}
   \item{colorkey}{a Boolean indicating whether to draw the color key.
     Alternatively, a list specifying how to draw it, see
     \code{\link[lattice]{levelplot}}.}

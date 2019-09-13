@@ -1,5 +1,6 @@
 \name{stsplot}
 \docType{methods}
+\alias{plot.sts}
 \alias{plot,sts,missing-method}
 \alias{plot,stsNC,missing-method}
 \alias{stsplot} % for convenience
@@ -41,7 +42,7 @@
     }
     
     \item{\code{observed ~ time}}{The observations in \code{x} are
-      first \code{\link[=aggregate,sts-method]{aggregated}} over units
+      first \code{\link[=aggregate.sts]{aggregated}} over units
       and the resulting univariate time-series is plotted via the
       function \code{\link{stsplot_time}}.}
     

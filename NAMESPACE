@@ -114,7 +114,6 @@ export(checkResidualProcess)       # for twinstim and twinSIR
 export(qlomax)                     # quantile function of the Lomax distribution
 export(plapply)
 export(clapply)
-export(hcl.colors)
 export(fanplot)
 
 # spatial utilities
@@ -192,14 +191,18 @@ export(as.xts.sts)
 if(getRversion() >= "3.6.0") {  # delayed registration
     S3method(xts::as.xts, sts)
 }
-
-# generics for sts class defined in sts.R
-exportMethods("[", plot)
-exportMethods(toLatex)
-exportMethods(dim, dimnames, epochInYear, year)
-exportMethods(aggregate)
+S3method(as.data.frame, sts) # see ?Methods_for_S3
 exportMethods(as.data.frame)
 export(tidy.sts)
+
+# more S4 generics, some with an equivalent S3-method, see ?Methods_for_S3
+exportMethods(dim, dimnames, year, epochInYear, "[")
+S3method(plot, sts)
+exportMethods(plot)
+S3method(toLatex, sts)
+exportMethods(toLatex)
+S3method(aggregate, sts)
+exportMethods(aggregate)
 
 # methods for accessing/replacing slots of an sts object (cf. AllGeneric.R)
 exportMethods(epoch,observed,alarms,upperbound,population,control,multinomialTS,neighbourhood)
@@ -212,7 +215,7 @@ export(stsplot_space)
 export(stsplot_time, stsplot_time1, stsplot_alarm)
 export(addFormattedXAxis, atChange, at2ndChange, atMedian) #for time axis formatting
 export(stsplot_spacetime) # old implementation of (animated) map
-S3method(animate, sts)    # S3-method for an S4 class, see ?Methods
+S3method(animate, sts)    # S3-method for an S4 class, see ?Methods_for_S3
 export(autoplot.sts)
 if(getRversion() >= "3.6.0") {  # delayed registration
     S3method(ggplot2::autoplot, sts)
@@ -328,7 +331,7 @@ export(simEpidataCS)
 export(siaf,
        siaf.constant, siaf.step,
        siaf.gaussian,
-       siaf.powerlaw, siaf.powerlawL, siaf.student)
+       siaf.powerlaw, siaf.powerlaw1, siaf.powerlawL, siaf.student)
 export(tiaf,
        tiaf.constant, tiaf.step,
        tiaf.exponential)

@@ -6,8 +6,8 @@
 ### Old implementation of (animated) maps of an sts-object
 ###
 ### Copyright (C) 2007-2013 Michael Hoehle, 2016 Sebastian Meyer
-### $Revision: 1694 $
-### $Date: 2016-04-02 22:37:52 +0200 (Sat, 02. Apr 2016) $
+### $Revision: 2434 $
+### $Date: 2019-07-03 15:53:11 +0200 (Wed, 03. Jul 2019) $
 ################################################################################
 
 
@@ -33,14 +33,14 @@ stsplot_spacetime <- function(
   #Extract the data
   o <- x@observed
   alarm <- x@alarm
-  
+
   #Formula is of type "observed ~ 1|unit" (i.e. no time)
   aggregate <- type[[3]][[3]] == "unit"
   if (aggregate) {
     o <- t(as.matrix(apply(o,MARGIN=2,sum)))
     alarm <- t(as.matrix(apply(alarm,MARGIN=2,sum)))>0
   }
-  
+
   #Number of time points
   maxt <- dim(o)[1]
 
@@ -56,10 +56,10 @@ stsplot_spacetime <- function(
 
   #Get color vector
   opts.col_default <- list(ncolors=length(o), use.color=TRUE)
-  gyr <- do.call("hcl.colors", if (is.list(opts.col))
+  gyr <- do.call(".hcl.colors", if (is.list(opts.col))
     modifyList(opts.col_default, opts.col) else opts.col_default)
   theCut <- cut(o, length(gyr))
-  
+
   #Cut into specified number of colors
   o.cut <- matrix(as.numeric(theCut),nrow=nrow(o),ncol=ncol(o))
   o.col <- matrix(gyr[o.cut],ncol=ncol(o.cut))
@@ -84,7 +84,7 @@ stsplot_spacetime <- function(
     if (verbose) {
       cat(paste("Processing slice",t,"of",maxt,"\n"))
     }
-    
+
     #Clean screen (title area)
     screen(n=2)
     par(bg=gray(1))
@@ -101,12 +101,12 @@ stsplot_spacetime <- function(
       alarm.col[is.na(alarm.col)] <- 0
       plot(map,dens=alarm.col*15,add=TRUE)
     }
-    
+
 
     if (labels)
       #getSpPPolygonsLabptSlots is deprecated. Use coordinates method insteas
       text(coordinates(map), labels=as.character(region.id), cex.lab=cex.lab)
-  
+
     if (!aggregate) { title(paste(t,"/",maxt,sep="")) }
 
     #In case a legend is requested
@@ -129,8 +129,8 @@ stsplot_spacetime <- function(
         dev.printer <- NULL
       }
     }
-    
-    wait(wait.ms) 
+
+    wait(wait.ms)
   }
   close.screen(all.screens = TRUE)
 }
@@ -164,23 +164,23 @@ add.legend <- function(legend, maplim, theColors)
   #Preproc
   dy <- diff(maplim$y) * legend$dy
   dx <- diff(maplim$x) * legend$dx
-    
+
   #Add legend -- i.e. a slider
   xlu <- xlo <- legend$x
-  xru <- xro <- xlu + dx 
+  xru <- xro <- xlu + dx
   yru <- ylu <- legend$y
-  yro <- ylo <- yru + dy 
+  yro <- ylo <- yru + dy
 
-  
+
   step <- (xru - xlu)/length(theColors$col)
   for (i in 0:(length(theColors$col) - 1)) {
-    polygon(c(xlo + step * i, xlo + step * (i + 1), 
-              xlu + step * (i + 1), xlu + step * i), c(ylo, 
-                                                       yro, yru, ylu), col = theColors$col[i + 1], 
+    polygon(c(xlo + step * i, xlo + step * (i + 1),
+              xlu + step * (i + 1), xlu + step * i), c(ylo,
+                                                       yro, yru, ylu), col = theColors$col[i + 1],
             border = theColors$col[i + 1])
   }
-  
-  
+
+
   #Write info about min and max on the slider.
   black <- grey(0)
   lines(c(xlo, xro, xru, xlu, xlo), c(ylo, yro, yru, ylu, ylo), col =   black)

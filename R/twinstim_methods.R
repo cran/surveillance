@@ -6,9 +6,9 @@
 ### Methods for objects of class "twinstim", specifically:
 ### vcov, logLik, print, summary, plot, R0, residuals, update, terms, all.equal
 ###
-### Copyright (C) 2009-2018 Sebastian Meyer
-### $Revision: 2100 $
-### $Date: 2018-04-12 16:51:42 +0200 (Thu, 12. Apr 2018) $
+### Copyright (C) 2009-2019 Sebastian Meyer
+### $Revision: 2461 $
+### $Date: 2019-07-19 17:49:32 +0200 (Fri, 19. Jul 2019) $
 ################################################################################
 
 ## extract the link function used for the epidemic predictor (default: log-link)
@@ -375,35 +375,47 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE, newcoef = NULL, ...)
             gammapred <- modelenv$gammapred
             names(gammapred) <- names(object$R0) # for names of the result
         }
-    } else {
-        ## use newevents
+    } else { # use newevents
         stopifnot(is.data.frame(newevents))
-        if (!"time" %in% names(newevents)) {
-            stop("missing event \"time\" column in 'newevents'")
-        }
-        if (any(!c("eps.s", "eps.t") %in% names(newevents))) {
-            stop("missing \"eps.s\" or \"eps.t\" columns in 'newevents'")
-        }
-        stopifnot(is.factor(newevents[["type"]]))
-
-        ## subset newevents to timeRange
-        .N <- nrow(newevents)
-        newevents <- subset(newevents, time + eps.t > t0 & time <= T)
-        if (nrow(newevents) < .N) {
-            message("subsetted 'newevents' to only include events infectious ",
-                    "during 'object$timeRange'")
-        }
-
-        ## extract columns
-        newevents$type <- factor(newevents[["type"]], levels = typeNames)
-        eventTimes <- newevents[["time"]]
         eps.t <- newevents[["eps.t"]]
         eps.s <- newevents[["eps.s"]]
+        if (is.null(eps.s) || is.null(eps.t)) {
+            stop("missing \"eps.s\" or \"eps.t\" columns in 'newevents'")
+        }
+        if (is.null(newevents[["type"]])) {
+            if (nTypes == 1) {
+                newevents$type <- factor(rep.int(typeNames, nrow(newevents)),
+                                         levels = typeNames)
+            } else {
+                stop("missing event \"type\" column in 'newevents'")
+            }
+        } else {
+            newevents$type <- factor(newevents$type, levels = typeNames)
+            if (anyNA(newevents$type)) {
+                stop("unknown event type in 'newevents'; must be one of: ",
+                     paste0("\"", typeNames, "\"", collapse = ", "))
+            }
+        }
+
+        ## subset newevents to timeRange
+        if (trimmed) {
+            eventTimes <- newevents[["time"]]
+            if (is.null(eventTimes)) {
+                stop("missing event \"time\" column in 'newevents'")
+            }
+            .N <- nrow(newevents)
+            newevents <- subset(newevents, time + eps.t > t0 & time <= T)
+            if (nrow(newevents) < .N) {
+                message("subsetted 'newevents' to only include events infectious ",
+                        "during 'object$timeRange'")
+            }
+        }
 
         ## calculate gammapred for newevents
         epidemic <- terms(form$epidemic, data = newevents, keep.order = TRUE)
         mfe <- model.frame(epidemic, data = newevents,
-                           na.action = na.pass, drop.unused.levels = FALSE)
+                           na.action = na.pass, drop.unused.levels = FALSE,
+                           xlev = object$xlevels$epidemic)  # sync factor levels
         mme <- model.matrix(epidemic, mfe)
         gamma <- coefs[sum(npars[1:2]) + seq_len(npars["q"])]
         if (ncol(mme) != length(gamma)) {
@@ -525,10 +537,10 @@ simpleR0 <- function (object, eta = coef(object)[["e.(Intercept)"]],
 
     ## integral of siaf over a disc of radius eps.s
     Fcircle <- getFcircle(siaf, object$control.siaf$F)
-    siafInt <- Fcircle(eps.s, coeflist$siaf)
+    siafInt <- unname(Fcircle(eps.s, coeflist$siaf))
 
     ## integral of tiaf over a period of length eps.t
-    tiafInt <- tiaf$G(eps.t, coeflist$tiaf) - tiaf$G(0, coeflist$tiaf)
+    tiafInt <- unname(tiaf$G(eps.t, coeflist$tiaf) - tiaf$G(0, coeflist$tiaf))
 
     ## calculate basic R0
     (if (.epilink(object) == "log") exp(eta) else eta) * siafInt * tiafInt

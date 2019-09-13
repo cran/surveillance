@@ -1,4 +1,3 @@
-%%% FIXME: remove this file and add all the aliases to sts-class.Rd ?
 \name{stsSlot-generics}
 \docType{methods}
 \alias{alarms}
@@ -18,22 +17,11 @@
 \alias{neighbourhood}
 \alias{neighbourhood<-}
 
-\title{Generic functions to access \code{"sts"} slots}
+\title{Generic Functions to Access \code{"sts"} Slots}
 \description{
  For almost every slot of the \code{"sts"} class, package \pkg{surveillance}
- defines a generic function of the same name (except for the \code{population}
- method where the slot is actually called \code{populationFrac}, and
- \code{alarms}, where the slot is actually called \code{alarm}) as well as
- a replacement version (\code{<-}) to extract or set the corresponding slot of
- a \code{sts} object.
- (This documentation is not really valid yet.)
-}
-%\section{Methods}{
-%\describe{
-%
-%\item{x = "sts"}{ The slot of \code{x} is determined and returned or set.}
-%}}
-\seealso{
-the \code{"\linkS4class{sts}"} class
+ defines a generic function of the same name (and a replacement
+ version) to extract (or set) the corresponding slot.
+ See the \code{"\linkS4class{sts}"} class documentation.
 }
 \keyword{methods}

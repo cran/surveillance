@@ -75,7 +75,8 @@ if (!COMPUTE) load("twinstim-cache.RData", verbose = TRUE)
 %% Packages for figures and tables
 \usepackage{booktabs}         % make tables look nicer
 \usepackage{subcaption}       % successor of subfig, which supersedes subfigure
-\newcommand{\subfloat}[2][need a sub-caption]{\subcaptionbox{#1}{#2}} % -> knitr
+%% knitr uses \subfloat, which subcaption only provides since v1.3 (2019/08/31)
+\providecommand{\subfloat}[2][need a sub-caption]{\subcaptionbox{#1}{#2}}
 
 %% Handy math commands
 \newcommand{\abs}[1]{\lvert#1\rvert}
@@ -913,6 +914,9 @@ The estimated power-law parameters $(\hat\sigma, \hat d)$ are:
 exp(cbind("Estimate" = coef(imdfit_powerlaw)[c("e.siaf.1", "e.siaf.2")],
           confint(imdfit_powerlaw, parm = c("e.siaf.1", "e.siaf.2"))))
 @
+Sometimes $\sigma$ is difficult to estimate. In this case, the
+one-parameter version \code{siaf.powerlaw1} can be used to estimate a
+power-law decay with fixed $\sigma = 1$.
 
 Table~\ref{tab:iafs} also lists the step function kernel as an alternative, which is
 particularly useful for two reasons. First, it is a more flexible approach since it
@@ -1084,7 +1088,7 @@ spatial interaction functions listed in Table~\ref{tab:iafs}.
 Event marks are by default sampled from their respective empirical
 distribution in the original data.
 %but a customized generator can be supplied as argument \code{rmarks}.
-The following code runs a single simulation over the last year
+The following code runs \emph{a single} simulation over the last year
 based on the estimated power-law model:
 <<imdsim, results="hide">>=
 imdsim <- simulate(imdfit_powerlaw, nsim = 1, seed = 1, t0 = 2191, T = 2555,

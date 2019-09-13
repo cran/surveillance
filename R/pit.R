@@ -8,16 +8,16 @@
 ### Czado, C., Gneiting, T. & Held, L. (2009)
 ### Biometrics 65:1254-1261
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2013-2015,2017 Sebastian Meyer
-### $Revision: 1829 $
-### $Date: 2017-01-23 14:00:47 +0100 (Mon, 23. Jan 2017) $
+### Copyright (C) 2010-2012 Michaela Paul, 2013-2015,2017,2019 Sebastian Meyer
+### $Revision: 2418 $
+### $Date: 2019-03-25 13:59:40 +0100 (Mon, 25. Mar 2019) $
 ################################################################################
 
 
 ## x - observed count data
 ## pdistr - predictive CDF or a list of such predictive CDF's,
 ##          one for each data point x. If evaluated at x=-1 it must return 0
-## J - number of bins 
+## J - number of bins
 ## ... - additional arguments for pdistr(), recycled to the length of x.
 ##       Ignored if pdistr is a list.
 ## plot - a list of arguments for plot.histogram (otherwise no plot is produced)
@@ -25,12 +25,27 @@
 pit.default <- function (x, pdistr, J=10, relative=TRUE, ..., plot = list())
 {
     PxPxm1 <- pitPxPxm1(x, pdistr, ...)
+    Px <- PxPxm1[1L,]
+    Pxm1 <- PxPxm1[2L,]
+    if (any(Px == Pxm1)) {
+        ## This means the predictive probability of an observed x is zero.
+        ## Our predictive model is really bad if that happens.
+        warning("predictive distribution has 0 probability for observed 'x'")
+    }
+
     breaks <- (0:J)/J
-    Fbar_seq <- vapply(X = breaks, FUN = pit1, FUN.VALUE = 0,
-                       Px = PxPxm1[1L,], Pxm1 = PxPxm1[2L,], USE.NAMES = FALSE)
+
+    ## calculate \bar{F}(u) for scalar u
+    Fbar1 <- function (u, Px, Pxm1)
+    {
+        F_u <- punif(u, Pxm1, Px)  # also works for Pxm1 == Px => F_u = u >= Pxm1
+        mean(F_u)
+    }
+    Fbar_seq <- vapply(X = breaks, FUN = Fbar1, FUN.VALUE = 0,
+                       Px = Px, Pxm1 = Pxm1, USE.NAMES = FALSE)
     scale <- if (relative) J else 1
     f_j <- scale * diff.default(Fbar_seq)
-    
+
     res <- list(breaks = breaks, counts = f_j, density = f_j,
                 mids = breaks[-(J+1)] + 1/J/2, xname = "PIT", equidist = TRUE)
     class(res) <- c("pit", "histogram")
@@ -68,35 +83,18 @@ pitPxPxm1 <- function (x, pdistr, ...)
     }
 }
 
-## calculate \bar{F}(u) for scalar u
-pit1 <- function (u, Px, Pxm1)
-{
-    if (u <= 0) return(0) else if (u >= 1) return(1)
-    F_u <- (u-Pxm1) / (Px-Pxm1)
-    ## If Px=Pxm1, this means that predict. prob. of observed x is exactly zero.
-    ## We get NaN for F_u. Our predictive model is bad if that happens.
-    ## We could assign either 0 or 1 to express that and issue a warning.
-    if (any(is.nan(F_u))) {
-        warning("predictive distribution has 0 probability for observed 'x'")
-        F_u[is.nan(F_u)] <- 0
-    }
-    F_u[F_u < 0] <- 0
-    F_u[F_u > 1] <- 1
-    mean(F_u)
-}
-
 
 ## plot the PIT histogram
 
 plot.pit <- function (x, main = "", ylab = NULL, ...)
 {
-    relative <- !isTRUE(all.equal(1, sum(x$density)))
+    relative <- isTRUE(all.equal(1, sum(x$density)))
     if (is.null(ylab))
         ylab <- if (relative) "Relative Frequency" else "Density"
     ## call plot.histogram
     NextMethod("plot", main = main, ylab = ylab, ...)
     ## add reference line
-    abline(h = if (relative) 1 else 1/length(x$mids), lty = 2, col = "grey")
+    abline(h = if (relative) 1/length(x$mids) else 1, lty = 2, col = "grey")
     invisible(x)
 }
 

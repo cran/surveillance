@@ -324,9 +324,9 @@ spatio-temporal conditional intensity models also to simulated data.
 \examples{
 data("imdepi", "imdepifit")
 
-## load borders of Germany's districts (originally obtained from the
-## Bundesamt fuer Kartographie und Geodaesie, Frankfurt am Main, Germany,
-## www.geodatenzentrum.de), simplified by the "modified Visvalingam"
+## load borders of Germany's districts (originally obtained from
+## the German Federal Agency for Cartography and Geodesy,
+## https://gdz.bkg.bund.de/), simplified by the "modified Visvalingam"
 ## algorithm (level=6.6\%) using MapShaper.org (v. 0.1.17):
 load(system.file("shapes", "districtsD.RData", package="surveillance"))
 plot(districtsD)
@@ -347,6 +347,11 @@ mysims <- simulate(imdepifit, nsim=2, seed=1, data=imdepi,
         stopifnot(all.equal(mysim_single, mysim_from_list,
                             check.attributes = FALSE))
     })
+    ## check equivalence of Lambdag from simulation and residuals via twinstim
+    stopifnot(all.equal(
+        residuals(mysims[[1]]),
+        surveillance:::residuals.twinstim(surveillance:::as.twinstim.simEpidataCS(mysims[[1]]))
+    ))
 }
 
 ## extract the second realization -> object of class simEpidataCS

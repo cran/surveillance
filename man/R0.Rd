@@ -41,12 +41,13 @@ simpleR0(object, eta = coef(object)[["e.(Intercept)"]],
     
     For the \code{twinstim} method, \code{newevents} must at least
     contain the following columns:
-    the \code{time} of the events, the factor variable \code{type}, the
-    interaction ranges \code{eps.t} and \code{eps.s}, as well as columns
-    for the marks used in the epidemic component of the fitted \code{"twinstim"}
+    the event \code{time} (only for \code{trimmed = TRUE})
+    and \code{type} (only for multi-type epidemics),
+    the maximum interaction ranges \code{eps.t} and \code{eps.s},
+    as well as columns for the marks and \code{stgrid} variables
+    used in the epidemic component of the fitted \code{"twinstim"}
     \code{object} as stored in \code{formula(object)$epidemic}.
-    The coding of the variables must of course be the same as used for
-    fitting. For \code{trimmed} R0 values, \code{newevents} must additionally
+    For \code{trimmed} R0 values, \code{newevents} must additionally
     contain the components \code{.influenceRegion} and, if using the
     \code{Fcircle} trick in the \code{siaf} specification, also
     \code{.bdist} (cf. the hidden columns in the \code{events}
@@ -149,8 +150,13 @@ data("imdepi", "imdepifit")
 R0s <- R0(imdepifit)
 tapply(R0s, imdepi$events@data[names(R0s), "type"], summary)
 
-## untrimmed R0 for a specific event
-R0(imdepifit, newevents=marks(imdepi)[1,], trimmed=FALSE)
+## untrimmed R0 for specific event settings
+refevent <- data.frame(agegrp = "[0,3)", type = "B", eps.s = Inf, eps.t = 30)
+setting2 <- data.frame(agegrp = "[3,19)", type = "C", eps.s = Inf, eps.t = 14)
+newevents <- rbind("ref" = refevent, "event2" = setting2)
+(R0_examples <- R0(imdepifit, newevents = newevents, trimmed = FALSE))
+stopifnot(all.equal(R0_examples[["ref"]],
+                    simpleR0(imdepifit)))
 
 
 ### compute a Monte Carlo confidence interval

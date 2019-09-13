@@ -1,8 +1,14 @@
 ################################################################################
 ### Demo of hhh4() modelling of influenza in Southern Germany - data("fluBYBW")
+### based on
+###
+### Paul, M. and Held, L. (2011): Predictive assessment of a non-linear random
+### effects model for multivariate time series of infectious disease counts.
+### Statistics in Medicine, 30, 1118-1136.
+###
 ### RUNNING THE WHOLE SCRIPT TAKES ~20 MINUTES!
 ###
-### Copyright (C) 2009-2012 Michaela Paul, 2012-2013,2016-2018 Sebastian Meyer
+### Copyright (C) 2009-2012 Michaela Paul, 2012-2013,2016-2019 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -13,7 +19,8 @@ set.seed(1)  # for reproducibility (affects initial values for ri() terms)
 library("surveillance")
 
 ## Weekly counts of influenza in 140 districts of Bavaria and Baden-Wuerttemberg
-data("fluBYBW")
+data("fluBYBW")  # data corrected in surveillance 1.6-0
+                 # -> minor differences to original results in the paper
 
 
 ##################################################
@@ -42,7 +49,6 @@ cntrl_B0 <- list(ar = list(f = ~ 1),
                  family = "NegBin1", optimizer = opt, verbose=1)
 res_B0 <- hhh4(fluBYBW,cntrl_B0)
 
-
 # C0
 cntrl_C0 <- list(ar = list(f = ~ -1 + ri(type="iid", corr="all")),
                  end = list(f =f.end, offset = population(fluBYBW)),
@@ -61,14 +67,12 @@ cntrl_A1 <- list(ar = list(f = ~ -1),
                  family = "NegBin1", optimizer = opt, verbose=1)
 res_A1 <- hhh4(fluBYBW,cntrl_A1)
 
-
 # B1
 cntrl_B1 <- list(ar = list(f = ~ 1),
                  ne = list(f = ~ 1, weights = wji),
                  end = list(f =f.end, offset = population(fluBYBW)),
                  family = "NegBin1", optimizer = opt, verbose=1)
 res_B1 <- hhh4(fluBYBW,cntrl_B1)
-
 
 # C1
 cntrl_C1 <- list(ar = list(f = ~ -1 + ri(type="iid", corr="all")),
@@ -84,7 +88,6 @@ cntrl_A2 <- list(ar = list(f = ~ -1),
                  end = list(f =f.end, offset = population(fluBYBW)),
                  family = "NegBin1", optimizer = opt, verbose=1)
 res_A2 <- hhh4(fluBYBW,cntrl_A2)
-
 
 # B2
 cntrl_B2 <- list(ar = list(f = ~ 1),
@@ -111,6 +114,21 @@ cntrl_D <- list(ar = list(f = ~ 1),
                           offset = population(fluBYBW)),
                 family = "NegBin1", optimizer = opt, verbose=1)
 res_D <- hhh4(fluBYBW,cntrl_D)
+
+
+###########################################################
+## Exemplary summary of model B2
+## (compare with Paul & Held, 2011, Table III and Figure 5)
+###########################################################
+
+summary(res_B2, idx2Exp = 1:2, maxEV = TRUE)
+## Note: as of surveillance 1.6-0, results differ slightly from the paper
+## (see penalized log-likelihood), because a superfluous row of zeros
+## has been removed from the fluBYBW data
+
+.idx <- c(113, 111, 46, 77)
+plot(res_B2, units = .idx, names = fluBYBW@map@data[.idx, "name"],
+     legend = 2, legend.args = list(x = "topleft"), legend.observed = TRUE)
 
 
 ######################################################################

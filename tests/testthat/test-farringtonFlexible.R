@@ -102,7 +102,7 @@ test_that("one gets a warning if too many years back",{
   freq <- 12
   epochAsDate <- FALSE
   epochStr <- "month"
-  expect_that(algo.farrington.referencetimepoints(dayToConsider,b=8,freq=freq,epochAsDate,epochStr), gives_warning("Some reference"))
+  expect_warning(algo.farrington.referencetimepoints(dayToConsider,b=8,freq=freq,epochAsDate,epochStr), "Some reference")
 
   # apply code
    control1 <-  list(range=250,noPeriods=10,populationOffset=FALSE,
@@ -236,9 +236,9 @@ method <- "delta"
 phi <- 1
 
 test_that("the function recognizes wrong exponents",{
-  expect_that(algo.farrington.threshold.farrington(
+  expect_error(algo.farrington.threshold.farrington(
     predFit, predSeFit, phi, skewness.transform, alpha, y, method
-  ), throws_error("proper exponent"))
+  ), "proper exponent")
 })
 
 test_that("some results we know are found",{
@@ -455,7 +455,7 @@ seriesSTSObject <- new('sts', observed = timeSeries,
                        epochAsDate = TRUE)
 test_that("The code does not produce any error",{
 # It is ok if the code does not produce any error
- expect_that(farringtonFlexible(seriesSTSObject, control = algoControl), gives_warning())
+ expect_warning(farringtonFlexible(seriesSTSObject, control = algoControl))
 })
 
 ################################################################################
@@ -474,9 +474,9 @@ test_that("The code does not produce any error",{
   farringtonFlexible(seriesSTSObject, control = algoControl)
 
   results1 <- farringtonFlexible(seriesSTSObject, control = algoControl)
-  expect_that(results1, is_a("sts"))
+  expect_is(results1, "sts")
   seriesSTSObject@observed[680:690] <- NA
   results2 <- farringtonFlexible(seriesSTSObject, control = algoControl)
-  expect_that(results2, is_a("sts"))
+  expect_is(results2, "sts")
 })
 

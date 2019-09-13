@@ -8,6 +8,44 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.17.1 (2019-09-13)}{
+
+\subsection{NEW FEATURES}{
+  \itemize{
+    \item New one-parameter power-law kernel \code{siaf.powerlaw1()}
+    with fixed \code{sigma = 1}. Useful if \code{sigma} is difficult to
+    estimate with \code{siaf.powerlaw()}.
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item \code{pit()}'s default \code{ylab} was wrong (default are
+    densities not relative frequencies).
+
+    \item \code{R0()} for \code{"twinstim"} fits with specified
+    \code{newevents} now handles levels of epidemic factor variables
+    automatically via the new \code{xlevels} attribute stored in the
+    fitted model.
+
+    \item Some S3 methods for the \code{"sts"} class are now formally
+    registered and identical to the established S4 methods.
+    
+    \item Minor additions and fixes in the package documentation.
+  }
+}
+
+\subsection{DEPRECATED AND DEFUNCT}{
+  \itemize{
+    \item \code{hcl.colors()}, exported since 1.14.0, has been renamed
+    \code{.hcl.colors()} and is now internal again, to avoid a name
+    clash with \R's own such function introduced in \R 3.6.0.
+  }
+}
+
+}
+
+
 \section{Changes in surveillance version 1.17.0 (2019-02-22)}{
 
 \subsection{NEW FEATURES}{

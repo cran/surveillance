@@ -52,9 +52,9 @@ as.xts.sts <- function (x, order.by = epoch(x, as.Date = TRUE), ...)
 
 ### Convert an "sts" object to a data frame suitable for regression
 
-setMethod("as.data.frame", signature(x = "sts"),
-          function(x, row.names = NULL, optional = FALSE, # from the generic
-                   tidy = FALSE, as.Date = x@epochAsDate, ...) {
+as.data.frame.sts <- function(x, row.names = NULL, optional = FALSE, # from the generic
+                              tidy = FALSE, as.Date = x@epochAsDate, ...)
+{
   if (tidy)
     return(tidy.sts(x, ...))
 
@@ -95,7 +95,9 @@ setMethod("as.data.frame", signature(x = "sts"),
   res$epochInPeriod <- epochInYear(x) / res$freq
 
   return(res)
-})
+}
+
+setMethod("as.data.frame", signature(x = "sts"), as.data.frame.sts)
 
 
 ### convert an "sts" object to a "data.frame" in long (tidy) format

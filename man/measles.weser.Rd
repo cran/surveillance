@@ -80,23 +80,23 @@ data("measlesWeserEms")
   Robert Koch institute: \url{https://survstat.rki.de/}.
 
   A shapefile of Germany's districts as of 01/01/2009 was obtained from
-  the Service Center (\url{www.geodatenzentrum.de}) of the German
-  Federal Agency for Cartography and Geodesy (\url{www.bkg.bund.de}).
+  the German Federal Agency for Cartography and Geodesy
+  (\url{https://gdz.bkg.bund.de/}).
   The map of the 17 districts of the \dQuote{Weser-Ems} region
   (\code{measlesWeserEms@map}) is a simplified subset of this
   shapefile using a 30\% reduction via the Douglas-Peucker reduction method
-  as implemented at \url{MapShaper.org}.
+  as implemented at \url{https://MapShaper.org}.
 
   Population numbers were obtained from the Federal Statistical Office of
   Lower Saxony (\acronym{LSN}):
-  \url{http://www.statistik.niedersachsen.de/themenbereiche/bevoelkerung/}
+  \url{https://www.statistik.niedersachsen.de/themenbereiche/bevoelkerung/}
 
   Vaccination coverage was obtained from the public health department of
   Lower Saxony:
   Nieders\enc{ä}{ae}chsisches Landesgesundheitsamt (2005): Impfreport --
   Durchimpfung von Kindern im Einschulungsalter in Niedersachsen im
   Erhebungsjahrgang 2004. Online available from
-  \url{http://www.nlga.niedersachsen.de/gesundheitsberichterstattung/gesundheitsberichte/impfreport/basisberichte-19385.html},
+  \url{https://www.nlga.niedersachsen.de/gesundheitsberichterstattung/gesundheitsberichte/impfreport/},
   also as an interactive version.
 }
 

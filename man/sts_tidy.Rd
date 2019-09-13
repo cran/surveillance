@@ -27,7 +27,7 @@ tidy.sts(x, ...)
 }
 
 \seealso{
-  \code{\link{as.data.frame,sts-method}}
+  \code{\link{as.data.frame.sts}}
 }
 
 \examples{
