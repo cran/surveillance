@@ -1025,12 +1025,12 @@ which have as columns the number of cases in each category at each timepoint, \t
 $(y_{t1},...,y_{tk})$.
 
 <<cat2bis>>=
-populationHosp <- cbind(
+populationHosp <- unname(cbind(
   population(salmHospitalized),
-  population(salmHospitalized))
+  population(salmHospitalized)))
 observedHosp <- cbind(
-  observed(salmHospitalized),
-  population(salmHospitalized) - observed(salmHospitalized))
+  "Yes" = as.vector(observed(salmHospitalized)),
+  "No" = as.vector(population(salmHospitalized) - observed(salmHospitalized)))
 salmHospitalized.multi <- sts(
   freq = 52, start = c(2004, 1), epoch = epoch(salmHospitalized),
   observed = observedHosp, population = populationHosp,

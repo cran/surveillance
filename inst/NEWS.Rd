@@ -8,6 +8,31 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.17.2 (2019-11-11)}{
+
+\subsection{MINOR CHANGES}{
+  \itemize{
+    \item For multivariate time series, \code{sts()} now checks for
+    mismatches in column names of supplied matrices (\code{observed},
+    \code{population}, \code{neighbourhood}, ...). This is to catch
+    input where the units (columns) are ordered differently in
+    different slots, which would flaw subsequent analyses.
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item \code{simulate.twinSIR()} ignored the \code{atRiskY} indicator
+    of the underlying \code{"epidata"}, so always assumed a completely
+    susceptible population. Initially infectious individuals are now
+    inherited. For the previous behaviour, adjust the supplied
+    \code{data} via \code{data$atRiskY <- 1}.
+  }
+}
+
+}
+
+
 \section{Changes in surveillance version 1.17.1 (2019-09-13)}{
 
 \subsection{NEW FEATURES}{

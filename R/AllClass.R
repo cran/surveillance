@@ -63,6 +63,16 @@
             if (length(object@multinomialTS) != 1 || is.na(object@multinomialTS))
                 "'multinomialTS' must be either TRUE or FALSE"
         )
+        ## detect mismatch in column names between different slots
+        if (dimObserved[2L] > 1 && !is.null(namesObserved)) {
+            slots_dn <- c("state", "alarm", "upperbound", "populationFrac", "neighbourhood")
+            errors_dn <- lapply(slots_dn, function (name) {
+                cn <- colnames(slot(object, name))
+                if (!is.null(cn) && !identical(cn, namesObserved))
+                    paste0("'colnames(", name, ")' differ from 'colnames(observed)'")
+            })
+            errors <- c(errors, unlist(errors_dn))
+        }
         if (length(errors) > 0) errors else TRUE
     }
 )

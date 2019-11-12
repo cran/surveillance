@@ -335,7 +335,7 @@ if (surveillance.options("allExamples"))
   intensityplot(simepi)
 
   ## see if we correctly estimate the parameters
-  fitsimepi <- twinSIR(~ cox(AGE) + household, data = hagelloch)
+  fitsimepi <- twinSIR(~ cox(AGE) + household, data = simepi)
   cbind(true = c(0.05, -4, 0.1), est = coef(fitsimepi), confint(fitsimepi))
 }
 }

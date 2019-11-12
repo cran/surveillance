@@ -65,3 +65,21 @@ test_that("we can subset epochs of an \"sts\" object", {
     expect_identical(mysts[-1,], mysts[2:10,])
     expect_identical(mysts[0,]@start, mysts@start)
 })
+
+test_that("colnames need to be identical (only for multivariate data)", {
+    slots_dn <- c("observed", "state", "alarm", "upperbound", "populationFrac")
+    ## ignore colnames mismatch for univariate time series
+    sts_args_1 <- lapply(setNames(nm = slots_dn), function (slot)
+        matrix(0, 1, 1, dimnames = list(NULL, slot)))
+    sts_args_1$neighbourhood <- matrix(0, 1, 1, dimnames = list("a", "a"))
+    expect_silent(do.call(sts, sts_args_1))
+    ## multivariate time series with inconsistent column order are invalid
+    sts_args_2 <- list(
+        observed = matrix(0, 1, 2, dimnames = list(NULL, c("r1", "r2")))
+    )
+    sts_args_2[slots_dn[-1]] <- list(sts_args_2$observed[,2:1,drop=FALSE])
+    sts_args_2$neighbourhood <- matrix(0, 2, 2, dimnames = rep(list(c("r2", "r1")), 2))
+    expect_error(do.call(sts, sts_args_2), "colnames")  # new in surveillance > 1.17.1
+    ## column names can be missing for other slots
+    expect_silent(do.call(sts, c(sts_args_2[1], lapply(sts_args_2[-1], unname))))
+})

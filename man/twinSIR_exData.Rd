@@ -1,6 +1,5 @@
 \name{twinSIR_exData}
 \alias{fooepidata}
-\alias{foofit}
 \docType{data}
 
 \title{
@@ -8,16 +7,13 @@ Toy Data for \code{twinSIR}
 }
 
 \description{
-  This is data, which is used in \code{twinSIR} examples.
-  
-  \code{fooepidata} is an object of class \code{"\link{epidata}"}.
-  \code{foofit} is an object of class
-  \code{"\link{twinSIR}"} and is the result of a fit to \code{fooepidata}.
+  Toy \code{"\link{epidata}"} previously used to exemplify
+  \code{\link{twinSIR}} models. We now use the well-known
+  \code{\link{hagelloch}} dataset.
 }
 
 \usage{
 data(fooepidata)
-data(foofit)
 }
 
 \keyword{datasets}

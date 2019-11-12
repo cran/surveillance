@@ -140,8 +140,9 @@ init.sts <- function(.Object, ..., # also for slots of classes extending "sts"
                               neighbourhood=neighbourhood,
                               populationFrac=populationFrac)
     ## this also checks validObject(.Object)
+    ## for nUnit > 1, it will catch if any column names differ from namesObs
 
-    ## make sure all arrays have the same dimnames
+    ## use dimnames(observed) for all matrix slots (could be unnamed)
     .Object <- fix.dimnames(.Object)
 
     return(.Object)

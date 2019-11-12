@@ -536,12 +536,12 @@ pi1m <- rbind(pi1, 1 - pi1)
 ###################################################
 ### code chunk number 39: cat2bis
 ###################################################
-populationHosp <- cbind(
+populationHosp <- unname(cbind(
   population(salmHospitalized),
-  population(salmHospitalized))
+  population(salmHospitalized)))
 observedHosp <- cbind(
-  observed(salmHospitalized),
-  population(salmHospitalized) - observed(salmHospitalized))
+  "Yes" = as.vector(observed(salmHospitalized)),
+  "No" = as.vector(population(salmHospitalized) - observed(salmHospitalized)))
 salmHospitalized.multi <- sts(
   freq = 52, start = c(2004, 1), epoch = epoch(salmHospitalized),
   observed = observedHosp, population = populationHosp,
