@@ -26,11 +26,11 @@
 ######################################################################
 
 algo.quality <- function (sts, penalty = 20) {
-  if (class(sts) == "survRes") {
+  if (inherits(sts, "survRes")) {
     state <- sts$disProgObj$state[sts$control$range] * 1
     alarm <- sts$alarm * 1
   } else {
-    if (class(sts) == "sts") {
+    if (inherits(sts, "sts")) {
       if (ncol(sts) > 1) { stop("Function only works for univariate objects.") }
       state <- sts@state*1
       alarm <- alarms(sts)*1

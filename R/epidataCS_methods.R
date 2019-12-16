@@ -6,9 +6,9 @@
 ### Standard S3-methods for "epidataCS" objects, which represent
 ### CONTINUOUS SPATIO-temporal infectious disease case data
 ###
-### Copyright (C) 2009-2015,2017-2018 Sebastian Meyer
-### $Revision: 2156 $
-### $Date: 2018-05-25 17:26:20 +0200 (Fri, 25. May 2018) $
+### Copyright (C) 2009-2015,2017-2019 Sebastian Meyer
+### $Revision: 2505 $
+### $Date: 2019-11-29 15:39:58 +0100 (Fri, 29. Nov 2019) $
 ################################################################################
 
 
@@ -158,19 +158,22 @@ subset.epidataCS <- function (x, subset, select, drop = TRUE, ...)
 
 
 ## Subset epidataCS object using head and tail methods (which use [.epidataCS)
+## adapted from the corresponding matrix-methods, which have
+## Copyright (C) 1995-2012 The R Core Team
 
 head.epidataCS <- function (x, n = 6L, ...)
-    head.matrix(x, n = n, ...)
+{
+    stopifnot(isScalar(n))
+    n <- if (n < 0L) max(nobs(x) + n, 0L) else min(n, nobs(x))
+    x[seq_len(n), , drop = FALSE]
+}
 
 tail.epidataCS <- function (x, n = 6L, ...)
 {
-    # ugly hack for tail.matrix because I don't want to register a
-    # dim-method for class "epidataCS"
-    nrow <- function (x) base::nrow(x$events)
-    my.tail.matrix <- tail.matrix
-    environment(my.tail.matrix) <- environment()
-    ##<- such that the function uses my local nrow definition
-    my.tail.matrix(x, n = n, addrownums=FALSE, ...)
+    stopifnot(isScalar(n))
+    nrx <- nobs(x)
+    n <- if (n < 0L) max(nrx + n, 0L) else min(n, nrx)
+    x[seq.int(to = nrx, length.out = n), , drop = FALSE]
 }
 
 

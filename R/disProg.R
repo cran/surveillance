@@ -186,7 +186,7 @@ plot.disProg.one <- function(x, title = "", xaxis.years=TRUE, quarters=TRUE, sta
   }
 
   #should there be a legend?
-  if(!is.null(legend.opts) && (class(legend.opts) == "list")) {
+  if(is.list(legend.opts)) {
     #Fill empty (mandatory) slots in legend.opts list
     if (is.null(legend.opts$lty)) legend.opts$lty = c(lty[1],NA)
     if (is.null(legend.opts$col)) legend.opts$col = c(col[1],outbreak.symbol$col)

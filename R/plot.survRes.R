@@ -94,7 +94,7 @@ plot.survRes.one <- function(x, method=x$control$name, disease=x$control$data, d
     axis( side=2 )
   }
 
-  if(!is.null(legend.opts) && (class(legend.opts) == "list")) {
+  if(is.list(legend.opts)) {
     #Fill empty (mandatory) slots in legend.opts list
     if (is.null(legend.opts$lty)) legend.opts$lty = c(lty[1],lty[3],NA,NA)
     if (is.null(legend.opts$col)) legend.opts$col = c(col[1],col[3],alarm.symbol$col,outbreak.symbol$col)

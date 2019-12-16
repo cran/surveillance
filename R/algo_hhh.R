@@ -18,7 +18,7 @@ algo.hhh <- function(disProgObj,
                      verbose=TRUE){
 
   #Convert sts objects
-  if (class(disProgObj) == "sts") disProgObj <- sts2disProg(disProgObj)
+  if (inherits(disProgObj, "sts")) disProgObj <- sts2disProg(disProgObj)
 
   #set default values (if not provided in control)
   if(is.null(control[["linear",exact=TRUE]]))
@@ -202,7 +202,7 @@ algo.hhh <- function(disProgObj,
   cov <- try(D %*% solve(fisher) %*% t(D), silent=TRUE)
 
   #fisher info is singular
-  if(class(cov) == "try-error"){
+  if(inherits(cov, "try-error")){
     if(verbose){
       cat("Fisher info singular \t loglik=",loglik," \n")
       cat("theta",round(thetahat,2),"\n")
@@ -250,7 +250,7 @@ algo.hhh.grid <- function(disProgObj, control=list(lambda=TRUE,neighbours=FALSE,
                thetastartMatrix, maxTime=1800, verbose=FALSE){
 
   #convert disProgObj if necessary
-  if (class(disProgObj) == "sts") disProgObj <- sts2disProg(disProgObj)
+  if (inherits(disProgObj, "sts")) disProgObj <- sts2disProg(disProgObj)
 
   #set default values (if not provided in control)
   if(is.null(control[["linear",exact=TRUE]]))
@@ -378,14 +378,14 @@ algo.hhh.grid <- function(disProgObj, control=list(lambda=TRUE,neighbours=FALSE,
 
     #print progress information
     if(verbose){
-      if(class(res)== "try-error")
+      if(inherits(res, "try-error")) {
         print(c(niter=i,timeLeft=time,loglik=NULL))
-      else print(c(niter=i,timeLeft=time,loglik=res$loglikelihood))
+      } else print(c(niter=i,timeLeft=time,loglik=res$loglikelihood))
     }
 
 
     #don't consider "useless" results for the search of the best loglikelihood
-    if(class(res)!= "try-error" && res$convergence){
+    if(!inherits(res, "try-error") && res$convergence){
       #save loglik
       allLoglik[i,] <- c(res$loglikelihood,coef(res))
       #keep it as bestLoglik if loglikelihood improved
@@ -429,7 +429,7 @@ create.grid <- function(disProgObj, control, params = list(epidemic = c(0.1, 0.9
                  endemic=c(-0.5,0.5,3), negbin = c(0.3, 12, 10))) {
 
   #convert S4 sts to S3 if necessary
-  if (class(disProgObj) == "sts") disProgObj <- sts2disProg(disProgObj)
+  if (inherits(disProgObj, "sts")) disProgObj <- sts2disProg(disProgObj)
 
   designRes <- make.design(disProgObj, control)
   control <- designRes$control
@@ -733,7 +733,7 @@ make.design <- function(disProgObj, control=list(lambda=TRUE, neighbours=FALSE,
          lag.range=NULL) ){
 
   #Convert sts objects
-  if (class(disProgObj) == "sts") disProgObj <- sts2disProg(disProgObj)
+  if (inherits(disProgObj, "sts")) disProgObj <- sts2disProg(disProgObj)
 
   #set default values (if not provided in control)
   if(is.null(control[["linear",exact=TRUE]]))

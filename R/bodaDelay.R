@@ -430,7 +430,7 @@ bodaDelay.threshold <- function(model, mc.munu,mc.y,alpha,
 
       P=try(predict(model,type="link",se.fit=TRUE,
                     newdata=newData),silent=TRUE)
-      if (class(P)=="try-error"){P<- NA
+      if (inherits(P, "try-error")){P<- NA
       return(NA)}
       set.seed(1)
       mu_Tt <- exp(rnorm(n=mc.munu,mean=P$fit,sd=P$se.fit))

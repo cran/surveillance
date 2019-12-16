@@ -202,6 +202,7 @@ legend(x = "topleft", pch = 15, legend = c(1, 4, 8), pt.cex = sqrt(c(1, 4, 8)),
 ## 4.3. Modeling and inference
 hagellochFit <- twinSIR(~household + c1 + c2 + nothousehold, data = hagelloch)
 summary(hagellochFit)
+##M Note: OSAIC is 1244.9 (with quadprog <= 1.5-7) or 1244.8 (with 1.5-8)
 
 exp(confint(hagellochFit, parm = "cox(logbaseline)"))
 
@@ -227,6 +228,7 @@ hagellochFit_fstep <- twinSIR(
 
 set.seed(1)
 AIC(hagellochFit, hagellochFit_fstep)
+##M Note: OSAIC values slightly changed (abs. diff. < 0.2) with quadprog 1.5-8
 
 ################################################################################
 ## Section 5. Areal time series of counts
