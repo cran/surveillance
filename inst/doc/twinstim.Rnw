@@ -69,7 +69,6 @@ if (!COMPUTE) load("twinstim-cache.RData", verbose = TRUE)
 
 %% Math packages
 \usepackage{amsmath,amsfonts} % amsfonts defines \mathbb
-\usepackage{mathtools}        % tools for math typesetting + amsmath-bugfixes
 \usepackage{bm}               % \bm: alternative to \boldsymbol from amsfonts
 
 %% Packages for figures and tables
@@ -236,14 +235,15 @@ Since this triggering process is independent of the event's parentage and of oth
 events, the expected number $\mu_j$ of events triggered by event $j$
 can be obtained by integrating the triggering rate over
 the observed interaction domain:
-\begin{gather} \label{eqn:R0:twinstim}
+\begin{equation} \label{eqn:R0:twinstim}
   \mu_j = \eta_j \cdot
   \left[ \int_0^{\min(T-t_j,\tau_j)} g(t) \,dt \right] \cdot
   \left[ \int_{\bm{R}_j} f(\norm{\bm{s}}) \,d\bm{s} \right] \:,
-\shortintertext{where}
-  \label{eqn:twinstim:IR}
+\end{equation}
+where
+\begin{equation} \label{eqn:twinstim:IR}
   \bm{R}_j = (b(\bm{s}_j,\delta_j) \cap \bm{W}) - \bm{s}_j
-\end{gather}
+\end{equation}
 is event $j$'s influence region centered at $\bm{s}_j$, and
 $b(\bm{s}_j, \delta_j)$ denotes the disc centered at $\bm{s}_j$ with radius $\delta_j$.
 Note that the above model-based reproduction number $\mu_j$ is event-specific
@@ -261,7 +261,7 @@ wrapped into the \class{twinstim} class~\eqref{eqn:twinstim}. This means:
 no endemic component,
 homogeneous force of infection ($\eta_j \equiv \beta$),
 homogeneous mixing in space ($f(x) = 1$, $\delta_j \equiv \infty$),
-and exponential decay of infectivity ($g(t) = e^{-\alpha t}$, $\tau_j
+and exponential decay of infectivity over time ($g(t) = e^{-\alpha t}$, $\tau_j
 \equiv \infty$).
 Then, for $T \rightarrow \infty$,
 \begin{equation*}
@@ -859,35 +859,40 @@ takes an argument \code{newcoef}, which is exemplified in \code{help("R0")}.
 
 \subsection{Interaction functions}
 
+<<imdfit_exponential, results="hide", eval=COMPUTE, include=FALSE>>=
+imdfit_exponential <- update(imdfit_Gaussian, siaf = siaf.exponential())
+@
+
 <<imdfit_powerlaw, results="hide", eval=COMPUTE, include=FALSE>>=
-imdfit_powerlaw <- update(imdfit_Gaussian, data = imdepi_untied_infeps,
-  siaf = siaf.powerlaw(),
+imdfit_powerlaw <- update(imdfit_Gaussian, siaf = siaf.powerlaw(),
+  data = imdepi_untied_infeps,
   start = c("e.(Intercept)" = -6.2, "e.siaf.1" = 1.5, "e.siaf.2" = 0.9))
 @
 
 <<imdfit_step4, results="hide", eval=COMPUTE, include=FALSE>>=
-imdfit_step4 <- update(imdfit_Gaussian, data = imdepi_untied_infeps,
+imdfit_step4 <- update(imdfit_Gaussian,
   siaf = siaf.step(exp(1:4 * log(100) / 5), maxRange = 100))
 @
 
 <<save-fits, include = FALSE, eval = COMPUTE, purl=FALSE>>=
-save(imdfit_Gaussian, imdfit_powerlaw, imdfit_step4,
+save(imdfit_Gaussian, imdfit_exponential, imdfit_powerlaw, imdfit_step4,
      file = "twinstim-cache.RData", compress = "xz")
 @
 
 Figure~\ref{fig:imdfit_siafs} shows several estimated spatial interaction
 functions, which can be plotted by, e.g.,
-\code{plot(imdfit_Gaussian, which = "siaf")}.
+\code{plot(imdfit_Gaussian, "siaf")}.
 
 <<imdfit_siafs, fig.cap="Various estimates of spatial interaction (scaled by the epidemic intercept $\\gamma_0$).", fig.pos="!ht", echo=FALSE>>=
 par(mar = c(5,5,1,1))
 set.seed(2)  # Monte-Carlo confidence intervals
 plot(imdfit_Gaussian, "siaf", xlim=c(0,42), ylim=c(0,5e-5), lty=c(1,3),
      xlab = expression("Distance " * x * " from host [km]"))
+plot(imdfit_exponential, "siaf", add=TRUE, col.estimate=5, lty = c(5,3))
 plot(imdfit_powerlaw, "siaf", add=TRUE, col.estimate=4, lty=c(2,3))
 plot(imdfit_step4, "siaf", add=TRUE, col.estimate=3, lty=c(4,3))
-legend("topright", legend=c("Power law", "Step (df=4)", "Gaussian"),
-       col=c(4,3,2), lty=c(2,4,1), lwd=3, bty="n")
+legend("topright", legend=c("Power law", "Exponential", "Gaussian", "Step (df=4)"),
+       col=c(4,5,2,3), lty=c(2,5,1,4), lwd=3, bty="n")
 @
 
 The estimated standard deviation $\hat\sigma$ of the Gaussian kernel is:
@@ -895,28 +900,34 @@ The estimated standard deviation $\hat\sigma$ of the Gaussian kernel is:
 exp(cbind("Estimate" = coef(imdfit_Gaussian)["e.siaf.1"],
           confint(imdfit_Gaussian, parm = "e.siaf.1")))
 @
+
 \citet{meyer.held2013} found that a power-law decay of spatial interaction
 more appropriately describes the spread of human infectious diseases.
-The power-law kernel concentrates on short-range interaction, but also exhibits a
+A power-law kernel concentrates on short-range interaction, but also exhibits a
 heavier tail reflecting occasional transmission over large distances.
 %This result is supported by the power-law distribution of short-time human
 %travel \citep{brockmann.etal2006}, which is an important driver of epidemic spread.
-To use the power-law kernel $f(x) = (x+\sigma)^{-d}$, we switch to the
-prepared \class{epidataCS} object with \code{eps.s = Inf} and update the
-previous Gaussian model as follows:
+To estimate the power law $f(x) = (x+\sigma)^{-d}$, we use the
+prepared \code{eps.s = Inf} version of the \class{epidataCS} object,
+and update the model as follows:
 <<imdfit_powerlaw_echo, echo=TRUE, eval=FALSE, purl=FALSE>>=
 <<imdfit_powerlaw>>
 @
 To reduce the runtime of this example, we specified convenient \code{start} values
 for some parameters.
-The estimated power-law parameters $(\hat\sigma, \hat d)$ are:
+The estimated parameters $(\hat\sigma, \hat d)$ are:
 <<>>=
 exp(cbind("Estimate" = coef(imdfit_powerlaw)[c("e.siaf.1", "e.siaf.2")],
           confint(imdfit_powerlaw, parm = c("e.siaf.1", "e.siaf.2"))))
 @
-Sometimes $\sigma$ is difficult to estimate. In this case, the
-one-parameter version \code{siaf.powerlaw1} can be used to estimate a
+Sometimes $\sigma$ is difficult to estimate, and also in this example, its
+confidence interval is relatively large.
+The one-parameter version \code{siaf.powerlaw1} can be used to estimate a
 power-law decay with fixed $\sigma = 1$.
+A more common option is the exponential kernel $f(x) = \exp(-x/\sigma)$:
+<<imdfit_exponential_echo, echo=TRUE, eval=FALSE, purl=FALSE>>=
+<<imdfit_exponential>>
+@
 
 Table~\ref{tab:iafs} also lists the step function kernel as an alternative, which is
 particularly useful for two reasons. First, it is a more flexible approach since it
@@ -962,12 +973,12 @@ local({
 \subsection{Model selection}
 
 <<imdfits_AIC>>=
-AIC(imdfit_endemic, imdfit_Gaussian, imdfit_powerlaw, imdfit_step4)
+AIC(imdfit_endemic, imdfit_Gaussian, imdfit_exponential, imdfit_powerlaw, imdfit_step4)
 @
 
 Akaike's Information Criterion (AIC)
-suggests superiority of the power-law vs.\ the Gaussian model and the
-endemic-only model. The more flexible step function yields the best AIC value
+suggests superiority of the power-law vs.\ the exponential, Gaussian, and
+endemic-only models. The more flexible step function yields the best AIC value,
 but its shape strongly depends on the chosen knots and is not guaranteed to be
 monotonically decreasing.
 The function \code{stepComponent} -- a wrapper around the \code{step} function

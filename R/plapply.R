@@ -1,22 +1,20 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Parallelized lapply (wrapping around mclapply and parLapply)
 ### taking care of the random seed and printing progress information
 ###
 ### Copyright (C) 2015 Sebastian Meyer
-### $Revision: 1273 $
-### $Date: 2015-03-21 17:39:13 +0100 (Sat, 21. Mar 2015) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
-
 
 plapply <- function (X, FUN, ...,
                      .parallel = 1, .seed = NULL, .verbose = TRUE)
 {
     if (!(useCluster <- inherits(.parallel, "cluster"))) {
-        stopifnot(isScalar(.parallel), .parallel >= 1)
+        stopifnot(length(.parallel) == 1L, is.vector(.parallel, "numeric"),
+                  .parallel >= 1)
         .parallel <- as.vector(.parallel, mode = "integer")
         if (.Platform$OS.type == "windows" && .parallel > 1L) {
             useCluster <- TRUE
@@ -51,7 +49,7 @@ plapply <- function (X, FUN, ...,
         ## add on.exit(verboseExpr) to body(FUN)
         do.call(add.on.exit, list(FUN, verboseExpr))
     }
-    
+
     ## set random seed for reproducibility
     if (!is.null(.seed)) {
         if (useCluster) {

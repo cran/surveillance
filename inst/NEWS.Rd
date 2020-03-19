@@ -8,6 +8,46 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.18.0 (2020-03-18)}{
+
+\subsection{NEW FEATURES}{
+  \itemize{
+    \item New spatial interaction function for \code{twinstim()}:
+    \code{siaf.exponential()} implements the exponential kernel
+    \eqn{f(x) = exp(-x/\sigma)}, which is a useful alternative
+    if the two-parameter power-law kernel is not identifiable.
+    
+    \item The \code{plot}-type \code{"maps"} for \code{"hhh4"} fits,
+    \code{plotHHH4_maps()}, now allows for map-specific color keys
+    via \code{zmax = NA} (useful for \code{prop = TRUE}).
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item The \code{nowcast()}-function now also works for
+    \code{method="bayes.trunc.ddcp"} method when the number of breakpoints
+    is greater than 1.
+
+    \item The \code{amplitudeShift} transformation for sine-cosine
+    coefficient pairs in the \code{summary} of multivariate
+    \code{"hhh4"} models was incorrect in the rare case that the model
+    used unit-specific seasonal terms (\code{addSeason2formula} with
+    \code{length(S) > 1}).
+  }
+}
+
+\subsection{DEPRECATED AND DEFUNCT}{
+  \itemize{
+    \item The original \code{algo.hhh()} implementation of the HHH
+    model has been removed from the package. The function \code{hhh4()}
+    provides an improved and much extended implementation since 2012.
+  }
+}
+
+}
+
+
 \section{Changes in surveillance version 1.17.3 (2019-12-16)}{
 
 \subsection{BUG FIXES}{

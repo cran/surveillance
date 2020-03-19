@@ -5,9 +5,9 @@
 ###
 ### Standard methods for hhh4-fits
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2012-2019 Sebastian Meyer
-### $Revision: 2347 $
-### $Date: 2019-02-19 15:22:29 +0100 (Tue, 19. Feb 2019) $
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2020 Sebastian Meyer
+### $Revision: 2534 $
+### $Date: 2020-03-03 22:11:55 +0100 (Tue, 03. Mar 2020) $
 ################################################################################
 
 ## NOTE: we also apply print.hhh4 in print.summary.hhh4()
@@ -212,10 +212,13 @@ getCoefIdxRenamed <- function (coefnames, reparamPsi=TRUE, idx2Exp=NULL,
         idxPsi
     } else NULL
 
-    ## indexes of sine-cosine coefficients
+    ## indexes of *pairs* of sine-cosine coefficients
     idxAS <- if (amplitudeShift) {
-        idxAS <- sort(c(grep(".sin(", coefnames, fixed=TRUE),
-                        grep(".cos(", coefnames, fixed=TRUE)))
+        idx_sin <- grep(".sin(", coefnames, fixed=TRUE)
+        idx_cos <- match(sub(".sin(", ".cos(", coefnames[idx_sin], fixed=TRUE),
+                         coefnames)
+        if (anyNA(idx_cos)) stop("failed to detect sine-cosine pairs")
+        idxAS <- c(rbind(idx_sin, idx_cos))  # pairwise coefficients
         names(idxAS) <- sub(".sin", ".A", coefnames[idxAS], fixed=TRUE)
         names(idxAS) <- sub(".cos", ".s", names(idxAS), fixed=TRUE)
         idxAS

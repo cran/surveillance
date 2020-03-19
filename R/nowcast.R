@@ -184,23 +184,34 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       if (is.null(control[["ddcp",exact=TRUE]][["tau.gamma",exact=TRUE]])) {
           control[["ddcp"]]$tau.gamma <- 1
       }
-
+      
+      #Prior for eta ~ [eta.mu, eta.prec]
       if (is.null(control[["ddcp",exact=TRUE]][["eta.mu",exact=TRUE]])) {
-          control[["ddcp"]]$eta.mu <- rep(0,length(ddChangepoint))
+        control[["ddcp"]]$eta.mu <- rep(0,length(ddChangepoint))
       } else {
-          if (length(control[["ddcp"]]$eta.mu) != length(ddChangepoint)) {
-              stop("length of eta.mu is different from the number of change points in 'ddChangepoint'.")
-          }
+        if (length(control[["ddcp"]]$eta.mu) != length(ddChangepoint)) {
+          stop("length of eta.mu is different from the number of change points in 'ddChangepoint'.")
+        }
       }
       if (is.null(control[["ddcp",exact=TRUE]][["eta.prec",exact=TRUE]])) {
-          control[["ddcp"]]$eta.prec <- rep(1,length(ddChangepoint))
+        if (length(ddChangepoint) == 1) {
+          control[["ddcp"]]$eta.prec <- 1
+        } else {
+          control[["ddcp"]]$eta.prec <- diag(rep(1, length(ddChangepoint)))
+        }
       } else {
-          if (length(control[["ddcp"]]$eta.prec) != length(ddChangepoint)) {
-              stop("length of eta.prec is different from the number of change points in 'ddChangepoint'.")
+        #Custom option
+        if (length(ddChangepoint) == 1) {
+          if (length(control[["ddcp"]]$eta.prec) != 1) {
+            stop("length of eta.prec is different from the number of change points in 'ddChangepoint'.")
+          } else {
+            if (!( (nrow(control[["ddcp"]]$eta.prec) == (ncol(control[["ddcp"]]$eta.prec))) & (nrow(control[["ddcp"]]$eta.prec) == length(ddChangepoint)))) {
+              stop(paste0("dimension ", dim(control[["ddcp"]]$eta.prec), " of eta.prec is different from the number of change points in 'ddChangepoint' (",length(ddChangepoint),"."))
+            }
           }
+        }
       }
-
-
+  
       #Check MCMC options
       if (is.null(control[["ddcp",exact=TRUE]][["mcmc",exact=TRUE]])) {
           control[["ddcp"]][["mcmc"]] <- c(burnin=2500,sample=10000,thin=1)

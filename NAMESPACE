@@ -254,7 +254,6 @@ export(algo.bayes, algo.bayes1, algo.bayes2, algo.bayes3,
        algo.cusum,
        algo.farrington,
        algo.glrnb, algo.glrpois,
-       algo.hhh, algo.hhh.grid,
        algo.hmm,
        algo.outbreakP,
        algo.rki, algo.rki1, algo.rki2, algo.rki3, algo.rkiLatestTimepoint,
@@ -330,7 +329,7 @@ export(twinstim)
 export(simEpidataCS)
 export(siaf,
        siaf.constant, siaf.step,
-       siaf.gaussian,
+       siaf.gaussian, siaf.exponential,
        siaf.powerlaw, siaf.powerlaw1, siaf.powerlawL, siaf.student)
 export(tiaf,
        tiaf.constant, tiaf.step,
@@ -412,29 +411,6 @@ export(intensityplot.simEpidataCS)      # for convenience
 S3method(print, simEpidataCSlist)
 S3method("[[", simEpidataCSlist)
 S3method(plot, simEpidataCSlist)
-
-
-### algo.hhh-specific
-
-export(algo.hhh)
-export(algo.hhh.grid)
-export(create.grid)
-
-S3method(print, ah)
-S3method(coef, ah)
-S3method(predict, ah)
-S3method(residuals, ah)
-S3method(logLik, ah)
-
-S3method(print, ahg)
-S3method(coef, ahg)
-S3method(predict, ahg)
-S3method(residuals, ahg)
-S3method(logLik, ahg)
-
-export(simHHH, simHHH.default)
-S3method(simHHH, default)
-S3method(simHHH, ah)
 
 
 ### hhh4-specific

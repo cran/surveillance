@@ -1,11 +1,11 @@
 ################################################################################
 ### C-Level Cubature of "siaf" over Polygonal Domains using 'polyCub_iso'
 ###
-### Copyright (C) 2017 Sebastian Meyer
+### Copyright (C) 2017,2020 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 ### construct a call using either .polyCub.iso or its C-version
@@ -99,5 +99,7 @@ INTRFR_CODE <- c(
     "intrfr.powerlawL.dlogsigma" = 31L,
     "intrfr.powerlawL.dlogd" = 32L,
     "intrfr.gaussian" = 40L,
-    "intrfr.gaussian.dlogsigma" = 41L
+    "intrfr.gaussian.dlogsigma" = 41L,
+    "intrfr.exponential" = 50L,
+    "intrfr.exponential.dlogsigma" = 51L
 )

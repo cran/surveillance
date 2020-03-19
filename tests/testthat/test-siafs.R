@@ -41,6 +41,13 @@ test_that("Gaussian iso-C-implementation agrees with numerical approximation",
                         pargrid=as.matrix(log(c(0.5, 1, 3))),
                         tolerance=0.0005, method="SV", nGQ=25))
 
+test_that("Exponential implementation agrees with numerical approximation",
+          myexpectation(siaf.exponential(engine = "R"),
+                        surveillance:::intrfr.exponential,
+                        list(surveillance:::intrfr.exponential.dlogsigma),
+                        pargrid=as.matrix(log(c(0.1, 1, 2))),
+                        tolerance=0.0005, method="SV", nGQ=25))
+
 test_that("Power-law implementation agrees with numerical approximation",
           myexpectation(siaf.powerlaw(engine = "R"),
                         surveillance:::intrfr.powerlaw,
@@ -105,6 +112,11 @@ expect_equal_CnR <- function (siafgen, pargrid)
     expect_equal(object = resDeriv[seq_len(p),], expected = resDeriv[p+seq_len(p),],
                  label = "C-version of Deriv", expected.label = "R-version of Deriv")
 }
+
+test_that("siaf.exponential() engines agree", {
+    expect_equal_CnR(siafgen = siaf.exponential,
+                     pargrid = matrix(log(c(0.1,1,2))))
+})
 
 test_that("siaf.powerlaw() engines agree", {
     expect_equal_CnR(siafgen = siaf.powerlaw,

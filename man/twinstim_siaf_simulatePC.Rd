@@ -4,7 +4,7 @@
   Simulation from an Isotropic Spatial Kernel via Polar Coordinates
 }
 \description{
-  To sample points from isotropic power-law kernels
+  To sample points from isotropic spatial kernels
   \eqn{f_2(s) = f(||s||)} such as \code{\link{siaf.powerlaw}} on a
   bounded domain (i.e., \eqn{||s|| < \code{ub}}), it is
   convenient to switch to polar coordinates \eqn{(r,\theta)},

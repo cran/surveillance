@@ -1,7 +1,3 @@
-###################################################
-### chunk number 1:
-###################################################
-
 ######################################################################
 # Workhorse computing the OutbreakP statistic.
 # Alarm statistic at end time n is returned.
@@ -32,14 +28,14 @@ calc.outbreakP.statistic <- function(x) {
   x <- c(0,x)
 
   #Initialization (not all parts might be needed)
-  leftl <- numeric(n+1);
-  y <- numeric(n+1);
-  yhat <- numeric(n+1);
-  sumwy <- numeric(n+1);
-  sumwys <- numeric(n+1);
-  sumw <- numeric(n+1);
-  w <- numeric(n+1);
-  meanl <- numeric(n+1);
+  leftl <- numeric(n+1)
+  y <- numeric(n+1)
+  yhat <- numeric(n+1)
+  sumwy <- numeric(n+1)
+  sumwys <- numeric(n+1)
+  sumw <- numeric(n+1)
+  w <- numeric(n+1)
+  meanl <- numeric(n+1)
 
   xbar <- 0
   meanl[1] = -Inf
@@ -48,26 +44,26 @@ calc.outbreakP.statistic <- function(x) {
 
   for (i in 1:n) {
     #Initialize
-    yhat[i+1] <- x[i+1];
-    sumwy[i+1] <- x[i+1];
-    sumw[i+1] <- 1;
-    meanl[i+1] <- x[i+1];
-    leftl[i+1] <- i;
+    yhat[i+1] <- x[i+1]
+    sumwy[i+1] <- x[i+1]
+    sumw[i+1] <- 1
+    meanl[i+1] <- x[i+1]
+    leftl[i+1] <- i
     #Calculate mean (this is a sequential formula to calculate mean(x[1:i]))
     xbar=xbar+(x[i+1]-xbar)/i
 
     #Create plateaus
     while (meanl[i+1] <= meanl[ (leftl[i+1] - 1) + 1]) {
       #merge sets
-      sumwy[i+1] = sumwy[i+1] + sumwy[(leftl[i+1] - 1)+1];
-      sumw[i+1] = sumw[i+1] + sumw[(leftl[i+1] - 1)+1];
-      meanl[i+1] = sumwy[i+1] / sumw[i+1];
-      leftl[i+1] = leftl[(leftl[i+1] - 1)+1];
+      sumwy[i+1] = sumwy[i+1] + sumwy[(leftl[i+1] - 1)+1]
+      sumw[i+1] = sumw[i+1] + sumw[(leftl[i+1] - 1)+1]
+      meanl[i+1] = sumwy[i+1] / sumw[i+1]
+      leftl[i+1] = leftl[(leftl[i+1] - 1)+1]
     }
 
     #calculate yhat
     for (j in leftl[i+1]:i) {
-      yhat[j+1] = meanl[i+1];
+      yhat[j+1] = meanl[i+1]
     }
   }
 
@@ -176,6 +172,3 @@ algo.outbreakP <- function(disProgObj, control = list(range = range, k=100, ret=
   class(result) = "survRes" # for surveillance system result
   return(result)
 }
-
-
-

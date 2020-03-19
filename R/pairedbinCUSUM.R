@@ -20,10 +20,10 @@
 
 pairedbinCUSUM.runlength <- function(p,w1,w2,h1,h2,h11,h22, sparse=FALSE) {
   #Size of the sparse matrix -- assumption h1>h11 and h2>h22
-  mw <- h1*h22+(h2-h22)*h11;
+  mw <- h1*h22+(h2-h22)*h11
 
   cat("g =",mw+3,"\n")
-    
+
   #build transition matrix; look at current state as an ordered pair (x1,x2)
   #the size of the matrix is determined by h1, h2, and h11 and h22
   #Look at all 3 possible absorbing conditions
@@ -38,17 +38,17 @@ pairedbinCUSUM.runlength <- function(p,w1,w2,h1,h2,h11,h22, sparse=FALSE) {
   #go over each row and fill in the transition probabilities
   for (i in 1:mw) {
 #        cat(i," out of ", mw,"\n")
-        
+
     #find the corresponding state
     if (i>h1*h22) {
       temp <- floor((i-h1*h22-1)/h11)
       x1 <- i-h1*h22-1-temp*h11
       x2 <- temp+h22
     } else {
-      x2 <- floor((i-1)/h1);
-      x1 <- i-x2*h1-1;
+      x2 <- floor((i-1)/h1)
+      x1 <- i-x2*h1-1
     }
-    
+
     #go over the four different weight combinations
     for (j in 1:2) {
       for (k in 1:2) {
@@ -57,21 +57,21 @@ pairedbinCUSUM.runlength <- function(p,w1,w2,h1,h2,h11,h22, sparse=FALSE) {
         #we cant go below zero
         if (x1n<0) { x1n <- 0 }
         if (x2n<0) { x2n <- 0 }
-        newcond=0;
+        newcond=0
    	#try to figure out what condition index the new CUSUM values correspond to
         if (x1n>=h1) {
-          newcond <- mw+1;     #absorbing state on x1
+          newcond <- mw+1     #absorbing state on x1
         } else {
           if (x2n>=h2) {
             newcond <- mw+2  #absorbing state on x2
           } else {
-            if ((x1n>=h11)&(x2n>=h22)) {    
+            if ((x1n>=h11)&(x2n>=h22)) {
               #only register this if other two conditions are not satisfied
               newcond <- mw+3
             }
           }
         }
-        
+
         if (newcond==0) {   #transition is not to an absorbing state
 	  #translate legal ordered pair to state number
           if (x2n<h22) {
@@ -80,9 +80,9 @@ pairedbinCUSUM.runlength <- function(p,w1,w2,h1,h2,h11,h22, sparse=FALSE) {
             newcond <- h1*h22+(x2n-h22)*h11+x1n+1
           }
         }
-        
+
         #Update transition matrix value
-        transm[i,newcond] <- transm[i,newcond]+p[(k-1)*2+j];
+        transm[i,newcond] <- transm[i,newcond]+p[(k-1)*2+j]
       }
     }
   }
@@ -101,7 +101,7 @@ pairedbinCUSUM.runlength <- function(p,w1,w2,h1,h2,h11,h22, sparse=FALSE) {
     Matrix::rowSums(Matrix::solve(Matrix(id-r)))
   }
   arl <- mom[1]
-  
+
   #Dummy return, as calculation of p-vector crashes on Mac OS X
   return(arl)
 }
@@ -159,27 +159,27 @@ pairedbinCUSUM.LLRcompute <- function(x,theta0, theta1, h1,h2,h11,h22) {
 
 pairedbinCUSUM <- function(stsObj, control = list(range=NULL,theta0,theta1,h1,h2,h11,h22)) {
    # Set the default values if not yet set
-  if(is.null(control[["range"]])) { 
+  if(is.null(control[["range"]])) {
     control$range <- 1:nrow(observed(stsObj))
   } else { # subset stsObj
     stsObj <- stsObj[control[["range"]], ]
   }
-  if(is.null(control[["theta0"]])) { 
+  if(is.null(control[["theta0"]])) {
     stop("no specification of in-control parameters theta0")
   }
-  if(is.null(control[["theta1"]])) { 
+  if(is.null(control[["theta1"]])) {
     stop("no specification of out-of-control parameters theta1")
   }
-  if(is.null(control[["h1"]])) { 
+  if(is.null(control[["h1"]])) {
     stop("no specification of primary threshold h1 for first series")
   }
-  if(is.null(control[["h2"]])) { 
+  if(is.null(control[["h2"]])) {
     stop("no specification of primary threshold h2 for 2nd series")
   }
-  if(is.null(control[["h11"]])) { 
+  if(is.null(control[["h11"]])) {
     stop("no specification of secondary limit h11 for 1st series")
   }
-  if(is.null(control[["h22"]])) { 
+  if(is.null(control[["h22"]])) {
     stop("no specification of secondary limit h11 for 2nd series")
   }
 
@@ -192,7 +192,7 @@ pairedbinCUSUM <- function(stsObj, control = list(range=NULL,theta0,theta1,h1,h2
   h2 <- control[["h2"]]
   h11 <- control[["h11"]]
   h22 <- control[["h22"]]
-  
+
   #Semantic checks.
   if (ncol(y) != 2) {
     stop("the number of columns in the sts object needs to be two")
@@ -202,7 +202,7 @@ pairedbinCUSUM <- function(stsObj, control = list(range=NULL,theta0,theta1,h1,h2
   #method, each ROW represents a series.
   alarm <- matrix(data = FALSE, nrow = nTime, ncol = 2)
   upperbound <- matrix(data = 0, nrow = nTime, ncol = 2)
-  
+
   #Setup counters for the progress
   doneidx <- 0
   N <- 1
@@ -214,19 +214,19 @@ pairedbinCUSUM <- function(stsObj, control = list(range=NULL,theta0,theta1,h1,h2
   while (doneidx < nTime) {
      #Run paired binary CUSUM until the next alarm
     res <- pairedbinCUSUM.LLRcompute(x=y, theta0=theta0, theta1=theta1, h1=h1, h2=h2, h11=h11, h22=h22)
-  
+
     #In case an alarm found log this and reset the chart at res$N+1
     if (res$N < nrow(y)) {
       #Put appropriate value in upperbound
       upperbound[1:res$N + doneidx,]  <- res$val[1:res$N,]
       alarm[res$N + doneidx,] <- res$alarm
-    
+
      #Chop & get ready for next round
       y <- y[-(1:res$N),,drop=FALSE]
 #      theta0 <- pi0[,-(1:res$N),drop=FALSE]
 #      theta1 <- pi1[,-(1:res$N),drop=FALSE]
 #      n <- n[-(1:res$N)]
-      
+
       #Add to the number of alarms
       noofalarms <- noofalarms + 1
     }
@@ -235,7 +235,7 @@ pairedbinCUSUM <- function(stsObj, control = list(range=NULL,theta0,theta1,h1,h2
 
   #Add upperbound-statistic of last segment, where no alarm is reached
   upperbound[(doneidx-res$N+1):nrow(upperbound),]  <- res$val
-  
+
   # Add name and data name to control object
   control$name <- "pairedbinCUSUM"
   control$data <- NULL #not supported anymore

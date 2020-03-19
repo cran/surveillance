@@ -53,11 +53,19 @@ permutationTest(score1, score2, nPermutation = 9999,
     \code{mean(score1) - mean(score2)}}
   \item{pVal.permut}{p-value of the permutation test}
   \item{pVal.t}{p-value of the corresponding
-    \code{t.test(score1, score2, paired=TRUE)}}
+    \code{\link{t.test}(score1, score2, paired=TRUE)}}
 }
 
 \author{
   Michaela Paul with contributions by Sebastian Meyer
+}
+
+\references{
+  Paul, M. and Held, L. (2011):
+  Predictive assessment of a non-linear random effects model for
+  multivariate time series of infectious disease counts.
+  \emph{Statistics in Medicine}, \bold{30} (10), 1118-1136.
+  \doi{10.1002/sim.4177}
 }
 
 \seealso{

@@ -208,82 +208,11 @@ print(res.survstat, digits=3)
 
 
 ###################################################
-### code chunk number 21: mapWeserEms
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-data("measlesWeserEms")
-par(mar=c(0,0,0,0))
-plot(measlesWeserEms@map[-c(1,5),], col=grey.colors(15,start=0.4,end=1))
-text(coordinates(measlesWeserEms@map[-c(1,5),]),
-     labels=row.names(measlesWeserEms@map)[-c(1,5)], font=2)
-
-
-###################################################
-### code chunk number 22: surveillance.Rnw:550-553
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-data("measles.weser")
-plot(measles.weser, title="measles in Weser-Ems 2001-2002",
-     xaxis.years=TRUE, startyear= 2001, firstweek=1)
-
-
-###################################################
-### code chunk number 23: surveillance.Rnw:561-562
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-plot(measles.weser,as.one=FALSE,xaxis.years=FALSE)
-
-
-###################################################
-### code chunk number 24: cntrl
-###################################################
-cntrl <- list(linear = TRUE, nseason = 1, neighbours = TRUE,
-              negbin = "single", lambda = TRUE)
-
-
-###################################################
-### code chunk number 25: measles.hhh (eval = FALSE)
-###################################################
-## measles.hhh <- algo.hhh(measles.weser, control = cntrl)
-
-
-###################################################
-### code chunk number 26: measles.hhh.grid (eval = FALSE)
-###################################################
-## grid <- create.grid(measles.weser, control = cntrl,
-##   params = list(endemic = c(lower=-0.5, upper=0.5, length=3),
-##                 epidemic = c(0.1, 0.9, 5),
-##                 negbin = c(0.3, 12, 5)))
-## measles.hhh.grid <- algo.hhh.grid(measles.weser,
-##   control = cntrl, thetastartMatrix = grid, maxTime = 300)
-
-
-###################################################
-### code chunk number 27: surveillance.Rnw:624-628
-###################################################
-if (compute) {
-message("running a grid search for up to 5 minutes")
-grid <- create.grid(measles.weser, control = cntrl,
-  params = list(endemic = c(lower=-0.5, upper=0.5, length=3),
-                epidemic = c(0.1, 0.9, 5),
-                negbin = c(0.3, 12, 5)))
-measles.hhh.grid <- algo.hhh.grid(measles.weser,
-  control = cntrl, thetastartMatrix = grid, maxTime = 300)
-}
-
-
-###################################################
-### code chunk number 28: surveillance.Rnw:631-632
-###################################################
-print(measles.hhh.grid, digits = 3)
-
-
-###################################################
-### code chunk number 29: surveillance.Rnw:636-642
+### code chunk number 21: surveillance.Rnw:514-520
 ###################################################
 if (compute) { # save computed results
     save(list=c("sts.cdc","sts.farrington","acall","res.survstat",
-                "ten.surv","measles.hhh.grid"),
+                "ten.surv"),
          file=CACHEFILE)
     tools::resaveRdaFiles(CACHEFILE)
 }

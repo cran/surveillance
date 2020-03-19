@@ -3,6 +3,7 @@
 \alias{siaf.constant}
 \alias{siaf.step}
 \alias{siaf.gaussian}
+\alias{siaf.exponential}
 \alias{siaf.powerlaw}
 \alias{siaf.powerlaw1}
 \alias{siaf.powerlawL}
@@ -21,9 +22,9 @@
   (\eqn{f} and \eqn{g}, respectively), 
   i.e. how infectivity decays with increasing spatial and temporal
   distance from the source of infection.
-  It is of course possible to define own functions (see
+  Own such functions can be specified (see
   \code{\link{siaf}} and \code{\link{tiaf}}, respectively), but the
-  package already predefines some useful dispersal kernels returned by
+  package already predefines some common dispersal kernels returned by
   the constructor functions documented here.
   See Meyer and Held (2014) for various spatial interaction functions,
   and Meyer et al. (2017, Section 3, available as \code{vignette("twinstim")})
@@ -37,6 +38,7 @@ siaf.step(knots, maxRange = Inf, nTypes = 1, validpars = NULL)
 siaf.gaussian(nTypes = 1, logsd = TRUE, density = FALSE,
               F.adaptive = FALSE, F.method = "iso",
               effRangeMult = 6, validpars = NULL)
+siaf.exponential(nTypes = 1, validpars = NULL, engine = "C")
 siaf.powerlaw(nTypes = 1, validpars = NULL, engine = "C")
 siaf.powerlaw1(nTypes = 1, validpars = NULL, sigma = 1)
 siaf.powerlawL(nTypes = 1, validpars = NULL, engine = "C")
@@ -184,18 +186,26 @@ tiaf.exponential(nTypes = 1, validpars = NULL)
       The standard deviation is optimized on the log-scale
       (\code{logsd = TRUE}, not doing so is deprecated).
     }
+    \item{\code{siaf.exponential}:}{
+      \eqn{f(s) = exp(-||s||/sigma)}\cr
+      The scale parameter \eqn{sigma} is estimated on the log-scale,
+      i.e., \eqn{\sigma = \exp(\tilde{\sigma})}, and \eqn{\tilde{\sigma}}
+      is the actual model parameter.
+    }
     \item{\code{siaf.powerlaw}:}{
-      \eqn{f(s) = (||s|| + \sigma)^{-d}},\cr
-      which is the kernel of the Lomax density, i.e. without any
-      proportionality constants. The parameters are optimized on the
-      log-scale to ensure positivity, i.e.
+      \eqn{f(s) = (||s|| + \sigma)^{-d}}\cr
+      The parameters are optimized on the log-scale to ensure positivity, i.e.,
       \eqn{\sigma = \exp(\tilde{\sigma})} and \eqn{d = \exp(\tilde{d})},
       where \eqn{(\tilde{\sigma}, \tilde{d})} is the parameter vector.
+      If a power-law kernel is not identifiable for the dataset at hand,
+      the exponential kernel or a lagged power law are useful alternatives.
     }
     \item{\code{siaf.powerlaw1}:}{
       \eqn{f(s) = (||s|| + 1)^{-d}},\cr
       i.e., \code{siaf.powerlaw} with fixed \eqn{\sigma = 1}.
-      The decay parameter is estimated on the log-scale.
+      A different fixed value for \eqn{sigma} can be specified via the
+      \code{sigma} argument of \code{siaf.powerlaw1}.
+      The decay parameter \eqn{d} is estimated on the log-scale.
     }
     \item{\code{siaf.powerlawL}:}{
       \eqn{f(s) = (||s||/\sigma)^{-d}}, for \eqn{||s|| \ge \sigma}, and
@@ -295,7 +305,7 @@ tiaf.exponential(nTypes = 1, validpars = NULL)
 tiaf.constant()
 # step function kernel
 tiaf.step(c(3,7), maxRange=14, nTypes=2)
-# exponential decay specification
+# exponential temporal decay
 tiaf.exponential()
 
 # Type-dependent Gaussian spatial interaction function using an adaptive
@@ -305,7 +315,10 @@ siaf.gaussian(2, F.adaptive=TRUE)
 # Single-type Gaussian spatial interaction function (using polyCub.iso)
 siaf.gaussian()
 
-# Type-independent power-law kernel
+# Exponential kernel
+siaf.exponential()
+
+# Power-law kernel
 siaf.powerlaw()
 
 # Power-law kernel with fixed sigma = 1

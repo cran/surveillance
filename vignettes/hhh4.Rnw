@@ -53,12 +53,8 @@ University of Zurich, Zurich, Switzerland
 \SweaveOpts{prefix.string=plots/hhh4, keep.source=T, strip.white=true}
 
 \definecolor{Sinput}{rgb}{0,0,0.56}
-\definecolor{Scode}{rgb}{0,0,0.56}
-\definecolor{Soutput}{rgb}{0,0,0}
-
 \DefineVerbatimEnvironment{Sinput}{Verbatim}{formatcom={\color{Sinput}},fontshape=sl,fontsize=\footnotesize}
-\DefineVerbatimEnvironment{Soutput}{Verbatim}{formatcom={\color{Soutput}},fontfamily=courier, fontshape=it,fontsize=\scriptsize}
-\DefineVerbatimEnvironment{Scode}{Verbatim}{formatcom={\color{Scode}},fontshape=sl,fontsize=\footnotesize}
+\DefineVerbatimEnvironment{Soutput}{Verbatim}{fontshape=sl,fontsize=\footnotesize}
 
 %%% Initial R code
 <<setup, echo=FALSE, results=hide>>=

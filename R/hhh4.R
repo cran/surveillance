@@ -1,14 +1,15 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
-### hhh4 is an extended version of algo.hhh for the sts-class
-### The function allows the incorporation of random effects and covariates.
+### Endemic-epidemic modelling for univariate or multivariate
+### time series of infectious disease counts (data class "sts")
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2016,2019 Sebastian Meyer
-### $Revision: 2482 $
-### $Date: 2019-09-11 22:41:12 +0200 (Wed, 11. Sep 2019) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
+###
+### $Revision: 2524 $
+### $Date: 2020-03-03 16:34:01 +0100 (Tue, 03. Mar 2020) $
 ################################################################################
 
 ## Error message issued in loglik, score and fisher functions upon NA parameters

@@ -9,10 +9,29 @@
 \alias{test}
 \alias{testSim}
 \alias{toFileDisProg}
+\alias{algo.hhh}
+\alias{algo.hhh.grid}
+\alias{create.grid}
 \description{
   The functions listed here are no longer part of \pkg{surveillance}.
 }
 \usage{
+## Defunct in surveillance 1.18.0
+algo.hhh(disProgObj, control=list(
+             lambda=TRUE, neighbours=FALSE, linear=FALSE, nseason=0,
+             negbin=c("none", "single", "multiple"),
+             proportion=c("none", "single", "multiple"), lag.range=NULL
+         ), thetastart=NULL, verbose=TRUE)
+algo.hhh.grid(disProgObj, control=list(
+                 lambda=TRUE, neighbours=FALSE, linear=FALSE, nseason=0,
+                 negbin=c("none", "single", "multiple"),
+                 proportion=c("none", "single", "multiple"), lag.range=NULL
+              ), thetastartMatrix, maxTime=1800, verbose=FALSE)
+create.grid(disProgObj, control, params=list(
+                epidemic=c(0.1, 0.9, 5), endemic=c(-0.5, 0.5, 3),
+                negbin=c(0.3, 12, 10)
+            ))
+
 ## Defunct in surveillance 1.17.0
 compMatrix.writeTable(compMatrix)
 correct53to52(disProgObj, firstweek = 1)
@@ -27,6 +46,11 @@ testSim(p = 0.99, r = 0.01, length = 400, A = 1, alpha = 1,
 toFileDisProg(disProgObj, toFile)
 }
 \details{
+  \code{algo.hhh} was an early implementation of the HHH regression
+  framework for multivariate time series of infectious disease counts.
+  An improved and considerably extended implementation is provided by
+  the \code{\link{hhh4}} function since 2012.
+  
   The trivial function \code{compMatrix.writeTable} is no longer used
   (it did nothing more than generating an \code{\link{xtable}} of its input).
   

@@ -1,11 +1,11 @@
 /*******************************************************************************
  * Call polyCub_iso from polyCubAPI.h for a specific intrfr function
  *
- * Copyright (C) 2017 Sebastian Meyer
+ * Copyright (C) 2017,2020 Sebastian Meyer
  *
  * This file is part of the R package "surveillance",
  * free software under the terms of the GNU General Public License, version 2,
- * a copy of which is available at http://www.R-project.org/Licenses/.
+ * a copy of which is available at https://www.R-project.org/Licenses/.
  ******************************************************************************/
 
 #include <math.h>
@@ -153,6 +153,19 @@ static double intrfr_gaussian_dlogsigma(double R, double *logsigma)
     return 2*sigma2 * (1 - (1+R2sigma2)/exp(R2sigma2));
 }
 
+// Exponential kernel
+static double intrfr_exponential(double R, double *logsigma)
+{
+    double sigma = exp(logsigma[0]);
+    return sigma * (sigma - (R+sigma)*exp(-R/sigma));
+}
+
+static double intrfr_exponential_dlogsigma(double R, double *logsigma)
+{
+    double sigma = exp(logsigma[0]);
+    return 2*sigma*sigma - ((R+sigma)*(R+sigma) + sigma*sigma)*exp(-R/sigma);
+}
+
 
 /*** function to be called from R ***/
 
@@ -178,6 +191,8 @@ void C_siaf_polyCub1_iso(
     case 32: intrfr = intrfr_powerlawL_dlogd; break;
     case 40: intrfr = intrfr_gaussian; break;
     case 41: intrfr = intrfr_gaussian_dlogsigma; break;
+    case 50: intrfr = intrfr_exponential; break;
+    case 51: intrfr = intrfr_exponential_dlogsigma; break;        
     default: error("unknown intrfr_code"); break;
     }
     double center_x = 0.0;

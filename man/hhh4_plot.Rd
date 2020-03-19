@@ -205,7 +205,11 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     display proportions of the total mean instead of absolute numbers.}
   \item{zmax}{a numeric vector of length \code{length(which)} (recycled
     as necessary) specifying upper limits for the color keys of the
-    maps. The default is to use the same scale for the component maps
+    maps, using a lower limit of 0.
+    A missing element (\code{NA}) means to use a map-specific color key
+    only covering the range of the values in that map
+    (can be useful for \code{prop = TRUE}).
+    The default \code{zmax = NULL} means to use the same scale for the component maps
     and a separate scale for the map showing the overall mean.}
   \item{col.regions}{a vector of colors used to encode the fitted
     component means (see \code{\link[lattice]{levelplot}}).
@@ -327,10 +331,15 @@ plot(measlesFit, type="season")
 getMaxEV(measlesFit)  # here simply constant and equal to exp(ar.1)
 plot(measlesFit, type="maxEV")  # not very exciting
 
-## fitted mean components by district averaged over time
-if (requireNamespace("gridExtra"))
+## fitted mean components/proportions by district, averaged over time
+if (requireNamespace("gridExtra")) {
     plot(measlesFit, type="maps", labels=list(cex=0.6),
-         main=c("Total","Endemic","Within district","From other districts"))
+         which=c("mean", "endemic", "epi.own"),
+         main=c("total", "endemic", "autoregressive"))
+    plot(measlesFit, type="maps", labels=list(cex=0.6),
+         which=c("endemic", "epi.own"), prop=TRUE, zmax=NA,
+         main=c("endemic proportion", "autoregressive proportion"))
+}
 
 ## estimated random intercepts of the endemic component
 fixef(measlesFit)["end.ri(iid)"]     # global intercept (log-scale)

@@ -88,7 +88,7 @@ grid::grid.text("Incidence [per 100'000 inhabitants]", x = 0.5, y = 0.02)
 
 
 ###################################################
-### code chunk number 9: hhh4.Rnw:270-275
+### code chunk number 9: hhh4.Rnw:266-271
 ###################################################
 # consistency check
 local({
@@ -161,7 +161,7 @@ result1 <- update(result0, family = "NegBin1")
 
 
 ###################################################
-### code chunk number 16: hhh4.Rnw:500-501
+### code chunk number 16: hhh4.Rnw:496-497
 ###################################################
 AIC(result0, result1)
 
@@ -174,7 +174,7 @@ result2 <- update(result1, ar = list(f = ~ 1))
 
 
 ###################################################
-### code chunk number 18: hhh4.Rnw:514-518
+### code chunk number 18: hhh4.Rnw:510-514
 ###################################################
 coef(result2, se = TRUE,    # also return standard errors
      amplitudeShift = TRUE, # transform sine/cosine coefficients
@@ -274,7 +274,7 @@ if(compute){
 
 
 ###################################################
-### code chunk number 27: hhh4.Rnw:665-666
+### code chunk number 27: hhh4.Rnw:661-662
 ###################################################
 s.B2
 
@@ -299,7 +299,7 @@ s.B2
 
 
 ###################################################
-### code chunk number 31: hhh4.Rnw:698-699
+### code chunk number 31: hhh4.Rnw:694-695
 ###################################################
 meanSc.B2[c("logs", "rps")]
 
@@ -321,7 +321,7 @@ colnames(vac0) <- colnames(measles2w)
 
 
 ###################################################
-### code chunk number 33: hhh4.Rnw:745-746
+### code chunk number 33: hhh4.Rnw:741-742
 ###################################################
 vac0[1:2, 1:6]
 

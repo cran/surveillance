@@ -97,13 +97,16 @@ print(xtable(imdfit_Gaussian,
 R0_events <- R0(imdfit_Gaussian)
 tapply(R0_events, marks(imdepi_untied)[names(R0_events), "type"], mean)
 
+## ----imdfit_exponential, results="hide", eval=COMPUTE, include=FALSE---------------
+#  imdfit_exponential <- update(imdfit_Gaussian, siaf = siaf.exponential())
+
 ## ----imdfit_powerlaw, results="hide", eval=COMPUTE, include=FALSE------------------
-#  imdfit_powerlaw <- update(imdfit_Gaussian, data = imdepi_untied_infeps,
-#    siaf = siaf.powerlaw(),
+#  imdfit_powerlaw <- update(imdfit_Gaussian, siaf = siaf.powerlaw(),
+#    data = imdepi_untied_infeps,
 #    start = c("e.(Intercept)" = -6.2, "e.siaf.1" = 1.5, "e.siaf.2" = 0.9))
 
 ## ----imdfit_step4, results="hide", eval=COMPUTE, include=FALSE---------------------
-#  imdfit_step4 <- update(imdfit_Gaussian, data = imdepi_untied_infeps,
+#  imdfit_step4 <- update(imdfit_Gaussian,
 #    siaf = siaf.step(exp(1:4 * log(100) / 5), maxRange = 100))
 
 ## ----imdfit_siafs, fig.cap="Various estimates of spatial interaction (scaled by the epidemic intercept $\\gamma_0$).", fig.pos="!ht", echo=FALSE----
@@ -111,10 +114,11 @@ par(mar = c(5,5,1,1))
 set.seed(2)  # Monte-Carlo confidence intervals
 plot(imdfit_Gaussian, "siaf", xlim=c(0,42), ylim=c(0,5e-5), lty=c(1,3),
      xlab = expression("Distance " * x * " from host [km]"))
+plot(imdfit_exponential, "siaf", add=TRUE, col.estimate=5, lty = c(5,3))
 plot(imdfit_powerlaw, "siaf", add=TRUE, col.estimate=4, lty=c(2,3))
 plot(imdfit_step4, "siaf", add=TRUE, col.estimate=3, lty=c(4,3))
-legend("topright", legend=c("Power law", "Step (df=4)", "Gaussian"),
-       col=c(4,3,2), lty=c(2,4,1), lwd=3, bty="n")
+legend("topright", legend=c("Power law", "Exponential", "Gaussian", "Step (df=4)"),
+       col=c(4,5,2,3), lty=c(2,5,1,4), lwd=3, bty="n")
 
 ## ----------------------------------------------------------------------------------
 exp(cbind("Estimate" = coef(imdfit_Gaussian)["e.siaf.1"],
@@ -128,7 +132,7 @@ exp(cbind("Estimate" = coef(imdfit_powerlaw)[c("e.siaf.1", "e.siaf.2")],
 quantile(getSourceDists(imdepi_untied_infeps, "space"), c(1,2,4,8)/100)
 
 ## ----imdfits_AIC-------------------------------------------------------------------
-AIC(imdfit_endemic, imdfit_Gaussian, imdfit_powerlaw, imdfit_step4)
+AIC(imdfit_endemic, imdfit_Gaussian, imdfit_exponential, imdfit_powerlaw, imdfit_step4)
 
 ## ----imdfit_endemic_sel, results="hide", include=FALSE-----------------------------
 ## Example of AIC-based stepwise selection of the endemic model

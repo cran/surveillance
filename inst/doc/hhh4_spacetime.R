@@ -140,10 +140,11 @@ cbind("Estimate" = coef(measlesFit_powerlaw),
 measlesFit_np2 <- update(measlesFit_nepop,
   ne = list(weights = W_np(maxlag = 2)))
 
-## ----measlesFit_neweights, fig.width=5, fig.height=3.5, fig.cap="Estimated weights as a function of adjacency order.", out.width="0.47\\linewidth", fig.subcap=c("Normalized power-law weights.", "Non-normalized weights with 95\\% CIs."), echo=c(1,4)----
+## ----measlesFit_neweights, fig.width=5, fig.height=3.5, fig.cap="Estimated weights as a function of adjacency order.", out.width="0.47\\linewidth", fig.subcap=c("Normalized power-law weights.", "Non-normalized weights with 95\\% CIs."), echo=c(1,5)----
 library("lattice")
 trellis.par.set("reference.line", list(lwd=3, col="gray"))
 trellis.par.set("fontsize", list(text=14))
+set.seed(20200303)
 plot(measlesFit_powerlaw, type = "neweights", plotter = stripplot,
   panel = function (...) {panel.stripplot(...); panel.average(...)},
   jitter.data = TRUE, xlab = expression(o[ji]), ylab = expression(w[ji]))

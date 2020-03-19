@@ -343,6 +343,11 @@ fluMenFit <- hhh4(fluMen, control = list(
 summary(fluMenFit, idx2Exp=1:3)
 plot(fluMenFit, type = "season", components = "end", unit = 1)
 plot(fluMenFit, type = "season", components = "end", unit = 2)
+\dontshow{
+    ## regression test for amplitude/shift transformation of sine-cosine pairs
+    ## coefficients were wrongly matched in surveillance < 1.18.0
+    stopifnot(coef(fluMenFit, amplitudeShift = TRUE)["end.A(2 * pi * t/52).meningococcus"] == sqrt(sum(coef(fluMenFit)[paste0("end.", c("sin","cos"), "(2 * pi * t/52).meningococcus")]^2)))
+}
 
 
 ### weekly counts of measles, Weser-Ems region of Lower Saxony, Germany
