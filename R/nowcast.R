@@ -36,18 +36,20 @@
 #  * Function should work for weekly and monthly data as well
 ######################################################################
 
-nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
+nowcast <- function(now, when, data, dEventCol="dHospital", dReportCol="dReport",
         method=c("bayes.notrunc","bayes.notrunc.bnb","lawless","bayes.trunc","unif","bayes.trunc.ddcp"),
         aggregate.by="1 day",
-        D=15, m=NULL,
+        D=15, m=NULL, m.interpretation=c("hoehle_anderheiden2014", "lawless1994"),
         control=list(
             dRange=NULL,alpha=0.05,nSamples=1e3,
             N.tInf.prior=c("poisgamma","pois","unif"),
             N.tInf.max=300, gd.prior.kappa=0.1,
             ddcp=list(ddChangepoint=NULL,
-                logLambda=c("iidLogGa","tps","rw1","rw2"),
-                tau.gamma=1,eta.mu=NULL, eta.prec=NULL,
-                mcmc=c(burnin=2500,sample=10000,thin=1)),
+                      cp_order=c("zero","one"),
+                      Wextra=NULL,
+                      logLambda=c("iidLogGa","tps","rw1","rw2"),
+                      responseDistr=c("poisson", "negbin"),
+                      mcmc=c(burnin=2500,sample=10000,thin=1, adapt=1000, store.samples=FALSE)),
             score=FALSE,predPMF=FALSE)) {
 
 
@@ -64,7 +66,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
 
   #Check if all when_i<= now
   if (!all(when<=now)) {
-    stop("Assertion when<=now failed.")
+    stop("Assertion when <= now failed.")
   }
 
   #Check that specified methods are all valid
@@ -110,6 +112,16 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       }
   }
 
+  ## Check the value of the m interpretation
+  m.interpretation <- match.arg(m.interpretation, c("hoehle_anderheiden2014", "lawless1994"))
+  if (!is.null(m) & (method == "lawless") & (m.interpretation != "lawless1994")) {
+    warning("Selected method is Lawless (1994), but the interpretation of m is a horizontal cut in the reporting triangle (as in Hoehle and an der Heiden (2014)) and not as in Lawless (1994).")
+  }
+  if (!is.null(m) & (method != "lawless") & (m.interpretation == "lawless1994")) {
+    stop("The selected nowcasting method only works with m.interpretation = 'hoehle_anderheiden2014'")
+  }
+  
+
   ######################################################################
   #If there is a specification of dateRange set dMin and dMax accordingly
   #Otherwise use as limits the range of the data
@@ -122,10 +134,10 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     dMax <- control$dRange[length(control$dRange)]
   }
   #@hoehle - check that dRange is proper
-  if (!all( format( c(dMin,dMax), epochInPeriodStr) == 1)) {
+  if (!all( format( c(dMin, dMax), epochInPeriodStr) == 1)) {
       stop("The variables in dRange needs to be at the first of each epoch.")
   }
-  dateRange <- seq(dMin,dMax,by=aggregate.by)
+  dateRange <- seq(dMin, dMax, by=aggregate.by)
 
   ######################################################################
   # Additional manipulation of the control arguments
@@ -156,40 +168,66 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       #If no parameters at all set to defaults.
       if (is.null(control[["ddcp",exact=TRUE]])) {
           control$ddcp <- list(ddChangepoint=NULL,
+                               cp_order="zero",
+                               Wextra=NULL,
                                logLambda=c("iidLogGa","tps","rw1","rw2"),
                                tau.gamma=1,
-                               mcmc=c(burnin=2500,sample=10000,thin=1))
+                               response.distr=c("poisson"),
+                               mcmc=c(burnin=2500, sample=10000, thin=1, adapt=1000, store.samples=FALSE))
       }
-      #Check form og logLambda
+      #Check form of logLambda
       if (is.null(control[["ddcp",exact=TRUE]][["logLambda",exact=TRUE]])) {
-          control[["ddcp"]] <- modifyList(control[["ddcp",exact=TRUE]],list(logLambda="iidLogGa"))
+        control[["ddcp"]] <- modifyList(control[["ddcp",exact=TRUE]], list(logLambda="iidLogGa"))
       } else {
-          control[["ddcp"]]$logLambda <- match.arg(control[["ddcp"]][["logLambda"]],c("iidLogGa","tps","rw1","rw2"))
+        control[["ddcp"]]$logLambda <- match.arg(control[["ddcp"]][["logLambda"]],c("iidLogGa","tps","rw1","rw2"))
       }
 
       #Check breakpoint to use in case of bayes.trunc.ddcp (delay distribution with breakpoint)
       if (is.null(control[["ddcp",exact=TRUE]][["ddChangepoint",exact=TRUE]]) ||
           (!class(control[["ddcp",exact=TRUE]][["ddChangepoint",exact=TRUE]]) == "Date")) {
-          stop("Please specify a Date object as changepoint in control$ddChangepoint.")
+        stop("Please specify a Date object as changepoint in control$ddChangepoint.")
       } else {
-          if (any(control[["ddcp",exact=TRUE]][["ddChangepoint"]] > now)) {
-              warning("Some of the elements in ddChangepoint are beyond 'now'. This might be problematic!")
-          }
+        if (any(control[["ddcp",exact=TRUE]][["ddChangepoint"]] > now)) {
+          warning("Some of the elements in ddChangepoint are beyond 'now'. This might be problematic!")
+        }
       }
-
+      ##Check cp_order variable
+      if (!is.null(control[["ddcp",exact=TRUE]][["cp_order",exact=TRUE]])) {
+        control[["ddcp"]]$cp_order <- match.arg(control[["ddcp"]][["cp_order"]],c("zero","one"))
+      } else {
+        control[["ddcp"]]$cp_order <- "zero"
+      }
+      ##Check Wextra argument
+      if (!is.null(control[["ddcp",exact=TRUE]][["Wextra",exact=TRUE]])) {
+        if (!is.array(control[["ddcp",exact=TRUE]][["Wextra",exact=TRUE]])) {
+          stop("Wextra is not an array.")
+        }
+      }
+      
       #Make this an accessible variable
       ddChangepoint <- control$ddcp$ddChangepoint
+      Wextra <- control$ddcp$Wextra
+      ncol_Wextra <- if (is.null(Wextra)) 0 else ncol(Wextra)
+      colnames_Wextra <- if (is.null(Wextra)) NULL else colnames(Wextra)
+      cp_order <- control$ddcp$cp_order
+      
+      #Response distribution in the model
+      if (is.null(control[["ddcp",exact=TRUE]][["response.distr",exact=TRUE]])) {
+        control[["ddcp"]]$response.distr <- "poisson"
+      } else {
+        stopifnot(control[["ddcp",exact=TRUE]][["response.distr",exact=TRUE]] %in% c("poisson", "negbin"))
+      }
 
       #Precision parameter for gamma coefficients for hazard delay distribution
       if (is.null(control[["ddcp",exact=TRUE]][["tau.gamma",exact=TRUE]])) {
           control[["ddcp"]]$tau.gamma <- 1
       }
-      
+
       #Prior for eta ~ [eta.mu, eta.prec]
       if (is.null(control[["ddcp",exact=TRUE]][["eta.mu",exact=TRUE]])) {
-        control[["ddcp"]]$eta.mu <- rep(0,length(ddChangepoint))
+        control[["ddcp"]]$eta.mu <- rep(0,length(ddChangepoint) + ncol_Wextra)
       } else {
-        if (length(control[["ddcp"]]$eta.mu) != length(ddChangepoint)) {
+        if (length(control[["ddcp"]]$eta.mu) != length(ddChangepoint) + ncol_Wextra) {
           stop("length of eta.mu is different from the number of change points in 'ddChangepoint'.")
         }
       }
@@ -211,15 +249,25 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
           }
         }
       }
-  
+
+      #Check MCMC options
+      if (is.null(control[["ddcp",exact=TRUE]][["responseDistr",exact=TRUE]])) {
+        control[["ddcp"]][["responseDistr"]] <- "poisson"
+      } else {
+        # Check that it's a valid response distribution
+        stopifnot(control[["ddcp"]][["responseDistr"]] %in% c("negbin","poisson"))
+      }
+      
       #Check MCMC options
       if (is.null(control[["ddcp",exact=TRUE]][["mcmc",exact=TRUE]])) {
-          control[["ddcp"]][["mcmc"]] <- c(burnin=2500,sample=10000,thin=1)
+          control[["ddcp"]][["mcmc"]] <- c(burnin=2500,sample=10000,thin=1, adapt=1000, store.samples=FALSE)
       } else {
-          if (!all(names(control[["ddcp",exact=TRUE]][["mcmc",exact=TRUE]]) %in% c("burnin","sample","thin"))) {
-              stop("mcmc options need names 'burnin', 'sample' and 'thin'")
+          if (!all(c("burnin","sample","thin", "adapt", "store.samples") %in% names(control[["ddcp",exact=TRUE]][["mcmc",exact=TRUE]]))) {
+              stop("mcmc option list needs names 'burnin', 'sample', 'thin', 'adapt' and 'store.samples'.")
           }
-      }
+        }
+
+      #done with options for bayes.trunc.ddcp
   }
 
   ######################################################################
@@ -254,7 +302,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   sts <- as(sts,"stsNC")
 
   #Create an extra object containing the "truth" based on data
-  sts.truth <- linelist2sts(data,dEventCol,aggregate.by=aggregate.by,dRange=dateRange)
+  sts.truth <- linelist2sts(data, dEventCol, aggregate.by=aggregate.by, dRange=dateRange)
 
   #List of scores to calculate. Can become an argument later on
   scores <- c("logS","RPS","dist.median","outside.ci")
@@ -303,8 +351,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   #Time origin t_0
   t0 <- min(dateRange)
   #Sequence from time origin until now (per day??)
-  #@hoehle
-  t02s <- seq(t0,now,by=aggregate.by)
+  t02s <- seq(t0, now,by=aggregate.by)
   #Maximum time index
   T <- length(t02s)-1
 
@@ -319,9 +366,9 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   if (m<1) { stop("Assertion m>=1 not fullfilled.") }
 
   #Define the observation triangle
-  n <- matrix(NA,nrow=T+1,ncol=T+1,dimnames=list(as.character(t02s),NULL))
+  n <- matrix(NA,nrow=T+1, ncol=T+1, dimnames=list(as.character(t02s), NULL))
 
-  #Loop over time points. (more efficient that delay and then t)
+  #Loop over time points. (more efficient than delay and then t)
   for (t in 0:T) {
     #Extract all reports happening at time (index) t.
     #@hoehle: data.att <- data.sub[na2FALSE(data.sub[,dEventCol] == t02s[t+1]), ]
@@ -336,8 +383,9 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   cat("No. cases: ",sum(n,na.rm=TRUE),"\n")
 
   #Handle delays longer than D
-  #@hoehle: Not done!
-  nLongDelay <- apply(n[,(D+1)+seq_len(T-D)],1,sum,na.rm=TRUE)
+  #@hoehle: Not done! Just fix them to have delay D.
+ # browser()
+  nLongDelay <- apply(n[,(D+1)+seq_len(T-D), drop=FALSE],1,sum,na.rm=TRUE)
   if (any(nLongDelay>0)) {
     warning(paste(sum(nLongDelay)," cases with a delay longer than D=",D," days forced to have a delay of D days.\n",sep=""))
     n <- n[,1:(D+1)]
@@ -351,8 +399,17 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   #Note the different moving window definition as in the Lawless article.
   n.x <- rep(0,times=D+1)
   N.x <- rep(0,times=D+1)
+
+  ##Compute n.x and N.x
   for (x in 0:D) {
-    for (t in max(0,T-m):(T-x)) { #hoehle: Lawless definition is max(0,T-x-x)
+    ##Define time of occurrence sliding window index set (see documentation)
+    if (m.interpretation == "hoehle_anderheiden2014") {
+      toc_index_set <- max(0,T-m):(T-x)
+    } else { #hoehle: Lawless definition is max(0,T-m-x)
+      toc_index_set <- max(0,T-m-x):(T-x)
+    }
+    ## Count
+    for (t in toc_index_set) { 
       #cat("x=",x,"\tt=",t,":\n")
       n.x[x+1] <- n.x[x+1] + n[t+1,x+1]
       for (y in 0:x) {
@@ -406,14 +463,14 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     #F <- NULL ; for (d in 0:D) { i <- d+seq_len(D-d) ; F[d+1] <- prod(1-g.hat[i+1]) }
     #plot(0:D,F)
 
-    #Compute weights Wt.hat as in eqn. (2.13). Use T1=Inf.
-    #Note: Wt.hat estimates F_t(T-t).
+    #Compute weights Wt.hat as in eqn. (2.13) of Lawless (1994). Use T1=Inf.
+    #Note: Wt.hat estimates F_t(T-t). 
     T1 <- Inf
     What.t <- sapply(0:T, function(t) {
       if (t<T-D) {
         1
       } else {
-        x = T-t + seq_len(min(T1-t,D)-(T-t)) #(2.13) with modifications. knifflig
+        x = T-t + seq_len(min(T1-t,D)-(T-t)) #(2.13) with modifications. knifflig. 
         prod(1-g.hat[x+1])
       }
     })
@@ -424,7 +481,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     #Do the prediction as in (2.12)
     Nhat.tT1 <- N.tT / What.t
 
-    #V.Wt as in (2.15)
+    #V.Wt as in (2.15). Note: only depends implicitly on m through N.x.
     Vhat.Wt <- sapply(0:T, function(t) {
       if (t<T-D) {
         0
@@ -433,7 +490,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
         What.t[t+1]^2 * sum( g.hat[x+1]/(N.x[x+1]*(1-g.hat[x+1])),na.rm=TRUE)
       }
     })
-    #(2.16)
+    #(2.16). 
     Vhat.Zt <- sapply(0:T, function(t) {
       if (t<T-D) {
         0
@@ -463,7 +520,6 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
         CDF <- c(0,ltruncpnorm(N.tInf.support, mean=Nhat.tT1[i], sd=sqrt(Vhat.Zt[i]),at=N.tT[i]))
         PMFs[,i] <- diff(CDF)
       } else {
-        #@hoehle: previous bug: c(1,rep(0,control$N.tInf.max)) ##all mass concentrated in zero, but it should be: Nhat.tT1
         PMFs[,i] <- (N.tInf.support == Nhat.tT1[i])*1
       }
     }
@@ -803,14 +859,27 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       }
       tps <- makeTPSDesign(T=T,degree=2)
 
+      ##browser()
+
       #Design matrix for logistic discrete time hazard model containing
       #changepoints. Could be extended s.t. the user provides W.
-      W <- array(NA,dim=c(T+1,length(ddChangepoint),D+1),dimnames=list(as.character(t02s),as.character(ddChangepoint),paste("delay",0:D,sep="")))
-      for (t in 0:T){
-          for (i in 1:length(ddChangepoint)) {
-              W[t+1,i,] <- as.numeric( (t02s[t+1] + 0:D) >= ddChangepoint[i])
+      W <- array(NA, dim=c(T+1, length(ddChangepoint) + ncol_Wextra, D+1), dimnames=list(as.character(t02s), c(as.character(ddChangepoint),colnames_Wextra),paste("delay",0:D,sep="")))
+      for (t in 0:T) {
+        for (i in 1:length(ddChangepoint)) {
+          # Shape design matrix for change-points
+          if (cp_order == "zero") {
+            W[t+1, i, ] <- as.numeric( (t02s[t+1] + 0:D) >= ddChangepoint[i])
+          } else if (cp_order == "one") {
+            W[t+1, i, ] <- pmax(0, as.numeric( (t02s[t+1] + 0:D) - ddChangepoint[i]))
+          }
+        }
+          # Add additional effects as part of the design matrix
+          if (ncol_Wextra > 0) {
+            W[t + 1, length(ddChangepoint) + 1:ncol(Wextra), ] <- Wextra[t+1,, ]
           }
       }
+
+
 
       #Priors. Uniform on the delays
       D.prime <- round( D/2-0.4)+1
@@ -834,16 +903,21 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
                        )
 
 
-      #Select appropriate model (change this to be part of the options!!)
-      logLambda.method <- control$ddcp$logLambda   #"tps" #"rw2" #"iid" #"rw2" #"rw2" #"iid" #"rw" #"tps"
-
+      #Select appropriate model (one of: "tps","rw2","iid", "rw" as specified in the options)
+      logLambda.method <- control$ddcp$logLambda
+      responseDistr<- control$ddcp$responseDistr
 ###      browser()
 
       #Load the BUGS specification of the Bayesian hierarchical Poisson model
-      bugsModel <- readLines(file.path(path.package('surveillance'),'jags',"bhpm.bugs"))
+      bugsModel <- readLines(file.path(path.package('surveillance'), 'jags',"bhpm.bugs"))
+      # Load local file
+      #bugsModel <- readLines(file.path("bhpm.bugs"))
 
       bugsModel <- gsub(paste("#<",logLambda.method,">",sep=""),"",bugsModel)
-      #Problem when eta is scalar (TODO: Improve!!)
+      bugsModel <- gsub(paste("#<",responseDistr,">",sep=""),"",bugsModel)
+      ##browser()
+
+      #Problem when eta is scalar (TODO: Improve the solution.)
       if (length(ddChangepoint) == 1) {
           #Make eta ~ dnorm( , ) instead of eta ~ dmnorm
           bugsModel <- gsub("(^[ ]*eta ~ )(dmnorm)","\\1dnorm",bugsModel)
@@ -852,7 +926,7 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       }
       #cat(paste(bugsModel,collapse="\n"))
       bugsFile <- tempfile(pattern = "nowcast-")
-      writeLines(bugsModel,bugsFile)
+      writeLines(bugsModel, bugsFile)
 
       ##browser()
       ## if (FALSE) {
@@ -866,21 +940,21 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       ##     coda.samples(model,variable.names='logLambda',n.iter=100)
       ## }
 
-
       ######################################################################
       # runjags way -- ToDo: parametrize using control options!
       ######################################################################
 
       runjagsMethod <-  'rjparallel' #'rjags'
-      monitor <- c('gamma','eta','logLambda','NtInf')
+      monitor <- c('gamma','eta','logLambda','NtInf', ifelse(control$ddcp$responseDistr == "negbin", "r", NA))
       samples.rj <- runjags::run.jags(bugsFile,#bugsModel,
-                             monitor = monitor, data=jagsData, n.chains=3,
-                             inits = init,
-                             burnin =  control$ddcp$mcmc["burnin"],
-                             sample =  control$ddcp$mcmc["sample"],
-                             thin =  control$ddcp$mcmc["thin"],
-                             adapt=1000,
-                           summarise=FALSE,method=runjagsMethod)
+                                      monitor = monitor, data=jagsData, n.chains=3,
+                                      inits = init,
+                                      burnin =  control$ddcp$mcmc["burnin"],
+                                      sample =  control$ddcp$mcmc["sample"],
+                                      thin =  control$ddcp$mcmc["thin"],
+                                      adapt = control$ddcp$mcmc["adapt"],
+                                      summarise = FALSE,
+                                      method=runjagsMethod)
 
       #Extract posterior median of discrete survival time delay distribution model parameters
       dt.surv.samples <- coda::as.mcmc.list(samples.rj, vars = c('gamma','^eta'))
@@ -893,11 +967,14 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
       #Extract posterior median of model parameters
       gamma.red <- post.median[grep("gamma",names(post.median))]
       eta <- matrix(post.median[grep("^eta",names(post.median))])
+      rownames(eta) <- colnames(W)
       #Map from reduced set to full set
       gamma <- gamma.red[round( (0:(D-1))/2 - 0.4) + 1]
 
-      #Compute the resulting PMF from the model. Possibly put this in separate function.
-      pmf <- matrix(NA, nrow=nrow(W),ncol=D+1,dimnames=list(as.character(t02s),paste("delay",0:D,sep="")))
+      #browser()
+
+      #Compute the resulting PMF from the model. Possibly put this in a separate function.
+      pmf <- matrix(NA, nrow=nrow(W), ncol=D+1, dimnames=list(as.character(t02s), paste("delay", 0:D, sep="")))
       #Determine PMF
       for (t in 1:length(t02s)) {
         if (as.character(t02s[t]) %in% rownames(W)) {
@@ -908,15 +985,22 @@ nowcast <- function(now,when,data,dEventCol="dHospital",dReportCol="dReport",
 
       #Store result as CDF
       delayCDF[["bayes.trunc.ddcp"]] <- t(apply(pmf, 1, cumsum))
-      #Store model as attribute
-      if(control$ddcp$logLambda != "tps") tps <- NULL
-      attr(delayCDF[["bayes.trunc.ddcp"]],"model") <- list(post.median=dt.surv.pm,W=W,lambda.post=lambda.post,tps=tps)
 
-      #Convert to coda compatible output.
+      # Convert to coda compatible output.
       samples <- coda::as.mcmc.list(samples.rj)
 
+      # Store model as attribute
+      if(control$ddcp$logLambda != "tps") tps <- NULL
 
-      #Extract PMFs
+      # Configure list with model output and store is as an attribute.
+      list_return <- list(post.median=dt.surv.pm,W=W,lambda.post=lambda.post,tps=tps, gamma=gamma, eta=eta)
+      if (control[["ddcp",exact=TRUE]][["mcmc",exact=TRUE]][["store.samples", exact=TRUE]]) {
+        list_return <- modifyList(list_return, list(mcmc_samples = samples))
+      }
+      attr(delayCDF[["bayes.trunc.ddcp"]],"model") <- list_return
+
+
+      # Extract PMFs
       for (t in 0:T) {
           #Extract samples related to this time point
           vals <- as.matrix(samples[,paste("NtInf[",t+1,"]",sep="")])

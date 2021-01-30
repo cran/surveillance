@@ -7,8 +7,7 @@
   If package \pkg{colorspace} is available, its
   \link[colorspace]{heat_hcl} function is used to generate a color
   palette. Otherwise, the similar Heat 2 palette from R's own
-  \code{hcl.colors} (in R >= 3.6.0) or basic
-  \code{\link{heat.colors}} are used.
+  \code{hcl.colors} are used.
 
   This function was exported as \code{hcl.colors} in \pkg{surveillance}
   1.14.0 - 1.17.0 but is now internal to avoid a name clash with R 3.6.0

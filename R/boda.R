@@ -4,7 +4,7 @@
 #
 # Note: The algorithm requires the non-CRAN package INLA to run.
 # You can easily install this package as described at
-# http://www.r-inla.org/download
+# https://www.r-inla.org/download-install
 #
 #
 # Author:
@@ -36,7 +36,7 @@ boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE
   if (!requireNamespace("INLA", quietly = TRUE)) {
       stop("The boda function requires the INLA package to be installed.\n",
            "  The package is not available on CRAN, but can be easily obtained\n",
-           "  from <http://www.r-inla.org/download>.")
+           "  from <https://www.r-inla.org/download-install>.")
   }
 
   #Possibly speed up the computations by using multiple cores.

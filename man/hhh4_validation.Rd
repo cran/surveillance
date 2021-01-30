@@ -252,9 +252,10 @@ pred
 quantile(pred)
 confint(pred)
 
-## simple plot of the 95% one-week-ahead prediction interval
+## simple plot of the 80% one-week-ahead prediction interval
 ## and point forecasts
-plot(pred, probs = c(2.5,97.5)/100, means.args = list())
+if (requireNamespace("fanplot"))
+    plot(pred, probs = c(.1,.9), means.args = list())
 
 \dontshow{
 ## test equivalence of parallelized version
@@ -315,22 +316,18 @@ pit(x = pred$observed, pdistr = "pnbinom", mu = pred$pred, size = exp(pred$psi))
 
 data("measlesWeserEms")
 
-## fit a hhh4 model with random effects in the endemic component
+## simple hhh4 model with random effects in the endemic component
 measlesModel <- list(
     end = list(f = addSeason2formula(~0 + ri(type="iid"))),
     ar = list(f = ~1),
-    ne = list(f = ~1, weights = W_powerlaw(maxlag = 5)),
     family = "NegBin1")
 measlesFit <- hhh4(measlesWeserEms, control = measlesModel)
-
-## plot fitted mean components
-plot(measlesFit, units = NULL)
 
 ## assess overall (in-sample) calibration of the model, i.e.,
 ## if the observed counts are from the fitted NegBin distribution
 calibrationTest(measlesFit) # default is DSS (not suitable for low counts)
-calibrationTest(measlesFit, which = "rps")  # p = 0.8267
-calibrationTest(measlesFit, which = "logs") # p = 0.636
+calibrationTest(measlesFit, which = "rps")  # p = 0.9322
+calibrationTest(measlesFit, which = "logs") # p = 0.7238
 
 ## to assess calibration in the second year for a specific district
 calibrationTest(measlesFit, subset = 53:104, units = "03452", which = "rps")

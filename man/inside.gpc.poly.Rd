@@ -5,7 +5,7 @@ Test Whether Points are Inside a \code{"gpc.poly"} Polygon
 }
 
 \description{
-Same as, e.g., \code{\link[spatstat]{inside.owin}} from package \pkg{spatstat}
+Same as, e.g., \code{\link[spatstat.geom]{inside.owin}} from package \pkg{spatstat.geom}
 and \code{\link[sp]{point.in.polygon}} from package \pkg{sp},
 i.e., test whether points lie inside or outside a given polygon.
 Actually, the method for \code{"gpc.poly"} documented here internally uses

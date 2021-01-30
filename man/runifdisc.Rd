@@ -37,11 +37,6 @@ A two-column coordinate matrix of the sampled points.
 Sebastian Meyer
 }
 
-\seealso{
-\code{\link[spatstat]{runifdisc}} in package \pkg{spatstat}, which is
-slightly more flexible and integrated within the \code{"ppp"} class.
-}
-
 \examples{
 x <- surveillance:::runifdisc(1000, 3)
 plot(x)

@@ -6,9 +6,9 @@
 ### Data structure for CONTINUOUS SPATIO-temporal infectious disease case data
 ### and a spatio-temporal grid of endemic covariates
 ###
-### Copyright (C) 2009-2018 Sebastian Meyer
-### $Revision: 2103 $
-### $Date: 2018-04-12 17:20:33 +0200 (Thu, 12. Apr 2018) $
+### Copyright (C) 2009-2018,2021 Sebastian Meyer
+### $Revision: 2626 $
+### $Date: 2021-01-29 14:14:22 +0100 (Fri, 29. Jan 2021) $
 ################################################################################
 
 
@@ -167,7 +167,7 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
 
     # Calculate minimal distance of event locations from the polygonal boundary
     if (verbose) cat("Calculating the events' distances to the boundary ...\n")
-    Wowin <- as(W, "owin")              # imported from polyCub
+    Wowin <- SpP2owin(W)
     events$.bdist <- bdist(coordinates(events), Wowin)
 
     # Construct spatial influence regions around events
@@ -412,12 +412,13 @@ check_tiles <- function (tiles, levels,
     tileIDs <- row.names(tiles)
 
     ## check completeness of tiles
-    if (any(missingtiles <- !levels %in% tileIDs))
-        stop(sum(missingtiles), " regions are missing in 'tiles', ",
-             "check 'row.names(tiles)'")
-
-    ## re-order: first 'levels', then any extra tiles
-    tiles <- tiles[c(levels, setdiff(tileIDs, levels)),]
+    if (!identical(tileIDs, levels)) {
+        if (any(missingtiles <- !levels %in% tileIDs))
+            stop(sum(missingtiles), " regions are missing in 'tiles', ",
+                 "check 'row.names(tiles)'")
+        ## order tiles by levels and drop any extra tiles
+        tiles <- tiles[levels, ]
+    }
 
     ## drop data (also for suitable over-method in check_tiles_events)
     .tiles <- as(tiles, "SpatialPolygons")
@@ -428,7 +429,7 @@ check_tiles <- function (tiles, levels,
     }
 
     ## check areas
-    areas.tiles <- areaSpatialPolygons(tiles[levels,], byid = TRUE)
+    areas.tiles <- areaSpatialPolygons(tiles, byid = TRUE)
     if (!is.null(areas.stgrid)) {
         check_tiles_areas(areas.tiles, areas.stgrid, tolerance=tolerance)
     }
@@ -491,16 +492,15 @@ check_tiles_areas <- function (areas.tiles, areas.stgrid, tolerance = 0.05)
 .influenceRegions <- function (events, W, npoly, maxExtent = NULL,
                                clipper = "polyclip")
 {
-    Wowin <- as(W, "owin")
+    Wowin <- if (inherits(W, "owin")) W else SpP2owin(W)
     if (is.null(maxExtent)) maxExtent <- diameter.owin(Wowin)
     doIntersection <- switch(
         clipper,  # which package to use for polygon intersection
         "polyclip" = function (center, eps)
             intersectPolyCircle.owin(Wowin, center, eps, npoly),
-        "rgeos" = function (center, eps) as(
+        "rgeos" = function (center, eps) SpP2owin(
             intersectPolyCircle.SpatialPolygons(
-                as(W, "SpatialPolygons"), center, eps, npoly),
-            "owin"),
+                as(W, "SpatialPolygons"), center, eps, npoly)),
         stop("unsupported polygon clipping engine: '", clipper, "'")
         )
 

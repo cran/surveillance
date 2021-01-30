@@ -8,6 +8,101 @@
 \encoding{latin1}
 
 
+\section{Changes in surveillance version 1.19.0 (2021-01-29)}{
+
+\subsection{NEW FEATURES}{
+  \itemize{
+    \item The \code{nowcast()} function with
+    \code{method="bayes.trunc.ddcp"} now adds support for negative
+    binomial response distribution instead of Poisson. Furthermore,
+    additional components of the design matrix for the discrete time
+    survival model can be provided, which allows the inclusion of, e.g.,
+    day of the week effects. Finally, the order of
+    the polynomial created by the change-points in the discrete time
+    survival model can now be specified. For further details see the
+    work of Guenther et al. (2020) about nowcasting the Covid-19
+    outbreak in Bavaria, Germany.
+
+    \item \code{animate.sts()} can position the \code{timeplot} on
+    other sides of the map.
+  }
+}
+
+\subsection{MINOR CHANGES}{
+  \itemize{
+    \item The weighted sum in the \code{ne}ighbourhood component of
+    \code{hhh4()} models is computed more efficiently.
+    
+    \item \code{simEpidataCS()} (and thus \code{simulate.twinstim()})
+    uses a slightly more efficient location sampler for models with
+    \code{siaf = siaf.constant()}.
+    Simulation results will differ from previous package versions even
+    if the same random \code{seed} is used.
+
+    \item The default \code{main} title for \code{stsplot_space()} now
+    uses the ISO year-week format for weekly \code{"sts"} data.
+  }
+}
+
+\subsection{BUG FIXES}{
+  \itemize{
+    \item Bug fix in the \code{farringtonFlexible()}-function, which for
+    the argument \code{thresholdMethod=="nbPlugin"} and
+    \code{thresholdMethod=="muan"} unfortunately computed the limit as
+    an \code{(1-alpha/2)} prediction interval instead of the documented
+    \eqn{(1-alpha)} prediction interval. This affects four threshold
+    values in Table 2 of \code{vignette("monitoringCounts")}.
+    The default method \code{"delta"} worked as expected.
+
+    \item In \code{hhh4()} models without AR component,
+    the matrix of fitted values could lack column names.
+
+    \item Experimental time-varying neighbourhood weights in
+    \code{hhh4()} were indexed differently in model fitting and in the
+    \code{simulate()} method (undocumented behaviour). Both now use the
+    latter variant, where the mean at time \eqn{t} uses products of
+    weights at time \eqn{t} and observed counts at time \eqn{t-1}.
+    [reported by Johannes Bracher]
+
+    \item For weekly \code{sts} indexed via \code{start} and \code{freq=52},
+    \code{epoch(sts, as.Date=TRUE)} now interprets the \code{start} week
+    according to ISO 8601. For example, \code{start = c(2020, 5)}
+    corresponds to 2020-01-27, not 2020-02-03.
+    This affects \code{as.xts.sts()} and the time plot in
+    \code{animate.sts()}.
+
+    \item \code{stsplot_space()} automatically extends manual color
+    breaks (\code{at}), if the intervals do not cover the data range.
+
+    \item \code{simEndemicEvents()} and thus
+    \code{epitest(..., method="simulate")} are no longer slowed down by
+    intermediate \code{CRS()} computations.
+  }
+}
+
+\subsection{PACKAGE INFRASTRUCTURE}{
+  \itemize{
+    \item Removed unused \pkg{rmapshaper} from "Suggests" and moved
+    \pkg{xts} to "Enhances" (used only for \code{as.xts.sts}).
+    
+    \item Switched testing framework from (nowadays heavy)
+    \pkg{testthat} to \CRANpkg{tinytest}. Together with moving
+    \pkg{ggplot2} to "Enhances" (used only for \code{autoplot.sts}) ---
+    and only then --- this switch further reduces the total number of
+    required packages for a complete check (i.e., installing with
+    \code{dependencies = TRUE}) in a \emph{factory-fresh} R environment
+    from 119 to 94.
+
+    \item \CRANpkg{spatstat} was split into several sub-packages, of which
+    we only need to import \CRANpkg{spatstat.geom}. This new package
+    requires \code{R >= 3.5.0}, though.
+
+    \item \pkg{surveillance} now requires \code{R >= 3.6.0}.
+  }
+}
+}
+
+
 \section{Changes in surveillance version 1.18.0 (2020-03-18)}{
 
 \subsection{NEW FEATURES}{

@@ -1,4 +1,4 @@
-context("hhh4() model with shared overdispersion parameters")
+### hhh4() model with shared overdispersion parameters
 
 ## use a small subset of districts from the fluBYBW data
 data("fluBYBW")

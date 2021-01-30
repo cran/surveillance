@@ -31,9 +31,10 @@ plot(measlesWeserEms, type = observed ~ unit,
   sp.layout = layout.scalebar(measlesWeserEms@map, corner = c(0.05, 0.05),
     scale = 50, labels = c("0", "50 km"), height = 0.03))
 
-## ----measlesWeserEms15, fig.cap=paste("Count time series of the", sum(colSums(observed(measlesWeserEms))>0), "affected districts."), out.width="\\linewidth", fig.width=10, fig.height=6, fig.pos="htb", eval=-1----
-plot(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
-autoplot.sts(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
+## ----measlesWeserEms15, fig.cap=paste("Count time series of the", sum(colSums(observed(measlesWeserEms))>0), "affected districts."), out.width="\\linewidth", fig.width=10, fig.height=6, fig.pos="htb"----
+if (require("ggplot2")) {
+   autoplot(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
+} else plot(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
 
 ## ----measlesWeserEms_animation, eval=FALSE-----------------------------------------
 #  animation::saveHTML(

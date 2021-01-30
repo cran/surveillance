@@ -1,7 +1,7 @@
 ################################################################################
 ### Conversion between "ts" and "sts", and from "sts" to "data.frame"
 ###
-### Copyright (C) 2014 Michael Hoehle, 2015-2017,2019 Sebastian Meyer
+### Copyright (C) 2014 Michael Hoehle, 2015-2017,2019-2021 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -19,9 +19,6 @@ setAs(from = "ts", to = "sts", def = function (from) {
 
     ## Remove "tsp" attribute and "ts"/"mts" class
     tsp(from) <- NULL
-    ## "tsp<-"(x,NULL) is documented to also remove "ts" and "mts" classes
-    ## but in R < 3.3.0, it did not remove "mts" (see PR#16769)
-    from <- unclass(from)
 
     ## Create the sts object
     .sts(observed = from, start = start, freq = freq)
@@ -112,7 +109,7 @@ tidy.sts <- function (x, ...)
     stswide$epochInYear <- epochInYear(x)
     stswide$date <- tryCatch(
         epoch(x, as.Date = TRUE),  # only works for particular values of x@freq
-        error = function (e) {message("Note: ", e$message); as.Date(NA)}
+        error = function (e) as.Date(NA)
     )
     if ((nUnit <- ncol(x)) == 1L) {
         stslong <- data.frame(stswide, "unit" = factor(unitNames),

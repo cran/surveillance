@@ -240,11 +240,14 @@ hhh4(stsObj,
   (e.g., population numbers or fractions); it is possible to include
   such multiplicative offsets in the epidemic components as well.
   The \eqn{w_{ji}}{w_ji} are transmission weights reflecting the flow of
-  infections from unit \eqn{j} to unit \eqn{i}.
+  infections from unit \eqn{j} to unit \eqn{i}. If weights vary over time
+  (prespecified as a 3-dimensional array \eqn{(w_{jit})}{(w_jit)}), the
+  \code{ne} sum in the mean uses \eqn{w_{jit} y_{j,t-1}}{w_jit y_j,t-1}.
   In spatial \code{hhh4} applications, the \dQuote{units} refer to
   geographical regions and the weights could be derived from movement
-  network data. Alternatively, the weights can be estimated
-  parametrically as a function of adjacency order (Meyer and Held, 2014).
+  network data. Alternatively, the weights \eqn{w_{ji}}{w_ji} can be
+  estimated parametrically as a function of adjacency order (Meyer and
+  Held, 2014), see \code{\link{W_powerlaw}}.
 
   (Penalized) Likelihood inference for such \code{hhh4} models has been
   established by Paul and Held (2011) with extensions for parametric

@@ -76,17 +76,16 @@ export(fixef, ranef)  # we define corresponding methods for "hhh4" models
 
 ### twinstim-specific
 
-importFrom(spatstat, area.owin, as.im.function, coords.ppp, diameter,
+importFrom(spatstat.geom, area.owin, as.im.function, diameter,
                      diameter.owin, disc, edges, inside.owin, intersect.owin,
-                     is.polygonal, as.polygonal, bdist.points, ppp, runifpoint,
+                     is.polygonal, as.polygonal, bdist.points, owin, ppp,
                      shift.owin, spatstat.options, vertices)
-importFrom(spatstat, marks)
+importFrom(spatstat.geom, marks)
 export(marks)                           # we define an epidataCS-method
-importFrom(spatstat, multiplicity)
+importFrom(spatstat.geom, multiplicity)
 export(multiplicity)                    # we define a Spatial-method
 
 importFrom(polyCub, polyCub, .polyCub.iso, polyCub.SV, polyCub.midpoint, xylist)
-importMethodsFrom(polyCub, coerce)
 
 importFrom(MASS, kde2d, truehist)
 
@@ -188,9 +187,7 @@ export(animate_nowcasts)
 # conversion of "sts" objects
 S3method(as.ts, sts)
 export(as.xts.sts)
-if(getRversion() >= "3.6.0") {  # delayed registration
-    S3method(xts::as.xts, sts)
-}
+S3method(xts::as.xts, sts)   # delayed registration
 S3method(as.data.frame, sts) # see ?Methods_for_S3
 exportMethods(as.data.frame)
 export(tidy.sts)
@@ -217,9 +214,7 @@ export(addFormattedXAxis, atChange, at2ndChange, atMedian) #for time axis format
 export(stsplot_spacetime) # old implementation of (animated) map
 S3method(animate, sts)    # S3-method for an S4 class, see ?Methods_for_S3
 export(autoplot.sts)
-if(getRversion() >= "3.6.0") {  # delayed registration
-    S3method(ggplot2::autoplot, sts)
-}
+S3method(ggplot2::autoplot, sts)  # delayed registration
 
 # outbreak detection algorithms (sts-interfaces)
 export(wrap.algo, farrington, bayes, rki, cusum, glrpois, glrnb, outbreakP, boda) # FIXME: rogerson, hmm ??

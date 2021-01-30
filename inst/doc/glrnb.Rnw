@@ -84,7 +84,7 @@ This vignette is organized as follows: First, in Section \ref{sec:prel} the data
 
 
 Consider the situation, where a time series of counts is collected for surveillance purpose. In each interval, usually one week, the number of cases of the interesting disease in an area (country, district) is counted. The resulting time series is denoted by $\{y_t\>;t=1,\ldots,n\}$. Usually the data are collected on line, so that the time point $n$ is the actual time point. Our aim is to decide with the aid of a statistic for each time point $n$ if there is an outbreak at this or any former time point. If an outbreak is detected, the algorithm gives an alarm. Observed time series of counts are saved in a \verb+disProg+ object, a list containing the time series of counts, the number of weeks and a state chain.
-The state is 1, if e.g. the Robert Koch Institut declares the week to be part of an outbreak and 0 otherwise ~\citep{survstat}. By using the state chain the quality of the surveillance algorithm can be tested.
+The state is 1, if e.g. the Robert Koch-Institut declares the week to be part of an outbreak and 0 otherwise. By using the state chain the quality of the surveillance algorithm can be tested.
 %The 'surveillance'-package provides standard plot routines for the surveillance objects.
 As an first example the number of cases of salmonella hadar in the years 2001-2006 is examined.  \\
 

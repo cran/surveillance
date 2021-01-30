@@ -1,5 +1,3 @@
-context("Count data regression charts")
-
 ## Simulation parameters
 S <- 1 ; t <- 1:120 ; m <- length(t)
 beta <- c(1.5,0.6,0.6)

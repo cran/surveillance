@@ -91,12 +91,6 @@ reset.surveillance.options()
   }
 }
 
-\author{
-  Sebastian Meyer,
-  inspired by the implementation of \code{spatstat.options()} in the \pkg{spatstat}
-  package by Adrian Baddeley and Rolf Turner.
-}
-
 \examples{
 surveillance.options()
 }

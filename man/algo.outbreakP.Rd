@@ -75,8 +75,9 @@ algo.outbreakP(disProgObj, control = list(range = range, k=100,
  \enc{Frisén}{Frisen} and Linus \enc{Schiöler}{Schioeler} from the
  CASE project available under the GNU GPL License v3. See
  \url{https://case.folkhalsomyndigheten.se/} for further details on the CASE
- project. A manual on how to use an Excel implementation of the method
- is available at \url{http://economics.handels.gu.se/english/Units+and+Centra/statistical_research_unit/software}.
+ project.
+ %% A manual on how to use an Excel implementation of the method
+ %% is available at \url{http://economics.handels.gu.se/english/Units+and+Centra/statistical_research_unit/software}.
 
  An additional feature of the R code is that it contains a search for
  NNBA (see details).

@@ -1,5 +1,4 @@
 ### R code from vignette source 'monitoringCounts.Rnw'
-### Encoding: UTF-8
 
 ###################################################
 ### code chunk number 1: SETUP
@@ -155,78 +154,14 @@ control1$limit54 <- control2$limit54 <- c(0,50)  # for the figure
 
 
 ###################################################
-### code chunk number 15: fPlot1
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-library(ggplot2)
-library(grid)
-# for rectanges
-widthRectangles <- 10
-# dimensions for the ticks
-heightTick <- 4
-xTicks <- c(15,67,119)
-yTicksStart <- rep(0,3)
-yTicksEnd <- rep(0,3)
-yTicksEnd2 <- rep(-5,3)
-textTicks <- c("t-2*p","t-p","t[0]")
-xBigTicks <- c(xTicks[1:2]-widthRectangles/2,xTicks[1:2]+widthRectangles/2,xTicks[3]-widthRectangles/2,xTicks[3])
-yTicksBigEnd <- rep(0,6)
-yTicksBigStart <- rep(heightTick,6)
-# to draw the horizontal line
-vectorDates <- rep(0,150)
-dates <- seq(1:150)
-data <- data.frame(dates,vectorDates)
-xPeriods <- c(15,67,117,15+26,67+26)
-################################################################################
-p <- ggplot() +
-# white
-theme_void() +
-geom_segment(aes(x = 0, y = -20, xend = 200, yend = 10), size=2,
-              arrow = arrow(length = unit(0.5, "cm")), colour ='white')   +
-# time arrow
- geom_segment(aes(x = 0, y = 0, xend = 150, yend = 0), size=1,
-               arrow = arrow(length = unit(0.5, "cm")))   +
-# ticks
-geom_segment(aes(x = xTicks, y = yTicksEnd2, xend = xTicks, yend = yTicksStart ), arrow = arrow(length = unit(0.3, "cm")),size=1)+
-# big ticks
-geom_segment(aes(x = xBigTicks, y = yTicksBigStart, xend = xBigTicks, yend = yTicksBigEnd*2), size=1)+
-# time label
-annotate("text", label = "Time", x = 170, y = 0, size = 8, colour = "black",
-        family="serif") +
-# ticks labels
-annotate('text',label=c("t[0]-2 %.% freq","t[0]-freq","t[0]"),x = xTicks,
-        y = yTicksEnd - 10, size = 8,family="serif",parse=T)
-p+
-# periods labels
-
-annotate('text',label=c("A","A","A","B","B"),x = xPeriods,
-        y = rep(6,5), size = 8,family="serif",parse=T)
-
-
-###################################################
-### code chunk number 16: fPlot2
-###################################################
-getOption("SweaveHooks")[["fig"]]()
-yTicksBigEnd2 <- rep(0,4)
-yTicksBigStart2 <- rep(heightTick,4)
-newX <- c(xTicks[1:2]+widthRectangles/2+52-widthRectangles,xTicks[1:2]+52/2)
-xPeriods <- c(15,67,117,15+16,67+16,15+35,67+35)
-p + geom_segment(aes(x = newX, y = yTicksBigStart2, xend = newX, yend = yTicksBigEnd2), size=1)+
-# periods labels
-
-annotate('text',label=c("A","A","A","B","B","C","C"),x = xPeriods,
-        y = rep(6,7), size = 8,family="serif",parse=T)
-
-
-###################################################
-### code chunk number 17: oldVsNewprep
+### code chunk number 15: oldVsNewprep
 ###################################################
 salm.farrington <- farringtonFlexible(salmNewportGermany, control1)
 salm.noufaily <- farringtonFlexible(salmNewportGermany, control2)
 
 
 ###################################################
-### code chunk number 18: farPlot1
+### code chunk number 16: farPlot1
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 y.max <- max(observed(salm.farrington),upperbound(salm.farrington),observed(salm.noufaily),upperbound(salm.noufaily),na.rm=TRUE)
@@ -234,14 +169,14 @@ do.call("plot",modifyList(plotOpts,list(x=salm.farrington,ylim=c(0,y.max))))
 
 
 ###################################################
-### code chunk number 19: farPlot2
+### code chunk number 17: farPlot2
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 do.call("plot",modifyList(plotOpts,list(x=salm.noufaily,ylim=c(0,y.max))))
 
 
 ###################################################
-### code chunk number 20: campyDE (eval = FALSE)
+### code chunk number 18: campyDE (eval = FALSE)
 ###################################################
 ## # Load data and create \code{sts}-object
 ## data("campyDE")
@@ -268,7 +203,7 @@ do.call("plot",modifyList(plotOpts,list(x=salm.noufaily,ylim=c(0,y.max))))
 
 
 ###################################################
-### code chunk number 21: campyDE
+### code chunk number 19: campyDE
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 # Load data and create \code{sts}-object
@@ -297,7 +232,7 @@ axis(side=4, at=seq(0,2500,by=500),labels=seq(0,50,by=10),las=1,cex.lab=cex.text
 
 
 ###################################################
-### code chunk number 22: campyDE-simple
+### code chunk number 20: campyDE-simple
 ###################################################
 data("campyDE")
 cam.sts <- sts(epoch = campyDE$date,
@@ -308,7 +243,7 @@ axis(4, at = seq(0, 2500, by = 500), labels = seq(0, 50, by = 10))
 
 
 ###################################################
-### code chunk number 23: boda (eval = FALSE)
+### code chunk number 21: boda (eval = FALSE)
 ###################################################
 ## library("INLA")
 ## rangeBoda <- which(epoch(cam.sts) >= as.Date("2007-01-01"))
@@ -320,7 +255,7 @@ axis(4, at = seq(0, 2500, by = 500), labels = seq(0, 50, by = 10))
 
 
 ###################################################
-### code chunk number 24: boda-cache
+### code chunk number 22: boda-cache
 ###################################################
 if (computeALL) {
 ##hoehle 2018-07-18: changed code to use NICELOOKINGboda, but that's iid. Reason:
@@ -340,7 +275,7 @@ save(list = c("boda", "control.boda", "rangeBoda"),
 
 
 ###################################################
-### code chunk number 25: boda2 (eval = FALSE)
+### code chunk number 23: boda2 (eval = FALSE)
 ###################################################
 ## covarNames <- c("l1.hum", "l2.hum", "l3.hum", "l4.hum",
 ##                 "newyears", "christmas", "O104period")
@@ -350,7 +285,7 @@ save(list = c("boda", "control.boda", "rangeBoda"),
 
 
 ###################################################
-### code chunk number 26: boda2-cache
+### code chunk number 24: boda2-cache
 ###################################################
 if (computeALL) {
 covarNames <- c("l1.hum", "l2.hum", "l3.hum", "l4.hum",
@@ -366,7 +301,7 @@ save(list = c("boda.covars", "covarNames", "control.boda2"),
 
 
 ###################################################
-### code chunk number 27: bPlot
+### code chunk number 25: bPlot
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 y.max <- max(observed(boda.covars),upperbound(boda.covars),na.rm=TRUE)
@@ -376,7 +311,7 @@ do.call("plot",plotOpts2)
 
 
 ###################################################
-### code chunk number 28: boda3
+### code chunk number 26: boda3
 ###################################################
 control.far <- list(range=rangeBoda,b=4,w=5,alpha=0.025*2)
 far <- farrington(cam.sts,control=control.far)
@@ -387,7 +322,7 @@ bayes <- suppressWarnings(bayes(cam.sts,control=control.far2))
 
 
 ###################################################
-### code chunk number 29: boda4
+### code chunk number 27: boda4
 ###################################################
 # Small helper function to combine several equally long univariate sts objects
 combineSTS <- function(stsList) {
@@ -406,7 +341,7 @@ combineSTS <- function(stsList) {
 
 
 ###################################################
-### code chunk number 30: alarmplot (eval = FALSE)
+### code chunk number 28: alarmplot (eval = FALSE)
 ###################################################
 ## # Make an artifical object containing two columns - one with the boda output
 ## # and one with the farrington output
@@ -421,7 +356,7 @@ combineSTS <- function(stsList) {
 
 
 ###################################################
-### code chunk number 31: alarmplot
+### code chunk number 29: alarmplot
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 # Make an artifical object containing two columns - one with the boda output
@@ -438,7 +373,7 @@ plot(cam.surv,type = alarm ~ time,lvl=rep(1,ncol(cam.surv)),
 
 
 ###################################################
-### code chunk number 32: glrnb
+### code chunk number 30: glrnb
 ###################################################
 phase1 <- which(isoWeekYear(epoch(salmNewportGermany))$ISOYear < 2011)
 phase2 <- in2011
@@ -448,7 +383,7 @@ salmGlrnb <- glrnb(salmNewportGermany, control = control)
 
 
 ###################################################
-### code chunk number 33: glrnbPlot
+### code chunk number 31: glrnbPlot
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 y.max <- max(observed(salmGlrnb),upperbound(salmGlrnb),na.rm=TRUE)
@@ -456,7 +391,7 @@ do.call("plot",modifyList(plotOpts,list(x=salmGlrnb,ylim=c(0,y.max))))
 
 
 ###################################################
-### code chunk number 34: cat
+### code chunk number 32: cat
 ###################################################
 data("salmHospitalized")
 isoWeekYearData <- isoWeekYear(epoch(salmHospitalized))
@@ -476,7 +411,7 @@ names(salmHospitalized.df) <- c("y", "t", "state", "alarm", "upperbound", "n",
 
 
 ###################################################
-### code chunk number 35: catPlot1 (eval = FALSE)
+### code chunk number 33: catPlot1 (eval = FALSE)
 ###################################################
 ## y.max <- max(observed(salmHospitalized)/population(salmHospitalized),upperbound(salmHospitalized)/population(salmHospitalized),na.rm=TRUE)
 ## plotOpts2 <- modifyList(plotOpts,list(x=salmHospitalized,legend.opts=NULL,ylab="",ylim=c(0,y.max)),keep.null=TRUE)
@@ -492,7 +427,7 @@ names(salmHospitalized.df) <- c("y", "t", "state", "alarm", "upperbound", "n",
 
 
 ###################################################
-### code chunk number 36: catPlot1
+### code chunk number 34: catPlot1
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 y.max <- max(observed(salmHospitalized)/population(salmHospitalized),upperbound(salmHospitalized)/population(salmHospitalized),na.rm=TRUE)
@@ -509,7 +444,7 @@ text(520, 0.6, "Total number of \n reported cases", pos = 3, xpd = T,cex=cex.tex
 
 
 ###################################################
-### code chunk number 37: catbis
+### code chunk number 35: catbis
 ###################################################
 vars <- c( "y", "n", "t", "epochInPeriod", "weekNumber")
 m.bbin <- gamlss(cbind(y, n-y) ~ 1 + t
@@ -522,7 +457,7 @@ m.bbin <- gamlss(cbind(y, n-y) ~ 1 + t
 
 
 ###################################################
-### code chunk number 38: cat2
+### code chunk number 36: cat2
 ###################################################
 R <- 2
 h <- 2
@@ -534,7 +469,7 @@ pi1m <- rbind(pi1, 1 - pi1)
 
 
 ###################################################
-### code chunk number 39: cat2bis
+### code chunk number 37: cat2bis
 ###################################################
 populationHosp <- unname(cbind(
   population(salmHospitalized),
@@ -549,7 +484,7 @@ salmHospitalized.multi <- sts(
 
 
 ###################################################
-### code chunk number 40: cat2ter
+### code chunk number 38: cat2ter
 ###################################################
 dBB.cusum <- function(y, mu, sigma, size, log = FALSE) {
   dBB(if (is.matrix(y)) y[1,] else y,
@@ -559,7 +494,7 @@ dBB.cusum <- function(y, mu, sigma, size, log = FALSE) {
 
 
 ###################################################
-### code chunk number 41: cat3
+### code chunk number 39: cat3
 ###################################################
 controlCat <- list(range = phase2, h = 2, pi0 = pi0m, pi1 = pi1m,
                    ret = "cases", dfun = dBB.cusum)
@@ -569,13 +504,13 @@ salmHospitalizedCat <- categoricalCUSUM(salmHospitalized.multi,
 
 
 ###################################################
-### code chunk number 42: monitoringCounts.Rnw:1079-1080
+### code chunk number 40: monitoringCounts.Rnw:1022-1023
 ###################################################
 h.grid <- seq(1, 10, by = 0.5)
 
 
 ###################################################
-### code chunk number 43: cath (eval = FALSE)
+### code chunk number 41: cath (eval = FALSE)
 ###################################################
 ## simone <- function(sts, h) {
 ##   y <- rBB(length(phase2), mu = pi0m[1, , drop = FALSE],
@@ -604,7 +539,7 @@ h.grid <- seq(1, 10, by = 0.5)
 
 
 ###################################################
-### code chunk number 44: cath-cache
+### code chunk number 42: cath-cache
 ###################################################
 if (computeALL) {
 simone <- function(sts, h) {
@@ -640,7 +575,7 @@ load("monitoringCounts-cache/pMarkovChain.RData")
 
 
 ###################################################
-### code chunk number 45: catF
+### code chunk number 43: catF
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 y.max <- max(observed(salmHospitalizedCat[,1])/population(salmHospitalizedCat[,1]),upperbound(salmHospitalizedCat[,1])/population(salmHospitalizedCat[,1]),na.rm=TRUE)
@@ -650,7 +585,7 @@ do.call("plot",plotOpts3)
 
 
 ###################################################
-### code chunk number 46: catARL
+### code chunk number 44: catARL
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 par(mar=c(6,5,5,5),family="Times")
@@ -664,14 +599,14 @@ legend(4,0.08,c("Monte Carlo","Markov chain"), lty=1:2,col=1,cex=cex.text,bty="n
 
 
 ###################################################
-### code chunk number 47: ROTAPLOT
+### code chunk number 45: ROTAPLOT
 ###################################################
 data("rotaBB")
 plot(rotaBB)
 
 
 ###################################################
-### code chunk number 48: monitoringCounts.Rnw:1173-1181
+### code chunk number 46: monitoringCounts.Rnw:1116-1124
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 par(mar=c(5.1,20.1,4.1,0),family="Times")
@@ -685,7 +620,7 @@ mtext("Proportion of reported cases", side=2, line=19, cex=1)
 
 
 ###################################################
-### code chunk number 49: monitoringCounts.Rnw:1189-1216
+### code chunk number 47: monitoringCounts.Rnw:1132-1159
 ###################################################
 # Select a palette for drawing
 pal <- c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00")
@@ -717,7 +652,7 @@ plot(rotaBB.copy)
 
 
 ###################################################
-### code chunk number 50: monitoringCounts.Rnw:1222-1236
+### code chunk number 48: monitoringCounts.Rnw:1165-1179
 ###################################################
 rotaBB.df <- as.data.frame(rotaBB)
 
@@ -736,7 +671,7 @@ m0 <- MGLMreg(as.matrix(rotaBB.df[phase1, order]) ~ -1 + X[phase1, ],
 
 
 ###################################################
-### code chunk number 51: monitoringCounts.Rnw:1242-1248
+### code chunk number 49: monitoringCounts.Rnw:1185-1191
 ###################################################
 m1 <- m0
 
@@ -747,7 +682,7 @@ pi1 <- t(predict(m1, newdata = X[phase2, ])[, reorder])
 
 
 ###################################################
-### code chunk number 52: CATCUSUM
+### code chunk number 50: CATCUSUM
 ###################################################
 dfun <- function(y, size, mu, log = FALSE) {
   dmultinom(x = y, size = size, prob = mu, log = log)
@@ -760,14 +695,14 @@ surv <- categoricalCUSUM(rotaBB,control=control)
 
 
 ###################################################
-### code chunk number 53: monitoringCounts.Rnw:1265-1267 (eval = FALSE)
+### code chunk number 51: monitoringCounts.Rnw:1208-1210 (eval = FALSE)
 ###################################################
 ## alarmDates <- epoch(surv)[which(alarms(surv)[,1]==1)]
 ## format(alarmDates,"%b %Y")
 
 
 ###################################################
-### code chunk number 54: CATCUSUMMC (eval = FALSE)
+### code chunk number 52: CATCUSUMMC (eval = FALSE)
 ###################################################
 ## #Number of MC samples
 ## nSamples <- 1e4
@@ -791,7 +726,7 @@ surv <- categoricalCUSUM(rotaBB,control=control)
 
 
 ###################################################
-### code chunk number 55: monitoringCounts.Rnw:1297-1300
+### code chunk number 53: monitoringCounts.Rnw:1240-1243
 ###################################################
 m0.dm <- MGLMreg(as.matrix(rotaBB.df[phase1, 1:5]) ~ -1 + X[phase1, ],
                 dist = "DM")
@@ -799,7 +734,7 @@ c(m0@AIC, m0.dm@AIC)
 
 
 ###################################################
-### code chunk number 56: monitoringCounts.Rnw:1307-1326
+### code chunk number 54: monitoringCounts.Rnw:1250-1269
 ###################################################
 ## Change intercept in the first class (for DM all 5 classes are modeled)
 delta <- 2
@@ -823,14 +758,14 @@ surv.dm <- categoricalCUSUM(rotaBB, control = control)
 
 
 ###################################################
-### code chunk number 57: monitoringCounts.Rnw:1329-1331 (eval = FALSE)
+### code chunk number 55: monitoringCounts.Rnw:1272-1274 (eval = FALSE)
 ###################################################
 ## matplot(alpha0/rowSums(alpha0),type="l",lwd=3,lty=1,ylim=c(0,1))
 ## matlines(alpha1/rowSums(alpha1),type="l",lwd=1,lty=2)
 
 
 ###################################################
-### code chunk number 58: ctPlot1
+### code chunk number 56: ctPlot1
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 surv@observed[,1] <- 0
@@ -848,7 +783,7 @@ mtext(side=1,text="Time (weeks)",
 
 
 ###################################################
-### code chunk number 59: ctPlot2
+### code chunk number 57: ctPlot2
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 plotOpts3 <- modifyList(plotOpts,list(x=surv.dm[,1],ylim=c(0,y.max),ylab=expression(C[t]),xlab=""))
@@ -862,7 +797,7 @@ mtext(side=1,text="Time (weeks)",
 
 
 ###################################################
-### code chunk number 60: monitoringCounts.Rnw:1457-1471
+### code chunk number 58: monitoringCounts.Rnw:1400-1414
 ###################################################
 today <- which(epoch(salmNewport) == as.Date("2013-12-23"))
 rangeAnalysis <- (today - 4):today
@@ -881,7 +816,7 @@ results <- farringtonFlexible(salmNewport[, c("Baden.Wuerttemberg",
 
 
 ###################################################
-### code chunk number 61: monitoringCounts.Rnw:1474-1484
+### code chunk number 59: monitoringCounts.Rnw:1417-1427
 ###################################################
 start <- isoWeekYear(epoch(salmNewport)[min(rangeAnalysis)])
 end <- isoWeekYear(epoch(salmNewport)[max(rangeAnalysis)])

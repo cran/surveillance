@@ -1,4 +1,4 @@
-context("Fixed effects hhh4() model fit and involved analytical derivatives")
+### Fixed effects hhh4() model fit and involved analytical derivatives
 
 data("measlesWeserEms")
 measlesModel <- list(
@@ -48,16 +48,18 @@ test_that("neighbourhood weights array yields the same results", {
                  tolerance = 1e-6)  # triggered by 64-bit win-builder
 })
 
-test_that("score vector and Fisher info agree with numerical approximations", {
-    skip_if_not_installed("numDeriv")
+test_that("score vector and Fisher info agree with numerical approximations", if (requireNamespace("numDeriv")) {
     test <- function (neweights) {
+        Wname <- deparse(substitute(neweights))
         measlesModel$ne$weights <- neweights
+        capture.output( # hide reports as we use a different tolerance
         pencomp <- hhh4(measlesWeserEms, measlesModel,
                         check.analyticals = "numDeriv")$pen
+        )
         expect_equal(pencomp$score$analytic, pencomp$score$numeric,
-                     tolerance = .Machine$double.eps^0.5)
+                     tolerance = .Machine$double.eps^0.5, info = Wname)
         expect_equal(pencomp$fisher$analytic, pencomp$fisher$numeric,
-                     tolerance = .Machine$double.eps^0.25)
+                     tolerance = .Machine$double.eps^0.25, info = Wname)
     }
     test(W_powerlaw(maxlag = 5, normalize = FALSE, log = FALSE))
     ## normalized PL with maxlag < max(nbmat) failed in surveillance < 1.9.0:

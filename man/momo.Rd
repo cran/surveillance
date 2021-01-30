@@ -26,11 +26,11 @@
   monitoring of mortality across Europe; this will enhance the
   management of serious public health risks such as pandemic influenza,
   heat waves and cold snaps. For further details see the homepage of the
-  EuroMOMO project. 
+  EuroMOMO project at \url{https://www.euromomo.eu/}.
 }
 \source{
   Department of Epidemiology, Statens Serum Institute, Copenhagen, Denmark
-  StatBank Denmark, Statistics Denmark, \url{http://www.statistikbanken.dk/}
+  StatBank Denmark, Statistics Denmark, \url{https://www.statistikbanken.dk/}
 }
 \examples{
 data("momo")
@@ -41,8 +41,5 @@ plot(momo)
   illustrated by Danish mortality monitoring,  Book chapter to appear in
   T. Kass-Hout and X. Zhang (Eds.) Biosurveillance: A Health Protection
   Priority, CRC Press.
-
-  EuroMOMO project page, \url{http://www.euromomo.eu/}, Last accessed: 13
-  Oct 2010. 
 }
 \keyword{datasets}

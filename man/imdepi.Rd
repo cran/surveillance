@@ -108,12 +108,12 @@ data("imdepi")
 }
 
 \source{
-  IMD case reports: German Reference Centre for Meningococci (NRZM) --
-  hosted by the Department of Hygiene and Microbiology,
-  Julius-Maximilians-Universit\enc{ä}{ae}t W\enc{ü}{ue}rzburg, Germany.
+  IMD case reports: German Reference Centre for Meningococci
+  at the Department of Hygiene and Microbiology,
+  Julius-Maximilians-Universit\enc{ä}{ae}t W\enc{ü}{ue}rzburg, Germany
+  (\url{https://www.hygiene.uni-wuerzburg.de/meningococcus/}).
   Thanks to Dr. Johannes Elias and Prof. Dr. Ulrich Vogel for providing
-  the data. See \url{http://www.meningococcus.de/} and
-  \url{http://www.episcangis.org/} for further details.
+  the data.
 
   Shapefile of Germany's districts as at 2009-01-01:
   German Federal Agency for Cartography and Geodesy, Frankfurt

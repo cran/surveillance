@@ -50,8 +50,7 @@ Calculate proper scoring rules based on simulated predictive distributions.
   there are not enough samples to cover the underlying distribution in
   enough detail (the score becomes infinite when an observed value does
   not occur in the samples). An alternative is to use kernel density
-  estimation as implemented in \code{\link[scoringRules]{logs_sample}}
-  in the \R package \CRANpkg{scoringRules}.
+  estimation as implemented in the \R package \CRANpkg{scoringRules}.
 }
 
 \author{

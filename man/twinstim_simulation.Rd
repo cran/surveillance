@@ -280,11 +280,11 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
   The more detailed the polygons in \code{tiles} are the slower is
   the algorithm. You are advised to sacrifice some shape
   details for speed by reducing the polygon complexity,
-  for example via \code{\link[rmapshaper]{ms_simplify}} from
-  the \CRANpkg{rmapshaper} package.
+  for example via the \command{mapshaper} JavaScript library wrapped by
+  the R package \CRANpkg{rmapshaper}.
   Alternative tools are provided by the packages \CRANpkg{maptools}
-  (\code{\link[maptools]{thinnedSpatialPoly}}) and \CRANpkg{spatstat}
-  (\code{\link[spatstat]{simplify.owin}}).
+  (\code{\link[maptools]{thinnedSpatialPoly}}) and \CRANpkg{spatstat.geom}
+  (\code{\link[spatstat.geom]{simplify.owin}}).
 }
 
 \references{
@@ -293,11 +293,6 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
   represent a digitized line or its caricature.
   \emph{Cartographica: The International Journal for Geographic
   Information and Geovisualization}, \bold{10}, 112-122
-
-  Harrower, M. and Bloch, M. (2006):
-  MapShaper.org: A Map Generalization Web Service.
-  \emph{IEEE Computer Graphics and Applications}, \bold{26}(4), 22-27.
-  \doi{10.1109/MCG.2006.85}
 
   Meyer, S., Elias, J. and H\enc{ö}{oe}hle, M. (2012):
   A space-time conditional intensity model for invasive meningococcal
@@ -333,16 +328,17 @@ plot(districtsD)
 plot(stateD, add=TRUE, border=2, lwd=2)
 # 'stateD' was obtained as 'rgeos::gUnaryUnion(districtsD)'
 
-## simulate 2 realizations (during a VERY short period -- for speed)
+## simulate 2 realizations (over a short period, for speed)
 ## considering events from data(imdepi) before t=31 as prehistory
 mysims <- simulate(imdepifit, nsim=2, seed=1, data=imdepi,
                    tiles=districtsD, newcoef=c("e.typeC"=-1),
-                   t0=31, T=61, simplify=TRUE)
+                   t0=31, T=if (interactive()) 180 else 45, # for CRAN
+                   simplify=TRUE)
 \dontshow{
     ## check construction and selection from "simEpidataCSlist"
     local({
         mysim_from_list <- mysims[[1]]
-        mysim_single <- eval("[[<-"(attr(mysims, "call"), "nsim", 1))
+        capture.output(mysim_single <- eval("[[<-"(attr(mysims, "call"), "nsim", 1)))
         mysim_from_list$runtime <- mysim_single$runtime <- NULL
         stopifnot(all.equal(mysim_single, mysim_from_list,
                             check.attributes = FALSE))
@@ -350,19 +346,18 @@ mysims <- simulate(imdepifit, nsim=2, seed=1, data=imdepi,
     ## check equivalence of Lambdag from simulation and residuals via twinstim
     stopifnot(all.equal(
         residuals(mysims[[1]]),
-        surveillance:::residuals.twinstim(surveillance:::as.twinstim.simEpidataCS(mysims[[1]]))
+        suppressMessages(surveillance:::residuals.twinstim(surveillance:::as.twinstim.simEpidataCS(mysims[[1]])))
     ))
 }
 
-## extract the second realization -> object of class simEpidataCS
+## plot both simulations using the plot-method for simEpidataCSlist's
 mysims
+plot(mysims, aggregate="time")
+
+## extract the second realization -> object of class simEpidataCS
 mysim2 <- mysims[[2]]
 summary(mysim2)
 plot(mysim2, aggregate="space")
-
-## plot both epidemics using the plot-method for simEpidataCSlist's
-plot(mysims, aggregate="time", by=NULL)
-
 
 if (surveillance.options("allExamples")) {
 ### compare the observed _cumulative_ number of cases during the
@@ -391,7 +386,7 @@ plot(c(0,90), c(0,35), type="n", xlab="Time [days]",
 plotcsums(csums_observed, col=c(2,4), lwd=3)
 legend("topleft", legend=levels(imdepi$events$type), col=c(2,4), lwd=1)
 invisible(lapply(csums_simulated, plotcsums,
-                 col=scales::alpha(c(2,4), alpha=0.5)))
+                 col=adjustcolor(c(2,4), alpha=0.5)))
 }
 
 

@@ -3,8 +3,8 @@
 \title{Monte Carlo Permutation Test for Paired Individual Scores}
 
 \description{
-  As test statistic the difference between mean \code{\link{scores}}
-  from model A and mean \code{\link{scores}} from model B is used.
+  The difference between mean \code{\link{scores}} from model 1 and
+  mean \code{\link{scores}} from model 2 is used as the test statistic.
   Under the null hypothesis of no difference, the actually observed
   difference between mean scores should not be notably different from
   the distribution of the test statistic under permutation.
@@ -21,10 +21,10 @@ permutationTest(score1, score2, nPermutation = 9999,
 
 \arguments{
   \item{score1, score2}{
-    numeric vectors of scores to compare
+    numeric vectors of scores from models 1 and 2, respectively.
   }
   \item{nPermutation}{
-    number of random permutations to conduct
+    number of Monte Carlo replicates.
   }
   \item{plot}{
     logical indicating if a \code{\link{truehist}} of the \code{nPermutation}
@@ -40,8 +40,8 @@ permutationTest(score1, score2, nPermutation = 9999,
 
 \details{
   For each permutation, we first randomly assign the membership of the n
-  individual scores to either model A or B with probability 0.5. We then
-  compute the respective difference in mean for model A and B in this
+  individual scores to either model 1 or 2 with probability 0.5. We then
+  compute the respective difference in mean for model 1 and 2 in this
   permuted set of scores. The Monte Carlo p-value is then given by
   (1 + #{permuted differences larger than observed difference (in
   absolute value)}) / (1 + \code{nPermutation}).
@@ -69,12 +69,7 @@ permutationTest(score1, score2, nPermutation = 9999,
 }
 
 \seealso{
-  \code{\link{scores}} to obtain individual scores for
-  \code{\link{oneStepAhead}} predictions from a model.
-  
-  Package \pkg{coin} for a comprehensive permutation test framework,
-  specifically its function \code{\link[coin]{symmetry_test}} to compare
-  paired samples.
+  Package \CRANpkg{coin} for a comprehensive permutation test framework.
 }
 
 \examples{

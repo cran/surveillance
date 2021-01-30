@@ -1,5 +1,4 @@
 ### R code from vignette source 'surveillance.Rnw'
-### Encoding: UTF-8
 
 ###################################################
 ### code chunk number 1: setup
@@ -25,7 +24,7 @@ if(!compute) load(CACHEFILE)
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 data(k1)
-plot(k1,main="Kryptosporidiosis in BW 2001-2005")
+plot(k1, main = "Cryptosporidiosis in BW 2001-2005")
 
 
 ###################################################

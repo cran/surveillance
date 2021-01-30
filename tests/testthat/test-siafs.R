@@ -1,4 +1,8 @@
-context("Spatial interaction functions")
+### Spatial interaction functions for twinstim()
+
+## spatstat is no longer suggested, so is unavailable during R CMD check
+if (packageVersion("polyCub") <= "0.7.1")
+    exit_file("need polyCub > 0.7.1 to run these tests")
 
 
 ### test bundle
@@ -6,26 +10,25 @@ context("Spatial interaction functions")
 myexpectation <- function (siaf, intrfr, intrderivr, pargrid, type = 1, ...)
 {
     ## check analytical intrfr specification against numerical approximation
-    if (!missing(intrfr)) apply(pargrid, 1, function (pars) expect_warning(
+    if (!missing(intrfr)) apply(pargrid, 1, function (pars) expect_silent(capture.output(
         polyCub::checkintrfr(intrfr, siaf$f, pars, type, center=c(0,0),
-                              rs=c(1,2,5,10,20,50)),
-        NA, label = "polyCub::checkintrfr()"))
+                              rs=c(1,2,5,10,20,50))
+        )))
 
     ## also check intrfr for deriv
     if (!missing(intrderivr)) for (paridx in seq_along(intrderivr))
-        apply(pargrid, 1, function (pars) expect_warning(
+        apply(pargrid, 1, function (pars) expect_silent(capture.output(
             polyCub::checkintrfr(intrderivr[[paridx]],
                                   function (...) siaf$deriv(...)[,paridx],
                                   pars, type, center=c(0,0),
-                                  rs=c(1,2,5,10,20,50)),
-            NA,
-            label = paste0("polyCub::checkintrfr() for deriv[,",paridx,"]")))
+                                  rs=c(1,2,5,10,20,50))
+            )))
 
     ## check deriv, F, Deriv against numerical approximations
     checksiafres <- surveillance:::checksiaf(siaf, pargrid, type, ...)
     for (i in which(!sapply(checksiafres, is.null)))
         expect_true(unique(attr(checksiafres[[i]], "all.equal")),
-                    label=names(checksiafres)[i])
+                    info = names(checksiafres)[i])
 }
 
 
@@ -102,15 +105,15 @@ expect_equal_CnR <- function (siafgen, pargrid)
     resF <- apply(pargrid, 1, function (pars)
         c(C = siafC$F(polydomain, , pars),
           R = siafR$F(polydomain, , pars)))
-    expect_equal(object = resF["C",], expected = resF["R",],
-                 label = "C-version of F", expected.label = "R-version of F")
+    expect_equal(resF["C",], resF["R",],
+                 info = "C-version of F (current) vs. R-version of F (target)")
     ## check Deriv
     resDeriv <- apply(pargrid, 1, function (pars)
         c(siafC$Deriv(polydomain, , pars),
           siafR$Deriv(polydomain, , pars)))
     p <- siafR$npars
-    expect_equal(object = resDeriv[seq_len(p),], expected = resDeriv[p+seq_len(p),],
-                 label = "C-version of Deriv", expected.label = "R-version of Deriv")
+    expect_equal(resDeriv[seq_len(p),], resDeriv[p+seq_len(p),],
+                 info = "C-version of Deriv (current) vs. R-version of Deriv (target)")
 }
 
 test_that("siaf.exponential() engines agree", {

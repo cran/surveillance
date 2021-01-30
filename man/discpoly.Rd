@@ -7,7 +7,7 @@
   Generates a polygon representing a disc/circle (in planar
   coordinates) as an object of one of three possible
   classes: \code{"\link[sp:Polygon-class]{Polygon}"},
-  \code{"\link[spatstat]{owin}"}, or -- if \pkg{rgeos} (or
+  \code{"\link[spatstat.geom]{owin}"}, or -- if \pkg{rgeos} (or
   \pkg{gpclib}) are available --
   \code{"\link[rgeos:gpc.poly-class]{gpc.poly}"}.
 }
@@ -27,7 +27,7 @@ discpoly(center, radius, npoly = 64,
 
   \item{class}{class of the resulting polygon (partial name
   matching applies). For \code{"owin"}, this is just a
-  wrapper around \pkg{spatstat}'s own \code{\link[spatstat]{disc}} function.}
+  wrapper around \pkg{spatstat.geom}'s own \code{\link[spatstat.geom]{disc}} function.}
 
   \item{hole}{logical. Does the resulting polygon represent a hole?}
 }
@@ -42,8 +42,8 @@ discpoly(center, radius, npoly = 64,
 
 \author{
   Sebastian Meyer\cr
-  This function is inspired by the \code{\link[spatstat]{disc}} function
-  from package \pkg{spatstat} authored by Adrian Baddeley and Rolf Turner.
+  This function is inspired by the \code{\link[spatstat.geom]{disc}} function
+  from package \pkg{spatstat.geom}.
 }
 
 \examples{
@@ -69,7 +69,7 @@ symbols(0, 0, circles=5, inches=FALSE, add=TRUE, fg=5)
 }
 
 \seealso{
-  \link[spatstat]{disc} in package \pkg{spatstat}.
+  \link[spatstat.geom]{disc} in package \pkg{spatstat.geom}.
 }
 
 \keyword{datagen}

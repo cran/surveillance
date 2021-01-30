@@ -2,14 +2,14 @@
 ### Endemic-epidemic modelling for univariate or multivariate
 ### time series of infectious disease counts (data class "sts")
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2012-2016,2019 Sebastian Meyer
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2016,2019-2020 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
 ### a copy of which is available at https://www.R-project.org/Licenses/.
 ###
-### $Revision: 2524 $
-### $Date: 2020-03-03 16:34:01 +0100 (Tue, 03. Mar 2020) $
+### $Revision: 2564 $
+### $Date: 2020-10-11 23:31:03 +0200 (Sun, 11. Oct 2020) $
 ################################################################################
 
 ## Error message issued in loglik, score and fisher functions upon NA parameters
@@ -395,8 +395,6 @@ fe <- function(x,          # covariate
     stop("initial values for '",deparse(substitute(x)),"' must be of length ",dim.fe)
   }
 
-  summ <- if (unitSpecific) "colSums" else "sum"
-
   name <- deparse(substitute(x))
   if (unitSpecific)
       name <- paste(name, colnames(stsObj)[which], sep=".")
@@ -415,7 +413,6 @@ fe <- function(x,          # covariate
                 unitSpecific=unitSpecific,
                 random=FALSE,
                 corr=FALSE,
-                summ=summ,
                 mult=mult
                 )
   return(result)
@@ -488,7 +485,6 @@ ri <- function(type=c("iid","car"),
                 unitSpecific=FALSE,
                 random=TRUE,
                 corr=corr,
-                summ="colSums",
                 mult=mult
                 )
   return(result)
@@ -820,6 +816,10 @@ meanHHH <- function(theta, model, subset=model$subset, total.only=FALSE)
   toMatrix <- function (x, r=model$nTime, c=model$nUnits)
       matrix(x, r, c, byrow=TRUE)
 
+  unitNames <- dimnames(model$response)[[2L]]
+  setColnames <- if (is.null(unitNames)) identity else
+    function(x) "dimnames<-"(x, list(NULL, unitNames))
+
   ## go through groups of parameters and compute predictor of each component,
   ## i.e. lambda_it, phi_it, nu_it, EXCLUDING the multiplicative offset terms,
   ## as well as the resulting component mean (=exppred * offset)
@@ -828,7 +828,7 @@ meanHHH <- function(theta, model, subset=model$subset, total.only=FALSE)
     pred <- nullMatrix <- toMatrix(0)
 
     if(!any(comp==component)) { # component not in model -> return 0-matrix
-        zeroes <- pred[subset,,drop=FALSE]
+        zeroes <- setColnames(pred[subset,,drop=FALSE])
         return(list(exppred = zeroes, mean = zeroes))
     }
 
@@ -850,7 +850,7 @@ meanHHH <- function(theta, model, subset=model$subset, total.only=FALSE)
       pred <- pred + X*fe + Z.re
     }
 
-    exppred <- exp(pred[subset,,drop=FALSE])
+    exppred <- setColnames(exp(pred[subset,,drop=FALSE]))
     offset <- offsets[[component]]
     if (length(offset) > 1) offset <- offset[subset,,drop=FALSE]
     ##<- no subsetting if offset is scalar (time- and unit-independent)
@@ -1040,13 +1040,15 @@ penScore <- function(theta, sd.corr, model)
       if(is.matrix(Xit)){
         Xit <- Xit[subset,,drop=FALSE]
       }
-      summ <- get(term["summ",i][[1]])
       dTheta <- derivHHH(mean.comp[[comp]]*Xit)
       dTheta[isNA] <- 0   # dTheta must not contain NA's (set NA's to 0)
 
       if(term["unitSpecific",i][[1]]){
         which <- term["which",i][[1]]
-        dTheta <- summ(dTheta)[ which ]
+        dimi <- sum(which)
+        if(dimi < model$nUnits)
+          dTheta <- dTheta[,which,drop=FALSE]
+        dTheta <- .colSums(dTheta, length(subset), dimi)
         grad.fe <- c(grad.fe,dTheta)
 
       } else if(term["random",i][[1]]){
@@ -1056,7 +1058,7 @@ penScore <- function(theta, sd.corr, model)
         grad.re <- c(grad.re, dRTheta)
         grad.fe <- c(grad.fe, sum(dTheta))
       } else{
-        grad.fe <- c(grad.fe, summ(dTheta))
+        grad.fe <- c(grad.fe, sum(dTheta))
       }
     }
 

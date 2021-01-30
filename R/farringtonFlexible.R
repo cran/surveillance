@@ -61,7 +61,7 @@ farringtonFlexible <- function(sts, control = list(
     weightsThreshold = 2.58,  # with which threshold?
     verbose = FALSE,          # printing information?
     glmWarnings = TRUE,       # printing warning from glm.fit?
-    alpha = 0.05,             # approximate (two-sided) (1-alpha)% prediction interval
+    alpha = 0.05,             # (one-sided) (1-alpha)% prediction interval
     trend = TRUE,             # include a time trend when possible?
     pThresholdTrend = 0.05,   # which pvalue for the time trend is significant?
     limit54 = c(5,4),         # ignore if <5 reports during the past 4 weeks
@@ -518,11 +518,9 @@ algo.farrington.threshold.farrington <- function(predFit,predSeFit,phi,
 												    alpha,y,method){
 	#Fetch mu0 and var(mu0) from the prediction object
 	mu0 <- predFit
-
 	tau <- phi + (predSeFit^2)/mu0
 
 	#Standard deviation of prediction, i.e. sqrt(var(h(Y_0)-h(\mu_0)))
-
 	switch(skewness.transform,
 		"none" = { se <- sqrt(mu0*tau); exponent <- 1},
 		"1/2" = { se <- sqrt(1/4*tau); exponent <- 1/2},
@@ -530,12 +528,10 @@ algo.farrington.threshold.farrington <- function(predFit,predSeFit,phi,
 		{ stop("No proper exponent in algo.farrington.threshold.")})
 
 	#Note that lu can contain NA's if e.g. (-1.47)^(3/2)
-
 	lu <- sort((mu0^exponent + c(-1,1)*qnorm(1-alpha)*se)^(1/exponent),
 		    na.last=FALSE)
 
 	#Ensure that lower bound is non-negative
-
 	lu[1] <- max(0,lu[1],na.rm=TRUE)
 
 	# probability associated to the observed value as quantile
@@ -582,10 +578,10 @@ algo.farrington.threshold.noufaily <- function(predFit,predSeFit,phi,
 	} else{
 		# Two cases depending on phi value
 		if (phi>1){
-			lu<-c(qnbinom(alpha/2,mu0Quantile/(phi-1),1/phi),
-			qnbinom(1-alpha/2,mu0Quantile/(phi-1),1/phi))
+			lu<-c(qnbinom(alpha,mu0Quantile/(phi-1),1/phi),
+			qnbinom(1-alpha,mu0Quantile/(phi-1),1/phi))
 		} else {
-			lu<-c(qpois(alpha/2,mu0Quantile),qpois(1-alpha/2,mu0Quantile))
+			lu<-c(qpois(alpha,mu0Quantile),qpois(1-alpha,mu0Quantile))
 		}
 		# cannot be negative
 		lu[1]=max(0,lu[1])
@@ -597,7 +593,7 @@ algo.farrington.threshold.noufaily <- function(predFit,predSeFit,phi,
 			q <- ppois(y-1,mu0Quantile,lower.tail=FALSE)
 		}
 
-
+                
 	}
 	# calculate score
 	x <- ifelse(is.na(lu[2])==FALSE,(y - predFit) / (lu[2] - predFit),NA)

@@ -19,7 +19,7 @@ model {
 
     #<tps> #Random effects with automatic smoothing
     #<tps> for (k in 1:nknots){
-    #<tps>  	  b[k]~dnorm(0,tau.b)
+    #<tps>  	  b[k] ~ dnorm(0, tau.b)
     #<tps> }
     #<tps> tau.b ~ dgamma(0.001, 0.001)
 
@@ -43,6 +43,9 @@ model {
     #<iidLogGa>	lambda[t] ~ dgamma( alpha.lambda, beta.lambda)
     #<iidLogGa>	logLambda[t] <- log(lambda[t])
     #<iidLogGa> }
+
+    #<negbin> # Prior for r parameter in negbin
+    #<negbin> r ~ dunif(0,50)
 
     ######################################
     #Priors for discrete time hazard model
@@ -71,10 +74,13 @@ model {
     #Loop over all time points in the reporting triangle
     ####################################################
     for (t in max(1,T-m):T) {
-        #Time dependent delay distribution
-	logit(p[t,1]) <- gamma[1] + eta %*% W[t,,1]
+      #Time dependent delay distribution
+	    logit(p[t,1]) <- gamma[1] + eta %*% W[t,,1]
+	    #haz[t,1] <- p[t,1] -- not needed
     	for (d in 1:(maxDelay-1)) {
-#	    logit(haz[t,d+1]) <- gamma[d+1] + eta %*% W[t,,d+1]
+      # gamma's are unique
+      #	logit(haz[t,d+1]) <- gamma[d+1] + eta %*% W[t,,d+1]
+      # Two subsequent gamma's are the same
 	    logit(haz[t,d+1]) <- gamma[ round(d/2-0.4)+1] + eta %*% W[t,,d+1]
 	    p[t,d+1] <- (1-sum(p[t,1:d]))*haz[t,d+1]
 	}
@@ -83,7 +89,11 @@ model {
 	#Observations -- loop over all delays.
     	for (d in 0:maxDelay) {
 	    mu[t,d+1] <- exp(logLambda[t])*p[t,d+1]
-	    rT[t,d+1] ~ dpois(mu[t,d+1])
+	    #<poisson> # Poisson distributed response
+	    #<poisson> rT[t,d+1] ~ dpois(mu[t,d+1])
+
+	    #<negbin> # Negative binomial distributed response
+	    #<negbin> rT[t,d+1] ~ dnegbin(r/(r+mu[t, d+1]), r)
 	}
     }
 

@@ -19,24 +19,28 @@
   indicators (such as occurrence of cases) are prone to be delayed due to
   for example manual quality checking and reporting system
   hierarchies. Altogether, the delays are subject to a delay distribution,
-  which may or may not vary over time.
+  which may, or may not, vary over time.
 }
 
 \usage{
-nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
-        method=c("bayes.notrunc","bayes.notrunc.bnb","lawless","bayes.trunc",
-                 "unif","bayes.trunc.ddcp"),
+nowcast(now, when, data, dEventCol="dHospital", dReportCol="dReport",
+        method=c("bayes.notrunc", "bayes.notrunc.bnb", "lawless",
+                 "bayes.trunc", "unif", "bayes.trunc.ddcp"),
         aggregate.by="1 day",
-        D=15, m=NULL,
+        D=15,
+        m=NULL, m.interpretation=c("hoehle_anderheiden2014", "lawless1994"),
         control=list(
-            dRange=NULL,alpha=0.05,nSamples=1e3,
+            dRange=NULL, alpha=0.05, nSamples=1e3,
             N.tInf.prior=c("poisgamma","pois","unif"),
             N.tInf.max=300, gd.prior.kappa=0.1,
             ddcp=list(ddChangepoint=NULL,
-                logLambda=c("iidLogGa","tps","rw1","rw2"),
-                tau.gamma=1,eta.mu=NULL, eta.prec=NULL,
-                mcmc=c(burnin=2500,sample=10000,thin=1)),
-            score=FALSE,predPMF=FALSE))
+                      cp_order=c("zero","one"),
+                      Wextra=NULL,
+                      logLambda=c("iidLogGa","tps","rw1","rw2"),
+                      responseDistr=c("poisson", "negbin"),
+                      mcmc=c(burnin=2500, sample=10000, thin=1, adapt=1000,
+                             store.samples=FALSE)),
+            score=FALSE, predPMF=FALSE))
 }
 
 \arguments{
@@ -95,8 +99,31 @@ nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
     \code{aggregate.by}). Default: 15.}
   \item{m}{Size of the moving window for the estimation of the delay
     distribution. Default: \code{NULL}, i.e. take all values at all
-  times. Otherwise: an integer such that values from \code{(now-m):now}
-  are used.}
+  times. Otherwise: a positive integer equal to or greater than \code{D}
+  such that only values from a sliding window are used. The shape of the
+  window depends on the value of \code{m.interpretation}.}
+  \item{m.interpretation}{This parameter controls the interpretation of
+  the sliding window used to estimate the delay distribution. If
+  \code{m.interpretation="hoehle_anderheiden2014"} (Default) then the
+  sliding window is defined as a horizontal cut in the reporting
+  triangle, i.e. the values for the delay estimation originate from
+  reports occuring during \code{(now-m):now}. This means that the estimation of long delays is
+  based on fewer observations than the estimation of the short delays,
+  hence, the long delay estimates are subject to more variability. If
+  for example \eqn{m=D} then the estimate for a delay of \eqn{d=D} is
+  based on only one observation.
+  The advantage of this choice is that one explicitly knows which time
+  period all observations originate from. For details see Section 3 of
+  \enc{Höhle}{Hoehle} and an der Heiden (2014).    
+
+  Alternatively, when \code{m.interpretation}="lawless1994", the cut in
+  the reporting triangle is made such that each delay \code{d} is
+  estimated based on the same number of observations (\eqn{m+1}). This
+  means that in order to estimate the delay for \eqn{d} days, a
+  sliding rectangle of length \eqn{m+1} containing the reports which
+  occured during \code{(now-m-d):now}. See Fig. 2 in Lawless (1994) for
+  details. Note: A warning is given is
+  \code{method="lawless"}, but \code{m.interpretation} is not.}
   \item{control}{A list with named arguments controlling the
     functionality of the nowcasting.
     \describe{
@@ -118,7 +145,7 @@ nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
 	the predictive distribution is right-truncated. Default: 300.}
       \item{gd.prior.kappa}{Concentration parameter for the Dirichlet
 	prior for the delay distribution on \eqn{0,...,D}. Default: 0.1. Note:
-	The procedure is quite sensitive to this parameters in case only few
+	The procedure is quite sensitive to this parameter in case only few
 	cases are available.}
       \item{ddcp}{A list specifying the change point model for the delay
 	distribution. This method should only be used if detailed information
@@ -128,15 +155,38 @@ nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
 	\describe{
 	  \item{\code{ddChangepoint}}{Vector of Date objects corresponding
 	    to the changepoints}
+	  \item{\code{cp_order}}{Either \code{"zero"} (Default) or
+  \code{"one"}. This is the degree of the TPS spline for the baseline
+  hazard, which is formed by the changepoints. Order zero corresponds to
+  the dummy variables of the change-points being simply zero or one. In
+  case a 1st order polynomial is chosen, this allows the delay
+  distribution to change towards faster or slow reporting as time
+  progresses (until the next change-point). The later can be helpful in
+  very dynamic epidemic situations where a lot of cases suddenly appear
+  overwhelming the surveillance system infrastructure.}
+	  \item{code{Wextra}}{An additional design matrix part to be joined
+  onto the part originating from the change-points. Altogether, the
+  column bind of these two quantities will be \eqn{W_{t,d}}. This allows
+  one to include, e.g., day of the week effects or holidays.}
 	  \item{\code{logLambda}}{Prior on the spline. One of
 	    \code{c("iidLogGa","tps","rw1","rw2")}.}
+	  \item{\code{respDistr}}{Reponse distribution of \eqn{n_{t,d}}
+  in the reporting triangle. Default is \code{"poisson"}. An
+  experimental alternative is to use \code{"negbin"}.}
 	  \item{\code{tau.gamma}}{}
-	  \item{\code{eta.mu}}{}
-	  \item{\code{eta.prec}}{}
-	  \item{\code{mcmc}}{A names vector of length 3 containing
-	    burn-in, number of samples and thinning for the three MCMC chains
-	    which are ran. The values are passed on to \code{\link[runjags]{run.jags}}.
-	    Default: \code{c(burnin=2500,sample=10000,thin=1)}.}
+	  \item{\code{eta.mu}}{Vector of coefficients describing the
+  mean of the prior normal distribution of the regression effects in the
+  discrete time survival model.}
+	  \item{\code{eta.prec}}{A precision matrix for the regression
+  effects in the discrete time survival model.}
+	  \item{\code{mcmc}}{A named vector of length 5 containing
+	    burn-in (default: 2500), number of samples (10000),
+            thinning (1) and adaptation (1000) for the
+            three MCMC chains which are ran. The values are passed on to
+  \code{\link[runjags]{run.jags}}. The fifth argument \code{store.samples}
+  denotes if the output of the JAGS sampling should be included as part of the
+  returned \code{stsNC} object. Warning: If \code{TRUE} (Default: \code{FALSE})
+  the size of the returned object might increase substantially.}
 	}
       }
       \item{score}{Compute scoring rules. Default: \code{FALSE}. The
@@ -162,18 +212,25 @@ nowcast(now,when,data,dEventCol="dHospital",dReportCol="dReport",
   intervals, which are calculated based on the predictive distributions
   in slot \code{predPMF}.
   Furthermore, slot \code{truth} contains an \code{sts} object
-  containing the true number of cases (if possible to compute it based on
-  the data in \code{data}. Finally, slot \code{SR} contains the results
+  containing the true number of cases (if possible to compute it is based on
+  the data in \code{data}). Finally, slot \code{SR} contains the results
   for the proper scoring rules (requires truth to be calculable).
 }
 
 \references{
-  \enc{Höhle}{Hoehle} M and an der Heiden M (2014), Bayesian Nowcasting
-  during the STEC O104:H4 Outbreak in Germany, 2011, Biometrics,
+  \enc{Höhle}{Hoehle}, M. and an der Heiden, M. (2014): Bayesian nowcasting
+  during the STEC O104:H4 outbreak in Germany, 2011. \emph{Biometrics}
   70(4):993-1002. \doi{10.1111/biom.12194}.\cr
   A preprint is available as
-  \url{http://people.su.se/~mhh/pubs/hoehle_anderheiden2014-preprint.pdf}.
+  \url{https://staff.math.su.se/hoehle/pubs/hoehle_anderheiden2014-preprint.pdf}.
+
+  \enc{Günther}{Guenther}, F. and Bender, A. and Katz, K. and
+  \enc{Küchenhoff}{Kuechenhoff}, H. and \enc{Höhle}{Hoehle}, M. (2020):
+  Nowcasting the COVID-19 pandemic in Bavaria.
+  \emph{Biometrical Journal}. \doi{10.1002/bimj.202000112}\cr
+  Preprint available at \doi{10.1101/2020.06.26.20140210}.
 }
+
 
 \author{
   Michael \enc{Höhle}{Hoehle}
@@ -232,7 +289,8 @@ nc.control.ddcp <- modifyList(nc.control,
                          ddcp=list(ddChangepoint=as.Date(c("2011-05-23")),
                              logLambda="tps",
                              tau.gamma=1,
-                             mcmc=c(burnin=1000,sample=1000,thin=1))))
+                             mcmc=c(burnin=1000,sample=1000,thin=1,
+                                    adapt=1000,store.samples=FALSE))))
 
 nc.ddcp <- nowcast(now=t.repTriangle,when=when,
                dEventCol="dHosp",dReportCol="dReport",

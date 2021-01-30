@@ -378,7 +378,7 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
   Spatio-Temporal Infectious Disease Epidemiology based on Point Processes.
   Master's Thesis, Ludwig-Maximilians-Universit\enc{ä}{ae}t
   M\enc{ü}{ue}nchen.\cr
-  Available as \url{http://epub.ub.uni-muenchen.de/11703/}
+  Available as \url{https://epub.ub.uni-muenchen.de/11703/}
   
   Meyer, S., Elias, J. and H\enc{ö}{oe}hle, M. (2012):
   A space-time conditional intensity model for invasive meningococcal

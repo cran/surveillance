@@ -7,9 +7,9 @@
 ### class "twinstim". The function basically uses Ogata's modified thinning
 ### algorithm (cf. Daley & Vere-Jones, 2003, Algorithm 7.5.V.).
 ###
-### Copyright (C) 2010-2018 Sebastian Meyer
-### $Revision: 2178 $
-### $Date: 2018-07-17 11:04:22 +0200 (Tue, 17. Jul 2018) $
+### Copyright (C) 2010-2018,2021 Sebastian Meyer
+### $Revision: 2628 $
+### $Date: 2021-01-29 14:41:08 +0100 (Fri, 29. Jan 2021) $
 ################################################################################
 
 ### CAVE:
@@ -86,10 +86,9 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
         stgrid <- check_stgrid(stgrid[grep("^BLOCK$", names(stgrid), invert=TRUE)])
     }
 
-    W <- if (is.null(W)) {
-        cat("Building 'W' as the union of 'tiles' ...\n")
-    	unionSpatialPolygons(tiles)
-    } else check_W(W)  # does as(W, "SpatialPolygons")
+    if (!is.null(W)) {
+        W <- check_W(W)  # does as(W, "SpatialPolygons")
+    }
 
     if (!.skipChecks) {
         cat("Checking 'tiles' ...\n")
@@ -100,8 +99,13 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
                          areas.stgrid = stgrid[["area"]][seq_along(tileLevels)],
                          W = W, keep.data = FALSE)
 
+    if (is.null(W)) {
+        cat("Building 'W' as the union of 'tiles' ...\n")
+        W <- unionSpatialPolygons(tiles)
+    }
+
     ## Transform W to class "owin"
-    Wowin <- as(W, "owin")
+    Wowin <- SpP2owin(W)
     maxExtentOfW <- diameter.owin(Wowin)
 
 
@@ -764,9 +768,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
                 .upperRange <- min(sourceEpss, maxExtentOfW)
                 .eventType <- sample(typeNames[qmatrix[sourceType,]], 1L)
                 .eventTypeCode <- match(.eventType, typeNames)
-                eventLocationIR <- if (constantsiaf) {
-                    as.matrix(coords.ppp(runifpoint(1L, win=sourceIR)))
-                } else {
+
                     eventInsideIR <- FALSE
                     ntries <- 0L
                     while(!eventInsideIR) {
@@ -782,8 +784,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
                                                      eventLocationIR[,2],
                                                      sourceIR)
                     }
-                    eventLocationIR
-                }
+
                 .eventLocation <- sourceCoords + eventLocationIR
                 whichTile <- over(SpatialPoints(.eventLocation,
                                                 proj4string=tiles@proj4string),
@@ -794,12 +795,8 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
                             ") not in 'tiles'")
                     stop("'tiles' must cover all of 'W'")
                 }
-                .eventTile <- row.names(tiles)[whichTile]
-                .eventTile <- factor(.eventTile, levels=tileLevels)
-                if (is.na(.eventTile))
-                    stop("tile \"", row.names(tiles)[whichTile],
-                         "\" of simulated event is no level of stgrid$tile",
-                         "\n-> verify row.names(tiles)")
+                .eventTile <- factor(row.names(tiles)[whichTile],
+                                     levels = tileLevels)
             }
             .eventType <- factor(.eventType, levels=typeNames)
 
@@ -1056,6 +1053,10 @@ simEndemicEvents <- function (object, tiles)
         row.names = NULL, check.rows = FALSE, check.names = FALSE
     )
 
+    ## empty CRS to avoid spending 3/4 of this function's runtime in rebuild_CRS()
+    proj4string <- tiles@proj4string
+    tiles@proj4string <- new("CRS")
+
     ## sample coordinates from tiles
     nByTile <- tapply(X = nGrid, INDEX = lambdaGrid["tile"], FUN = sum)
     xyByTile <- sapply(
@@ -1073,7 +1074,7 @@ simEndemicEvents <- function (object, tiles)
     events <- SpatialPointsDataFrame(
         coords = do.call("rbind", xyByTile),
         data = events[order(events$tile),],
-        proj4string = tiles@proj4string,
+        proj4string = proj4string,
         match.ID = FALSE)
 
     ## order by time

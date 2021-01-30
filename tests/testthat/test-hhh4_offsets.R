@@ -1,7 +1,12 @@
-context("hhh4() with epidemic offsets")
+### hhh4() with epidemic offsets
 
+## select two adjacent regions
 data("measlesWeserEms")
-measles2 <- measlesWeserEms[,c("03457","03454")]
+expect_message(
+    measles2 <- measlesWeserEms[,c("03457","03454")],
+    "could invalidate"
+)
+expect_equivalent(neighbourhood(measles2), matrix(c(0,1,1,0), 2, 2))
 
 ## AR model
 fit1 <- hhh4(measles2, list(ar = list(f = ~1)))

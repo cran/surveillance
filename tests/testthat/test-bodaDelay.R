@@ -1,11 +1,12 @@
-library("testthat")
-library("surveillance")
-##################################################################
-context("Checking the provided reporting triangle")
+###
+## Checking the provided reporting triangle
+###
+
+data('salmAllOnset')
+
 # Control slot for the proposed algorithm with D=10 correction
 rangeTest <- 410:412
 alpha <- 0.05
-
 controlDelay <-  list(range = rangeTest, b = 4, w = 3,
                       pastAberrations = TRUE, mc.munu=10, mc.y=10,
                       verbose = FALSE,populationOffset=FALSE,
@@ -18,7 +19,6 @@ test_that("The absence of reporting triangle throws an error",{
   expect_error(bodaDelay(salmNewport, controlDelay),"You have to")
 })
 test_that("The function spots uncorrect reporting triangles",{
-  data('salmAllOnset')
   stsFake <- salmAllOnset
   stsFake@control$reportingTriangle$n <- head(stsFake@control$reportingTriangle$n,n=10)
   expect_error(bodaDelay(stsFake, controlDelay),"The reporting triangle number")
@@ -26,10 +26,12 @@ test_that("The function spots uncorrect reporting triangles",{
   stsFake@control$reportingTriangle$n[1,] <- stsFake@control$reportingTriangle$n[1,]/2
   expect_error(bodaDelay(stsFake, controlDelay),"The reporting triangle is wrong")
 })
-##################################################################
-context("Data glm function")
 
-# Parameters
+
+###
+## Data glm function
+###
+
 epochAsDate <- TRUE
 epochStr <- "week"
 freq <- 52
@@ -55,7 +57,8 @@ vectorOfDates <- as.Date(salmAllOnset@epoch, origin="1970-01-01")
 dayToConsider <- vectorOfDates[rangeTest[1]]
 observed <- salmAllOnset@observed
 population <- salmAllOnset@populationFrac
-dataGLM <- bodaDelay.data.glm(dayToConsider=dayToConsider,
+
+dataGLM <- surveillance:::bodaDelay.data.glm(dayToConsider=dayToConsider,
                               b=b, freq=freq,
                               epochAsDate=epochAsDate,
                               epochStr=epochStr,
@@ -67,7 +70,7 @@ dataGLM <- bodaDelay.data.glm(dayToConsider=dayToConsider,
                               reportingTriangle=reportingTriangle,
                               delay=delay)
 delay <- FALSE
-dataGLMNoDelay <- bodaDelay.data.glm(dayToConsider=dayToConsider,
+dataGLMNoDelay <- surveillance:::bodaDelay.data.glm(dayToConsider=dayToConsider,
                                   b=b, freq=freq,
                                   epochAsDate=epochAsDate,
                                   epochStr=epochStr,
@@ -78,6 +81,7 @@ dataGLMNoDelay <- bodaDelay.data.glm(dayToConsider=dayToConsider,
                                   pastWeeksNotIncluded=pastWeeksNotIncluded,
                                   reportingTriangle=reportingTriangle,
                                   delay=delay)
+
 test_that("the output is a data.frame",{
   expect_true(class(dataGLM)=="data.frame")
   expect_true(class(dataGLMNoDelay)=="data.frame")
@@ -116,9 +120,10 @@ test_that("the factor variable has the right number of levels",{
 })
 
 
+###
+## Fit glm function
+###
 
-##################################################################
-context("Fit glm function")
 argumentsGLM <- list(dataGLM=dataGLM,reportingTriangle=reportingTriangle,
                      timeTrend=timeTrend,alpha=alpha,
                      populationOffset=populationOffset,
@@ -128,25 +133,34 @@ argumentsGLM <- list(dataGLM=dataGLM,reportingTriangle=reportingTriangle,
 
 if(surveillance.options("allExamples") && require("INLA")) { # needs to be attached
   argumentsGLM$inferenceMethod <- "INLA"
-  model <- do.call(bodaDelay.fitGLM, args=argumentsGLM)
+  model <- do.call(surveillance:::bodaDelay.fitGLM, args=argumentsGLM)
   test_that("the fitGLM function gives the right class of output",{
     expect_equal(class(model),"inla")
   })
 }
 
 argumentsGLM$inferenceMethod <- "asym"
-model <- do.call(bodaDelay.fitGLM, args=argumentsGLM)
+model <- do.call(surveillance:::bodaDelay.fitGLM, args=argumentsGLM)
 test_that("the fitGLM function gives the right class of output",{
   expect_equal(class(model), c("negbin", "glm", "lm"))
 })
-################################################################################
-context("formula function")
-################################################################################
+
+
+###
+## formula function
+###
+
 test_that("We get the right formula",{
-  expect_equal(formulaGLMDelay(timeBool=TRUE,factorsBool=FALSE),"response ~ 1+wtime")
-  expect_equal(formulaGLMDelay(timeBool=FALSE,factorsBool=FALSE),"response ~ 1")
-  expect_equal(formulaGLMDelay(timeBool=TRUE,factorsBool=FALSE),"response ~ 1+wtime")
-  expect_equal(formulaGLMDelay(timeBool=TRUE,factorsBool=TRUE),"response ~ 1+wtime+as.factor(seasgroups)")
-  expect_equal(formulaGLMDelay(timeBool=TRUE,factorsBool=TRUE,delay=TRUE),"response ~ 1+wtime+as.factor(seasgroups)+as.factor(delay)")
-  expect_equal(formulaGLMDelay(timeBool=TRUE,factorsBool=FALSE,outbreak=TRUE),"response ~ 1+wtime+f(outbreakOrNot,model='linear', prec.linear = 1)")
+  expect_identical(surveillance:::formulaGLMDelay(timeBool=TRUE,factorsBool=FALSE),
+                   "response ~ 1+wtime")
+  expect_identical(surveillance:::formulaGLMDelay(timeBool=FALSE,factorsBool=FALSE),
+                   "response ~ 1")
+  expect_identical(surveillance:::formulaGLMDelay(timeBool=TRUE,factorsBool=FALSE),
+                   "response ~ 1+wtime")
+  expect_identical(surveillance:::formulaGLMDelay(timeBool=TRUE,factorsBool=TRUE),
+                   "response ~ 1+wtime+as.factor(seasgroups)")
+  expect_identical(surveillance:::formulaGLMDelay(timeBool=TRUE,factorsBool=TRUE,delay=TRUE),
+                   "response ~ 1+wtime+as.factor(seasgroups)+as.factor(delay)")
+  expect_identical(surveillance:::formulaGLMDelay(timeBool=TRUE,factorsBool=FALSE,outbreak=TRUE),
+                   "response ~ 1+wtime+f(outbreakOrNot,model='linear', prec.linear = 1)")
 })

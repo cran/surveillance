@@ -1,4 +1,4 @@
-context("Temporal interaction functions")
+### Temporal interaction functions for twinstim()
 
 test_that("Step kernel of a single type agrees with numerical approximations",
      {
@@ -20,7 +20,7 @@ test_that("Step kernel of a single type agrees with numerical approximations",
                  grad = function(pars, x) steptiaf$deriv(x, pars),
                  t0 = logvals, x = c(0.5,2,5,7,10,15,20,25,30),
                  print = FALSE)
-             expect_lt(checkderiv$maxRelDiffGrad, 1e-8)
+             expect_true(checkderiv$maxRelDiffGrad < 1e-8)
          }
 
          ## check Deriv

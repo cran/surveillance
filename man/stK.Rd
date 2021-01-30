@@ -98,7 +98,7 @@ stKtest(object, eps.s = NULL, eps.t = NULL, B = 199,
   An application to psychiatric hospital admissions in an urban area.
   \emph{Spatial and Spatio-temporal Epidemiology}, \bold{17}, 15-25.
   \doi{10.1016/j.sste.2016.03.002}.
-  Eprint: \url{http://arxiv.org/abs/1512.09052}.
+  Eprint: \url{https://arxiv.org/abs/1512.09052}.
 }
 
 \author{

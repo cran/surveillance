@@ -157,7 +157,7 @@ plot(s)
   Pfeilsticker, A. (1863). Beitr\enc{ä}{ae}ge zur Pathologie der Masern mit
   besonderer Ber\enc{ü}{ue}cksichtigung der statistischen Verh\enc{ä}{ae}ltnisse,
   M.D. Thesis, Eberhard-Karls-Universit\enc{ä}{ae}t T\enc{ü}{ue}bingen.
-  Available as \url{http://www.archive.org/details/beitrgezurpatho00pfeigoog}.
+  Available as \url{https://archive.org/details/beitrgezurpatho00pfeigoog}.
   
   Oesterle, H. (1992). Statistische Reanalyse einer Masernepidemie 1861
   in Hagelloch, M.D. Thesis, Eberhard-Karls-Universit\enc{ä}{ae}at

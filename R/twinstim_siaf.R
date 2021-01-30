@@ -7,8 +7,8 @@
 ### Specific implementations are in seperate files (e.g.: Gaussian, power law).
 ###
 ### Copyright (C) 2009-2015,2017 Sebastian Meyer
-### $Revision: 1965 $
-### $Date: 2017-10-02 16:10:56 +0200 (Mon, 02. Oct 2017) $
+### $Revision: 2601 $
+### $Date: 2021-01-12 18:04:57 +0100 (Tue, 12. Jan 2021) $
 ################################################################################
 
 
@@ -89,12 +89,10 @@ siaf.constant <- function ()
                           quote(rep.int(1, length(s)/2))),
         ##<- nrow() would take extra time in standardGeneric()
                         envir = .GlobalEnv),
-        ## integration over polydomains is handled specially in twinstim
+        ## integration over polydomains (F) is handled specially in twinstim
         Fcircle = as.function(c(alist(r=, pars=NULL, type=NULL),
                                 quote(pi*r^2)),
                               envir = .GlobalEnv),
-        ## simulation will be handled specially in simEpidataCS, this is only
-        ## included here for completeness
         simulate = as.function(c(alist(n=, pars=NULL, type=NULL, ub=),
                                  quote(runifdisc(n, ub))),
                                envir = getNamespace("surveillance")),

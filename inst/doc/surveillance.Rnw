@@ -147,14 +147,14 @@ number of time series are contained in the package (see
 mainly originating from the SurvStat@RKI database at
 \url{https://survstat.rki.de/}
 maintained by the Robert Koch Institute, Germany~\citep{survstat}.
-For example the object \texttt{k1} describes Kryptosporidosis
+For example the object \texttt{k1} describes cryptosporidiosis
 surveillance data for the German federal state Baden-W\"{u}rttemberg
-2001-2005. The peak in 2001 is due to an outbreak of Kryptosporidosis
-among a group of army-soldiers in boot-camp~\citep{bulletin3901}.
+2001-2005. The peak in 2001 is due to an outbreak of cryptosporidiosis
+among a group of army soldiers in a boot camp~\citep{bulletin3901}.
 
 <<fig=T>>=
 data(k1)
-plot(k1,main="Kryptosporidiosis in BW 2001-2005")
+plot(k1, main = "Cryptosporidiosis in BW 2001-2005")
 @
 
 For evaluation purposes it is also of interest to generate

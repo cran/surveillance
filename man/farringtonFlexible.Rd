@@ -78,7 +78,7 @@ farringtonFlexible(sts, control = list(
       (Noufaily et al., 2012).}
     \item{\code{thresholdMethod}}{Method to be used to derive the upperbound.
     Options are \code{"delta"} for the method described in Farrington et al. (1996),
-    \code{"Noufaily"} for the method described in Noufaily et al. (2012),
+    \code{"nbPlugin"} for the method described in Noufaily et al. (2012),
     and \code{"muan"} for the method extended from Noufaily et al. (2012).}
       }
     }

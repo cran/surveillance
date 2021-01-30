@@ -1,5 +1,5 @@
 %\VignetteIndexEntry{Monitoring count time series in R: Aberration detection in public health surveillance}
-%\VignetteDepends{surveillance, gamlss, INLA, MGLM, ggplot2}
+%\VignetteDepends{surveillance, gamlss, INLA, MGLM}
 
 \documentclass[nojss]{jss}
 \usepackage{amsmath,bm}
@@ -72,7 +72,7 @@
   Kr\"{a}ftriket\\
   106 91 Stockholm, Sweden\\
   E-mail: \email{hoehle@math.su.se}\\
-  URL: \url{http://www.math.su.se/~hoehle/}
+  URL: \url{https://www.math.su.se/~hoehle/}
 }
 
 
@@ -294,7 +294,7 @@ is especially convenient in situations when little historic information is avail
 
 Here we shall expand on C1 for which the baseline are the 7 timepoints before the assessed timepoint $t_0$, that is to say
  $\left(y_{t_0-7},\ldots,y_{t_0-1}\right)$. The expected value is the mean of the baseline. The method is based on a statistic called $C_{t_0}$ defined as
-$C_{t_0}= \frac{(y_{t_0}-\bar{y}_{t_0})}{s_{t_0}}$, where $$\bar{y}_{t_0}= \frac{1}{7} \cdot\sum_{i=t_0-7}^{t_0-1} y_i  \textnormal{ and } s_{t_0}^2= \frac{1}{7-1} \cdot\sum_{i=t_0-7}^{t_0-1} \left(y_i - \bar{y}_{t_0}\right)^2.$$
+$C_{t_0}= \frac{(y_{t_0}-\bar{y}_{t_0})}{s_{t_0}}$, where $$\bar{y}_{t_0}= \frac{1}{7} \cdot\sum_{i=t_0-7}^{t_0-1} y_i  \textnormal{ and } s_{t_0}^2= \frac{1}{7-1} \cdot\sum_{i=t_0-7}^{t_0-1} \left(y_i - \bar{y}_{t_0}\right)^2 \,.$$
 Under the null hypothesis of no outbreak, it is assumed that $C_{t_0} \stackrel{H_0}{\sim} {N}(0,1)$. The upperbound $U_{t_0}$ is found by assuming that $y_t$ is normal,
 estimating parameters by plug-in and then taking the $(1-\alpha)$-th
 quantile of this distribution, i.e.  $U_{t_0}= \bar{y}_{t_0} +
@@ -393,68 +393,11 @@ there is only one period defined per year, the reference window around $t_0$ and
  \setkeys{Gin}{height=3cm, width=7cm}
 \begin{figure}
 \subfloat[$\texttt{noPeriods}=2$]{
-<<fPlot1, fig=TRUE, echo = FALSE, label=fPlot1,include = F,results=hide, width=7, height=3>>=
-library(ggplot2)
-library(grid)
-# for rectanges
-widthRectangles <- 10
-# dimensions for the ticks
-heightTick <- 4
-xTicks <- c(15,67,119)
-yTicksStart <- rep(0,3)
-yTicksEnd <- rep(0,3)
-yTicksEnd2 <- rep(-5,3)
-textTicks <- c("t-2*p","t-p","t[0]")
-xBigTicks <- c(xTicks[1:2]-widthRectangles/2,xTicks[1:2]+widthRectangles/2,xTicks[3]-widthRectangles/2,xTicks[3])
-yTicksBigEnd <- rep(0,6)
-yTicksBigStart <- rep(heightTick,6)
-# to draw the horizontal line
-vectorDates <- rep(0,150)
-dates <- seq(1:150)
-data <- data.frame(dates,vectorDates)
-xPeriods <- c(15,67,117,15+26,67+26)
-################################################################################
-p <- ggplot() +
-# white
-theme_void() +
-geom_segment(aes(x = 0, y = -20, xend = 200, yend = 10), size=2,
-              arrow = arrow(length = unit(0.5, "cm")), colour ='white')   +
-# time arrow
- geom_segment(aes(x = 0, y = 0, xend = 150, yend = 0), size=1,
-               arrow = arrow(length = unit(0.5, "cm")))   +
-# ticks
-geom_segment(aes(x = xTicks, y = yTicksEnd2, xend = xTicks, yend = yTicksStart ), arrow = arrow(length = unit(0.3, "cm")),size=1)+
-# big ticks
-geom_segment(aes(x = xBigTicks, y = yTicksBigStart, xend = xBigTicks, yend = yTicksBigEnd*2), size=1)+
-# time label
-annotate("text", label = "Time", x = 170, y = 0, size = 8, colour = "black",
-        family="serif") +
-# ticks labels
-annotate('text',label=c("t[0]-2 %.% freq","t[0]-freq","t[0]"),x = xTicks,
-        y = yTicksEnd - 10, size = 8,family="serif",parse=T)
-p+
-# periods labels
-
-annotate('text',label=c("A","A","A","B","B"),x = xPeriods,
-        y = rep(6,5), size = 8,family="serif",parse=T)
-@
-
-\includegraphics[width=0.45\textwidth]{plots/monitoringCounts-fPlot1.pdf}
+\includegraphics[width=0.45\textwidth]{monitoringCounts-cache/fPlot1.pdf}
 }
 \qquad
 \subfloat[$\texttt{noPeriods}=3$]{
-<<fPlot2, fig=TRUE, echo = FALSE, label=fPlot2,include = F,results=hide, width=7, height=3>>=
-yTicksBigEnd2 <- rep(0,4)
-yTicksBigStart2 <- rep(heightTick,4)
-newX <- c(xTicks[1:2]+widthRectangles/2+52-widthRectangles,xTicks[1:2]+52/2)
-xPeriods <- c(15,67,117,15+16,67+16,15+35,67+35)
-p + geom_segment(aes(x = newX, y = yTicksBigStart2, xend = newX, yend = yTicksBigEnd2), size=1)+
-# periods labels
-
-annotate('text',label=c("A","A","A","B","B","C","C"),x = xPeriods,
-        y = rep(6,7), size = 8,family="serif",parse=T)
-@
-\includegraphics[width=0.45\textwidth]{plots/monitoringCounts-fPlot2.pdf}
+\includegraphics[width=0.45\textwidth]{monitoringCounts-cache/fPlot2.pdf}
 }
 
 \caption{Construction of the noPeriods-level factor to account for seasonality, depending on the value of the half-window size $w$ and of the freq of the
@@ -475,12 +418,12 @@ Lastly, in the new implementation a population offset can be included in the GLM
 In a second step, the expected number of counts $\mu_{t_0}$ is predicted for the current timepoint $t_0$ using this GLM. An upperbound $U_{t_0}$ is calculated based on this predicted value and its variance. The two versions of the algorithm make different assumptions for this calculation.
 The
 original method assumes that a transformation of the prediction error $g\left(y_{t_0}-\hat{\mu}_{t_0}\right)$ is normally distributed, for instance when using the identity transformation $g(x)=x$ one obtains
-$$y_{t_0} - \hat{\mu}_0 \sim \mathcal{N}(0,\Var(y_{t_0}-\hat{\mu}_0))\cdot$$
+$$y_{t_0} - \hat{\mu}_0 \sim \mathcal{N}(0,\Var(y_{t_0}-\hat{\mu}_0)) \,.$$
 The upperbound of the prediction interval is then calculated
 based on this distribution. First we have that
 $$ \Var(y_{t_0}-\hat{\mu}_{t_0}) = \Var(\hat{y}_{t_0}) + \Var(\hat{\mu}_{t_0})=\phi\mu_0+\Var(\hat{\mu}_{t_0}) $$
  with $\Var(\hat{y}_{t_0})$ being the variance of an observation and $\Var(\hat{\mu}_{t_0})$ being the variance of the estimate. The threshold, defined as the upperbound of a one-sided $(1-\alpha)\cdot 100\%$ prediction interval, is then
-$$U_{t_0} = \hat{\mu}_0 + z_{1-\alpha}\widehat{\Var}(y_{t_0}-\hat{\mu}_{t_0})\cdot$$
+$$U_{t_0} = \hat{\mu}_0 + z_{1-\alpha}\sqrt{\widehat{\Var}(y_{t_0}-\hat{\mu}_{t_0})} \,.$$
 
 This method can be used by setting the control option \code{thresholdMethod} equal to "\code{delta}".
  However, a weakness
@@ -840,7 +783,7 @@ $$N=\min \left\{ t_0 \geq 1 : \max_{1\leq t \leq t_0} \left[ \sum_{s=t}^{t_0} \l
 where $\mathtt{c.ARL}$ is the threshold of the CUSUM.
 
 When $\lambda$ is unknown and with the autoregressive component one has to use a generalized likelihood ratio (GLR) with the following stopping rule to estimate them on the fly at each time point so that
-$$N_G=\min \left\{ t_0 \geq 1 : \max_{1\leq t \leq t_0} \sup_{\bm{\theta} \in \bm{\Theta}} \left[ \sum_{s=t}^{t_0} \log\left\{ \frac{f_{\bm{\theta}}(y_s|\bm{z}_s)}{f_{\bm{\theta}_0}(y_s|\bm{z}_s)} \right\} \right] \geq \mathtt{c.ARL} \right\}\cdot$$
+$$N_G=\min \left\{ t_0 \geq 1 : \max_{1\leq t \leq t_0} \sup_{\bm{\theta} \in \bm{\Theta}} \left[ \sum_{s=t}^{t_0} \log\left\{ \frac{f_{\bm{\theta}}(y_s|\bm{z}_s)}{f_{\bm{\theta}_0}(y_s|\bm{z}_s)} \right\} \right] \geq \mathtt{c.ARL} \right\} \,.$$
 Thus, one does not make any hypothesis about the specific value of the change to detect, but this GLR is more computationally intensive than the LR.
 
 \subsubsection{Practical use}
@@ -948,7 +891,7 @@ names(salmHospitalized.df) <- c("y", "t", "state", "alarm", "upperbound", "n",
 
 We assume that the number of hospitalized cases follows a beta-binomial distribution, i.e.,
 $ y_t \sim \BetaBin(n_t,\pi_t,\sigma_t)$ with $n_t$ the total number of reported cases at time $t$, $\pi_t$ the proportion of these cases that were hospitalized and $\sigma$ the dispersion parameter. In this
-parametrization, $$E(y_t)=n_t \pi_t,\quad \text{and}$$ $$\Var(y_t)=n_t \pi_t(1-\pi_t)\left( 1 + \frac{\sigma(n_t-1)}{\sigma+1} \right)\cdot$$
+parametrization, $$E(y_t)=n_t \pi_t,\quad \text{and}$$ $$\Var(y_t)=n_t \pi_t(1-\pi_t)\left( 1 + \frac{\sigma(n_t-1)}{\sigma+1} \right) \,.$$
 We choose to model the expectation $n_t \pi_t$ using a beta-binomial model with a logit-link which is a special case of a GAMLSS, i.e.,
 $$\logit(\pi_t)=\bm{z}_t^\top\bm{\beta}$$
 where $\bm{z}_t$ is a vector of possibly time-varying covariates and $\bm{\beta}$ a vector of covariate effects in our example.

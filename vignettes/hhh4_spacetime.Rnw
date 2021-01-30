@@ -1,6 +1,6 @@
 %\VignetteIndexEntry{hhh4 (spatio-temporal): Endemic-epidemic modeling of areal count time series}
 %\VignetteEngine{knitr::knitr}
-%\VignetteDepends{surveillance, lattice, spdep, gsl, colorspace, ggplot2, animation, gridExtra, scales, rmapshaper, fanplot, hhh4contacts}
+%\VignetteDepends{surveillance, lattice, spdep, gsl, colorspace, animation, gridExtra, scales, fanplot, hhh4contacts}
 
 <<setup, cache = FALSE, include = FALSE, purl = FALSE>>=
 ## purl=FALSE => not included in the tangle'd R script
@@ -299,20 +299,20 @@ plot(measlesWeserEms, type = observed ~ unit,
   sp.layout = layout.scalebar(measlesWeserEms@map, corner = c(0.05, 0.05),
     scale = 50, labels = c("0", "50 km"), height = 0.03))
 @
-The overall time-series plot in Figure~\ref{fig:measlesWeserEms1} reveals strong
+The overall time-series plot in Figure~\ref{fig:measlesWeserEms-1} reveals strong
 seasonality in the data with slightly different patterns in the two years.
-The spatial plot in Figure~\ref{fig:measlesWeserEms2} is a tweaked \code{spplot}
+The spatial plot in Figure~\ref{fig:measlesWeserEms-2} is a tweaked \code{spplot}
 (package \CRANpkg{sp}) with colors from \CRANpkg{colorspace} \citep{R:colorspace} using
-$\sqrt{}$-equidistant cut points handled by package \CRANpkg{scales}
-\citep{R:scales}.
+$\sqrt{}$-equidistant cut points.
 
 The default plot \code{type} is \code{observed ~ time | unit} and displays
 the district-specific time series. Here we show the output of the
 equivalent \code{autoplot}-method (Figure~\ref{fig:measlesWeserEms15}),
-which is based on \CRANpkg{ggplot2} \citep{R:ggplot2}:
-<<measlesWeserEms15, fig.cap=paste("Count time series of the", sum(colSums(observed(measlesWeserEms))>0), "affected districts."), out.width="\\linewidth", fig.width=10, fig.height=6, fig.pos="htb", eval=-1>>=
-plot(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
-autoplot.sts(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
+which is based on and requires \CRANpkg{ggplot2} \citep{R:ggplot2}:
+<<measlesWeserEms15, fig.cap=paste("Count time series of the", sum(colSums(observed(measlesWeserEms))>0), "affected districts."), out.width="\\linewidth", fig.width=10, fig.height=6, fig.pos="htb">>=
+if (require("ggplot2")) {
+   autoplot(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
+} else plot(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
 @
 The districts
 \Sexpr{paste0(paste0(row.names(measlesWeserEms@map), " (", measlesWeserEms@map[["GEN"]], ")")[colSums(observed(measlesWeserEms)) == 0], collapse = " and ")}
@@ -528,7 +528,7 @@ among the ones presenting their vaccination card at school entry in district
 $i$ in the year 2004.\footnote{%
   First year with data for all districts -- available from
   the public health department of Lower Saxony
-  (\url{http://www.nlga.niedersachsen.de/portal/live.php?navigation_id=36791&article_id=135436&_psmand=20}).}
+  (\url{https://www.nlga.niedersachsen.de/portal/live.php?navigation_id=36791&article_id=135436&_psmand=20}).}
   %% Note: districts are more heterogeneous in 2004 than in later years.
   %% Data is based on abecedarians in 2004, i.e.\ born in 1998, recommended to
   %% be twice vaccinated against Measles by the end of year 2000.
@@ -673,11 +673,11 @@ measlesFit_np2 <- update(measlesFit_nepop,
   ne = list(weights = W_np(maxlag = 2)))
 @
 
-Figure~\ref{fig:measlesFit_neweights2} shows both the power-law model
+Figure~\ref{fig:measlesFit_neweights-2} shows both the power-law model
 $o^{-\hat{d}}$ and the second-order model. %, where $e^{\hat{\omega}_2}$ is
 Alternatively, the plot \code{type = "neweights"} for \class{hhh4} fits
 can produce a \code{stripplot} \citep{R:lattice} of $w_{ji}$ against $o_{ji}$ as shown in
-Figure~\ref{fig:measlesFit_neweights1} for the power-law model:
+Figure~\ref{fig:measlesFit_neweights-1} for the power-law model:
 <<measlesFit_neweights, fig.width=5, fig.height=3.5, fig.cap="Estimated weights as a function of adjacency order.", out.width="0.47\\linewidth", fig.subcap=c("Normalized power-law weights.", "Non-normalized weights with 95\\% CIs."), echo=c(1,5)>>=
 library("lattice")
 trellis.par.set("reference.line", list(lwd=3, col="gray"))
@@ -736,7 +736,7 @@ Our measles data even contain two districts
 without any reported cases, while the district with the
 smallest population (03402, SK Emden) had the second-largest number of cases
 reported and the highest overall incidence
-(see Figures~\ref{fig:measlesWeserEms2} and~\ref{fig:measlesWeserEms15}).
+(see Figures~\ref{fig:measlesWeserEms-2} and~\ref{fig:measlesWeserEms15}).
 Hence, allowing for district-specific intercepts in the endemic or epidemic
 components is expected to improve the model fit.
 For independent random effects
@@ -779,6 +779,7 @@ The \code{exp}-transformed deviations correspond to district-specific
 multiplicative effects on the model components, which can be visualized
 via the plot \code{type = "ri"} as follows
 (Figure~\ref{fig:measlesFit_ri_map}):
+% exp=TRUE relies on 'scales::log_breaks'
 <<measlesFit_ri_map, out.width="0.31\\linewidth", fig.width=3.5, fig.height=3.7, fig.pos="htb", fig.cap="Estimated multiplicative effects on the three components.", fig.subcap=c("Autoregressive", "Spatio-temporal", "Endemic")>>=
 for (comp in c("ar", "ne", "end")) {
   print(plot(measlesFit_ri, type = "ri", component = comp, exp = TRUE,
@@ -786,7 +787,7 @@ for (comp in c("ar", "ne", "end")) {
 }
 @
 
-For the autoregressive component in Figure~\ref{fig:measlesFit_ri_map1}, we see
+For the autoregressive component in Figure~\ref{fig:measlesFit_ri_map-1}, we see
 a pronounced heterogeneity between the three western districts in pink and the
 remaining districts. These three districts have been affected by large local
 outbreaks and are also the ones with the highest overall numbers of cases.
@@ -797,8 +798,8 @@ can be extracted using the \code{intercept} argument as
 exp(ranef(measlesFit_ri, intercept = TRUE)["03403", "ar.ri(iid)"])
 @
 However, this district seems to import more cases from other districts than explained by its
-population (Figure~\ref{fig:measlesFit_ri_map2}).
-In Figure~\ref{fig:measlesFit_ri_map3}, the two districts without any reported
+population (Figure~\ref{fig:measlesFit_ri_map-2}).
+In Figure~\ref{fig:measlesFit_ri_map-3}, the two districts without any reported
 measles cases (03401 and 03405) appear in cyan, which means that they
 exhibit a relatively low endemic incidence after adjusting for the
 population and susceptible proportion.
@@ -971,7 +972,7 @@ predictions. However, the right-hand decay in all histograms suggests that all
 models tend to predict higher counts than observed. This is most likely related
 to the seasonal shift between the years 2001 and 2002. In 2001, the peak of the
 epidemic was in the second quarter, while it already occurred in the first
-quarter in 2002 (cp.\ Figure~\ref{fig:measlesWeserEms1}).
+quarter in 2002 (cp.\ Figure~\ref{fig:measlesWeserEms-1}).
 
 
 \subsection{Further modeling options}
@@ -1106,7 +1107,7 @@ for further examples.
 ## create automatic references for R packages
 .Rbibfile <- file("hhh4_spacetime-R.bib", "w", encoding = "latin1")
 knitr::write_bib(
-    c("MASS", "Matrix", "spdep", "colorspace", "scales", "gridExtra", "lattice", "sp", "ggplot2", "animation", "rmapshaper", "fanplot", "hhh4contacts"),
+    c("MASS", "Matrix", "spdep", "colorspace", "gridExtra", "lattice", "sp", "animation", "fanplot", "hhh4contacts"),
     file = .Rbibfile, tweak = FALSE, prefix = "R:")
 close(.Rbibfile)
 @

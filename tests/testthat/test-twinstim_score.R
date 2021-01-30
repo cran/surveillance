@@ -1,4 +1,4 @@
-context("Likelihood and score function of twinstim()")
+### Likelihood and score function of twinstim()
 ## Note: derivatives of interaction functions are tested in separate files
 ##       we thus use the relatively fast Gaussian kernel here
 

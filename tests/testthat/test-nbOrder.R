@@ -1,5 +1,3 @@
-context("Neighbourhood order")
-
 ## generate random adjancency matrix
 ## radjmat <- function (n) {
 ##     adjmat <- matrix(0L, n, n, dimnames=list(letters[1:n],letters[1:n]))
@@ -28,8 +26,7 @@ nbmat <- structure(
     .Dimnames = rep.int(list(c("a", "b", "c", "d", "e")), 2L)
     )
 
-test_that("nbOrder() returns the validated matrix", {
-    skip_if_not_installed("spdep")
+test_that("nbOrder() returns the validated matrix", if (requireNamespace("spdep")) {
     expect_identical(suppressMessages(nbOrder(adjmat, maxlag=Inf)),
                      nbmat)
 })

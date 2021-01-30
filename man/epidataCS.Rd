@@ -157,7 +157,7 @@ getSourceDists(object, dimension = c("space", "time"))
   \item{clipper}{polygon clipping engine to use for calculating the
     \code{.influenceRegion}s of events (see the Value section below).
     Default is the \CRANpkg{polyclip} package (called via
-    \code{\link{intersect.owin}} from package \CRANpkg{spatstat}).
+    \code{\link{intersect.owin}} from package \CRANpkg{spatstat.geom}).
     In \pkg{surveillance} <= 1.6-0, package \pkg{gpclib} was used, which
     has a restrictive license. This is no longer supported.}
 
@@ -245,7 +245,7 @@ getSourceDists(object, dimension = c("space", "time"))
       \item{\code{.bdist}}{minimal distance of the event locations to the
         polygonal boundary \code{W}.}
       \item{\code{.influenceRegion}}{a list of influence regions represented by
-        objects of the \pkg{spatstat} class \code{"owin"}. For each
+        objects of the \pkg{spatstat.geom} class \code{"owin"}. For each
         event, this is the intersection of \code{W} with a (polygonal)
         circle of radius \code{eps.s} centered at the event's location,
         shifted such that the event location becomes the origin.
@@ -270,7 +270,7 @@ getSourceDists(object, dimension = c("space", "time"))
   \code{n} events.
 
   For the \code{"epidataCS"} class, the method of the generic function
-  \code{\link[spatstat]{marks}} defined by the \pkg{spatstat} package
+  \code{\link[spatstat.geom]{marks}} defined by the \pkg{spatstat.geom} package
   returns a \code{data.frame} of the event marks (actually also
   including time and location of the events), disregarding endemic
   covariates and the auxiliary columns from the \code{events} component
@@ -292,11 +292,11 @@ getSourceDists(object, dimension = c("space", "time"))
   the more detailed the polygons of \code{W} are the longer it will
   take to fit a \code{\link{twinstim}}. You are advised to
   sacrifice some shape details for speed by reducing the polygon
-  complexity, for example via \code{\link[rmapshaper]{ms_simplify}} from
-  the \CRANpkg{rmapshaper} package.
+  complexity, for example via the \command{mapshaper} JavaScript library
+  wrapped by the R package \CRANpkg{rmapshaper}.
   Alternative tools are provided by the packages \CRANpkg{maptools}
-  (\code{\link[maptools]{thinnedSpatialPoly}}) and \CRANpkg{spatstat}
-  (\code{\link[spatstat]{simplify.owin}}).
+  (\code{\link[maptools]{thinnedSpatialPoly}}) and \CRANpkg{spatstat.geom}
+  (\code{\link[spatstat.geom]{simplify.owin}}).
 }
 
 \references{

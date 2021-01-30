@@ -1,4 +1,4 @@
-context("Calibration tests for Poisson or NegBin predictions")
+### Calibration tests for Poisson or NegBin predictions
 
 mu <- c(0.1, 1, 3, 6, pi, 100)
 size1 <- 0.5

@@ -1,5 +1,3 @@
-context("Create next-generation matrix Lambda from a \"hhh4\" model")
-
 data("measlesWeserEms")
 
 ## a simple endemic model
@@ -13,7 +11,7 @@ test_that("endemic-only model has zero-valued Lambda matrix", {
     expect_equal(res$maxEV.const, 0)
     zeromat <- matrix(0, measlesFit0$nUnit, measlesFit0$nUnit)
     expect_equal(res$Lambda.const, zeromat)
-    expect_equal(createLambda(measlesFit0)(2), zeromat)
+    expect_equal(surveillance:::createLambda(measlesFit0)(2), zeromat)
 })
 
 ## + AR component
@@ -22,7 +20,7 @@ measlesFit1 <- update(measlesFit0, ar = list(f = addSeason2formula(~1)))
 test_that("autoregressive model has a diagonal Lambda matrix", {
     res <- getMaxEV_season(measlesFit1)
     expect_equal(res$Lambda.const, diag(res$maxEV.const, measlesFit1$nUnit))
-    expect_equal(createLambda(measlesFit1)(2),
+    expect_equal(surveillance:::createLambda(measlesFit1)(2),
                  diag(res$maxEV.season[2], measlesFit1$nUnit))
 })
 
@@ -53,7 +51,7 @@ check_createLambda <- function (object)
     means <- meanHHH(object$coefficients, model, subset = seq_len(model$nTime))
     expect_equal(means$mean[model$subset,,drop=FALSE], fitted(object),
                  expected.label = paste0("fitted(", mname, ")"))
-    Lambda <- createLambda(object)
+    Lambda <- surveillance:::createLambda(object)
     if (any(object$lags != 1, na.rm = TRUE))
         stop("check not implemented for lags != 1")
     meansByLambda <- t(vapply(

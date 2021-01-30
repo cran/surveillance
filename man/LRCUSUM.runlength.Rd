@@ -1,7 +1,7 @@
 \name{LRCUSUM.runlength}
 \alias{LRCUSUM.runlength}
-\alias{outcomeFunStandard}
-\alias{LLR.fun}
+%% \alias{outcomeFunStandard}
+%% \alias{LLR.fun}
 \encoding{latin1}
 
 \title{Run length computation of a CUSUM detector}
@@ -29,9 +29,9 @@ LRCUSUM.runlength(mu,mu0,mu1,h,dfun, n, g=5,outcomeFun=NULL,...)
     \eqn{M}. Note that the quality of the approximation depends very
     much on \eqn{g}. If \eqn{T} greater than, say, 50 its necessary to
   increase the value of \eqn{g}.}
-  \item{outcomeFun}{A hook function to compute all possible outcome
+  \item{outcomeFun}{A hook \code{function (k,n)} to compute all possible outcome
     states to compute the likelihood ratio for. If \code{NULL} then the
-    default function \code{outcomeFunStandard(k,n)} is used. This
+    internal default function \code{surveillance:::outcomeFunStandard} is used. This
     function uses the Cartesian product of \code{0:n} for \code{k} components.}
   \item{\dots}{Additional arguments to send to \code{dfun}.}
 }
@@ -69,18 +69,17 @@ such that it works for a very large class of distributions.
   In: T. Kneib and G. Tutz (Eds.), Statistical
   Modelling and Regression Structures - Festschrift in Honour of Ludwig
   Fahrmeir, Physica-Verlag, pp. 377-397. Preprint available as
-  \url{http://www.math.su.se/~hoehle/pubs/hoehle2010-preprint.pdf}
+  \url{https://staff.math.su.se/hoehle/pubs/hoehle2010-preprint.pdf}
 
   \enc{Höhle}{Hoehle}, M. and Mazick, A. (2010):
   Aberration detection in R illustrated
   by Danish mortality monitoring. In: T. Kass-Hout
   and X. Zhang (Eds.), Biosurveillance: A Health Protection Priority,
   CRCPress. Preprint available as
-  \url{http://www.math.su.se/~hoehle/pubs/hoehle_mazick2009-preprint.pdf}
+  \url{https://staff.math.su.se/hoehle/pubs/hoehle_mazick2009-preprint.pdf}
   
-  Brook, D. and Evans, D. A. (1972),  An approach to the probability
-  distribution of Cusum run length, Biometrika,
-  59:3, pp. 539--549.
+  Brook, D. and Evans, D. A. (1972):  An approach to the probability
+  distribution of cusum run length. \emph{Biometrika} \bold{59}(3):539-549.
 }
 \examples{
 ######################################################

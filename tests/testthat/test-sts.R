@@ -1,5 +1,3 @@
-context("S4 class definition of \"sts\" and its extensions")
-
 test_that("\"sts\" prototype is a valid object",
           expect_true(validObject(new("sts"))))
 
@@ -82,4 +80,16 @@ test_that("colnames need to be identical (only for multivariate data)", {
     expect_error(do.call(sts, sts_args_2), "colnames")  # new in surveillance > 1.17.1
     ## column names can be missing for other slots
     expect_silent(do.call(sts, c(sts_args_2[1], lapply(sts_args_2[-1], unname))))
+})
+
+test_that("epoch() finds Monday of 'start' week (ISO)", {
+    mydate <- as.Date("2020-01-27")
+    expect_identical(strftime(mydate, "%u"), "1")  # Monday
+    start <- unlist(isoWeekYear(mydate), use.names = FALSE)
+    expect_equivalent(start, c(2020, 5))           # ISO week 5
+    expect_identical(strftime(mydate, "%W"), "04") # UK week 4
+    mysts <- sts(1:3, start = start)
+    expect_equal(epoch(mysts, as.Date = TRUE)[1], mydate)
+    ## failed in surveillance 1.18.0, where epoch(x, as.Date=TRUE)
+    ## used %W to interpret the 'start' week, so here returned "2020-02-03"
 })

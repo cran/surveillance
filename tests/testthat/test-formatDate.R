@@ -1,5 +1,3 @@
-context("ISO8601 date conversion on Windows and Linux")
-
 d2 <- as.Date(c("2001-01-01","2002-05-01"))
 
 test_that("Formatting date vectors with ISO8601 and UK conventions",

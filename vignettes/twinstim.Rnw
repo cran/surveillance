@@ -1,6 +1,6 @@
 %\VignetteIndexEntry{twinstim: An endemic-epidemic modeling framework for spatio-temporal point patterns}
 %\VignetteEngine{knitr::knitr}
-%\VignetteDepends{surveillance, lattice, polyclip, memoise, maptools, spdep, colorspace, scales, rmapshaper}
+%\VignetteDepends{surveillance, lattice, polyclip, memoise, maptools, spdep, colorspace}
 
 <<setup, cache = FALSE, include = FALSE, purl = FALSE>>=
 ## purl=FALSE => not included in the tangle'd R script
@@ -621,9 +621,9 @@ layout.scalebar(imdepi$W, scale = 100, labels = c("0", "100 km"), plot = TRUE)
 @
 
 \pagebreak[1]
-The time-series plot (Figure~\ref{fig:imdepi_plot1}) shows the monthly aggregated number of cases by finetype in
+The time-series plot (Figure~\ref{fig:imdepi_plot-1}) shows the monthly aggregated number of cases by finetype in
 a stacked histogram as well as each type's cumulative number over time.
-The spatial plot (Figure~\ref{fig:imdepi_plot2}) shows the observation window \code{W} with the locations of all
+The spatial plot (Figure~\ref{fig:imdepi_plot-2}) shows the observation window \code{W} with the locations of all
 cases (by type), where the areas of the points are proportional to the number of
 cases at the respective location.
 Additional shading by the population is possible and exemplified in
@@ -1129,7 +1129,7 @@ plot(imdepi, ylim = c(0, 20), col = c("indianred", "darkblue"),
      subset = time < .t0, cumulative = list(maxat = 336),
      xlab = "Time [days]")
 plot(imdsim, add = TRUE, legend.types = FALSE,
-     col = scales::alpha(c("indianred", "darkblue"), 0.5),
+     col = adjustcolor(c("indianred", "darkblue"), alpha = 0.5),
      subset = !is.na(source),  # exclude events of the prehistory
      cumulative = list(offset = .cumoffset, maxat = 336, axis = FALSE),
      border = NA, density = 0) # no histogram for simulations
@@ -1163,22 +1163,11 @@ and otherwise corresponds to the row index of the infective source.
 
 <<Rbib, include = FALSE, purl = FALSE>>=
 ## create automatic references for R packages
-Rbib0 <- knitr::write_bib(
-    c("memoise", "sp", "rgdal", "polyclip",
-      ## spatstat, # non-standard author entries
-      "maptools", "animation", "rmapshaper", "xtable"),
-    file = NULL, tweak = FALSE, prefix = "R:")
-## package spatstat yields a bad automatic bib entry
-Rbib1 <- sapply(c("spatstat"), function (pkg) {
-    bib <- citation(pkg, auto = TRUE)
-    bib$key <- paste("R", pkg, sep=":")
-    bib
-}, simplify=FALSE, USE.NAMES=TRUE)
-Rbib1$spatstat$author <- "Adrian Baddeley and Rolf Turner and Ege Rubak"
-## write to bibfile
 .Rbibfile <- file("twinstim-R.bib", "w", encoding = "latin1")
-cat(unlist(c(Rbib0, lapply(Rbib1, toBibtex)), use.names = FALSE),
-    file = .Rbibfile, sep = "\n")
+knitr::write_bib(
+    c("memoise", "sp", "rgdal", "polyclip",
+      "maptools", "animation", "xtable"),
+    file = .Rbibfile, tweak = FALSE, prefix = "R:")
 close(.Rbibfile)
 @
 

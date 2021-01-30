@@ -1,4 +1,4 @@
-context("Validate AR hhh4 via NE with identity W")
+### Validate AR hhh4 via NE with identity W
 
 data("measlesWeserEms")
 

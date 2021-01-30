@@ -135,6 +135,8 @@ plot(measlesFit, type = "neweights", xlab = "adjacency order")
 plot(measlesFit, total = TRUE)
 ## little contribution from neighbouring districts
 
+
+if (surveillance.options("allExamples")) {
 ## simpler model with autoregressive effects captured by the ne component
 measlesModel2 <- list(
     ne = list(f = ~ 1, weights = W_powerlaw(maxlag=5, from0=TRUE)),
@@ -150,8 +152,9 @@ plot(measlesFit2, type = "neweights", exclude = NULL, xlab = "adjacency order")
 plot(measlesFit2, total = TRUE,
      legend.args = list(legend = c("epidemic", "endemic")))
 ## almost the same RMSE as with separate AR and NE effects
-sqrt(mean(residuals(measlesFit, "response")^2))
-sqrt(mean(residuals(measlesFit2, "response")^2))
+c(rmse1 = sqrt(mean(residuals(measlesFit, "response")^2)),
+  rmse2 = sqrt(mean(residuals(measlesFit2, "response")^2)))
+}
 }
 
 \keyword{spatial}

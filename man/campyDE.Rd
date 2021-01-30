@@ -45,7 +45,7 @@ data(campyDE)
 
   Data for the computation of absolute humidity were obtained from the
   German Climate Service (Deutscher Wetterdienst), Climate data of
-  Germany, available at \url{http://www.dwd.de}.
+  Germany, available at \url{https://www.dwd.de}.
 
   A complete data description and an analysis of the data can be found
   in Manitz and \enc{Höhle}{Hoehle} (2013).

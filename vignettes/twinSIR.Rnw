@@ -450,7 +450,7 @@ print(xtable(
 
 Table~\ref{tab:methods:twinSIR} lists all methods for the \class{twinSIR} class.
 For example, to investigate how the conditional intensity function decomposes into endemic and epidemic
-components over time, we produce Figure~\ref{fig:hagellochFit_plot1} by:
+components over time, we produce Figure~\ref{fig:hagellochFit_plot-1} by:
 <<hagellochFit_plot, echo=2, fig.width=4.5, fig.height=4.5, out.width="0.49\\linewidth", fig.subcap=c("Epidemic proportion.","Transformed residuals."), fig.cap="Diagnostic plots for the \\code{twinSIR} model formulated in Equation~\\ref{eqn:twinSIR:hagelloch}.", fig.pos="htb">>=
 par(mar = c(5, 5, 1, 1))
 plot(hagellochFit, which = "epidemic proportion", xlab = "time [days]")
@@ -463,7 +463,7 @@ could have triggered the new case.
 We can also inspect temporal Cox-Snell-like \code{residuals} of the fitted point
 process using the function \code{checkResidualProcess} as for the
 spatio-temporal point process models in \code{vignette("twinstim")}.
-The resulting Figure~\ref{fig:hagellochFit_plot2} reveals some deficiencies of
+The resulting Figure~\ref{fig:hagellochFit_plot-2} reveals some deficiencies of
 the model in describing the waiting times between events, which might be related
 to the assumption of fixed infection periods.
 

@@ -10,7 +10,9 @@
   \code{"\linkS4class{sts}"} object (except for \code{populationFrac},
   which is named \code{population}).
   Some time variables are added for convenience:
-  \code{year}, \code{epochInYear}, \code{epochInPeriod}, \code{date}.
+  \code{year}, \code{epochInYear}, \code{epochInPeriod}, \code{date}
+  (the latter gives \code{NA} dates if \code{epoch(x, as.Date=TRUE)}
+  fails, i.e., for non-standard \code{x@freq} if not \code{x@epochAsDate}).
 }
 
 \usage{

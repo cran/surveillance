@@ -5,9 +5,9 @@
 ###
 ### Snapshot map (spplot) of an sts-object or matrix of counts
 ###
-### Copyright (C) 2013-2014,2016,2017 Sebastian Meyer
-### $Revision: 2434 $
-### $Date: 2019-07-03 15:53:11 +0200 (Wed, 03. Jul 2019) $
+### Copyright (C) 2013-2014,2016,2017,2020 Sebastian Meyer
+### $Revision: 2587 $
+### $Date: 2020-11-09 17:34:06 +0100 (Mon, 09. Nov 2020) $
 ################################################################################
 
 ## x: "sts" or (simulated) matrix of counts
@@ -138,27 +138,35 @@ parse_population_argument <- function (population, x)
 }
 
 checkat <- function (at, data, counts = TRUE) { # for non-transformed "data"
-    data_range <- range(data, na.rm = TRUE)
     if (isScalar(at))
         at <- list(n=at)
-    at <- if (is.list(at)) {
+    if (is.list(at)) {
         at <- modifyList(list(n=10, data=data, counts=counts), at)
         do.call("getPrettyIntervals", at)
-    } else sort(at)
-    if (any(data >= max(at) | data < min(at), na.rm=TRUE))
-        stop("'at' (right-open!) does not cover the data (range: ",
-             paste0(format(data_range), collapse=" - "), ")")
-    structure(at, checked=TRUE)
+    } else { # manual breaks
+        stopifnot(is.vector(at, mode = "numeric"), !anyNA(at))
+        at <- sort(at)
+        r <- range(data, na.rm = TRUE)
+        c(if (r[1L] < at[1L]) 0,
+          at,
+          if (r[2L] >= at[length(at)]) {
+              ## round up max to 1 significant digit (including 0.1 to 0.2)
+              .decs <- 10^floor(log10(r[2L]))
+              ceiling(r[2L]/.decs + sqrt(.Machine$double.eps))*.decs
+          })
+    }
 }
 
-getPrettyIntervals <- function (nInt, data, trafo=scales::sqrt_trans(), counts=TRUE, ...) {
+getPrettyIntervals <- function (nInt, data, trafo=NULL, counts=TRUE, ...) {
     maxcount <- max(data, na.rm=TRUE)
     if (counts && maxcount < nInt) { # no aggregation of counts necessary
         at <- 0:ceiling(maxcount+sqrt(.Machine$double.eps)) # max(at) > maxcount
     } else {
-        at <- if (requireNamespace("scales", quietly=TRUE)) {
+        at <- if (is.null(trafo)) { # equivalent to trafo=scales::sqrt_trans()
+            pretty(sqrt(data), n=nInt+1, ...)^2
+        } else {
             scales::trans_breaks(trafo$trans, trafo$inv, n=nInt+1, ...)(data)
-        } else pretty(sqrt(data), n=nInt+1, ...)^2
+        }
         ## { # alternative: quantile-based scale (esp. for incidence plots)
         ##     quantile(data, probs=seq(0,1,length.out=nInt+1), na.rm=TRUE)
         ## }
@@ -170,12 +178,15 @@ getPrettyIntervals <- function (nInt, data, trafo=scales::sqrt_trans(), counts=T
     at
 }
 
-stsTime2text <- function (stsObj, tps=TRUE, fmt=if(stsObj@freq==1) "%i" else "%i/%i")
+stsTime2text <- function (stsObj, tps=TRUE, fmt=NULL)
 {
+    if (is.null(fmt))
+        fmt <- switch(as.character(stsObj@freq),
+                      "1" = "%i", "52" = "%i-W%02i", "%i/%i")
     sprintf(fmt, year(stsObj)[tps], epochInYear(stsObj)[tps])
 }
 
-stsTimeRange2text <- function (stsObj, tps, fmt=if(stsObj@freq==1) "%i" else "%i/%i", sep=" - ")
+stsTimeRange2text <- function (stsObj, tps, fmt=NULL, sep=" to ")
 {
     tpsRangeYW <- stsTime2text(stsObj, tps=range(tps), fmt=fmt)
     paste0(unique(tpsRangeYW), collapse=sep)

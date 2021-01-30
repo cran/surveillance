@@ -173,7 +173,12 @@ animate_nowcasts <- function(nowcasts,linelist_truth,
     if (method == "bayes.trunc.ddcp" && control$showLambda) {
       lambda <- attr(delayCDF(sts.nowcast)[["bayes.trunc.ddcp"]],"model")$lambda
       showIdx <- seq(ncol(lambda) - control$safePredictLag)
-      matlines( showIdx,t(lambda)[showIdx,],col="gray",lwd=c(1,2,1),lty=c(2,1,2))
+      ##matlines( showIdx,t(lambda)[showIdx,],col="gray",lwd=c(1,2,1),lty=c(2,1,2))
+      ##If m parameter is used then also only show the polynomial up to m times back.
+      if (!is.null(sts.nowcast@control$call$m)) {
+        showIdx <- seq(ncol(lambda) - sts.nowcast@control$call$m, ncol(lambda) -  control$safePredictLag, by=1)
+      }
+      matlines( showIdx, t(lambda)[showIdx,],col="gray",lwd=c(1,2,1),lty=c(2,1,2))
     }
 
     ##Add axis information

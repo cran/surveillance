@@ -6,9 +6,9 @@ Count Number of Instances of Points
 }
 
 \description{
-  The generic function \code{multiplicity} defined in \pkg{spatstat} is
+  The generic function \code{multiplicity} defined in \pkg{spatstat.geom} is
   intended to count the number of duplicates of each element of an object.
-  \pkg{spatstat} already offers methods for point patterns, matrices and
+  \pkg{spatstat.geom} already offers methods for point patterns, matrices and
   data frames, and here we add a method for \code{Spatial} objects from
   the \pkg{sp} package. It is a wrapper for the default method, which
   effectively computes the distance matrix of the points,
@@ -33,7 +33,7 @@ Count Number of Instances of Points
 }
 
 \seealso{
-  \code{\link[spatstat]{multiplicity}} in package \pkg{spatstat}.
+  \code{\link[spatstat.geom]{multiplicity}} in package \pkg{spatstat.geom}.
   See the Examples of the \code{\link{hagelloch}} data for a specific
   use of \code{multiplicity}.
 }

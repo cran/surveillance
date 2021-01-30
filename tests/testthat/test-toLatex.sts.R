@@ -1,5 +1,3 @@
-context("toLatex-method for the sts-class")
-
 data("ha.sts")
 data("salmonella.agona")
 
@@ -27,8 +25,8 @@ test_that("toLatex accepts basic input and returns Latex", {
 
   expect_true(grepl("aaaa", paste(as.character(laTex3), collapse = ' ')))
   expect_true(grepl("bbbb", paste(as.character(laTex3), collapse = ' ')))
-  expect_is(laTex, "Latex")
-  expect_is(laTex3, "Latex")
+  expect_inherits(laTex, "Latex")
+  expect_inherits(laTex3, "Latex")
 })
 
 test_that("caption is incorporated", {
@@ -74,7 +72,7 @@ test_that("toLatex works with output from farringtonFlexible()", {
                    pThresholdTrend=0.05,trend=TRUE,
                    thresholdMethod="delta",alpha=0.1)
   salm1 <- farringtonFlexible(salm,control=control1)
-  expect_is(toLatex(salm1), "Latex")
+  expect_inherits(toLatex(salm1), "Latex")
 })
 
 test_that("toLatex stops if 'subset' is not applicable", {

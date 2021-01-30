@@ -77,16 +77,17 @@ stsplot_space(x, tps = NULL, map = x@map, population = NULL,
   }
   \item{at}{
     either a number of levels (default: 10) for the categorization
-    (color-coding) of counts/incidence, or specific break points to use, or,
-    a named list of a number of levels (\code{"n"}), a transformer
+    (color-coding) of counts/incidence,
+    or a numeric vector of specific break points,
+    or a named list of a number of levels (\code{"n"}), a transformer
     (\code{"trafo"}) of class \code{"\link[scales]{trans}"} defined by
     package \pkg{scales}, and optional further arguments for
     \code{\link{pretty}}. The default is the square root transformation
     (\code{\link[scales]{sqrt_trans}}).
-    Note that the intervals given by \code{at} are closed on the left
-    and open to the right, i.e., if specifying \code{at} manually as a
-    vector of break points, make sure that \code{max(at)} is larger
-    than the maximum observed count.
+    Note that intervals given by \code{at} are closed on the left
+    and open to the right; if manually specified break points do not
+    cover the data range, further breaks are automatically added at 0
+    and the maximum (rounded up to 1 significant digit), respectively.
   }
   \item{col.regions}{
     a vector of fill colors, sufficiently long to serve all levels
@@ -138,19 +139,23 @@ stsplot_space(x, tps = NULL, map = x@map, population = NULL,
 data("measlesWeserEms")
 
 # default plot: total region-specific counts over all weeks
-plot(measlesWeserEms, type=observed~unit)
+plot(measlesWeserEms, type = observed~unit)
+stsplot_space(measlesWeserEms)  # the same
 
 # compare with old implementation
-plot(measlesWeserEms, type=observed~1|unit)
+plot(measlesWeserEms, type = observed~1|unit)
 
-# plot cumulative incidence (per 100000 inhabitants), with region labels
+# cumulative incidence (per 100000 inhabitants), with region labels
 plot(measlesWeserEms, type=observed~unit,
      population=measlesWeserEms@map$POPULATION / 100000,
      labels=list(labels="GEN", cex=0.7, font=3),
      sub="cumulative incidence (per 100'000 inhabitants)")
 
-# counts in the first week of the second year only (+ display overall)
-plot(measlesWeserEms, type=observed~unit, tps=53, total.args=list())
+# incidence in a particular week, manual color breaks, display total
+plot(measlesWeserEms, type=observed~unit, tps=62,
+     population=measlesWeserEms@map$POPULATION / 100000,
+     at=c(0, 1, 5),
+     total.args=list(x=0, label="Overall incidence: "))
 
 # if we had only observed a subset of the regions
 plot(measlesWeserEms[,5:11], type = observed~unit,

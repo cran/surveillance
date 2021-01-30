@@ -182,7 +182,7 @@ plot(imdepi, ylim = c(0, 20), col = c("indianred", "darkblue"),
      subset = time < .t0, cumulative = list(maxat = 336),
      xlab = "Time [days]")
 plot(imdsim, add = TRUE, legend.types = FALSE,
-     col = scales::alpha(c("indianred", "darkblue"), 0.5),
+     col = adjustcolor(c("indianred", "darkblue"), alpha = 0.5),
      subset = !is.na(source),  # exclude events of the prehistory
      cumulative = list(offset = .cumoffset, maxat = 336, axis = FALSE),
      border = NA, density = 0) # no histogram for simulations

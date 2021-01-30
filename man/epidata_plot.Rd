@@ -53,8 +53,7 @@ stateplot(x, id, ...)
     function, whilst \code{col.vert} defines the color for its vertical parts.
     The argument \code{col} is just short for \code{col.hor = col} and
     \code{col.vert = col}.  The default \code{col} vector corresponds to
-    \code{\link[RColorBrewer]{brewer.pal}("Dark2",n=3)} from the
-    \pkg{RColorBrewer} package.
+    \code{brewer.pal("Dark2",n=3)} from the \CRANpkg{RColorBrewer} package.
     The vectors are recycled if necessary.  For information about the possible
     values of \code{col}, see the help pages of \code{\link{par}}.
   }

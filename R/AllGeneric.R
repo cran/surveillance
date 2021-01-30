@@ -71,9 +71,16 @@ setMethod("epoch", "sts", function(x, as.Date=x@epochAsDate) {
       as.Date(strptime(paste(year(x), epochInYear(x), 1, sep = "-"),
                        format = "%Y-%m-%d"))
     } else if (x@freq == 52) { # use Mondays
-      firstMonday <- strptime(x = paste0(x@start[1L], "-W", x@start[2L], "-1"),
-                              format = "%Y-W%W-%u")
-      seq(from = as.Date(firstMonday), by = 7L, length.out = nrow(x))
+      ## be consistent with epochInYear(): 'start' means *ISO* year and week!
+      ## Unfortunately, %G and %V are not supported for input via strptime():
+      ## firstMonday <- strptime(x = paste0(x@start[1L], "-W", x@start[2L], "-1"),
+      ##                         format = "%G-W%V-%u")  # WRONG, gives today
+      ## so we run a naive search for the Monday of the 'start' week
+      candidates <- seq.Date(as.Date(paste0(x@start[1L]-1L, "-12-29")),
+                             as.Date(paste0(x@start[1L], "-12-28")), by = 1L)
+      firstMonday <- candidates[match(sprintf("%i-W%02i", x@start[1L], x@start[2L]),
+                                      strftime(candidates, "%G-W%V"))]
+      seq.Date(from = firstMonday, by = 7L, length.out = nrow(x))
     } else if (x@freq == 365) { # use day of the year (incorrect in leap years)
       as.Date(strptime(paste0(year(x), "-D", epochInYear(x)), format = "%Y-D%j"))
     } else {

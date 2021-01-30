@@ -6,9 +6,9 @@
 ### Plots for an array "hhh4sims" of simulated counts from an "hhh4" model,
 ### or a list thereof as produced by different "hhh4" models (same period!)
 ###
-### Copyright (C) 2013-2018 Sebastian Meyer
-### $Revision: 2066 $
-### $Date: 2018-01-22 11:46:23 +0100 (Mon, 22. Jan 2018) $
+### Copyright (C) 2013-2018,2020 Sebastian Meyer
+### $Revision: 2590 $
+### $Date: 2020-11-09 22:58:31 +0100 (Mon, 09. Nov 2020) $
 ################################################################################
 
 plot.hhh4sims <- function (x, ...) {
@@ -290,12 +290,9 @@ plotHHH4sims_time <- function (
     ## add counts of individual simulation runs
     if (individual) {
         for (i in seq_len(nModels))
-            matlines(ytSim[[i]], lty=1, col=if (requireNamespace("scales"))
-                scales::alpha(col[i], alpha=0.1) else col[i])
-        col <- col2rgb(col)
-        col <- apply(col, 2, function (x)
-                     if (all(x == 0)) "grey" else
-                     do.call("rgb", as.list(x / 255 * 0.5)))
+            matlines(ytSim[[i]], lty=1, col=adjustcolor(col[i], alpha.f=0.1))
+        col <- ifelse(colSums(col2rgb(col)) == 0, "grey",
+                      adjustcolor(col, transform=diag(c(.5, .5, .5, 1))))
     }
 
     ## add means (or medians)
