@@ -243,7 +243,7 @@ nowcast(now, when, data, dEventCol="dHospital", dReportCol="dReport",
   \code{\link[runjags]{run.jags}}, which additionally requires the
   \pkg{rjags} package. You need to manually install
   JAGS on your computer for the package to work -- see
-  \url{http://mcmc-jags.sourceforge.net/}
+  \url{https://mcmc-jags.sourceforge.io/}
   and the documentation of \pkg{runjags} for details.
 
   Note: The function is still under development and might change in the

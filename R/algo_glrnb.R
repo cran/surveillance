@@ -107,12 +107,12 @@ algo.glrnb <- function(disProgObj,
 
         if (control$alpha == 0) { #poisson
           if (control$M > 0 ){ # window limited
-          	res <- .C("glr_cusum_window",as.integer(x),as.double(mu0),length(x),as.integer(control$M),as.integer(control$Mtilde),as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(dir),as.integer(ret),PACKAGE="surveillance")
+          	res <- .C(C_glr_cusum_window,as.integer(x),as.double(mu0),length(x),as.integer(control$M),as.integer(control$Mtilde),as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(dir),as.integer(ret))
           } else { # standard, not window limited
-        	res <- .C("glr_cusum",as.integer(x),as.double(mu0),length(x),as.integer(control$Mtilde),as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(dir),as.integer(ret),PACKAGE="surveillance")
+        	res <- .C(C_glr_cusum,as.integer(x),as.double(mu0),length(x),as.integer(control$Mtilde),as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(dir),as.integer(ret))
           }
         } else { #negbin. This is direcly the window limited version, does M=-1 work here?
-          res <- .C("glr_nb_window",x=as.integer(x),mu0=as.double(mu0),alpha=as.double(control$alpha),lx=length(x),Mtilde=as.integer(control$Mtilde),M=as.integer(control$M),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),dir=as.integer(dir),PACKAGE="surveillance")
+          res <- .C(C_glr_nb_window,x=as.integer(x),mu0=as.double(mu0),alpha=as.double(control$alpha),lx=length(x),Mtilde=as.integer(control$Mtilde),M=as.integer(control$M),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),dir=as.integer(dir))
           ##hoehle - 2016-01-17. Try out calculating upper bound in terms of cases
           if (control$ret == "cases") {
             ##Warn that this might be slow.
@@ -132,7 +132,7 @@ algo.glrnb <- function(disProgObj,
               while (!alarmChange & (myx[pos] <= control$xMax) & (myx[pos] >=1)) {
                 myx[pos] <- myx[pos] + direction
                 ##cat("pos=",pos,"x=",myx[pos],"\n")
-                tmpRes <- .C("glr_nb_window",x=as.integer(myx),mu0=as.double(mu0),alpha=as.double(control$alpha),lx=length(myx),Mtilde=as.integer(control$Mtilde),M=as.integer(control$M),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(myx))),dir=as.integer(dir),PACKAGE="surveillance")
+                tmpRes <- .C(C_glr_nb_window,x=as.integer(myx),mu0=as.double(mu0),alpha=as.double(control$alpha),lx=length(myx),Mtilde=as.integer(control$Mtilde),M=as.integer(control$M),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(myx))),dir=as.integer(dir))
                 if (!gotAlarm & (tmpRes$N <= pos)) { alarmChange <- TRUE ; res$cases[pos] <- myx[pos]}
                 if (gotAlarm  & (tmpRes$N > pos))  { alarmChange <- TRUE ; res$cases[pos] <- myx[pos] + 1}
               }
@@ -145,18 +145,18 @@ algo.glrnb <- function(disProgObj,
       } else { ###################### !is.null(control$theta), i.e. ordinary CUSUM
         if (control$alpha == 0) { #poisson
 
-          res <- .C("lr_cusum",x=as.integer(x),mu0=as.double(mu0),lx=length(x),as.double(control$theta),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(ret),PACKAGE="surveillance")
+          res <- .C(C_lr_cusum,x=as.integer(x),mu0=as.double(mu0),lx=length(x),as.double(control$theta),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(ret))
 
         } else { #negbin
-          res <- .C("lr_cusum_nb",x=as.integer(x),mu0=as.double(mu0),alpha=as.double(control$alpha),lx=length(x),as.double(control$theta),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(ret),PACKAGE="surveillance")
+          res <- .C(C_lr_cusum_nb,x=as.integer(x),mu0=as.double(mu0),alpha=as.double(control$alpha),lx=length(x),as.double(control$theta),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(ret))
         }
       }
     } else { ################### Epidemic chart #######################
       if (control$change == "epi") {
         if (control$alpha == 0) { #pois
-          res <- .C("glr_epi_window",as.integer(x),as.double(mu0),length(x),as.integer(control$Mtilde),as.integer(control$M),as.double(xm10),as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),PACKAGE="surveillance")
+          res <- .C(C_glr_epi_window,as.integer(x),as.double(mu0),length(x),as.integer(control$Mtilde),as.integer(control$M),as.double(xm10),as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))))
         } else {
-          res <- .C("glr_nbgeneral_window",as.integer(x),as.double(mu0),alpha=as.double(control$alpha),lx=length(x),Mtilde=as.integer(control$Mtilde),M=as.integer(control$M),xm10=as.double(xm10),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),dir=as.integer(dir),PACKAGE="surveillance")
+          res <- .C(C_glr_nbgeneral_window,as.integer(x),as.double(mu0),alpha=as.double(control$alpha),lx=length(x),Mtilde=as.integer(control$Mtilde),M=as.integer(control$M),xm10=as.double(xm10),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),dir=as.integer(dir))
         }
       }
     }
@@ -284,13 +284,13 @@ algo.glrpois <- function(disProgObj,
                            mu0=NULL, Mtilde=1, M=-1, change="intercept",
                            theta=NULL,dir=c("inc","dec"),
                            ret=c("cases","value"),xMax=1e4)) {
-  
+
   if (is.null(control$alpha)) {
     control$alpha <- 0
   } else if (control$alpha != 0) {
       stop("algo.glrpois has to operate with control$alpha = 0")
   }
-  
+
   algo.glrnb(disProgObj, control)
-  
+
 }

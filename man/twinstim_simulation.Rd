@@ -94,7 +94,7 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     epidemic to start in case of no endemic component in the model).
     The \code{SpatialPointsDataFrame} must have the same
     \code{proj4string} as \code{tiles} and \code{W}). The attached
-    \code{data.fram}e (data slot) must contain the typical 
+    \code{data.frame} (data slot) must contain the typical 
     columns as described in \code{\link{as.epidataCS}} (\code{time},
     \code{tile}, \code{eps.t}, \code{eps.s}, and, for type-specific
     models, \code{type}) and all marks appearing in the \code{epidemic}

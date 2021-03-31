@@ -1,15 +1,15 @@
 /*******************************************************************************
-// Determine potential triggering events close in space and time.
-// Copyright (C) 2016  Sebastian Meyer <sebastian.meyer@ifspm.uzh.ch>
+// Determine potential triggering events close in space and time
+//
+// Copyright (C) 2016,2021 Sebastian Meyer
 // 
-// This program is part of the surveillance package,
-// http://surveillance.r-forge.r-project.org,
+// This file is part of the R package "surveillance",
 // free software under the terms of the GNU General Public License, version 2,
-// a copy of which is available at http://www.r-project.org/Licenses/.
+// a copy of which is available at https://www.R-project.org/Licenses/.
 *******************************************************************************/
 
-
 #include <Rcpp.h>
+
 using namespace Rcpp;
 
 
@@ -21,12 +21,20 @@ NumericVector distsN1(NumericVector x, NumericVector y, double x0, double y0)
 }
 
 
-// [[Rcpp::export]]
-List determineSourcesC(
-        NumericVector eventTimes, NumericVector eps_t,
-        NumericMatrix eventCoords, NumericVector eps_s,
-        IntegerVector eventTypes, LogicalMatrix qmatrix
+RcppExport SEXP determineSources(
+    SEXP eventTimesSEXP, SEXP eps_tSEXP,
+    SEXP eventCoordsSEXP, SEXP eps_sSEXP,
+    SEXP eventTypesSEXP, SEXP qmatrixSEXP
 ){
+    BEGIN_RCPP
+
+    NumericVector eventTimes(eventTimesSEXP);
+    NumericVector eps_t(eps_tSEXP);
+    NumericMatrix eventCoords(eventCoordsSEXP);
+    NumericVector eps_s(eps_sSEXP);
+    IntegerVector eventTypes(eventTypesSEXP);
+    LogicalMatrix qmatrix(qmatrixSEXP);
+
         int N = eventTimes.size();
         NumericVector removalTimes = eventTimes + eps_t;
         NumericMatrix::Column xcoords = eventCoords(_,0);
@@ -52,53 +60,7 @@ List determineSourcesC(
                 sources[i] = idx[infectivity & proximity & matchType];
         }
         
-        return sources;
-}
-
-
-
-// The following R code will be run automatically after compilation by
-// Rcpp::sourceCpp("~/Projekte/surveillance/pkg/src/determineSources.cc")
-
-/*** R
-data("imdepi", package="surveillance")
-sources <- imdepi$events$.sources
-tail(sources)
-
-eventTimes <- imdepi$events$time
-eps.t <- imdepi$events$eps.t
-eventCoords <- coordinates(imdepi$events)
-eps.s <- imdepi$events$eps.s
-eventTypes <- imdepi$events$type
-qmatrix <- imdepi$qmatrix
-
-sourcesC <- determineSourcesC(eventTimes, eps.t, eventCoords, eps.s, as.integer(eventTypes), qmatrix)
-tail(sourcesC)
-stopifnot(identical(sources, sourcesC))
-
-library("microbenchmark")
-microbenchmark(
-    determineSourcesC(eventTimes, eps.t, eventCoords, eps.s, as.integer(eventTypes), qmatrix),
-    surveillance:::determineSources.epidataCS(imdepi, method = "R"),
-    times = 50)
-*/
-
-
-
-/*** This is how tedious the function would look like without Rcpp attributes:
-RcppExport SEXP determineSourcesCSEXP(SEXP eventTimesSEXP, SEXP eps_tSEXP,
-                                      SEXP eventCoordsSEXP, SEXP eps_sSEXP,
-                                      SEXP eventTypesSEXP, SEXP qmatrixSEXP)
-{
-        NumericVector eventTimes(eventTimesSEXP);
-        NumericVector eps_t(eps_tSEXP);
-        NumericMatrix eventCoords(eventCoordsSEXP);
-        NumericVector eps_s(eps_sSEXP);
-        IntegerVector eventTypes(eventTypesSEXP);
-        LogicalMatrix qmatrix(qmatrixSEXP);
-        
-[... insert body of the above determineSourcesC here but replace return statement by ...]
-
         return wrap(sources);
+
+    END_RCPP
 }
-*/

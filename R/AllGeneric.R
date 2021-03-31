@@ -90,6 +90,12 @@ setMethod("epoch", "sts", function(x, as.Date=x@epochAsDate) {
 })
 setGeneric("epoch<-", function(x, value) standardGeneric("epoch<-"))
 setReplaceMethod("epoch", "sts", function(x, value) {
+ if (length(value) != nrow(x@observed))
+   stop("'epoch' must be of length 'nrow(observed)'")
+ if (inherits(value, "Date")) {
+   value <- as.integer(value)
+   x@epochAsDate <- TRUE
+ }
  x@epoch <- value
  x
 })

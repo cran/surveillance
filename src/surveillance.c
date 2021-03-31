@@ -145,7 +145,7 @@ void lr_cusum(int* x,double* mu0, int *lx_R, double *kappa_R, double *c_ARL_R,in
 
 ************************************************************************/
 
-double glr (int n, int x[], double mu0[], int dir){
+static double glr (int n, int x[], double mu0[], int dir){
 
     /* For the recursive computation of kappa_ml */
     double sumx = 0;
@@ -198,7 +198,7 @@ double glr (int n, int x[], double mu0[], int dir){
 
 ************************************************************************/
 
-double glr_window (int n, int x[], double mu0[], int dir, int M, int Mtilde){
+static double glr_window (int n, int x[], double mu0[], int dir, int M, int Mtilde){
 
 /* Define max of the GLR stats */
     double maxGLR = -1e99;
@@ -1194,9 +1194,3 @@ int main( int argc, char *argv[] ) {
   return(0);
 }
 */
-
-/*Stupid tester */
-void foo(double *x) {
-  *x = log(10);
-}
-

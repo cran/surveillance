@@ -517,23 +517,7 @@ refer to \code{help("simulate.twinSIR")}.
 % BIBLIOGRAPHY
 %--------------
 
-<<Rbib, include = FALSE, purl = FALSE>>=
-## create automatic references for R packages
-Rbib <- sapply(c("quadprog"), function (pkg) {
-    bib <- citation(pkg, auto = TRUE)
-    bib$key <- paste("R", pkg, sep=":")
-    bib
-}, simplify=FALSE, USE.NAMES=TRUE)
-## "quadprog" needs manual author formatting
-Rbib$quadprog$author <- c("Berwin A. Turlach", "Andreas Weingessel")
-## write to bibfile
-.Rbibfile <- file("twinSIR-R.bib", "w", encoding = "latin1")
-cat(unlist(lapply(Rbib, toBibtex), use.names = FALSE),
-    file = .Rbibfile, sep = "\n")
-close(.Rbibfile)
-@
-
-\bibliography{references,twinSIR-R}
+\bibliography{references}
 
 
 

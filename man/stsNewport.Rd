@@ -2,7 +2,7 @@
 \name{stsNewport}
 \alias{stsNewport}
 \docType{data}
-\title{Salmonella Newport cases in Germany 2004-2013}
+\title{Salmonella Newport cases in Germany 2001-2015}
 \description{
   Reported number of cases of the Salmonella Newport serovar in Germany
   2001-2015, by date of disease onset. The slot \code{control} contains

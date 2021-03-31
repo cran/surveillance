@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
+### Internal helper functions for "twinstim"
 ###
-### Some internal helper functions for "twinstim".
+### Copyright (C) 2009-2016,2018,2021 Sebastian Meyer
 ###
-### Copyright (C) 2009-2016,2018 Sebastian Meyer
-### $Revision: 2100 $
-### $Date: 2018-04-12 16:51:42 +0200 (Thu, 12. Apr 2018) $
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 
@@ -58,10 +56,11 @@ determineSources <- function (eventTimes, eps.t,
                   max(eventTypes) <= nrow(qmatrix))
     }
 
-    ## call C++ function (wrapper)
-    determineSourcesC(eventTimes = eventTimes, eps_t = rep_len(eps.t, N),
-                      eventCoords = eventCoords, eps_s = rep_len(eps.s, N),
-                      eventTypes = as.integer(eventTypes), qmatrix = qmatrix)
+    ## call C++ function
+    .Call(C_determineSources,
+          eventTimes, rep_len(eps.t, N),
+          eventCoords, rep_len(eps.s, N),
+          as.integer(eventTypes), qmatrix)
 }
 
 ## determine the .sources for an epidataCS object

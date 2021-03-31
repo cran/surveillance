@@ -7,8 +7,8 @@
 ### (normalized) as well as profile likelihood based confidence intervals
 ###
 ### Copyright (C) 2009 Michael Hoehle, 2014 Sebastian Meyer
-### $Revision: 1091 $
-### $Date: 2014-10-24 14:25:49 +0200 (Fri, 24. Oct 2014) $
+### $Revision: 2662 $
+### $Date: 2021-03-16 10:53:29 +0100 (Tue, 16. Mar 2021) $
 ################################################################################
 
 
@@ -32,7 +32,7 @@ likelihood.ci <- function (logliktilde, theta.hat, lower, upper,
     alpha = 0.05, ...)
 {
   # Highest Likelihood intervall -- target function
-  f <- function(theta, ...) { 
+  f <- function(theta, ...) {
     logliktilde(theta, ...) + 1/2*qchisq(1-alpha, df=1)
   }
   # Compute upper and lower boundary numerically
@@ -79,16 +79,16 @@ profile.twinSIR <- function (fitted, profile, alpha = 0.05,
   if (is.null(fitted[["model"]])) {
     stop("'fitted' must contain the model component")
   }
-  
+
   px <- ncol(fitted$model$X)
   pz <- ncol(fitted$model$Z)
-  
+
   ## Control of the optim procedure
   if (is.null(control[["fnscale",exact=TRUE]])) { control$fnscale <- -1 }
   if (is.null(control[["factr",exact=TRUE]])) { control$factr <- 1e1 }
   if (is.null(control[["maxit",exact=TRUE]])) { control$maxit <- 100 }
 
-  
+
   ## Estimated normalized likelihood function
   ltildeestim <- function(thetai,i) {
     theta <- theta.ml
@@ -101,7 +101,7 @@ profile.twinSIR <- function (fitted, profile, alpha = 0.05,
   ltildeprofile <- function(thetai,i)
   {
     emptyTheta <- rep(0, length(theta.ml))
-      
+
     # Likelihood l(theta_{-i}) = l(theta_i, theta_i)
     ltildethetaminusi <- function(thetaminusi) {
       theta <- emptyTheta
@@ -118,7 +118,7 @@ profile.twinSIR <- function (fitted, profile, alpha = 0.05,
       with(fitted$model,
         .score(theta, X=X, Z=Z, survs=survs, weights=weights))[-i]
     }
-      
+
     # Call optim using L-BFGS-B. For harder constrains we need constr.Optim
     lower <- if (fitted$method == "L-BFGS-B") {
                c(rep(0,px),rep(-Inf,pz))[-i]
@@ -137,13 +137,13 @@ profile.twinSIR <- function (fitted, profile, alpha = 0.05,
             warning = function(w) print(w), error = function(e) list(value=NA))
     resOthers$value
   }
-  
+
   ## Initialize
   theta.ml <- coef(fitted)
   loglik.theta.ml <- c(logLik(fitted))
   se <- sqrt(diag(vcov(fitted)))
   resProfile <- list()
-  
+
   ## Perform profile computations for all requested parameters
   cat("Evaluating the profile log-likelihood on a grid ...\n")
   for (i in 1:length(profile))
@@ -156,10 +156,10 @@ profile.twinSIR <- function (fitted, profile, alpha = 0.05,
     if (is.na(profile[[i]][3])) profile[[i]][3] <- theta.ml[idx] + 3*se[idx]
     #Evaluate profile loglik on a grid (if requested)
     if (profile[[i]][4] > 0) {
-      thetai.grid <- seq(profile[[i]][2],profile[[i]][3],length=profile[[i]][4])
+      thetai.grid <- seq(profile[[i]][2],profile[[i]][3],length.out=profile[[i]][4])
       resProfile[[i]] <- matrix(NA, nrow = length(thetai.grid), ncol = 4L,
         dimnames = list(NULL, c("grid","profile","estimated","wald")))
-      
+
       for (j in 1:length(thetai.grid)) {
         cat("\tj= ",j,"/",length(thetai.grid),"\n")
         resProfile[[i]][j,] <- c(thetai.grid[j],
@@ -173,7 +173,7 @@ profile.twinSIR <- function (fitted, profile, alpha = 0.05,
 #9 June 2009. This did not work.
 #  names(resProfile) <- names(theta.ml)[sapply(profile, function(x) x[4L]) > 0]
    names(resProfile) <- names(theta.ml)[sapply(profile, function(x) x[1L])]
-  
+
   ## Profile likelihood intervals
   ciProfile <- matrix(NA, nrow = length(profile), ncol = 6L,
     dimnames = list(NULL, c("idx","hl.low","hl.up","wald.low","wald.up","mle")))
@@ -189,7 +189,7 @@ profile.twinSIR <- function (fitted, profile, alpha = 0.05,
     }
     for (i in seq_along(profile))
     {
-      cat(i,"/", length(profile),"\n") 
+      cat(i,"/", length(profile),"\n")
       #Index of the parameter in the theta vector
       idx <- profile[[i]][1]
       #Compute highest likelihood intervals
@@ -204,7 +204,7 @@ profile.twinSIR <- function (fitted, profile, alpha = 0.05,
       ciProfile[i,2:5] <- c(ci.hl, ci.wald)
     }
   }
-  
+
   res <- list(lp=resProfile, ci.hl=ciProfile, profileObj=profile)
   class(res) <- "profile.twinSIR"
   return(res)
@@ -245,7 +245,7 @@ plot.profile.twinSIR <- function(x, which = NULL, conf.level = 0.95,
         opar <- do.call("par", par.settings)
         on.exit(par(opar))
     }
-    
+
     ## loop over parameters
     for (i in seq_along(which)) {
         coefname <- which[i]

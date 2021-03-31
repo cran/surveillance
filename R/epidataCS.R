@@ -7,8 +7,8 @@
 ### and a spatio-temporal grid of endemic covariates
 ###
 ### Copyright (C) 2009-2018,2021 Sebastian Meyer
-### $Revision: 2626 $
-### $Date: 2021-01-29 14:14:22 +0100 (Fri, 29. Jan 2021) $
+### $Revision: 2636 $
+### $Date: 2021-02-01 14:20:09 +0100 (Mon, 01. Feb 2021) $
 ################################################################################
 
 
@@ -205,8 +205,7 @@ check_events <- function (events, dropTypes = TRUE, verbose = TRUE)
 
     # check suitability of Euclidean geometry
     if (identical(FALSE, is.projected(events))) { # is.projected may return NA
-        warning("\"epidataCS\" expects planar coordinates; ",
-                "see 'spTransform' in package \"rgdal\"")
+        warning("\"epidataCS\" expects planar coordinates; see 'spTransform'")
     }
 
     # Check existence of type column

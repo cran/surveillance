@@ -201,9 +201,9 @@ sts(observed, start = c(2000, 1), frequency = 52,
       slots into a data frame: \code{observed}, \code{epoch},
       \code{state}, \code{alarm}, \code{upperbound}, and
       \code{populationFrac}. Additional columns will be created for
-      \code{freq} (potentially varying by year if \code{x@epochAsDate}
-      is \code{TRUE}) and \code{epochInPeriod} (the epoch fraction
-      within the current year).\cr
+      \code{freq} (potentially varying by year for weekly or daily data
+      if \code{x@epochAsDate} is \code{TRUE}) and
+      \code{epochInPeriod} (the epoch fraction within the current year).\cr
       Calling the \code{as.data.frame} method with the argument
       \code{tidy = TRUE} will return \code{\link{tidy.sts}(x)},
       which reshapes multivariate \code{sts} objects to the

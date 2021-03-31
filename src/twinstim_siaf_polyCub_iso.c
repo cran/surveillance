@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Call polyCub_iso from polyCubAPI.h for a specific intrfr function
  *
- * Copyright (C) 2017,2020 Sebastian Meyer
+ * Copyright (C) 2017,2020,2021 Sebastian Meyer
  *
  * This file is part of the R package "surveillance",
  * free software under the terms of the GNU General Public License, version 2,
@@ -169,7 +169,7 @@ static double intrfr_exponential_dlogsigma(double R, double *logsigma)
 
 /*** function to be called from R ***/
 
-void C_siaf_polyCub1_iso(
+void siaf_polyCub1_iso(
     double *x, double *y,  // vertex coordinates (open)
     int *L,                // number of vertices
     int *intrfr_code,      // F(R) identifier

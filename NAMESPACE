@@ -1,6 +1,5 @@
-### Load C code
-
-useDynLib(surveillance)
+## refer to all C routines by their name prefixed by C_
+useDynLib(surveillance, .registration = TRUE, .fixes = "C_")
 
 importFrom(Rcpp, evalCpp) # see vignette("Rcpp-package", package="Rcpp")
 ## although Rcpp is only used on C-level we need to "ensure that Rcpp is loaded
@@ -75,6 +74,10 @@ export(fixef, ranef)  # we define corresponding methods for "hhh4" models
 
 
 ### twinstim-specific
+
+import(spatstat)  # new umbrella package spatstat 2.0-0 included here to
+                  # avoid nasty collisions with spatstat < 2 lying around
+                  # FIXME: remove this when the spatstat transition has settled
 
 importFrom(spatstat.geom, area.owin, as.im.function, diameter,
                      diameter.owin, disc, edges, inside.owin, intersect.owin,

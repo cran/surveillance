@@ -1,7 +1,7 @@
 ################################################################################
 ### Plot a surveillance time series ("sts") object using ggplot2
 ###
-### Copyright (C) 2018 Sebastian Meyer
+### Copyright (C) 2018,2021 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -14,6 +14,9 @@ autoplot.sts <- function (object, population = FALSE,
 {
     stopifnot(is(object, "sts"))
     data <- tidy.sts(object)
+    if (all(is.na(data$date)))
+        stop("could not derive date index via 'epoch(object, as.Date=TRUE)';",
+             "\n  attach dates using 'epoch(object) <- DATE_OBJECT' first")
 
     ## sensible default width for weekly/daily data
     if (is.null(width)) {

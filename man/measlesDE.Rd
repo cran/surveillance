@@ -8,7 +8,7 @@
 }
 \usage{data(measlesDE)}
 \format{
-  An \code{sts} object containing \eqn{156\times 16}{156 x 16}
+  An \code{"\linkS4class{sts}"} object containing \eqn{156\times 16}{156 x 16}
   observations starting from week 1 in 2005.
   
   The \code{population} slot contains the population fractions
@@ -23,11 +23,22 @@
 \seealso{\code{\link{MMRcoverageDE}}}
 \examples{
 data(measlesDE)
-plot(measlesDE)    
+plot(measlesDE)
+
+## aggregate to bi-weekly intervals
+measles2w <- aggregate(measlesDE, nfreq = 26)
+plot(measles2w, type = observed ~ time)
+
+## use a date index for nicer x-axis plotting
+epoch(measles2w) <- seq(as.Date("2005-01-03"), by = "2 weeks",
+                        length.out = nrow(measles2w))
+plot(measles2w, type = observed ~ time)
 }
 \references{
-  Herzog, S.A., Paul, M. and Held, L. (2011) Heterogeneity in vaccination
-    coverage explains the size and occurrence of measles epidemics in
-    German surveillance data. Epidemiology and Infection, \bold{139}, 505--515.
+  Herzog, S. A., Paul, M. and Held, L. (2011):
+  Heterogeneity in vaccination coverage explains the size and
+  occurrence of measles epidemics in German surveillance data.
+  \emph{Epidemiology and Infection}, \bold{139}, 505-515.
+  \doi{10.1017/S0950268810001664}
 }
 \keyword{datasets}

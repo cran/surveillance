@@ -7,6 +7,8 @@
   A simple \CRANpkg{ggplot2} variant of \code{\link{stsplot_time}},
   based on a \dQuote{tidy} version of the \code{"sts"} object via
   \code{\link{tidy.sts}}.
+  It uses a date axis and thus only works for time series indexed by
+  dates or with a standard frequency (daily, weekly, or monthly).
 }
 \usage{
 autoplot.sts(object, population = FALSE, units = NULL,

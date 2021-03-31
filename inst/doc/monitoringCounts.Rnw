@@ -1145,7 +1145,7 @@ plotTS <- function(prop=TRUE) {
     }
   }
   # Add legend
-  axis(1,at=as.numeric(epoch(rotaBB)),label=NA,tck=-0.01)
+  axis(1,at=as.numeric(epoch(rotaBB)),labels=FALSE,tck=-0.01)
   legend(x="left",colnames(rotaBB),col=pal,lty=1,lwd=2,bg="white")
 }
 

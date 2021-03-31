@@ -8,8 +8,8 @@
 ### algorithm (cf. Daley & Vere-Jones, 2003, Algorithm 7.5.V.).
 ###
 ### Copyright (C) 2010-2018,2021 Sebastian Meyer
-### $Revision: 2628 $
-### $Date: 2021-01-29 14:41:08 +0100 (Fri, 29. Jan 2021) $
+### $Revision: 2640 $
+### $Date: 2021-02-01 18:11:31 +0100 (Mon, 01. Feb 2021) $
 ################################################################################
 
 ### CAVE:
@@ -103,6 +103,11 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
         cat("Building 'W' as the union of 'tiles' ...\n")
         W <- unionSpatialPolygons(tiles)
     }
+
+    ## empty CRS to avoid costly intermediate CRS checks (and rgdal warnings)
+    if (!missing(events) && !is.null(events))
+        stopifnot(identicalCRS(tiles, events))
+    tiles@proj4string <- events@proj4string <- new("CRS")
 
     ## Transform W to class "owin"
     Wowin <- SpP2owin(W)
@@ -786,9 +791,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
                     }
 
                 .eventLocation <- sourceCoords + eventLocationIR
-                whichTile <- over(SpatialPoints(.eventLocation,
-                                                proj4string=tiles@proj4string),
-                                  tiles)
+                whichTile <- over(SpatialPoints(.eventLocation), tiles)
                 if (is.na(whichTile)) {
                     warning("event generated at (",
                             paste(.eventLocation, collapse=","),

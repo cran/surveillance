@@ -1,6 +1,5 @@
 %\RdOpts{stage=build}
-% Note @R-3.0.2 and @R-3.4.2: Setting \RdOpts{stage=build} globally
-% does not work as expected, so we have to specify it in each \Sexpr
+% Not yet: in R 2.12.0 - 4.0.5, \RdOpts{} had no effect (PR#18073)
 
 \encoding{latin1}
 \name{surveillance-package}
@@ -72,8 +71,11 @@
 %% Author information is dynamically extracted from the DESCRIPTION file
 \author{
   \Sexpr[stage=build]{
-    authors <- unname(eval(parse(text=tools:::.read_description("DESCRIPTION")["Authors@R"])))
-    paste0(format(authors[grep("aut", authors$role)], include = c("given", "family")), collapse = ", ")
+    pkgdir <- tools:::Rd_macros_package_dir()  # support R CMD Rd2pdf pkg
+    desc <- tools:::.read_description(file.path(pkgdir, "DESCRIPTION"))
+    aar <- unname(eval(parse(text=desc["Authors@R"])))
+    authors <- aar[grep("aut", aar$role)]
+    paste0(format(authors, include = c("given", "family")), collapse = ", ")
   }
 
   Maintainer: \packageMaintainer{surveillance}
@@ -84,15 +86,19 @@
 \section{Acknowledgements}{
   Substantial contributions of code by:
   \Sexpr[stage=build]{
-    authors <- unname(eval(parse(text=tools:::.read_description("DESCRIPTION")["Authors@R"])))
-    contributors <- authors[grepl("ctb", authors$role) & !sapply(authors$family, is.null)]
+    contributors <- aar[grepl("ctb", aar$role) & !sapply(aar$family, is.null)]
     paste0(format(contributors, include = c("given", "family")), collapse = ", ")
   }.
 
   Furthermore, the authors would like to thank the following people
   for ideas, discussions, testing and feedback:
   \Sexpr[stage=build]{
-    thanks <- readLines(list.files(pattern="THANKS", recursive=TRUE), encoding="latin1")
+    find_inst_file <- function (file) { # support R CMD Rd2pdf in source package
+      if(dir.exists(file.path(pkgdir, "inst")))
+        file.path(pkgdir, "inst", file) else
+        file.path(pkgdir, file)
+    }
+    thanks <- readLines(find_inst_file("THANKS"), encoding="latin1")
     paste0(grep("^(#|[[:blank:]]*$)", thanks, invert=TRUE, value=TRUE), collapse = ", ")
   }.
 }
@@ -104,7 +110,7 @@
 
   \Sexpr[stage=build,results=rd]{
     paste0("\\\itemize{\n", paste0("\\\item ", tools::toRd(
-      readCitationFile(list.files(pattern="CITATION", recursive=TRUE), list(Encoding="latin1"))
+      readCitationFile(find_inst_file("CITATION"), list(Encoding="latin1"))
     ), collapse = "\n\n"), "\n}")
   }
 
@@ -115,7 +121,7 @@
 }
 
 \seealso{
-  \url{http://surveillance.R-forge.R-project.org/}
+  \url{https://surveillance.R-forge.R-project.org/}
 }
 
 \keyword{ package }

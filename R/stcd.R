@@ -11,7 +11,7 @@
 #   x - vector containing spatial x coordinate of the events
 #   y - vector containing spatial y coordinate of the events
 #   t - vector containing the time points of the events
-#   radius - is the radius of the cluster 
+#   radius - is the radius of the cluster
 #   epsilon - is the relative change of event-intensity within the cluster
 #       to detect
 #   areaA - area of the observation region A (single number)
@@ -32,15 +32,15 @@ stcd <- function(x, y,t,radius,epsilon,areaA, areaAcapBk, threshold,cusum=FALSE)
   if (!all(diff(order(t)) == 1)) {
     stop("The vector of time points needs to be ascending in time. No ties allowed.")
   }
-  
-  res <- .C("SRspacetime", x=as.double(x), y=as.double(y), t=as.double(t), n=as.integer(n), radius=as.double(radius), epsilon=as.double(epsilon), areaA=as.double(areaA),areaAcapBk=as.double(areaAcapBk),cusum=as.integer(cusum), threshold=as.double(threshold),R=as.double(numeric(n)),idxFA=as.integer(-1),idxCC=as.integer(-1),PACKAGE="surveillance")
+
+  res <- .C(C_SRspacetime, x=as.double(x), y=as.double(y), t=as.double(t), n=as.integer(n), radius=as.double(radius), epsilon=as.double(epsilon), areaA=as.double(areaA),areaAcapBk=as.double(areaAcapBk),cusum=as.integer(cusum), threshold=as.double(threshold),R=as.double(numeric(n)),idxFA=as.integer(-1),idxCC=as.integer(-1))
 
   #Indexing differences between C and R
   res$idxFA <- res$idxFA+1
   res$idxCC <- res$idxCC+1
-  
+
   #Missing: compute which indices are part of the cluster.
   #--> Thais R-code
-  
+
   return(list(R=res$R,idxFA=res$idxFA,idxCC=res$idxCC))
 }

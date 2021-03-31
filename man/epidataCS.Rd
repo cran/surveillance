@@ -116,7 +116,7 @@ getSourceDists(object, dimension = c("space", "time"))
       \item{area}{area of the spatial region (\code{tile}).
 	Be aware that the unit of this area (e.g., square km) must be consistent
 	with the units of \code{W} and \code{events} (as specified in
-	their \code{\link{proj4string}}s, if they have projected coordinates).}
+	their \code{\link{proj4string}}s).}
     }
     The remaining columns are endemic covariates.
     Note that the column name \code{"BLOCK"} is reserved

@@ -258,12 +258,12 @@ algo.farrington.threshold <- function(pred,phi,alpha=0.01,skewness.transform="no
 ######################################################################
 refvalIdxByDate <- function(t0, b, w, epochStr, epochs) {
   refDays <- NULL
-  refPoints <- seq( t0, length=b+1, by="-1 year")[-1]
+  refPoints <- seq( t0, length.out=b+1, by="-1 year")[-1]
 
   #Loop over all b-lagged points and append appropriate w-lagged points
   for (j in 1:length(refPoints)) {
-      refPointWindow <- c(rev(seq(refPoints[j], length=w+1, by=paste("-",epochStr,sep=""))),
-                          seq(refPoints[j], length=w+1, by=epochStr)[-1])
+      refPointWindow <- c(rev(seq(refPoints[j], length.out=w+1, by=paste("-",epochStr,sep=""))),
+                          seq(refPoints[j], length.out=w+1, by=epochStr)[-1])
       refDays <- append(refDays,refPointWindow)
   }
   if (epochStr == "1 week") {
@@ -444,7 +444,7 @@ algo.farrington <- function(disProgObj, control=list(
     ######################################################################
     if (control$plot) {
       #Compute all predictions
-      data <- data.frame(wtime=seq(min(wtime),k,length=1000))
+      data <- data.frame(wtime=seq(min(wtime),k,length.out=1000))
       preds <- predict(model,data,type="response",dispersion=model$phi)
 
       #Show a plot of the model fit.

@@ -321,9 +321,9 @@ algo.farrington.referencetimepoints <- function(dayToConsider,b=control$b,freq=f
 	if (epochAsDate) {
 		referenceTimePoints <- as.Date(seq(as.Date(dayToConsider,
 										origin="1970-01-01"),
-										length=(b+1), by="-1 year"))
+										length.out=(b+1), by="-1 year"))
 	} else {
-		referenceTimePoints <- seq(dayToConsider, length=(b+1),by=-freq)
+		referenceTimePoints <- seq(dayToConsider, length.out=(b+1), by=-freq)
 
 		if (referenceTimePoints[b+1]<=0){
 			warning("Some reference values did not exist (index<1).")

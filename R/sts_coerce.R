@@ -75,10 +75,10 @@ as.data.frame.sts <- function(x, row.names = NULL, optional = FALSE, # from the 
   }
 
   #Find out how many epochs there are each year
-  res$freq <- if (x@epochAsDate) {
+  res$freq <- if (x@epochAsDate && x@freq %in% c(52, 365)) {
     year <- strftime(epoch(x), if (x@freq == 52) "%G" else "%Y")
     epochStr <- switch(as.character(x@freq),
-                       "12" = "%m", "52" = "%V", "365" = "%j")
+                       "52" = "%V", "365" = "%j")
     maxEpoch <- vapply(X = unique(year), FUN = function (Y) {
         dummyDates <- as.Date(paste0(Y, "-12-", 26:31))
         max(as.numeric(strftime(dummyDates, epochStr)))

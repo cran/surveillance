@@ -13,7 +13,7 @@
     GYR <- if (requireNamespace("colorspace", quietly=TRUE)) {
         ## the Zeil-ice colors
         colorspace::heat_hcl(ncolors, h=c(0,120),
-                             c=if (use.color) c(90,30) else c(0,0),
+                             c.=if (use.color) c(90,30) else c(0,0),
                              l=c(50,90), power=c(0.75, 1.2))
     } else if (use.color) {
         grDevices::hcl.colors(n = ncolors, palette = "Heat 2")

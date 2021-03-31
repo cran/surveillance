@@ -5,9 +5,9 @@
 ###
 ### Time series plot for sts-objects
 ###
-### Copyright (C) 2007-2014 Michael Hoehle, 2013-2016 Sebastian Meyer
-### $Revision: 1676 $
-### $Date: 2016-04-01 11:42:40 +0200 (Fri, 01. Apr 2016) $
+### Copyright (C) 2007-2014 Michael Hoehle, 2013-2016,2021 Sebastian Meyer
+### $Revision: 2663 $
+### $Date: 2021-03-16 13:51:59 +0100 (Tue, 16. Mar 2021) $
 ################################################################################
 
 
@@ -39,7 +39,7 @@ stsplot_time <- function(x, units = NULL,
       on.exit(par(oldpar))
     }
   }
-  
+
   if (nUnits == 1L) { # a single time-series plot
     stsplot_time1(x = x, k = units, ...)
   } else { # multiple time series
@@ -60,7 +60,7 @@ stsplot_time <- function(x, units = NULL,
       } else {
         args$ylim <- NULL
       }
-      
+
       #plot areas
       for (k in units) {
         argsK <- modifyList(args, list(x=x, k=k, main="", legend.opts=NULL),
@@ -70,7 +70,7 @@ stsplot_time <- function(x, units = NULL,
       }
     }
   }
-  
+
   invisible()
 }
 
@@ -111,7 +111,7 @@ stsplot_time_as1 <- function (x, units = NULL,
             legend.opts)
         do.call("legend", legend.opts)
     }
-    
+
     invisible()
 }
 
@@ -129,7 +129,7 @@ stsplot_time1 <- function(
     dx.upperbound=0L, hookFunc=function(){}, .hookFuncInheritance=function() {}, ...)
 {
   stopifnot(length(k) == 1, is.character(k) || k != 0)
-  
+
   #Extract slots -- depending on the algorithms: x@control$range
   observed   <- x@observed[,k]
   state      <- x@state[,k]
@@ -139,14 +139,14 @@ stsplot_time1 <- function(
   binaryTS <- x@multinomialTS
 
   #Control what axis style is used
-  xaxis.dates <- !is.null(xaxis.labelFormat) 
+  xaxis.dates <- !is.null(xaxis.labelFormat)
 
   if (binaryTS) {
     observed <- ifelse(population!=0,observed/population,0)
     upperbound <- ifelse(population!=0,upperbound/population,0)
     if (ylab == "No. infected") { ylab <- "Proportion infected" }
   }
-  
+
   ##### Handle the NULL arguments ######################################
   if (is.null(main) && length(x@control) > 0) {
     #a surveillance algorithm has been run
@@ -158,21 +158,21 @@ stsplot_time1 <- function(
 
   # control where the highest value is
   max <- max(c(observed,upperbound),na.rm=TRUE)
-  
+
   #if ylim is not specified, give it a default value
   if(is.null(ylim) ){
     ylim <- c(-1/20*max, max)
   }
-  
+
   # left/right help for constructing the columns
   dx.observed <- 0.5
   upperboundx <- (1:length(upperbound)) - (dx.observed - dx.upperbound)
-  
+
   #Generate the matrices to plot (values,last value)
   xstuff <- cbind(c(upperboundx,length(observed) + min(1-(dx.observed - dx.upperbound),0.5)))
   ystuff <-cbind(c(upperbound,upperbound[length(observed) ]))
 
-  #Plot the results 
+  #Plot the results
   matplot(x=xstuff,y=ystuff,xlab=xlab,ylab=ylab,main=main,ylim=ylim,axes = !(xaxis.dates),type=type,lty=lty[-c(1:2)],col=col[-c(1:2)],lwd=lwd[-c(1:2)],...)
 
   #This draws the polygons containing the number of counts (sep. by NA)
@@ -186,20 +186,20 @@ stsplot_time1 <- function(
   if (!is.na(col[1])) {
     lines(x=xstuff,y=ystuff,type=type,lty=lty[-c(1:2)],col=col[-c(1:2)],lwd=lwd[-c(1:2)],...)
   }
-  
+
   #Draw alarm symbols
   alarmIdx <- which(!is.na(alarm) & (alarm == 1))
   if (length(alarmIdx)>0) {
     matpoints( alarmIdx, rep(-1/40*ylim[2],length(alarmIdx)), pch=alarm.symbol$pch, col=alarm.symbol$col, cex= alarm.symbol$cex, lwd=alarm.symbol$lwd)
   }
-  
+
   #Draw outbreak symbols
   stateIdx <- which(state == 1)
   if (length(stateIdx)>0) {
     matpoints( stateIdx, rep(-1/20*ylim[2],length(stateIdx)), pch=outbreak.symbol$pch, col=outbreak.symbol$col,cex = outbreak.symbol$cex,lwd=outbreak.symbol$lwd)
   }
 
-  #Label x-axis 
+  #Label x-axis
   if(xaxis.dates & axes) {
     addFormattedXAxis(x = x, epochsAsDate = epochsAsDate, xaxis.tickFreq = xaxis.tickFreq,
                       xaxis.labelFreq = xaxis.labelFreq, xaxis.labelFormat = xaxis.labelFormat,
@@ -261,7 +261,7 @@ stsplot_alarm <- function(
   alarm      <- x@alarm[,k]
   upperbound <- x@upperbound[,k]
   ylim <- c(0.5, ncol(x))
-  
+
   ##### Handle the NULL arguments ######################################
   if (is.null(main) && length(x@control) > 0) {
     #a surveillance algorithm has been run
@@ -270,19 +270,19 @@ stsplot_alarm <- function(
     method <- x@control$name
     main <- paste0(action, " using ", method)
   }
- 
+
   #Control what axis style is used
-  xaxis.dates <- !is.null(xaxis.labelFormat) 
+  xaxis.dates <- !is.null(xaxis.labelFormat)
 
   # left/right help for constructing the columns
   dx.observed <- 0.5
   observedxl <- (1:length(observed))-dx.observed
   observedxr <- (1:length(observed))+dx.observed
   upperboundx <- (1:length(upperbound)) #-0.5
-  
+
   # control where the highest value is
   max <- max(c(observed,upperbound),na.rm=TRUE)
-        
+
   #if ylim is not specified
   if(is.null(ylim)){
     ylim <- c(-1/20*max, max)
@@ -292,13 +292,13 @@ stsplot_alarm <- function(
   #Generate the matrices to plot
   xstuff <- cbind(observedxl, observedxr, upperboundx)
   ystuff <-cbind(observed, observed, upperbound)
-        
+
 
   #Plot the results using one Large plot call (we do this by modifying
   #the call). Move this into a special function!
   matplot(x=xstuff,y=ystuff,xlab=xlab,ylab="",main=main,ylim=ylim,axes = FALSE,type="n",lty=lty,col=col,...)
 
-  #Label of x-axis 
+  #Label of x-axis
   if(xaxis.dates){
     addFormattedXAxis(x = x, epochsAsDate = epochsAsDate, xaxis.tickFreq = xaxis.tickFreq,
                       xaxis.labelFreq = xaxis.labelFreq, xaxis.labelFormat = xaxis.labelFormat,
@@ -318,7 +318,7 @@ stsplot_alarm <- function(
   #Draw lines seperating the levels
   m <- c(-0.5,cumsum(as.numeric(table(lvl))))
   sapply(m, function(i) lines(c(0.5,nrow(x@alarm)+0.5),c(i+0.5,i+0.5),lwd=2))
-  
+
   invisible()
 }
 
@@ -334,7 +334,7 @@ atChange <- function(x,xm1) {
 }
 #Median index of factor
 atMedian <- function(x,xm1) {
-    as.integer(tapply(seq_along(x), INDEX=x, quantile, prob=0.5,type=3))
+    as.integer(tapply(seq_along(x), INDEX=x, quantile, probs=0.5, type=3))
 }
 #Only every second unit change
 at2ndChange <- function(x,xm1) {
@@ -347,15 +347,15 @@ addFormattedXAxis <- function(x, epochsAsDate = FALSE,
                               xaxis.tickFreq = list("%Q"=atChange),
                               xaxis.labelFreq = xaxis.tickFreq, xaxis.labelFormat = "%G\n\n%OQ",
                               ...) {
-  
+
   #Old style if there are no Date objects
   if (!epochsAsDate) {
     #Declare commonly used variables.
     nTime <- nrow(x)
     startyear <-  x@start[1]
     firstweek <-  x@start[2]
-    
-    if (x@freq ==52) {  #Weekly epochs are the most supported 
+
+    if (x@freq ==52) {  #Weekly epochs are the most supported
       # At which indices to put the "at" tick label. This will
       # be exactly those week numbers where the new quarter begins: 1, 14, 27 and 40 + i*52.
       # Note that week number and index is not the same due to the "firstweek" argument
@@ -364,7 +364,7 @@ addFormattedXAxis <- function(x, epochsAsDate = FALSE,
       quarterStarts <- rep( (0:(noYears))*52, each=4) + rep( c(1,14,27,40), noYears+1)
       weeks <- subset(weeks, !is.na(match(weeks,quarterStarts)))
       weekIdx <- weeks - (firstweek-1)
-      
+
       # get the right year for each week
       year <- weeks %/% 52 + startyear
       # function to define the quarter order
@@ -374,69 +374,69 @@ addFormattedXAxis <- function(x, epochsAsDate = FALSE,
       #Computed axis labels -- add quarters (this is the old style)
       labels.week <- paste(year,"\n\n",quarter,sep="")
       #Make the line. Use lwd.ticks to get full line but no marks.
-      axis( side=1,labels=FALSE,at=c(1,nTime),lwd.ticks=0,line=1,...) 
-      axis( at=weekIdx[which(quarter != "I")] , labels=labels.week[which(quarter != "I")] , side=1, line = 1 ,...)       
+      axis( side=1,labels=FALSE,at=c(1,nTime),lwd.ticks=0,line=1,...)
+      axis( at=weekIdx[which(quarter != "I")] , labels=labels.week[which(quarter != "I")] , side=1, line = 1 ,...)
       #Bigger tick marks at the first quarter (i.e. change of the year)
       at <- weekIdx[which(quarter == "I")]
       axis( at=at, labels=rep(NA,length(at)), side=1, line = 1 ,tcl=2*par("tcl"))
-      
+
     } else { ##other frequency (not really supported)
       #A label at each unit
       myat.unit <- seq(firstweek,length.out=nTime)
-      
+
       # get the right year order
       month <- (myat.unit-1) %% x@freq + 1
       year <- (myat.unit - 1) %/% x@freq + startyear
       #construct the computed axis labels -- add quarters if xaxis.units is requested
       mylabels.unit <- paste(year,"\n\n", (myat.unit-1) %% x@freq + 1,sep="")
-      
+
       #Add axis
-      axis( at=seq_len(nTime), labels=NA, side=1, line = 1, ...) 
+      axis( at=seq_len(nTime), labels=NA, side=1, line = 1, ...)
       axis( at=seq_len(nTime)[month==1], labels=mylabels.unit[month==1] , side=1, line = 1 ,...)
       #Bigger tick marks at the first unit
       at <- seq_len(nTime)[(myat.unit - 1) %% x@freq == 0]
       axis( at=at, labels=rep(NA,length(at)), side=1, line = 1 ,tcl=2*par("tcl"))
-    } 
-  } else {   
+    }
+  } else {
     ################################################################
     #epochAsDate -- experimental functionality to handle ISO 8601
     ################################################################
-    
+
     dates <- epoch(x, as.Date = TRUE)
     #make one which has one extra element at beginning with same spacing
     datesOneBefore <- c(dates[1]-(dates[2]-dates[1]),dates)
-    
+
     #Make the line. Use lwd.ticks to get full line but no marks.
-    axis( side=1,labels=FALSE,at=c(1,length(dates)),lwd.ticks=0,...) 
-    
+    axis( side=1,labels=FALSE,at=c(1,length(dates)),lwd.ticks=0,...)
+
     ###Make the ticks (depending on the selected level).###
     tcl <- par("tcl")
     tickFactors <- surveillance.options("stsTickFactors")
-    
+
     #Loop over all pairs in the xaxis.tickFreq list
      for (i in seq_along(xaxis.tickFreq)) {
       format <- names(xaxis.tickFreq)[i]
-      xm1x <- as.numeric(formatDate(datesOneBefore,format))                         
+      xm1x <- as.numeric(formatDate(datesOneBefore,format))
       idx <- xaxis.tickFreq[[i]](x=xm1x[-1],xm1=xm1x[1])
-      
+
       #Find tick size by table lookup
       tclFactor <- tickFactors[pmatch(format, names(tickFactors))]
-      if (is.na(tclFactor)) { 
+      if (is.na(tclFactor)) {
         warning("no \"tcl\" factor found for \"", format ,"\" -> setting it to 1")
         tclFactor <- 1
       }
       axis(1,at=idx, labels=NA,tcl=tclFactor*tcl,...)
-    }  
-    
+    }
+
     ###Make the labels (depending on the selected level)###
     if (!is.null(xaxis.labelFormat)) {
       labelIdx <- NULL
       for (i in seq_along(xaxis.labelFreq)) {
         format <- names(xaxis.labelFreq)[i]
-        xm1x <- as.numeric(formatDate(datesOneBefore,format))                         
+        xm1x <- as.numeric(formatDate(datesOneBefore,format))
         labelIdx <- c(labelIdx,xaxis.labelFreq[[i]](x=xm1x[-1],xm1=xm1x[1]))
       }
-      
+
       #Format labels (if any) for the requested subset
       if (length(labelIdx)>0) {
           labels <- rep(NA,nrow(x))

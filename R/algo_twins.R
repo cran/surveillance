@@ -17,7 +17,7 @@ algo.twins <- function(disProgObj,
   if (ncol(disProgObj$observed)>1) {
     stop("algo.twins() only handles univariate time series of counts")
   }
-  
+
   ## Determine period from data
   T <- as.integer(disProgObj$freq)
 
@@ -44,7 +44,7 @@ algo.twins <- function(disProgObj,
     control$logFile <- "twins.log"
   if(is.null(control[["noOfHarmonics",exact=TRUE]]))
     control$noOfHarmonics <- 1
-  
+
 
   nfreq <- control$noOfHarmonics
   control$logFile2 <- paste(control$logFile,"2",sep="")
@@ -54,16 +54,14 @@ algo.twins <- function(disProgObj,
   n <- as.integer(dim(x)[1])
   I <- as.integer(dim(x)[2])
 
-  ## with(control, res <- .C(...)) is not valid R syntax!!
-  res <- 
       with(control,
-           .C("twins",
+           .C(C_twins,
               x=as.integer(x),
               n=n,
               I=I,
               logFile=logFile,
               logFile2=logFile2,
-              burnin=as.integer(burnin), 
+              burnin=as.integer(burnin),
               filter=as.integer(filter),
               sampleSize=as.integer(sampleSize),
               alpha_xi=as.double(alpha_xi),
@@ -73,8 +71,7 @@ algo.twins <- function(disProgObj,
               psiRWSigma=as.double(0.25),
               alpha_psi=as.double(alpha_psi),
               beta_psi=as.double(beta_psi),
-              nu_trend=as.integer(nu_trend),
-              PACKAGE="surveillance"))
+              nu_trend=as.integer(nu_trend)))
 
   ## Log files
   results <- read.table(control$logFile,header=T,na.strings=c("NaN","-NaN"))
@@ -83,7 +80,7 @@ algo.twins <- function(disProgObj,
 
   rownames(acc) <- acc[,1]
   acc <- acc[,-1]
-  
+
   ## Nothing is returned by the function - result is not a
   ## standard survObj
   result <- structure(list(control=control,
@@ -111,7 +108,7 @@ make.pois <- function(obj) {
     m$Y <- numeric(n)
     m$omega <- numeric(n)
     ## Read means at each time instance
-    Vars <- c("X","Y","omega") 
+    Vars <- c("X","Y","omega")
     for (t in 1:n) {
         for (v in Vars) {
             m[[v]][t] <- obj$logFile2[,paste(v,".",t,".",sep="")]
@@ -132,7 +129,7 @@ pois.plot <- function(m.results,...) {
     } else {
         plot(sts,...)
     }
-    
+
     ## Add Y and X lines
     for (i in 2:length(plotorder)) {
         lines(1:(m.results$n)+0.5,m.results[[paste(plotorder[i])]][c(2:m.results$n,m.results$n)],type="s",col=plotcols[i],lwd=lwd[i])
@@ -144,16 +141,16 @@ make.nu <- function(obj) {
     n <- nrow(obj$disProgObj$observed)
     samplesize <- obj$control$sampleSize
     frequencies <- obj$control$noOfHarmonics # instead of just always "1" !
-    
+
     season <- obj$disProgObj$freq
     basefrequency <- 2 * pi / season
-    
+
     ## optionally also get the linear time trend coefficient
     withTrend <- obj$control$nu_trend
 
     ## this list will be returned at the end
-    m<-list()        
-    
+    m<-list()
+
     ## first get all the gamma's from the logFile matrix into nicer elements of
     ## the list m
     for (j in 0:(2*frequencies + withTrend)) {
@@ -163,7 +160,7 @@ make.nu <- function(obj) {
 
     ## zeta is a list which has one element for each time point (vector of samples)
     m$zeta<-list()
-    
+
     ## for all time points:
     for (t in 1:n) {
 
@@ -172,9 +169,9 @@ make.nu <- function(obj) {
 
         ## add all harmonic terms
         for(j in 1:frequencies){
-            m$zeta[[t]] <- m$zeta[[t]] + m$gamma[[2*j]]*sin(basefrequency*j*(t-1)) + m$gamma[[2*j+1]]*cos(basefrequency*j*(t-1)) 
+            m$zeta[[t]] <- m$zeta[[t]] + m$gamma[[2*j]]*sin(basefrequency*j*(t-1)) + m$gamma[[2*j+1]]*cos(basefrequency*j*(t-1))
         }
-        
+
         ## and (optionally) finally add the linear trend
         if(withTrend)
         {
@@ -211,7 +208,7 @@ tms.plot <-function(x,m.par,xlab="",ylab="",ylim=FALSE,...){
         ylim=c(ymin,ymax)
     }
 
-    plot(x-1,m$q975[x],type="l",col="red",main="",xlab=xlab,ylab=ylab,ylim=ylim,...) 
+    plot(x-1,m$q975[x],type="l",col="red",main="",xlab=xlab,ylab=ylab,ylim=ylim,...)
     lines(x-1,m$median[x],type="l")
     lines(x-1,m$q025[x],type="l",col="red")
 }
@@ -222,28 +219,28 @@ tms.plot <-function(x,m.par,xlab="",ylab="",ylim=FALSE,...){
 ######################################################################
 
 plot.atwins <- function(x, which=c(1,4,6,7), ask=TRUE,...) {
-    
+
     ## Extract from the 3 dots
     if(is.null(which)) {
         which <- c(1,4,6,7)
-    } 
+    }
     if(is.null(ask)) {
         ask <- TRUE
     }
-    
+
     ## Make list of X,Y,Z,omega means of results2
     m.results <-make.pois(x)
     m.results$disProgObj <- x$disProgObj
-    
+
     ## Make list of results of  gamma, zeta and nu
     nu<-make.nu(x)
 
-    
+
     ## Plots
     show <- rep(FALSE,7)
     show[which] <- TRUE
     par(ask=ask)
-    
+
     if (show[1]) {
         par(mfcol=c(1,1))
         pois.plot(m.results,...)

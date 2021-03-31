@@ -5,9 +5,9 @@
 ###
 ### Snapshot map (spplot) of an sts-object or matrix of counts
 ###
-### Copyright (C) 2013-2014,2016,2017,2020 Sebastian Meyer
-### $Revision: 2587 $
-### $Date: 2020-11-09 17:34:06 +0100 (Mon, 09. Nov 2020) $
+### Copyright (C) 2013-2014,2016,2017,2020,2021 Sebastian Meyer
+### $Revision: 2662 $
+### $Date: 2021-03-16 10:53:29 +0100 (Tue, 16. Mar 2021) $
 ################################################################################
 
 ## x: "sts" or (simulated) matrix of counts
@@ -157,18 +157,18 @@ checkat <- function (at, data, counts = TRUE) { # for non-transformed "data"
     }
 }
 
-getPrettyIntervals <- function (nInt, data, trafo=NULL, counts=TRUE, ...) {
+getPrettyIntervals <- function (n, data, trafo=NULL, counts=TRUE, ...) {
     maxcount <- max(data, na.rm=TRUE)
-    if (counts && maxcount < nInt) { # no aggregation of counts necessary
+    if (counts && maxcount < n) { # no aggregation of counts necessary
         at <- 0:ceiling(maxcount+sqrt(.Machine$double.eps)) # max(at) > maxcount
     } else {
         at <- if (is.null(trafo)) { # equivalent to trafo=scales::sqrt_trans()
-            pretty(sqrt(data), n=nInt+1, ...)^2
+            pretty(sqrt(data), n=n+1, ...)^2
         } else {
-            scales::trans_breaks(trafo$trans, trafo$inv, n=nInt+1, ...)(data)
+            scales::trans_breaks(trafo$trans, trafo$inv, n=n+1, ...)(data)
         }
         ## { # alternative: quantile-based scale (esp. for incidence plots)
-        ##     quantile(data, probs=seq(0,1,length.out=nInt+1), na.rm=TRUE)
+        ##     quantile(data, probs=seq(0,1,length.out=n+1), na.rm=TRUE)
         ## }
         if (counts && at[1] == 0 && at[2] > 1) # we want 0 counts separately ("white")
             at <- sort(c(1, at))

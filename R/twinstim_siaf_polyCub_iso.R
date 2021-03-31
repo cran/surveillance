@@ -1,7 +1,7 @@
 ################################################################################
 ### C-Level Cubature of "siaf" over Polygonal Domains using 'polyCub_iso'
 ###
-### Copyright (C) 2017,2020 Sebastian Meyer
+### Copyright (C) 2017,2020,2021 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -77,13 +77,13 @@ siaf_polyCub1_iso <- function (xypoly, intrfr_code, pars,
 {
     if (length(xypoly[["y"]]) != (L <- length(xypoly[["x"]])))
         stop("xypoly$x and xypoly$y must have equal length")
-    .C("C_siaf_polyCub1_iso",
+    .C(C_siaf_polyCub1_iso,
        as.double(xypoly$x), as.double(xypoly$y), as.integer(L),
        as.integer(intrfr_code), as.double(pars),
        as.integer(subdivisions), as.double(abs.tol), as.double(rel.tol),
        as.integer(stop.on.error),
-       value = double(1L), abserr = double(1L), neval = integer(1L),
-       PACKAGE = "surveillance")$value
+       value = double(1L), abserr = double(1L), neval = integer(1L)
+       )$value
 }
 
 ## integer codes are used to select the corresponding C-routine,

@@ -1,7 +1,7 @@
 ################################################################################
 ### Initialization and other basic methods for the S4 class "sts"
 ###
-### Copyright (C) 2007-2014 Michael Hoehle, 2012-2019 Sebastian Meyer
+### Copyright (C) 2007-2014 Michael Hoehle, 2012-2019,2021 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -267,12 +267,15 @@ setMethod("dimnames", "sts", function (x) dimnames(x@observed))
 
 #Extract which observation within year we have
 setMethod("epochInYear", "sts", function(x,...) {
-  if (x@epochAsDate) {
+  if (x@epochAsDate && x@freq %in% c(12, 52, 365)) {
     epochStr <- switch(as.character(x@freq),
                        "12" = "%m", "52" = "%V", "365" = "%j")
     as.numeric(strftime(epoch(x), epochStr))
   } else {
-    (x@epoch-1 + x@start[2]-1) %% x@freq + 1
+    index <- if (x@epochAsDate) { # non-standard frequency
+                 seq_along(x@epoch)
+             } else x@epoch  # should always be 1:nrow(x) actually
+    (index-1 + x@start[2]-1) %% x@freq + 1
   }
 })
 
