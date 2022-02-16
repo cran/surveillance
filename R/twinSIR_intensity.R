@@ -266,7 +266,7 @@ intensityplot_twinSIR <- function(model,
 
 ### intensityplot-methods for objects of classes "twinSIR" and "simEpidata"
 
-intensityplot.twinSIR <- function ()
+intensityplot.twinSIR <- function (x, theta = NULL, ...)  # formals updated below
 {
     cl <- match.call()
     cl[[1]] <- as.name("intensityplot_twinSIR")
@@ -280,7 +280,7 @@ intensityplot.twinSIR <- function ()
     eval(cl)
 }
 
-intensityplot.simEpidata <- function ()
+intensityplot.simEpidata <- function (x, theta = NULL, ...)  # formals updated below
 {
     cl <- match.call()
     cl[[1]] <- as.name("intensityplot_twinSIR")
@@ -292,6 +292,8 @@ intensityplot.simEpidata <- function ()
         cl$theta <- quote(c(config$alpha, 1, config$beta))   # 1 is for true h0
     }
 
+    ## guess and warn about non-constant h0 (a flag in config would be better)
+    if (any(names(formals(config$h0)) %in% all.vars(body(config$h0))))
     message("Note: the (true) baseline hazard is only evaluated",
             " at the beginning of the time intervals")
     eval(cl)
@@ -299,5 +301,3 @@ intensityplot.simEpidata <- function ()
 
 formals(intensityplot.twinSIR) <- formals(intensityplot.simEpidata) <-
     c(alist(x=), formals(intensityplot_twinSIR)[-1])
-
-

@@ -115,19 +115,12 @@ if (requireNamespace("splancs")) {
     data("imdepi")
     imdepiB <- subset(imdepi, type == "B")
     mainpoly <- coordinates(imdepiB$W@polygons[[1]]@Polygons[[5]])
-    if (surveillance.options("allExamples")) {
-        SGRID <- c(0, 10, 25, 50, 75, 100, 150, 200)
-        TGRID <- c(0, 7, 14, 21, 28)
-        B <- 99
-        CORES <- 2
-    } else { # dummy settings for fast CRAN checks
-        SGRID <- c(0, 50)
-        TGRID <- c(0, 30)
-        B <- 9
-        CORES <- 1
-    }
+    SGRID <- c(10, 25, 50, 100, 150)
+    TGRID <- c(1, 7, 14, 21)
+    B <- 19  # limited here for speed
+    \dontshow{if (!interactive()) B <- 4} % for faster checks
     imdBstKtest <- stKtest(imdepiB, eps.s = SGRID, eps.t = TGRID, B = B,
-                           cores = CORES, seed = 1, poly = list(mainpoly))
+                           cores = 2, seed = 1, poly = list(mainpoly))
     print(imdBstKtest)
     plot(imdBstKtest)
 }

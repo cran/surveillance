@@ -43,6 +43,10 @@
 
   This is a lightweight S4 class to implement (multivariate) time
   series of counts, typically from public health surveillance.
+  The \code{"sts"} class supersedes the informal \code{"disProg"} class
+  used in early versions of package \pkg{surveillance}. Converters are
+  available, see \code{\link{disProg2sts}}.
+  
   For areal time series, the class can also capture the spatial layout
   of the regions, where the data originate from.
   The constructor function \code{sts} can be used to setup an
@@ -99,8 +103,8 @@ sts(observed, start = c(2000, 1), frequency = 52,
       Furthermore, if \code{epochAsDate=TRUE} then \code{epoch}
       is the integer representation of \code{\link{Date}}s
       giving the exact date of the observation.}
-    \item{\code{freq}:}{If weekly data \code{freq} corresponds to 52, in
-      case of monthly data \code{freq} is 12.}
+    \item{\code{freq}:}{number of observations per year, e.g.,
+      52 for weekly data, 12 for monthly data.}
     \item{\code{start}:}{vector of length two denoting the year and the
       sample number (week, month, etc.) of the first observation}
     \item{\code{observed}:}{A matrix of size \code{length(epoch)} times the
@@ -121,7 +125,8 @@ sts(observed, start = c(2000, 1), frequency = 52,
     \item{\code{populationFrac}:}{A \code{matrix} of population 
       fractions or absolute numbers (see \code{multinomialTS} below)
       with dimensions \code{dim(observed)}.}
-    \item{\code{map}:}{Object of class \code{SpatialPolygonsDataFrame}
+    \item{\code{map}:}{Object of class \code{\linkS4class{SpatialPolygons}}
+      (or \code{\linkS4class{SpatialPolygonsDataFrame}})
       providing a shape of the areas which are monitored. }
     \item{\code{control}:}{Object of class \code{list}, this is a
       rather free data type to be returned by the surveillance algorithms. }
@@ -240,6 +245,21 @@ sts(observed, start = c(2000, 1), frequency = 52,
 \examples{
 showClass("sts")
 
+## create an sts object from time-series data
+salmonellaDF <- read.table(system.file("extdata/salmonella.agona.txt",
+                                       package = "surveillance"), header = TRUE)
+str(salmonellaDF)
+salmonella <- with(salmonellaDF,
+                   sts(observed = observed, state = state,
+                       start = c(1990, 1), frequency = 52))
+salmonella
+plot(salmonella)
+
+## these data are also available as a legacy "disProg" object in the package
+data(salmonella.agona)
+stopifnot(all.equal(salmonella, disProg2sts(salmonella.agona)))
+
+
 ## A typical dataset with weekly counts of measles from several districts
 data("measlesWeserEms")
 measlesWeserEms
@@ -272,4 +292,5 @@ if (requireNamespace("xts")) {
 }
 
 \keyword{classes}
+\keyword{ts}
 \keyword{methods}

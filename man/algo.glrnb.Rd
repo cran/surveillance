@@ -24,8 +24,9 @@ algo.glrpois(disProgObj, control = list(range=range, c.ARL=5,
 }
 
 \arguments{
-\item{disProgObj}{object of class \code{disProg} to do surveillance
-    for}
+\item{disProgObj}{object of class \code{disProg} to do surveillance for.
+  For new \code{\link{sts}}-class data, use the \code{\link{glrnb}}
+  wrapper, or the \code{\link{sts2disProg}} converter.}
 \item{control}{A list controlling the behaviour of the algorithm
     \describe{
     \item{\code{range}}{vector of indices in the observed vector
@@ -181,16 +182,20 @@ mu1 <- exp(base  + kappa)
 #Generate data
 set.seed(42)
 x <- rpois(length(t),mu0*(exp(kappa)^(t>=tau)))
-s.ts <- create.disProg(week=1:length(t),observed=x,state=(t>=tau))
+s.ts <- sts(observed=x, state=(t>=tau))
 #Plot the data
-plot(s.ts,legend=NULL,xaxis.years=FALSE)
+plot(s.ts, xaxis.labelFormat=NULL)
 #Run
 cntrl = list(range=t,c.ARL=5, Mtilde=1, mu0=mu0,
              change="intercept",ret="value",dir="inc")
-glr.ts <- algo.glrpois(s.ts,control=cntrl)
-plot(glr.ts,xaxis.years=FALSE)
-lr.ts  <- algo.glrpois(s.ts,control=c(cntrl,theta=0.4))
-plot(lr.ts,xaxis.years=FALSE)
+glr.ts <- glrpois(s.ts,control=cntrl)
+plot(glr.ts, xaxis.labelFormat=NULL, dx.upperbound=0.5)
+lr.ts  <- glrpois(s.ts,control=c(cntrl,theta=0.4))
+plot(lr.ts, xaxis.labelFormat=NULL, dx.upperbound=0.5)
+
+#using the legacy interface for "disProg" data
+lr.ts0  <- algo.glrpois(sts2disProg(s.ts), control=c(cntrl,theta=0.4))
+stopifnot(upperbound(lr.ts) == lr.ts0$upperbound)
 
 
 ## NegBin example
@@ -198,23 +203,22 @@ plot(lr.ts,xaxis.years=FALSE)
 set.seed(42)
 alpha <- 0.2
 x <- rnbinom(length(t),mu=mu0*(exp(kappa)^(t>=tau)),size=1/alpha)
-s.ts <- create.disProg(week=1:length(t),observed=x,state=(t>=tau))
+s.ts <- sts(observed=x, state=(t>=tau))
 
 #Plot the data
-plot(s.ts,legend=NULL,xaxis.years=FALSE)
+plot(s.ts, xaxis.labelFormat=NULL)
 
 #Run GLR based detection
 cntrl = list(range=t,c.ARL=5, Mtilde=1, mu0=mu0, alpha=alpha,
              change="intercept",ret="value",dir="inc")
-glr.ts <- algo.glrnb(s.ts,control=c(cntrl))
-plot(glr.ts,xaxis.years=FALSE)
+glr.ts <- glrnb(s.ts, control=cntrl)
+plot(glr.ts, xaxis.labelFormat=NULL, dx.upperbound=0.5)
 
 #CUSUM LR detection with backcalculated number of cases
 cntrl2 = list(range=t,c.ARL=5, Mtilde=1, mu0=mu0, alpha=alpha,
               change="intercept",ret="cases",dir="inc",theta=1.2)
-glr.ts2 <- algo.glrnb(s.ts,control=c(cntrl2))
-plot(glr.ts2,xaxis.years=FALSE)
-
+glr.ts2 <- glrnb(s.ts, control=cntrl2)
+plot(glr.ts2, xaxis.labelFormat=NULL)
 }
 
 \keyword{classif}

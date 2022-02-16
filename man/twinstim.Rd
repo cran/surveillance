@@ -463,17 +463,16 @@ summary(R0(m0, trimmed=FALSE))
 ## plot the path of the fitted total intensity
 plot(m0, "total intensity", tgrid=500)
 
+\dontshow{if (surveillance.options("allExamples")) \{}
 ## extract "residual process" integrating over space (takes some seconds)
-if (surveillance.options("allExamples"))
-{
-  res <- residuals(m0)
-  # if the model describes the true CIF well _in the temporal dimension_,
-  # then this residual process should behave like a stationary Poisson
-  # process with intensity 1
-  plot(res, type="l"); abline(h=c(0, length(res)), lty=2)
-  # easier, with CI and serial correlation -> checkResidualProcess()
-  checkResidualProcess(m0)
-}
+res <- residuals(m0)
+# if the model describes the true CIF well _in the temporal dimension_,
+# then this residual process should behave like a stationary Poisson
+# process with intensity 1
+plot(res, type="l"); abline(h=c(0, length(res)), lty=2)
+# easier, with CI and serial correlation -> checkResidualProcess()
+checkResidualProcess(m0)
+\dontshow{\}}
 
 \dontrun{
   ## NB: in contrast to nlminb(), optim's BFGS would miss the
@@ -514,39 +513,37 @@ rug(imdepiC_infeps$events$time[s$nSources == 0], col = 2, lwd = 3)
 m_epi <- twinstim(epidemic = ~1, data = imdepiC_infeps, t0 = 31, T = 638)
 summary(m_epi)
 
-
+\dontshow{if (surveillance.options("allExamples")) withAutoprint(\{}
 ### full model with interaction functions (time-consuming)
-if (surveillance.options("allExamples"))
-{
-  ## estimate an exponential temporal decay of infectivity
-  m1_tiaf <- update(m0, tiaf=tiaf.exponential())
-  plot(m1_tiaf, "tiaf", scaled=FALSE)
+## estimate an exponential temporal decay of infectivity
+m1_tiaf <- update(m0, tiaf=tiaf.exponential())
+plot(m1_tiaf, "tiaf", scaled=FALSE)
 
-  ## estimate a step function for spatial interaction
-  summary(sourceDists <- getSourceDists(imdepi, "space"))
-  (knots <- quantile(sourceDists, c(5,10,20,40)/100))
-  m1_fstep <- update(m0, siaf=knots)
-  plot(m1_fstep, "siaf", scaled=FALSE)
-  rug(sourceDists, ticksize=0.02)
+## estimate a step function for spatial interaction
+summary(sourceDists <- getSourceDists(imdepi, "space"))
+(knots <- quantile(sourceDists, c(5,10,20,40)/100))
+m1_fstep <- update(m0, siaf=knots)
+plot(m1_fstep, "siaf", scaled=FALSE)
+rug(sourceDists, ticksize=0.02)
 
-  ## estimate a continuously decreasing spatial interaction function,
-  ## here we use the kernel of an isotropic bivariate Gaussian
-  m1 <- update(m0, siaf = siaf.gaussian())
-  AIC(m_noepi, m0, m1_fstep, m1)
-  summary(m1)  # e.siaf.1 is log(sigma), no test for H0: log(sigma) = 0
-  exp(confint(m1, "e.siaf.1"))  # a confidence interval for sigma
-  plot(m1, "siaf", scaled=FALSE)
-  ## alternative: siaf.powerlaw() with eps.s=Inf and untie()d data,
-  ##              see vignette("twinstim")
+## estimate a continuously decreasing spatial interaction function,
+## here we use the kernel of an isotropic bivariate Gaussian
+m1 <- update(m0, siaf = siaf.gaussian())
+AIC(m_noepi, m0, m1_fstep, m1)
+summary(m1)  # e.siaf.1 is log(sigma), no test for H0: log(sigma) = 0
+exp(confint(m1, "e.siaf.1"))  # a confidence interval for sigma
+plot(m1, "siaf", scaled=FALSE)
+## alternative: siaf.powerlaw() with eps.s=Inf and untie()d data,
+##              see vignette("twinstim")
 
-  ## add epidemic covariates
-  m2 <- update(m1, epidemic = ~ 1 + type + agegrp)
-  AIC(m1, m2)   # further improvement
-  summary(m2)
+## add epidemic covariates
+m2 <- update(m1, epidemic = ~ 1 + type + agegrp)
+AIC(m1, m2)   # further improvement
+summary(m2)
   
-  ## look at estimated R0 values by event type
-  tapply(R0(m2), imdepi$events@data[names(R0(m2)), "type"], summary)
-}
+## look at estimated R0 values by event type
+tapply(R0(m2), imdepi$events@data[names(R0(m2)), "type"], summary)
+\dontshow{\})}
 }
 
 \keyword{models}

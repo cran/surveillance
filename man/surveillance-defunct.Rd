@@ -12,10 +12,14 @@
 \alias{algo.hhh}
 \alias{algo.hhh.grid}
 \alias{create.grid}
+\alias{qlomax}
 \description{
   The functions listed here are no longer part of \pkg{surveillance}.
 }
 \usage{
+## Defunct in surveillance 1.20.0
+qlomax(p, scale, shape)
+
 ## Defunct in surveillance 1.18.0
 algo.hhh(disProgObj, control=list(
              lambda=TRUE, neighbours=FALSE, linear=FALSE, nseason=0,
@@ -46,6 +50,8 @@ testSim(p = 0.99, r = 0.01, length = 400, A = 1, alpha = 1,
 toFileDisProg(disProgObj, toFile)
 }
 \details{
+  A \code{qlomax} function is provided in package \pkg{VGAM}.
+  
   \code{algo.hhh} was an early implementation of the HHH regression
   framework for multivariate time series of infectious disease counts.
   An improved and considerably extended implementation is provided by

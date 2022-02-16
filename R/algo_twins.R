@@ -193,7 +193,7 @@ make.nu <- function(obj) {
 }
 
 ## Function to plot median, and quantiles over time for m.par (m.par is list of n vectors, x is time)
-tms.plot <-function(x,m.par,xlab="",ylab="",ylim=FALSE,...){
+tms.plot <-function(x,m.par,xlab="",ylab="",ylim=NULL,...){
     m<-list()
     n<-length(m.par)
     m$median<-numeric(n)
@@ -202,7 +202,7 @@ tms.plot <-function(x,m.par,xlab="",ylab="",ylim=FALSE,...){
         m$q025[t]<- quantile(m.par[[t]],0.025)
         m$q975[t]<- quantile(m.par[[t]],0.975)
     }
-    if(!ylim){
+    if(is.null(ylim)){
         ymin<-min(m$q025)
         ymax<-max(m$q975)
         ylim=c(ymin,ymax)
@@ -220,14 +220,6 @@ tms.plot <-function(x,m.par,xlab="",ylab="",ylim=FALSE,...){
 
 plot.atwins <- function(x, which=c(1,4,6,7), ask=TRUE,...) {
 
-    ## Extract from the 3 dots
-    if(is.null(which)) {
-        which <- c(1,4,6,7)
-    }
-    if(is.null(ask)) {
-        ask <- TRUE
-    }
-
     ## Make list of X,Y,Z,omega means of results2
     m.results <-make.pois(x)
     m.results$disProgObj <- x$disProgObj
@@ -239,7 +231,8 @@ plot.atwins <- function(x, which=c(1,4,6,7), ask=TRUE,...) {
     ## Plots
     show <- rep(FALSE,7)
     show[which] <- TRUE
-    par(ask=ask)
+    opar <- par(ask=ask && sum(show) > 1, "mfcol")
+    on.exit(par(opar))
 
     if (show[1]) {
         par(mfcol=c(1,1))
@@ -285,5 +278,7 @@ plot.atwins <- function(x, which=c(1,4,6,7), ask=TRUE,...) {
         par(mfcol=c(1,1))
         hist(x$logFile$Znp1,main="",xlab=expression(Z[n+1]),prob=TRUE,breaks=seq(-0.5,max(x$logFile$Znp1)+0.5,1))
     }
+    
+    invisible()
 }
 

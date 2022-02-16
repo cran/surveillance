@@ -478,7 +478,7 @@ observedHosp <- cbind(
   "Yes" = as.vector(observed(salmHospitalized)),
   "No" = as.vector(population(salmHospitalized) - observed(salmHospitalized)))
 salmHospitalized.multi <- sts(
-  freq = 52, start = c(2004, 1), epoch = epoch(salmHospitalized),
+  frequency = 52, start = c(2004, 1), epoch = epoch(salmHospitalized),
   observed = observedHosp, population = populationHosp,
   multinomialTS = TRUE)
 
@@ -498,9 +498,9 @@ dBB.cusum <- function(y, mu, sigma, size, log = FALSE) {
 ###################################################
 controlCat <- list(range = phase2, h = 2, pi0 = pi0m, pi1 = pi1m,
                    ret = "cases", dfun = dBB.cusum)
-salmHospitalizedCat <- categoricalCUSUM(salmHospitalized.multi,
-                                        control = controlCat,
-                                        sigma = exp(m.bbin$sigma.coef))
+salmHospitalizedCat <- categoricalCUSUM(
+    salmHospitalized.multi, control = controlCat,
+    sigma = exp(m.bbin$sigma.coefficients))
 
 
 ###################################################
@@ -514,11 +514,13 @@ h.grid <- seq(1, 10, by = 0.5)
 ###################################################
 ## simone <- function(sts, h) {
 ##   y <- rBB(length(phase2), mu = pi0m[1, , drop = FALSE],
-##            bd = population(sts)[phase2, ], sigma = exp(m.bbin$sigma.coef))
+##            bd = population(sts)[phase2, ],
+##            sigma = exp(m.bbin$sigma.coefficients),
+##            fast = TRUE)
 ##   observed(sts)[phase2, ] <- cbind(y, population(sts)[phase2, 1] - y)
-##   one.surv <- categoricalCUSUM(sts,
-##                                control = modifyList(controlCat, list(h = h)),
-##                                sigma = exp(m.bbin$sigma.coef))
+##   one.surv <- categoricalCUSUM(
+##       sts, control = modifyList(controlCat, list(h = h)),
+##       sigma = exp(m.bbin$sigma.coefficients))
 ##   return(any(alarms(one.surv)[, 1]))
 ## }
 ## set.seed(123)
@@ -544,11 +546,13 @@ h.grid <- seq(1, 10, by = 0.5)
 if (computeALL) {
 simone <- function(sts, h) {
   y <- rBB(length(phase2), mu = pi0m[1, , drop = FALSE],
-           bd = population(sts)[phase2, ], sigma = exp(m.bbin$sigma.coef))
+           bd = population(sts)[phase2, ],
+           sigma = exp(m.bbin$sigma.coefficients),
+           fast = TRUE)
   observed(sts)[phase2, ] <- cbind(y, population(sts)[phase2, 1] - y)
-  one.surv <- categoricalCUSUM(sts,
-                               control = modifyList(controlCat, list(h = h)),
-                               sigma = exp(m.bbin$sigma.coef))
+  one.surv <- categoricalCUSUM(
+      sts, control = modifyList(controlCat, list(h = h)),
+      sigma = exp(m.bbin$sigma.coefficients))
   return(any(alarms(one.surv)[, 1]))
 }
 set.seed(123)
@@ -606,7 +610,7 @@ plot(rotaBB)
 
 
 ###################################################
-### code chunk number 46: monitoringCounts.Rnw:1116-1124
+### code chunk number 46: monitoringCounts.Rnw:1118-1126
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 par(mar=c(5.1,20.1,4.1,0),family="Times")
@@ -620,7 +624,7 @@ mtext("Proportion of reported cases", side=2, line=19, cex=1)
 
 
 ###################################################
-### code chunk number 47: monitoringCounts.Rnw:1132-1159
+### code chunk number 47: monitoringCounts.Rnw:1134-1161
 ###################################################
 # Select a palette for drawing
 pal <- c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00")
@@ -652,7 +656,7 @@ plot(rotaBB.copy)
 
 
 ###################################################
-### code chunk number 48: monitoringCounts.Rnw:1165-1179
+### code chunk number 48: monitoringCounts.Rnw:1167-1181
 ###################################################
 rotaBB.df <- as.data.frame(rotaBB)
 
@@ -671,7 +675,7 @@ m0 <- MGLMreg(as.matrix(rotaBB.df[phase1, order]) ~ -1 + X[phase1, ],
 
 
 ###################################################
-### code chunk number 49: monitoringCounts.Rnw:1185-1191
+### code chunk number 49: monitoringCounts.Rnw:1187-1193
 ###################################################
 m1 <- m0
 
@@ -695,7 +699,7 @@ surv <- categoricalCUSUM(rotaBB,control=control)
 
 
 ###################################################
-### code chunk number 51: monitoringCounts.Rnw:1208-1210 (eval = FALSE)
+### code chunk number 51: monitoringCounts.Rnw:1210-1212 (eval = FALSE)
 ###################################################
 ## alarmDates <- epoch(surv)[which(alarms(surv)[,1]==1)]
 ## format(alarmDates,"%b %Y")
@@ -726,7 +730,7 @@ surv <- categoricalCUSUM(rotaBB,control=control)
 
 
 ###################################################
-### code chunk number 53: monitoringCounts.Rnw:1240-1243
+### code chunk number 53: monitoringCounts.Rnw:1242-1245
 ###################################################
 m0.dm <- MGLMreg(as.matrix(rotaBB.df[phase1, 1:5]) ~ -1 + X[phase1, ],
                 dist = "DM")
@@ -734,7 +738,7 @@ c(m0@AIC, m0.dm@AIC)
 
 
 ###################################################
-### code chunk number 54: monitoringCounts.Rnw:1250-1269
+### code chunk number 54: monitoringCounts.Rnw:1252-1271
 ###################################################
 ## Change intercept in the first class (for DM all 5 classes are modeled)
 delta <- 2
@@ -758,7 +762,7 @@ surv.dm <- categoricalCUSUM(rotaBB, control = control)
 
 
 ###################################################
-### code chunk number 55: monitoringCounts.Rnw:1272-1274 (eval = FALSE)
+### code chunk number 55: monitoringCounts.Rnw:1274-1276 (eval = FALSE)
 ###################################################
 ## matplot(alpha0/rowSums(alpha0),type="l",lwd=3,lty=1,ylim=c(0,1))
 ## matlines(alpha1/rowSums(alpha1),type="l",lwd=1,lty=2)
@@ -797,7 +801,7 @@ mtext(side=1,text="Time (weeks)",
 
 
 ###################################################
-### code chunk number 58: monitoringCounts.Rnw:1400-1414
+### code chunk number 58: monitoringCounts.Rnw:1402-1416
 ###################################################
 today <- which(epoch(salmNewport) == as.Date("2013-12-23"))
 rangeAnalysis <- (today - 4):today
@@ -816,7 +820,7 @@ results <- farringtonFlexible(salmNewport[, c("Baden.Wuerttemberg",
 
 
 ###################################################
-### code chunk number 59: monitoringCounts.Rnw:1417-1427
+### code chunk number 59: monitoringCounts.Rnw:1419-1429
 ###################################################
 start <- isoWeekYear(epoch(salmNewport)[min(rangeAnalysis)])
 end <- isoWeekYear(epoch(salmNewport)[max(rangeAnalysis)])

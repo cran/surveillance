@@ -37,7 +37,8 @@ importFrom(utils, head, tail, toLatex)
 ##                   na.omit, as.formula, pnbinom, qnbinom, qnorm, sd, glm, optim,
 ##                   poisson, ppois, qpois, predict.glm, summary.glm, quasipoisson,
 ##                   glm.fit) ## and many more...
-importFrom(utils, packageVersion, modifyList, capture.output, read.table, data,
+importFrom(utils, packageName, packageVersion,
+                  modifyList, capture.output, read.table, data,
                   setTxtProgressBar, txtProgressBar, sessionInfo, head.matrix,
                   str, flush.console, write.table, as.roman, tail.matrix,
                   methods)
@@ -75,10 +76,6 @@ export(fixef, ranef)  # we define corresponding methods for "hhh4" models
 
 ### twinstim-specific
 
-import(spatstat)  # new umbrella package spatstat 2.0-0 included here to
-                  # avoid nasty collisions with spatstat < 2 lying around
-                  # FIXME: remove this when the spatstat transition has settled
-
 importFrom(spatstat.geom, area.owin, as.im.function, diameter,
                      diameter.owin, disc, edges, inside.owin, intersect.owin,
                      is.polygonal, as.polygonal, bdist.points, owin, ppp,
@@ -113,7 +110,6 @@ export(formatDate)  #format.Date + %Q and %q formatting strings
 export(refvalIdxByDate)
 export(ks.plot.unif)
 export(checkResidualProcess)       # for twinstim and twinSIR
-export(qlomax)                     # quantile function of the Lomax distribution
 export(plapply)
 export(clapply)
 export(fanplot)
@@ -460,6 +456,7 @@ S3method(calibrationTest, hhh4)
 S3method(calibrationTest, oneStepAhead)
 
 ## methods for simulations from hhh4 fits
+S3method("[", hhh4sims)
 S3method(aggregate, hhh4sims)
 S3method(plot, hhh4sims)
 export(as.hhh4simslist)

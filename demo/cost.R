@@ -1,9 +1,7 @@
-## need a writable figs/ directory in getwd()
-## -> switch to a temporary directory to save figures to
-TMPDIR <- tempdir()
-OWD <- setwd(TMPDIR)
-dir.create("figs")
-
+## need a writable figs/ directory to save selected figures
+OUTDIR <- tempdir()
+dir.create(file.path(OUTDIR, "figs"))
+message("saving selected figures in ", OUTDIR, "/figs")
 
 ###################################################
 ### chunk number 1:
@@ -16,7 +14,7 @@ set.seed(1234)
 opendevice <- function(horizontal=TRUE,width=7,height=4,...) {
   #Do it for postscript instead  -- who uses postscript these days??
   args <- list(...)
-  args$file <- sub(".pdf",".eps",args$file)
+  args$file <- file.path(OUTDIR, sub(".pdf",".eps",args$file))
   args$width <- width
   args$height <- height
   args$horizontal <- FALSE
@@ -256,8 +254,3 @@ ha4.cusum <- cusum(ha4,control=list(k=1.5,h=1.75,m="glm",trans="rossi",range=52:
 #ha4.b332 <- bayes(ha4,control=list(range=52:73,b=2,w=3,alpha=0.01/6))
 plot(ha4.cusum,type=observed ~ time | unit)
 dev.off()
-
-
-## finally switch back to original working directory
-message("Note: selected figures have been saved in ", getwd(), "/figs")
-setwd(OWD)

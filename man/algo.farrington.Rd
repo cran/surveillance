@@ -1,26 +1,32 @@
 \name{algo.farrington}
 \alias{algo.farrington}
+\alias{farrington}
 \encoding{latin1}
 
 \title{Surveillance for Count Time Series Using the Classic Farrington Method}
 \description{
-  The function takes \code{range} values of the surveillance time
-  series \code{disProgObj} and for each time point uses a GLM to
-  predict the number of counts according to the procedure by
-  Farrington et al. (1996). This is then compared to the observed
-  number of counts. If the observation is above a specific quantile of
+  Implements the procedure of Farrington et al. (1996).
+  At each time point of the specified \code{range}, a GLM is fitted to
+  predict the counts. This is then compared to the observed
+  counts. If the observation is above a specific quantile of
   the prediction interval, then an alarm is raised.
 }
 \usage{
+# original interface for a single "disProg" time series
 algo.farrington(disProgObj, control=list(
     range=NULL, b=5, w=3, reweight=TRUE, verbose=FALSE, plot=FALSE,
     alpha=0.05, trend=TRUE, limit54=c(5,4), powertrans="2/3",
     fitFun="algo.farrington.fitGLM.fast"))
+
+# wrapper for "sts" data, possibly multivariate
+farrington(sts, control=list(
+    range=NULL, b=5, w=3, reweight=TRUE, verbose=FALSE,
+    alpha=0.05), ...)
 }
 \arguments{
   \item{disProgObj}{
-    object of class disProgObj (including the \code{observed} and the
-    \code{state} time series.)
+    an object of class \code{"disProg"} (a list including \code{observed} and
+    \code{state} time series).
   }
   \item{control}{list of control parameters
     \describe{
@@ -61,8 +67,11 @@ algo.farrington(disProgObj, control=list(
         \code{algo.farrington.fitGLM} or 
         \code{algo.farrington.fitGLM.populationOffset}. See details of
         \code{\link{algo.farrington.fitGLM}} for more information.}
-      }
     }
+  }
+  \item{sts}{an object of class \code{"\link{sts}"}.}
+  \item{\dots}{arguments for \code{\link{wrap.algo}},
+    e.g., \code{verbose=FALSE}.}
 }
 \details{
   The following steps are performed according to the Farrington
@@ -81,37 +90,42 @@ algo.farrington(disProgObj, control=list(
 }
 }
 \value{
-An object of class \code{"survRes"}.
+For \code{algo.farrington}, a list object of class \code{"survRes"}
+with elements \code{alarm}, \code{upperbound}, \code{trend},
+\code{disProgObj}, and \code{control}.
+
+For \code{farrington}, the input \code{"\link{sts}"} object with updated
+\code{alarm}, \code{upperbound} and \code{control} slots, and subsetted
+to \code{control$range}.
 }
 
 \examples{
-#Read Salmonella Agona data
+#load "disProg" data
 data("salmonella.agona")
 
 #Do surveillance for the last 100 weeks.
 n <- length(salmonella.agona$observed)
-#Set control parameters.
 control <- list(b=4,w=3,range=(n-100):n,reweight=TRUE, verbose=FALSE,alpha=0.01)
 res <- algo.farrington(salmonella.agona,control=control)
-#Plot the result.
-plot(res,disease="Salmonella Agona",method="Farrington")
+plot(res)
 
-\dontrun{
-#Generate Poisson counts and convert into an "sts" object
+#Generate Poisson counts and create an "sts" object
 set.seed(123)
 x <- rpois(520,lambda=1)
-sts <- sts(observed=x, state=x*0, freq=52)
+stsObj <- sts(observed=x, frequency=52)
 
-#Compare timing of the two possible fitters for algo.farrington (here using S4)
-system.time( sts1 <- farrington(sts, control=list(range=312:520,
-                       fitFun="algo.farrington.fitGLM.fast")))
-system.time( sts2 <- farrington(sts, control=list(range=312:520,
-                       fitFun="algo.farrington.fitGLM")))
+#Compare timing of the two possible fitters for algo.farrington
+range <- 312:520
+\dontshow{if (!interactive()) range <- 460:520} % for faster checks
+system.time( sts1 <- farrington(stsObj, control=list(range=range,
+                       fitFun="algo.farrington.fitGLM.fast"), verbose=FALSE))
+system.time( sts2 <- farrington(stsObj, control=list(range=range,
+                       fitFun="algo.farrington.fitGLM"), verbose=FALSE))
 
 #Check if results are the same
 stopifnot(upperbound(sts1) == upperbound(sts2))
 }
-}
+
 \author{M. \enc{Höhle}{Hoehle}}
 \seealso{
   \code{\link{algo.farrington.fitGLM}},

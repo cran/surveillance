@@ -5,9 +5,9 @@
 ###
 ### Helper functions for neighbourhood weight matrices in hhh4()
 ###
-### Copyright (C) 2012-2016,2020 Sebastian Meyer
-### $Revision: 2567 $
-### $Date: 2020-10-14 15:42:38 +0200 (Wed, 14. Oct 2020) $
+### Copyright (C) 2012-2016,2020,2022 Sebastian Meyer
+### $Revision: 2805 $
+### $Date: 2022-02-09 15:29:47 +0100 (Wed, 09. Feb 2022) $
 ################################################################################
 
 
@@ -27,6 +27,8 @@ checkNeighbourhood <- function (neighbourhood)
 ### i.e. the nTime x nUnit matrix with elements (ti): sum_j w_jit * y_j(t-lag)
 ## W is either a nUnits x nUnits matrix of time-constant weights w_ji
 ## or a nUnits x nUnits x nTime array of time-varying weights w_jit
+## Note that a missing value in any unit at t-lag gives NA at t,
+## even if w_jit = 0 for that unit (e.g., if own past is missing)
 
 weightedSumNE <- function (observed, weights, lag)
 {
@@ -35,8 +37,6 @@ weightedSumNE <- function (observed, weights, lag)
   nUnits <- dimY[2L]
 
   if (length(dim(weights)) == 2L) { # fast track for time-constant weights
-      if (any(isNA <- is.na(observed)))
-          observed[isNA] <- 0  # keep original na.rm = TRUE behaviour (for now)
       rbind(matrix(NA_real_, lag, nUnits),
             observed[seq_len(nTime-lag),,drop=FALSE] %*% weights)
   } else {
@@ -44,7 +44,7 @@ weightedSumNE <- function (observed, weights, lag)
       apply(weights[,,(lag+1L):nTime,drop=FALSE], 2L, function (wi)
           ## wi and tYlagged are matrices of size nUnits x (nTime-lag)
           c(rep(NA_real_, lag),
-            .colSums(tYlagged * wi, nUnits, nTime-lag, na.rm=TRUE)))
+            .colSums(tYlagged * wi, nUnits, nTime-lag)))
   }
 }
 

@@ -30,7 +30,8 @@
 \usage{
 oneStepAhead(result, tp, type = c("rolling", "first", "final"),
              which.start = c("current", "final"),
-             keep.estimates = FALSE, verbose = TRUE, cores = 1)
+             keep.estimates = FALSE, verbose = type != "final",
+             cores = 1)
 
 \method{quantile}{oneStepAhead}(x, probs = c(2.5, 10, 50, 90, 97.5)/100, ...)
 \method{confint}{oneStepAhead}(object, parm, level = 0.95, ...)
@@ -267,8 +268,7 @@ if (.Platform$OS.type == "unix" && isTRUE(parallel::detectCores() > 1))
 
 ## note: oneStepAhead(..., type="final") just means fitted values
 stopifnot(identical(
-    unname(oneStepAhead(result, nrow(salmonella)-5,
-                        type="final", verbose=FALSE)$pred),
+    unname(oneStepAhead(result, nrow(salmonella)-5, type="final")$pred),
     unname(tail(fitted(result), 5))))
 
 
@@ -286,7 +286,7 @@ scores(x = pred$observed, mu = pred$pred, size = exp(pred$psi))
 ## test that scFitted is equivalent to scores(oneStepAhead(..., type = "final"))
 stopifnot(all.equal(
     scFitted,
-    scores(oneStepAhead(result, nrow(salmonella)-5, type="final", verbose=FALSE)),
+    scores(oneStepAhead(result, nrow(salmonella)-5, type="final")),
     check.attributes = FALSE))
 }
 

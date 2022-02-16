@@ -39,7 +39,7 @@ plot(simData)
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 survObj <- algo.glrnb(shadar,control=list(range=105:295,alpha=0))
-plot(survObj,startyear=2003)
+plot(survObj, col=c(8,NA,4))
 
 
 ###################################################
@@ -154,7 +154,7 @@ surv2 <- algo.glrnb(disProgObj=shadar,control=control)
 ### code chunk number 21: glrnb.Rnw:341-342
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
-plot(surv2,startyear=2003)
+plot(surv2, col=c(8,NA,4))
 
 
 ###################################################
@@ -168,6 +168,6 @@ surv3 <- algo.glrnb(disProgObj=shadar,control=control)
 ### code chunk number 23: glrnb.Rnw:357-358
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
-plot(surv3,startyear=2003)
+plot(surv3, col=c(8,NA,4))
 
 

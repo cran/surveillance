@@ -33,14 +33,14 @@ stsplot_time1(x, k=1, ylim=NULL,
               dx.upperbound=0L, hookFunc=function(){},
               .hookFuncInheritance=function() {}, ...)
 
-stsplot_alarm(x, lvl=rep(1,nrow(x)), ylim=NULL,
+stsplot_alarm(x, lvl=rep(1,ncol(x)),
               xaxis.tickFreq=list("\%Q"=atChange),
               xaxis.labelFreq=xaxis.tickFreq, xaxis.labelFormat="\%G\n\n\%OQ",
-              epochsAsDate=x@epochAsDate, xlab="time", main=NULL,
-              type="hhs", lty=c(1,1,2), col=c(1,1,4),
+              epochsAsDate=x@epochAsDate,
+              xlab="time", ylab="", main=NULL,
               outbreak.symbol=list(pch=3, col=3, cex=1, lwd=1),
               alarm.symbol=list(pch=24, col=2, cex=1, lwd=1),
-              cex=1, cex.yaxis=1, ...)
+              cex.yaxis=1, ...)
 }
 
 \arguments{
@@ -68,8 +68,11 @@ stsplot_alarm(x, lvl=rep(1,nrow(x)), ylim=NULL,
     \code{same.scale=FALSE}.}
   \item{axes}{a logical value indicating whether both axes should be drawn
     on the plot.}
-  \item{xaxis.tickFreq,xaxis.labelFreq,xaxis.labelFormat}{see
-    \code{\link{addFormattedXAxis}}.}
+  \item{xaxis.tickFreq,xaxis.labelFreq,xaxis.labelFormat}{
+    arguments for \code{\link{addFormattedXAxis}}
+    if \code{epochsAsDate=TRUE}.
+    Use \code{xaxis.labelFormat=NULL} to get a standard x-axis
+    (without date labels).}
   \item{epochsAsDate}{Boolean indicating whether to treat the epochs as
     Date objects (or to transform them to dates such that the new x-axis
     formatting is applied).
@@ -93,20 +96,21 @@ stsplot_alarm(x, lvl=rep(1,nrow(x)), ylim=NULL,
   \item{outbreak.symbol}{a list with entries \code{pch}, \code{col},
     \code{cex} and \code{lwd} specifying the appearance of the outbreak
     symbol in the plot.}
-  \item{legend.opts}{a list of arguments for \code{\link{legend}}.
+  \item{legend.opts}{a list of arguments for the \code{\link{legend}}.
     If \code{\link{missing}(legend.opts)} (i.e., not explicitly
-    specified), the default legend will only be produced if \code{x}
-    contains any information on outbreaks, alarms, or upperbounds.
-    To disable the legend, use, e.g., \code{legend.opts=NULL}.
-    Otherwise, the following arguments are default:
+    specified), the default legend will only be added if the \code{"sts"} object
+    contains outbreaks, alarms, or upperbounds.
+    The default legend options are
     \describe{
       \item{\code{x}}{\code{"top"}}
-      \item{\code{legend}}{\code{c("Infected","Threshold","Outbreak","Alarm")}}
-      \item{\code{lty,pch,col}}{the corresponding graphical settings}
+      \item{\code{legend}}{\code{c("Infected","Threshold","Outbreak","Alarm")[included]}}
+      \item{\code{lty,lwd,pch,col}}{the corresponding graphical settings
+        of the included elements}
     }
-    Any further arguments to the \code{legend} function are
-    just provided as additional elements of this list,
-    e.g. \code{horiz=TRUE}.
+    where individual elements are only \code{included} in the legend if
+    they are plotted (except for alarms, which are also included if
+    upperbounds exist).
+    To disable the legend, use \code{legend.opts=NULL}.
   }
   \item{dx.upperbound}{horizontal change in the plotting of the
     upperbound line. Sometimes it can be convenient to offset this line
@@ -114,11 +118,7 @@ stsplot_alarm(x, lvl=rep(1,nrow(x)), ylim=NULL,
   \item{lvl}{A vector of length \code{ncol(x)}, which is used to
     specify the hierarchy level for each time series in the sts object
     for alarm plots.}
-  \item{cex}{A numerical value giving the amount by which plotting text
-    and symbols should be magnified relative to the default. See
-    \code{\link{par}} for details.}
-  \item{cex.yaxis}{The magnification to be used for y-axis annotation
-    relative to the current setting of \code{cex}.}
+  \item{cex.yaxis}{The magnification to be used for y-axis annotation.}
   \item{hookFunc}{a function that is called after all the basic plotting
     has be done, i.e., it is not possible to control formatting with
     this function. See Examples.}

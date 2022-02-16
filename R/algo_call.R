@@ -146,12 +146,12 @@ algo.call <- function(disProgObj, control = list( list(funcName = "rki1", range 
                                                    list(funcName = "rki", range = range, b = 2, w = 5, actY = TRUE) ) ) {
   #Function to apply one algorithm to the disProgObj
   onecall <- function(i) {
-    do.call(paste("algo.",control[[i]]$funcName, sep=""),
-            list(disProgObj = disProgObj, control = control[[i]]))
+    do.call(paste0("algo.", control[[i]]$funcName),
+            alist(disProgObj = disProgObj, control = control[[i]]))
   }
 
   #Apply each algorithm in the control list to the disProgObj
-  survResults <- lapply(1:length(control),onecall)
+  survResults <- lapply(seq_along(control), onecall)
 
   #Create some fancy naming..
   names(survResults) <- lapply(survResults,function(survObj) {survObj$control$name})

@@ -203,14 +203,15 @@ imdfitB50 <- update(imdepifit, data = imdepiB50,
 ## simple likelihood ratio test
 epitest(imdfitB50, imdepiB50, method = "LRT")
 
-## permutation test (only a few permutations for speed)
-et <- epitest(imdfitB50, imdepiB50, B = 3 + 26*surveillance.options("allExamples"),
-              verbose = 2 * (.Platform$OS.type == "unix"),
-              .seed = 1, .parallel = 1 + surveillance.options("allExamples"))
+## permutation test
+et <- epitest(imdfitB50, imdepiB50,
+              B = 9,        # limited here for speed
+              verbose = 2,  # (tracing does not work on Windows)
+              .seed = 1, .parallel = 2)
 et
 plot(et)
-## evidence against the null hypothesis of no space-time interaction
 
+## summary of parameter estimates under permutation
 summary(coef(et, which = "m1"))
 }
 

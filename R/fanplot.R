@@ -1,7 +1,7 @@
 ################################################################################
 ### Wrapper function for fanplot::fan()
 ###
-### Copyright (C) 2017-2018 Sebastian Meyer
+### Copyright (C) 2017-2018,2021 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -27,7 +27,7 @@ fanplot <- function (quantiles, probs, means = NULL, observed = NULL,
     if (is.null(xlim))
         xlim <- c(1 - 0.5, nrow(quantiles) + 0.5) + (start-1)
     if (is.null(ylim)) {
-        ylim <- range(quantiles, observed)
+        ylim <- range(quantiles, observed, na.rm = TRUE)
         if (!ylog && ylim[1L] > 0) {
             ylim[1L] <- 0
         }

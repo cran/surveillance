@@ -203,7 +203,7 @@ plot(measlesFit_ri, type = "maps",
   which = c("epi.own", "epi.neighbours", "endemic"),
   prop = TRUE, labels = list(cex = 0.6))
 
-## ----measlesPreds1-----------------------------------------------------------------
+## ----measlesPreds1, results="hide"-------------------------------------------------
 tp <- c(65, 77)
 models2compare <- paste0("measlesFit_", c("basic", "powerlaw", "ri"))
 measlesPreds1 <- lapply(mget(models2compare), oneStepAhead,
@@ -214,7 +214,7 @@ stopifnot(all.equal(measlesPreds1$measlesFit_powerlaw$pred,
                     fitted(measlesFit_powerlaw)[tp[1]:tp[2],],
                     check.attributes = FALSE))
 
-## ----echo=FALSE--------------------------------------------------------------------
+## ----include=FALSE-----------------------------------------------------------------
 stopifnot(all.equal(
     measlesFit_powerlaw$loglikelihood,
     -sum(scores(oneStepAhead(measlesFit_powerlaw, tp = 1, type = "final"),
@@ -225,7 +225,7 @@ SCORES <- c("logs", "rps", "dss", "ses")
 measlesScores1 <- lapply(measlesPreds1, scores, which = SCORES, individual = TRUE)
 t(sapply(measlesScores1, colMeans, dims = 2))
 
-## ----measlesPreds2, eval=COMPUTE---------------------------------------------------
+## ----measlesPreds2, eval=COMPUTE, results="hide"-----------------------------------
 #  measlesPreds2 <- lapply(mget(models2compare), oneStepAhead,
 #    tp = tp, type = "rolling", which.start = "final")
 

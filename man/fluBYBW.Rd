@@ -15,7 +15,7 @@
 \usage{data(fluBYBW)}
 
 \format{
-  An \code{sts} object containing \eqn{416\times 140}{416 x 140}
+  An \code{\linkS4class{sts}} object containing \eqn{416\times 140}{416 x 140}
   observations starting from week 1 in 2001.
   
   The \code{population} slot contains the population fractions

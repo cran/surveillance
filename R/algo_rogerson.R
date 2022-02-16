@@ -437,7 +437,7 @@ algo.rogerson <- function(disProgObj,
     hkt <- getHK(theta0t[t,],hValues=control$hValues)
     #kt <- hkt[,"k"]
     kt <- findK(theta0t[t,],theta1t[t,],distr=control$distribution,roundK=TRUE,
-                digits=control$digits, n=nt[t,])   #
+                digits=control$digits, n=if(control$distribution=="binomial") nt[t,])
 
     #for given k_t (theta0t) and ARL_0 choose h_t
     ht <- hkt[,"h"]

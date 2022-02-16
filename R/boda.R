@@ -149,7 +149,8 @@ boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE
   #(now text based. Alternative: tcltk based)
   useProgressBar <- length(control$range)>1
   if (useProgressBar) {
-    pb <- txtProgressBar(min=min(control$range), max=max(control$range), initial=0,style=3)
+    pb <- txtProgressBar(min=min(control$range), max=max(control$range), initial=0,
+                         style=if (interactive()) 3 else 1)
   }
 
   #Allocate vector of thresholds
@@ -165,10 +166,11 @@ boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE
     # fit model and calculate quantile using INLA & MC sampling
 #    browser()
     xi[i] <- bodaFit(dat=dati, samplingMethod=samplingMethod,
-                     modelformula=modelformula, prior=prior, 
+                     modelformula=modelformula,
                      alpha=control$alpha, mc.munu=control$mc.munu,
                      mc.y=control$mc.y,
-                     quantileMethod=control$quantileMethod)
+                     quantileMethod=control$quantileMethod,
+                     verbose=control$verbose)
 
     # update progress bar
     if (useProgressBar) setTxtProgressBar(pb, i)
@@ -203,8 +205,8 @@ boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE
 #  (1-alpha)*100% quantile for the posterior predictive of y[T1]
 ######################################################################
 
-bodaFit <- function(dat=dat, modelformula=modelformula,prior=prior,alpha=alpha, mc.munu=mc.munu, mc.y=mc.y,
-                    samplingMethod=samplingMethod,quantileMethod=quantileMethod,...) {
+bodaFit <- function(dat, modelformula, alpha, mc.munu, mc.y,
+                    samplingMethod, quantileMethod, verbose = FALSE) {
   
   # set time point
   T1 <- nrow(dat)
@@ -214,7 +216,7 @@ bodaFit <- function(dat=dat, modelformula=modelformula,prior=prior,alpha=alpha, 
   E <- mean(dat$observed, na.rm=TRUE)
   model <- INLA::inla(modelformula,
                       data=dat,
-                      family='nbinomial',E=E,
+                      family='nbinomial', E=E, verbose=verbose,
                       control.predictor=list(compute=TRUE,link=link),
                       control.compute=list(cpo=FALSE,config=TRUE),
                       control.inla = list(int.strategy = "grid",dz=1,diff.logdens = 10))
@@ -250,11 +252,11 @@ bodaFit <- function(dat=dat, modelformula=modelformula,prior=prior,alpha=alpha, 
   
   if (samplingMethod=='joint'){
     # Sample from the posterior
-    jointSample <- INLA::inla.posterior.sample(mc.munu,model, intern = TRUE)
+    inla.seed <- as.integer(runif(1) * .Machine$integer.max)
+    jointSample <- INLA::inla.posterior.sample(mc.munu, model, intern = TRUE, seed = inla.seed)
     # take variation in size hyperprior into account by also sampling from it
     theta <- exp(t(sapply(jointSample, function(x) x$hyperpar[[1]])))
     mT1 <- exp(t(sapply(jointSample, function(x) x$latent[[T1]])))
-    yT1 <- rnbinom(n=mc.y*mc.munu,size=theta,mu=E*mT1) 
   }
   
 
@@ -265,8 +267,8 @@ bodaFit <- function(dat=dat, modelformula=modelformula,prior=prior,alpha=alpha, 
     yT1 <- numeric(mc.munu*mc.y) #NULL
     idx <- seq(mc.y)
     for(j in seq(mc.munu)) {
-      idx <- idx + mc.y 
       yT1[idx] <- rnbinom(n=mc.y,size=theta[j],mu=E*mT1[j])
+      idx <- idx + mc.y
     }
     
     qi <- quantile(yT1, probs=(1-alpha), type=3, na.rm=TRUE)

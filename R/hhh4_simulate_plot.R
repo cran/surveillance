@@ -6,9 +6,9 @@
 ### Plots for an array "hhh4sims" of simulated counts from an "hhh4" model,
 ### or a list thereof as produced by different "hhh4" models (same period!)
 ###
-### Copyright (C) 2013-2018,2020 Sebastian Meyer
-### $Revision: 2590 $
-### $Date: 2020-11-09 22:58:31 +0100 (Mon, 09. Nov 2020) $
+### Copyright (C) 2013-2018,2020-2021 Sebastian Meyer
+### $Revision: 2777 $
+### $Date: 2021-11-17 00:29:49 +0100 (Wed, 17. Nov 2021) $
 ################################################################################
 
 plot.hhh4sims <- function (x, ...) {
@@ -153,13 +153,12 @@ plot.hhh4simslist <- function (x, type = c("size", "time", "fan"), ...,
     if (ngroups == 1) {
         do.call(FUN, list(quote(x), ...))
     } else { # stratified plots by groups of units
-        invisible(sapply(
-            X = levels(groups),
+        invisible(lapply(
+            X = setNames(nm = levels(groups)),
             FUN = function (group) {
                 x_group <- x[, which(group == groups) , ] # [-method has drop=F
                 do.call(FUN, list(quote(x_group), ..., main = group))
-            },
-            simplify = FALSE, USE.NAMES = TRUE))
+            }))
     }
 }
 
@@ -177,9 +176,10 @@ plotHHH4sims_size <- function (x, horizontal = TRUE, trafo = NULL,
     if (is.null(trafo)) #trafo <- scales::identity_trans()
         trafo <- list(name = "identity", transform = identity)
     if (isTRUE(observed)) observed <- list()
-    nsims <- sapply(X = unclass(x), # simply use the default "[["-method
-                    FUN = colSums, dims = 2, # sum over 1:2 (time x unit)
-                    simplify = TRUE, USE.NAMES = TRUE)
+    nsims <- do.call("cbind", # no simplify2array() as we need a matrix even for nsim=1
+        lapply(X = unclass(x), # simply use the default "[["-method
+               FUN = colSums, dims = 2L) # sum over 1:2 (time x unit)
+        )
     nsimstrafo <- trafo$transform(nsims)
 
     ## default boxplot arguments
@@ -264,7 +264,8 @@ plotHHH4sims_time <- function (
         xlim <- c(1 - length(ytInit) - 0.5, length(ytObs) + 0.5)
     if (is.null(ylim))
         ylim <- c(0, max(ytObs, if (individual)
-            unlist(ytSim, recursive = FALSE, use.names = FALSE) else ytMeans))
+            unlist(ytSim, recursive = FALSE, use.names = FALSE) else ytMeans,
+            na.rm = TRUE))
 
     ## graphical parameters
     stopifnot(is.list(matplot.args))

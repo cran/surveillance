@@ -288,7 +288,7 @@ set.seed(123)
 infPeriods <- setNames(c(1:3/10, rexp(n-3, rate=1)), 1:n)
 epi <- simEpidata(
     cbind(start,stop) ~ cox(gender), data = pop,
-    id = "id", I0.col = "I0col", coords.cols = c("x","y"),
+    id.col = "id", I0.col = "I0col", coords.cols = c("x","y"),
     beta = c(-2), h0 = -1, alpha = c(B1=0.1), f = list(B1=function(u) u<=1),
     infPeriod = function(ids) infPeriods[ids],
     ##remPeriod = function(ids) rexp(length(ids), rate=0.1), end = 30   # -> SIRS
@@ -318,26 +318,25 @@ plot(sim1)
 fitsim1 <- update(fit, data = sim1)
 cbind(base = coef(fit), new = coef(fitsim1))
 
-if (surveillance.options("allExamples"))
-{
-  ## simulate only 10 days, using random infPeriods ~ Exp(0.1)
-  sim2 <- simulate(fit, data = hagelloch, seed = 2, end = 10,
+\dontshow{if (surveillance.options("allExamples")) \{}
+## simulate only 10 days, using random infPeriods ~ Exp(0.1)
+sim2 <- simulate(fit, data = hagelloch, seed = 2, end = 10,
     infPeriod = function(ids) rexp(length(ids), rate = 0.1))
-  plot(sim2)
+plot(sim2)
 
-  ## simulate from a different model with manually specified parameters
-  set.seed(321)
-  simepi <- simEpidata(~ cox(AGE), data = hagelloch,
-      beta = c(0.1), h0 = -4, alpha = c(household = 0.05),
-      f = list(household = function(u) u == 0),
-      infPeriod = function(ids) rexp(length(ids), rate=1/8))
-  plot(simepi)
-  intensityplot(simepi)
+## simulate from a different model with manually specified parameters
+set.seed(321)
+simepi <- simEpidata(~ cox(AGE), data = hagelloch,
+    beta = c(0.1), h0 = -4, alpha = c(household = 0.05),
+    f = list(household = function(u) u == 0),
+    infPeriod = function(ids) rexp(length(ids), rate=1/8))
+plot(simepi)
+intensityplot(simepi)
 
-  ## see if we correctly estimate the parameters
-  fitsimepi <- twinSIR(~ cox(AGE) + household, data = simepi)
-  cbind(true = c(0.05, -4, 0.1), est = coef(fitsimepi), confint(fitsimepi))
-}
+## see if we correctly estimate the parameters
+fitsimepi <- twinSIR(~ cox(AGE) + household, data = simepi)
+cbind(true = c(0.05, -4, 0.1), est = coef(fitsimepi), confint(fitsimepi))
+\dontshow{\}}
 }
 
 \keyword{datagen}

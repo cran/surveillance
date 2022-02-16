@@ -14,6 +14,7 @@
 wrap.algo <- function(sts, algo, control,
                       control.hook=function(k, control) return(control),
                       verbose=TRUE,...) {
+  chkDots(...)
   stopifnot(is.vector(control[["range"]], mode = "numeric"))
 
   #Number of time series
@@ -25,7 +26,7 @@ wrap.algo <- function(sts, algo, control,
 
   #Loop over all regions
   for (k in 1:nAreas) {
-    if (verbose) {
+    if (verbose && nAreas > 1) {
       cat("Running ",algo," on area ",k," out of ",nAreas,"\n")
     }
 
@@ -44,6 +45,9 @@ wrap.algo <- function(sts, algo, control,
   }
   #Control object needs only to be set once
   sts@control <- survRes.k$control
+
+  #Fix invalid data name (= deparse(disProg.k) from last iteration)
+  sts@control$data <- "sts"
 
   #Set correct theta0t matrix for all
   sts@control$theta0t <- control$theta0t

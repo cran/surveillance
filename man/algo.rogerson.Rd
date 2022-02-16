@@ -79,14 +79,15 @@ multiple univariate CUSUMs are applied to each region.
 set.seed(123)
 t <- 1:300
 lambda <- exp(-0.5 + 0.4 * sin(2*pi*t/52) + 0.6 * cos(2*pi*t/52))
-data <- create.disProg(week = t, observed = rpois(length(lambda), lambda))
+data <- sts(observed = rpois(length(lambda), lambda))
 
 # determine a matrix with h values
 hVals <- hValues(theta0 = 10:150/100, ARL0=500, s = 1, distr = "poisson")
 
-# apply modified Poisson CUSUM
-res <- algo.rogerson(data, control=c(hVals, list(theta0t=lambda,range=1:300)))
-plot(res)
+# convert to legacy "disProg" class and apply modified Poisson CUSUM
+disProgObj <- sts2disProg(data)
+res <- algo.rogerson(disProgObj, control=c(hVals, list(theta0t=lambda, range=1:300)))
+plot(res, xaxis.years = FALSE)
 }
 \references{
 Rogerson, P. A. and Yamada, I. Approaches to Syndromic Surveillance When Data

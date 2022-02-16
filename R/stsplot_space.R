@@ -6,8 +6,8 @@
 ### Snapshot map (spplot) of an sts-object or matrix of counts
 ###
 ### Copyright (C) 2013-2014,2016,2017,2020,2021 Sebastian Meyer
-### $Revision: 2662 $
-### $Date: 2021-03-16 10:53:29 +0100 (Tue, 16. Mar 2021) $
+### $Revision: 2736 $
+### $Date: 2021-09-24 13:34:17 +0200 (Fri, 24. Sep 2021) $
 ################################################################################
 
 ## x: "sts" or (simulated) matrix of counts
@@ -23,12 +23,13 @@
 
 stsplot_space <- function (x, tps = NULL, map = x@map, population = NULL,
                            main = NULL, labels = FALSE,
+                           ..., # placed here to support passing 'col'
                            at = 10, col.regions = NULL,
                            colorkey = list(space="bottom", labels=list(at=at)),
                            total.args = NULL,
                            gpar.missing = list(col="darkgrey", lty=2, lwd=2),
                            sp.layout = NULL,
-                           xlim = bbox(map)[1, ], ylim = bbox(map)[2, ], ...)
+                           xlim = bbox(map)[1, ], ylim = bbox(map)[2, ])
 {
     counts <- if (inherits(x, "sts")) observed(x) else x
     if (is.null(tps))

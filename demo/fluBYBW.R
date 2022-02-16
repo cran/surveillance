@@ -139,25 +139,26 @@ plot(res_B2, units = .idx, names = fluBYBW@map@data[.idx, "name"],
 ## do 1-step ahead predictions for the last two years
 
 tp <- nrow(fluBYBW)-2*52
+verbose <- interactive()
 
 ## for this demo: only calculate pseudo-predictions based on the final fit
 ## to avoid the time-consuming sequential refitting at each step.
 TYPE <- "final"
 ## use "rolling" for true one-step-ahead predictions => TAKES ~8 HOURS!
 
-val_A0 <- oneStepAhead(res_A0, tp=tp, type=TYPE)
-val_B0 <- oneStepAhead(res_B0, tp=tp, type=TYPE)
-val_C0 <- oneStepAhead(res_C0, tp=tp, type=TYPE)
+val_A0 <- oneStepAhead(res_A0, tp=tp, type=TYPE, verbose=verbose)
+val_B0 <- oneStepAhead(res_B0, tp=tp, type=TYPE, verbose=verbose)
+val_C0 <- oneStepAhead(res_C0, tp=tp, type=TYPE, verbose=verbose)
 
-val_A1 <- oneStepAhead(res_A1, tp=tp, type=TYPE)
-val_B1 <- oneStepAhead(res_B1, tp=tp, type=TYPE)
-val_C1 <- oneStepAhead(res_C1, tp=tp, type=TYPE)
+val_A1 <- oneStepAhead(res_A1, tp=tp, type=TYPE, verbose=verbose)
+val_B1 <- oneStepAhead(res_B1, tp=tp, type=TYPE, verbose=verbose)
+val_C1 <- oneStepAhead(res_C1, tp=tp, type=TYPE, verbose=verbose)
 
-val_A2 <- oneStepAhead(res_A2, tp=tp, type=TYPE)
-val_B2 <- oneStepAhead(res_B2, tp=tp, type=TYPE)
-val_C2 <- oneStepAhead(res_C2, tp=tp, type=TYPE)
+val_A2 <- oneStepAhead(res_A2, tp=tp, type=TYPE, verbose=verbose)
+val_B2 <- oneStepAhead(res_B2, tp=tp, type=TYPE, verbose=verbose)
+val_C2 <- oneStepAhead(res_C2, tp=tp, type=TYPE, verbose=verbose)
 
-val_D <- oneStepAhead(res_D, tp=tp, type=TYPE)
+val_D <- oneStepAhead(res_D, tp=tp, type=TYPE, verbose=verbose)
 
 
 ## compute scores

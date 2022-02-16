@@ -53,7 +53,7 @@ see \code{vignette("hhh4_spacetime")}.
 \arguments{
   \item{x, object}{an object of class \code{"hhh4"}.}
   \item{digits}{the number of significant digits to use when printing
-  }
+    parameter estimates.}
   \item{maxEV}{logical indicating if the summary should contain the
     (range of the) dominant eigenvalue as a measure of the importance of
     the epidemic components. By default, the value is not calculated as

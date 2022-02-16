@@ -66,7 +66,7 @@ ses(x, mu, size = NULL)
   }
   \item{k}{
     scalar argument controlling the finite sum approximation for the
-    \code{rps} with truncation at \code{ceiling(mu + k*sd)}.
+    \code{rps} with truncation at \code{max(x, ceiling(mu + k*sd))}.
   }
   \item{tolerance}{
     absolute tolerance for the finite sum approximation employed in the
@@ -105,8 +105,8 @@ ses(x, mu, size = NULL)
 }
 
 \examples{
-mu <- c(0.1, 1, 3, 6, pi, 100)
-size <- 0.1
+mu <- c(0.1, 1, 3, 6, 3*pi, 100)
+size <- 0.5
 set.seed(1)
 y <- rnbinom(length(mu), mu = mu, size = size)
 scores(y, mu = mu, size = size)
@@ -116,6 +116,12 @@ scores(y, mu = 1, size = size)
 ## apply a specific scoring rule
 scores(y, mu = mu, size = size, which = "rps")
 rps(y, mu = mu, size = size)
+\dontshow{# failed in surveillance <= 1.19.1
+    stopifnot(!is.unsorted(rps(3, mu = 10^-(0:8)), strictly = TRUE))
+}
+\dontrun{# rps() gives NA (with a warning) if the NegBin is too wide
+rps(1e5, mu = 1e5, size = 1e-5)
+}
 }
 
 \keyword{univar}

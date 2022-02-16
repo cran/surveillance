@@ -6,8 +6,8 @@
 ### twinstim's spatial interaction function as a step function
 ###
 ### Copyright (C) 2014,2018 Sebastian Meyer
-### $Revision: 2143 $
-### $Date: 2018-05-14 15:13:20 +0200 (Mon, 14. May 2018) $
+### $Revision: 2789 $
+### $Date: 2022-01-31 22:41:24 +0100 (Mon, 31. Jan 2022) $
 ################################################################################
 
 
@@ -104,11 +104,10 @@ siaf.step <- function (knots, maxRange = Inf, nTypes = 1, validpars = NULL)
     }
 
     ## Done
-    res <- list(f = f, F = F, Fcircle = Fcircle,
-                deriv = deriv, Deriv = Deriv,
-                simulate = simulate,
-                npars = npars, validpars = validpars)
-    attr(res, "knots") <- knots
-    attr(res, "maxRange") <- maxRange
-    res
+    structure(list(f = f, F = F, Fcircle = Fcircle,
+                   deriv = deriv, Deriv = Deriv,
+                   simulate = simulate,
+                   npars = npars, validpars = validpars),
+              "knots" = knots,
+              "maxRange" = maxRange)
 }

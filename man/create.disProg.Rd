@@ -1,10 +1,11 @@
 \name{create.disProg}
 \alias{create.disProg}
-\alias{print.disProg}
-
-\title{Creating an object of class disProg}
+\title{Creating an object of class \code{disProg} (DEPRECATED)}
 \description{
-  Creates an object of class \code{disProg} from a vector with the weeknumber
+  Creating objects of the legacy class \code{disProg} is deprecated;
+  use \code{\link{sts}} instead.
+  
+  An object of class \code{disProg} takes a vector with the weeknumber
   (week) and matrices with the observed number of counts (observed) and the
   respective state chains (state), where each column represents an individual
   time series. The matrices neighbourhood and populationFrac provide 
@@ -30,20 +31,5 @@ create.disProg(week, observed, state, start=c(2001,1), freq=52,
 }
 \value{object of class \code{disProg}}
 \author{M. Paul}
-\examples{
-# create an univariate disProg object 
-# read in salmonella.agona data
-salmonella <- read.table(system.file("extdata/salmonella.agona.txt", 
-                                     package = "surveillance"), header = TRUE)
-# look at data.frame
-str(salmonella)
-
-salmonellaDisProg <- create.disProg(week = 1:nrow(salmonella), 
-                                    observed = salmonella$observed,
-                                    state = salmonella$state,
-                                    start = c(1990, 1))
-
-# look at disProg object
-salmonellaDisProg
-}
-\keyword{datagen}
+\keyword{classes}
+\keyword{internal}

@@ -6,7 +6,7 @@
   The dataset from Steiner et al. (1999) on A synthetic dataset from the Danish meat inspection -- useful
   for illustrating the beta-binomial CUSUM.
 }
-\usage{data(abattoir)}
+\usage{data(deleval)}
 \details{
 Steiner et al. (1999) use data from de Leval et al. (1994) to
 illustrate monitoring of failure rates of a surgical procedure
@@ -16,7 +16,7 @@ Over a period of six years an arterial switch operation was performed
 on 104 newborn babies. Since the death rate from this surgery was
 relatively low the idea of surgical "near miss" was introduced. It is
 defined as the need to reinstitute cardiopulmonary bypass after a trial
-period of weaning. The object of class \code{sts} contains the
+period of weaning. The object of class \code{\linkS4class{sts}} contains the
 recordings of near misses and deaths from the surgery for the 104
 newborn babies of the study.
 

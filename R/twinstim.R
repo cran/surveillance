@@ -7,8 +7,8 @@
 ### model described in Meyer et al (2012), DOI: 10.1111/j.1541-0420.2011.01684.x
 ###
 ### Copyright (C) 2009-2019 Sebastian Meyer
-### $Revision: 2460 $
-### $Date: 2019-07-19 17:42:18 +0200 (Fri, 19. Jul 2019) $
+### $Revision: 2788 $
+### $Date: 2022-01-31 22:08:54 +0100 (Mon, 31. Jan 2022) $
 ################################################################################
 
 
@@ -41,6 +41,7 @@ twinstim <- function (
     epilinkinv <- switch(epilink, "log" = exp, "identity" = identity)
 
     ## Clean the model environment when exiting the function
+    if (model)
     on.exit(suppressWarnings(rm(cl, cumCIF, cumCIF.pb, data, doHessian,
         eventsData, finetune, neghess, fisherinfo, fit, fixed,
         functions, globalEndemicIntercept, inmfe, initpars,

@@ -8,9 +8,8 @@
 ### Czado, C., Gneiting, T. & Held, L. (2009)
 ### Biometrics 65:1254-1261
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2014-2015,2017-2019 Sebastian Meyer
-### $Revision: 2279 $
-### $Date: 2019-02-12 21:57:26 +0100 (Tue, 12. Feb 2019) $
+### Copyright (C) 2010-2012 Michaela Paul
+### Copyright (C) 2014-2015, 2017-2019, 2022 Sebastian Meyer
 ################################################################################
 
 
@@ -62,10 +61,10 @@ dss <- function (x, mu, size=NULL)
 ## rps(P,x) = sum_0^Kmax {P(X<=k) - 1(x<=k)}^2
 
 ## for a single prediction (general formulation)
-.rps <- function (P, ..., x, kmax, tolerance = sqrt(.Machine$double.eps))
+.rps <- function (P, ..., x, kmax, kmin = 0, tolerance = sqrt(.Machine$double.eps))
 {
     ## compute P(X<=k)
-    k <- 0:kmax
+    k <- kmin:kmax
     Pk <- P(k, ...)
 
     ## check precision
@@ -80,24 +79,33 @@ dss <- function (x, mu, size=NULL)
 ## for a single Poisson prediction
 rps_1P <- function (x, mu, k=40, tolerance=sqrt(.Machine$double.eps)) {
     ## return NA for non-convergent fits (where mu=NA)
-    if (is.na(mu)) return(NA_real_)
-    ## determine the maximum number of summands as Kmax=mean+k*sd
-    kmax <- ceiling(mu + k*sqrt(mu))
+    if (is.na(x) || is.na(mu)) return(NA_real_)
+    ## finite sum truncation at mean + k*sd, but not before x
+    kmax <- max(x, ceiling(mu + k*sqrt(mu)))
+    ## skip low k for large mu
+    kmin <- if (mu > k^2) floor(mu - k*sqrt(mu)) else 0
     ## compute the RPS
     .rps(P = ppois, lambda = mu, x = x,
-         kmax = kmax, tolerance = tolerance)
+         kmax = kmax, kmin = kmin, tolerance = tolerance)
 }
 
 ## for a single NegBin prediction
 rps_1NB <- function (x, mu, size, k=40, tolerance=sqrt(.Machine$double.eps)) {
     ## return NA for non-convergent fits (where mu=NA)
-    if (is.na(mu)) return(NA_real_)
-    ## determine the maximum number of summands as Kmax=mean+k*sd
+    if (anyNA(c(x, mu, size))) return(NA_real_)
+    ## finite sum truncation at mean + k*sd, but not before x
     sigma2 <- mu * (1 + mu/size)
-    kmax <- ceiling(mu + k*sqrt(sigma2))
+    kmax <- max(x, ceiling(mu + k*sqrt(sigma2)))
+    ## skip low k for large mu
+    kmin <- max(0, floor(mu - k*sqrt(sigma2)))
+    ## protect against wide NegBin (excessive memory consumption)
+    if (kmax - kmin > 1e8) {
+        warning("quasi-continuous NegBin distribution (too wide); returning NA")
+        return(NA_real_)
+    }
     ## compute the RPS
     .rps(P = pnbinom, mu = mu, size = size, x = x,
-         kmax = kmax, tolerance = tolerance)
+         kmax = kmax, kmin = kmin, tolerance = tolerance)
 }
 
 ## vectorized version
@@ -122,6 +130,9 @@ scores.default <- function(x, mu, size = NULL,
                            which = c("logs", "rps", "dss", "ses"),
                            sign = FALSE, ...)
 {
+    stopifnot(is.na(mu) | mu >= 0)
+    if (!is.null(size)) stopifnot(is.na(size) | size > 0)
+    
     ## compute individual scores (these have the same dimensions as x)
     scorelist <- lapply(X = setNames(nm = which), FUN = do.call,
                         args = alist(x = x, mu = mu, size = size),

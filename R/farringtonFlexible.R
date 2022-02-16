@@ -18,8 +18,8 @@
 # /ooooooooooooooooooooooo/ /    (o o)
 #/C=_____________________/_/    ==\o/==
 
-# Version of the 26.06.2013
-# M.Salmon, M.Hoehle
+# Contributed to "surveillance" on 2013-06-26 by M. Salmon
+# Later (>= 2016) bug fixes and maintenance by M. Hoehle and S. Meyer
 
 ################################################################################
 # CONTENTS
@@ -174,7 +174,7 @@ farringtonFlexible <- function(sts, control = list(
 									 epochStr=epochStr,
 									 vectorOfDates=vectorOfDates,w=control$w,
 									 noPeriods=control$noPeriods,
-									 observed=observed[,j],population=population,
+									 observed=observed[,j],population=population[,j],
 									 verbose=control$verbose,
 									 pastWeeksNotIncluded=control$pastWeeksNotIncluded,k)
 

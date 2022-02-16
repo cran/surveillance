@@ -49,7 +49,7 @@ plot(sts)
 getOption("SweaveHooks")[["fig"]]()
 k1.b660 <- algo.bayes(k1,
   control = list(range = 27:192, b = 0, w = 6, alpha = 0.01))
-plot(k1.b660, disease = "k1", firstweek = 1, startyear = 2001)
+plot(k1.b660, disease = "k1")
 
 
 ###################################################

@@ -779,7 +779,7 @@ The \code{exp}-transformed deviations correspond to district-specific
 multiplicative effects on the model components, which can be visualized
 via the plot \code{type = "ri"} as follows
 (Figure~\ref{fig:measlesFit_ri_map}):
-% exp=TRUE relies on 'scales::log_breaks'
+% exp=TRUE plot has nicer (usually more) axis ticks if 'scales' is available
 <<measlesFit_ri_map, out.width="0.31\\linewidth", fig.width=3.5, fig.height=3.7, fig.pos="htb", fig.cap="Estimated multiplicative effects on the three components.", fig.subcap=c("Autoregressive", "Spatio-temporal", "Endemic")>>=
 for (comp in c("ar", "ne", "end")) {
   print(plot(measlesFit_ri, type = "ri", component = comp, exp = TRUE,
@@ -861,7 +861,7 @@ the basic model, the power-law model, and the random effects model.
 First, we use the \code{"final"} fits on the complete time series to
 compute the predictions, which then simply correspond to the fitted values
 during the test period:
-<<measlesPreds1>>=
+<<measlesPreds1, results="hide">>=
 tp <- c(65, 77)
 models2compare <- paste0("measlesFit_", c("basic", "powerlaw", "ri"))
 measlesPreds1 <- lapply(mget(models2compare), oneStepAhead,
@@ -877,7 +877,7 @@ Note that in this case, the log-score for a model's prediction in
 district $i$ in week $t$ equals the associated negative log-likelihood
 contribution. Comparing the mean scores from different models is thus
 essentially a goodness-of-fit assessment:
-<<echo=FALSE>>=
+<<include=FALSE>>=
 stopifnot(all.equal(
     measlesFit_powerlaw$loglikelihood,
     -sum(scores(oneStepAhead(measlesFit_powerlaw, tp = 1, type = "final"),
@@ -894,7 +894,7 @@ the second quarter of 2002.
 Now we turn to true one-week-ahead predictions of \code{type = "rolling"},
 which means that we always refit the model up to week $t$ to get
 predictions for week $t+1$:
-<<measlesPreds2, eval=COMPUTE>>=
+<<measlesPreds2, eval=COMPUTE, results="hide">>=
 measlesPreds2 <- lapply(mget(models2compare), oneStepAhead,
   tp = tp, type = "rolling", which.start = "final")
 @

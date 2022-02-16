@@ -56,8 +56,8 @@ plotHHH4_season(..., components = NULL, intercept = FALSE,
                 xlab = NULL, ylab = "", main = NULL,
                 par.settings = list(), matplot.args = list(),
                 legend = NULL, legend.args = list(),
-                refline.args = list(), unit = 1)
-getMaxEV_season(x)
+                refline.args = list(), unit = 1, period = NULL)
+getMaxEV_season(x, period = x$stsObj@freq)
 
 plotHHH4_maxEV(...,
                matplot.args = list(), refline.args = list(),
@@ -150,7 +150,8 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     will be used as x-values in the plot, which is different from the
     long-standing default (\code{xaxis = NULL}) with a real time scale.}
   \item{xlim}{numeric vector of length 2 specifying the x-axis range.
-    The default (\code{NULL}) is to plot the complete time range.}
+    The default (\code{NULL}) is to plot the complete time range
+    (\code{type="fitted"}) or period (\code{type="season"}), respectively.}
   \item{ylim}{y-axis range.
     For \code{type="fitted"}, this defaults to 
     \code{c(0,max(observed(x$stsObj)[,unit]))}.
@@ -182,15 +183,21 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     respective component. Multiplication by the intercept only
     makes sense if there are no further (non-centered)
     covariates/offsets in the component.}
-  \item{exp}{logical indicating whether to \code{exp}-transform random
-    effects to show multiplicative effects on the respective components.
+  \item{exp}{logical indicating whether to \code{exp}-transform the
+    color-key axis labels to show the multiplicative effect of
+    the region-specific random intercept on the respective component.
+    Axis labels are then computed using \code{\link[scales]{log_breaks}}
+    from package \pkg{scales} (if that is available) or
+    \code{\link{axisTicks}} (as a fallback) respecting the
+    \code{colorkey$tick.number} setting (default: 7).
     The default is \code{FALSE}.}
   \item{at}{a numeric vector of breaks for the color levels (see
     \code{\link[lattice]{levelplot}}), or a list specifying the number
     of breaks \code{n} (default: 10) and their \code{range} (default:
-    range of the random effects, extended to be symmetric around 0,
-    or around 1 if \code{exp=TRUE}). If \code{exp=TRUE}, the breaks are
-    generated using \code{scales::\link[scales]{log_breaks}}.}
+    range of the random effects, extended to be symmetric around 0).
+    In the latter case, breaks are equally spaced (on the original,
+    non-\code{exp} scale of the random intercepts). If \code{exp=TRUE},
+    custom breaks (or \code{range}) need to be given on the exp-scale.}
   \item{matplot.args}{list of line style specifications passed to
     \code{\link{matplot}}, e.g., \code{lty}, \code{lwd}, \code{col}.}
   \item{refline.args}{list of line style specifications (e.g.,
@@ -198,6 +205,10 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     drawing the reference line (\code{h=1}) in plots of seasonal effects
     (if \code{intercept=FALSE}) and of the dominant eigenvalue.
     The reference line is omitted if \code{refline.args} is not a list.}
+  \item{period}{a numeric value giving the (longest) period of the
+    harmonic terms in the model. This usually coincides with the
+    \code{freq} of the data (the default), but needs to be adjusted if
+    the model contains harmonics with a longer periodicity.}
   \item{which}{a character vector specifying the components of the mean
     for which to produce maps. By default, the overall mean and all
     three components are shown.}
@@ -327,6 +338,11 @@ surveillance.options(oopts)
 ## plot the multiplicative effect of seasonality
 plot(measlesFit, type="season")
 
+## alternative fit with biennial pattern, plotted jointly with original fit
+measlesFit2 <- update(measlesFit,
+    end = list(f = addSeason2formula(~0 + ri(type="iid"), S=2, period=104)))
+plotHHH4_season(measlesFit, measlesFit2, components="end", period=104)
+
 ## dominant eigenvalue of the Lambda matrix (cf. Held and Paul, 2012)
 getMaxEV(measlesFit)  # here simply constant and equal to exp(ar.1)
 plot(measlesFit, type="maxEV")  # not very exciting
@@ -345,9 +361,9 @@ ranef(measlesFit, intercept = TRUE)  # sum of the above
 exp(ranef(measlesFit))               # multiplicative effects
 plot(measlesFit, type="ri", component="end",
      main="deviations around the endemic intercept (log-scale)")
-if (requireNamespace("scales")) # needed for logarithmic color breaks
 plot(measlesFit, type="ri", component="end", exp=TRUE,
-     main="multiplicative effects", labels=list(font=3, labels="GEN"))
+     main="multiplicative effects",
+     labels=list(font=3, labels="GEN"))
 
 ## neighbourhood weights as a function of neighbourhood order
 plot(measlesFit, type="neweights")  # boring, model has no "ne" component

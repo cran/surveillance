@@ -616,7 +616,7 @@ control.boda <- list(range = rangeBoda, X = NULL, trend = TRUE,
 boda <- boda(cam.sts, control = control.boda)
 @
 
-<<boda-cache, echo = FALSE>>=
+<<boda-cache, echo = FALSE, results = hide>>=
 if (computeALL) {
 ##hoehle 2018-07-18: changed code to use NICELOOKINGboda, but that's iid. Reason:
 ##The option 'rw1' currently crashes INLA.
@@ -645,7 +645,7 @@ control.boda2 <- modifyList(control.boda,
                             list(X = campyDE[, covarNames], season = FALSE))
 boda.covars <- boda(cam.sts, control = control.boda2)
 @
-<<boda2-cache, echo = FALSE>>=
+<<boda2-cache, echo = FALSE, results = hide>>=
 if (computeALL) {
 <<boda2>>
 save(list = c("boda.covars", "covarNames", "control.boda2"),
@@ -975,7 +975,7 @@ observedHosp <- cbind(
   "Yes" = as.vector(observed(salmHospitalized)),
   "No" = as.vector(population(salmHospitalized) - observed(salmHospitalized)))
 salmHospitalized.multi <- sts(
-  freq = 52, start = c(2004, 1), epoch = epoch(salmHospitalized),
+  frequency = 52, start = c(2004, 1), epoch = epoch(salmHospitalized),
   observed = observedHosp, population = populationHosp,
   multinomialTS = TRUE)
 @
@@ -995,9 +995,9 @@ After these preliminary steps, the monitoring can be performed.
 <<cat3>>=
 controlCat <- list(range = phase2, h = 2, pi0 = pi0m, pi1 = pi1m,
                    ret = "cases", dfun = dBB.cusum)
-salmHospitalizedCat <- categoricalCUSUM(salmHospitalized.multi,
-                                        control = controlCat,
-                                        sigma = exp(m.bbin$sigma.coef))
+salmHospitalizedCat <- categoricalCUSUM(
+    salmHospitalized.multi, control = controlCat,
+    sigma = exp(m.bbin$sigma.coefficients))
 @
 
 The results can be seen in Figure~\ref{fig:catDouble}(a). With the given settings, there are alarms at week
@@ -1026,11 +1026,13 @@ h.grid <- seq(1, 10, by = 0.5)
 <<cath,eval=FALSE,echo=TRUE>>=
 simone <- function(sts, h) {
   y <- rBB(length(phase2), mu = pi0m[1, , drop = FALSE],
-           bd = population(sts)[phase2, ], sigma = exp(m.bbin$sigma.coef))
+           bd = population(sts)[phase2, ],
+           sigma = exp(m.bbin$sigma.coefficients),
+           fast = TRUE)
   observed(sts)[phase2, ] <- cbind(y, population(sts)[phase2, 1] - y)
-  one.surv <- categoricalCUSUM(sts,
-                               control = modifyList(controlCat, list(h = h)),
-                               sigma = exp(m.bbin$sigma.coef))
+  one.surv <- categoricalCUSUM(
+      sts, control = modifyList(controlCat, list(h = h)),
+      sigma = exp(m.bbin$sigma.coefficients))
   return(any(alarms(one.surv)[, 1]))
 }
 set.seed(123)

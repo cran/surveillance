@@ -359,10 +359,9 @@ mysim2 <- mysims[[2]]
 summary(mysim2)
 plot(mysim2, aggregate="space")
 
-if (surveillance.options("allExamples")) {
+\dontshow{if (surveillance.options("allExamples")) \{}
 ### compare the observed _cumulative_ number of cases during the
 ### first 90 days to 20 simulations from the fitted model
-### (performing these simulations takes about 30 seconds)
 
 sims <- simulate(imdepifit, nsim=20, seed=1, data=imdepi, t0=0, T=90,
                  tiles=districtsD, simplify=TRUE)
@@ -387,7 +386,7 @@ plotcsums(csums_observed, col=c(2,4), lwd=3)
 legend("topleft", legend=levels(imdepi$events$type), col=c(2,4), lwd=1)
 invisible(lapply(csums_simulated, plotcsums,
                  col=adjustcolor(c(2,4), alpha=0.5)))
-}
+\dontshow{\}}
 
 
 \dontrun{
@@ -396,7 +395,6 @@ invisible(lapply(csums_simulated, plotcsums,
 ### beyond the observed time period:
 nm2add <- 24
 nsim <- 5
-### With these settings, simulations will take about 30 seconds.
 ### The events still infective by the end of imdepi$stgrid will be used
 ### as the prehistory for the continued process.
 

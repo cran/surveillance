@@ -139,7 +139,7 @@ At this point in the vignette we move more into the applied direction and refer 
 
 <<fig=T,width=10,height=5>>=
 survObj <- algo.glrnb(shadar,control=list(range=105:295,alpha=0))
-plot(survObj,startyear=2003)
+plot(survObj, col=c(8,NA,4))
 @
 
 The default value for $c_{\gamma}$ is 5. The upperbound statistic is above this value several times in the third quarter of 2006 (time points marked by small triangles in the plot).
@@ -339,7 +339,7 @@ surv2 <- algo.glrnb(disProgObj=shadar,control=control)
 @
 
 <<fig=T,echo=F,width=10,height=5>>=
-plot(surv2,startyear=2003)
+plot(surv2, col=c(8,NA,4))
 @
 
 Of course, the alarm time points are the same as with \verb+ret="cases"+.
@@ -355,7 +355,7 @@ surv3 <- algo.glrnb(disProgObj=shadar,control=control)
 @
 
 <<fig=T,echo=F,width=10,height=5>>=
-plot(surv3,startyear=2003)
+plot(surv3, col=c(8,NA,4))
 @
 
 The observed number of cases is below the computed threshold several times in 2005 to 2006 and alarms are given.

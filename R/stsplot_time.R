@@ -5,9 +5,9 @@
 ###
 ### Time series plot for sts-objects
 ###
-### Copyright (C) 2007-2014 Michael Hoehle, 2013-2016,2021 Sebastian Meyer
-### $Revision: 2663 $
-### $Date: 2021-03-16 13:51:59 +0100 (Tue, 16. Mar 2021) $
+### Copyright (C) 2007-2014 Michael Hoehle, 2013-2016,2021-2022 Sebastian Meyer
+### $Revision: 2815 $
+### $Date: 2022-02-11 16:33:40 +0100 (Fri, 11. Feb 2022) $
 ################################################################################
 
 
@@ -148,20 +148,17 @@ stsplot_time1 <- function(
   }
 
   ##### Handle the NULL arguments ######################################
-  if (is.null(main) && length(x@control) > 0) {
+  if (is.null(main) && length(method <- x@control$name)) {
     #a surveillance algorithm has been run
     action <- switch(class(x), "sts" = "surveillance",
                      "stsNC" = "nowcasting","stsBP" = "backprojection")
-    method <- x@control$name
     main <- paste0(action, " using ", method)
   }
 
-  # control where the highest value is
-  max <- max(c(observed,upperbound),na.rm=TRUE)
-
   #if ylim is not specified, give it a default value
-  if(is.null(ylim) ){
-    ylim <- c(-1/20*max, max)
+  if(is.null(ylim)){
+    ymax <- max(c(observed,upperbound),na.rm=TRUE)
+    ylim <- c(-1/20*ymax, ymax)
   }
 
   # left/right help for constructing the columns
@@ -173,6 +170,7 @@ stsplot_time1 <- function(
   ystuff <-cbind(c(upperbound,upperbound[length(observed) ]))
 
   #Plot the results
+  if (length(lty) < 3) lty[3] <- 0  # blank upperbound
   matplot(x=xstuff,y=ystuff,xlab=xlab,ylab=ylab,main=main,ylim=ylim,axes = !(xaxis.dates),type=type,lty=lty[-c(1:2)],col=col[-c(1:2)],lwd=lwd[-c(1:2)],...)
 
   #This draws the polygons containing the number of counts (sep. by NA)
@@ -180,7 +178,7 @@ stsplot_time1 <- function(
   dx <- rep(dx.observed * c(-1,-1,1,1,NA), times=length(observed))
   x.points <- i + dx
   y.points <- as.vector(t(cbind(0, observed, observed, 0, NA)))
-  polygon(x.points,y.points,col=col[1],border=col[2],lwd=lwd[1])
+  polygon(x.points,y.points,col=col[1],border=col[2],lwd=lwd[1],lty=lty[1])
 
   #Draw upper bound once more in case the polygons are filled
   if (!is.na(col[1])) {
@@ -188,7 +186,7 @@ stsplot_time1 <- function(
   }
 
   #Draw alarm symbols
-  alarmIdx <- which(!is.na(alarm) & (alarm == 1))
+  alarmIdx <- which(alarm == 1)
   if (length(alarmIdx)>0) {
     matpoints( alarmIdx, rep(-1/40*ylim[2],length(alarmIdx)), pch=alarm.symbol$pch, col=alarm.symbol$col, cex= alarm.symbol$cex, lwd=alarm.symbol$lwd)
   }
@@ -207,21 +205,40 @@ stsplot_time1 <- function(
   }
   #Label y-axis
   if (axes) {
-    axis( side=2 ,...)#cex=cex, cex.axis=cex.axis)
+    axis( side=2 ,...)
   }
 
+  hasupper <- any(upperbound > 0, na.rm = TRUE)
+  included <- c(observed = TRUE, upperbound = hasupper,
+                outbreaks = length(stateIdx) > 0,
+                alarms = hasupper || length(alarmIdx) > 0)
   doLegend <- if (missing(legend.opts)) {
-      length(stateIdx) + length(alarmIdx) > 0 || any(upperbound > 0, na.rm = TRUE)
+      sum(included) > 1
   } else {
       is.list(legend.opts)
   }
   if(doLegend) {
+      ## FIXME: use method-specific default upperbound label?
+      ## ublegend <- if (identical(x@control[["ret"]], "value") &&
+      ##                 startsWith(x@control$name, "glr"))
+      ##                 "GLR statistic" else "Threshold"
+      if (!is.na(col[1])) { # filled polygons
+          ltyObs <- NA
+          pchObs <- 22
+          fillObs <- col[1]
+      } else {
+          ltyObs <- lty[1]
+          pchObs <- NA
+          fillObs <- NA
+      }
       legend.opts <- modifyList(
           list(x = "top",
-               lty = c(lty[1],lty[3],NA,NA),
-               col = c(col[2],col[3],outbreak.symbol$col,alarm.symbol$col),
-               pch = c(NA,NA,outbreak.symbol$pch,alarm.symbol$pch),
-               legend = c("Infected", "Threshold", "Outbreak", "Alarm")),
+               lty = c(ltyObs,lty[3],NA,NA)[included],
+               lwd = c(lwd[1],lwd[3],outbreak.symbol$lwd,alarm.symbol$lwd)[included],
+               col = c(col[2],col[3],outbreak.symbol$col,alarm.symbol$col)[included],
+               pch = c(pchObs,NA,    outbreak.symbol$pch,alarm.symbol$pch)[included],
+               pt.bg = c(fillObs,NA,NA,NA)[included],
+               legend = c("Infected", "Threshold", "Outbreak", "Alarm")[included]),
           legend.opts)
     #Make the legend
     do.call("legend",legend.opts)
@@ -244,59 +261,26 @@ stsplot_time1 <- function(
 ##############
 
 stsplot_alarm <- function(
-    x, lvl=rep(1,nrow(x)), ylim=NULL,
+    x, lvl=rep(1,ncol(x)),
     xaxis.tickFreq=list("%Q"=atChange),
     xaxis.labelFreq=xaxis.tickFreq, xaxis.labelFormat="%G\n\n%OQ",
-    epochsAsDate=x@epochAsDate, xlab="time", main=NULL,
-    type="hhs", lty=c(1,1,2), col=c(1,1,4),
-    outbreak.symbol=list(pch=3, col=3, cex=1, lwd=1),
+    epochsAsDate=x@epochAsDate, xlab="time", ylab="", main=NULL,
+    outbreak.symbol=list(pch=3, col=3, cex=1, lwd=1), # unused
     alarm.symbol=list(pch=24, col=2, cex=1, lwd=1),
-    cex=1, cex.yaxis=1, ...)
+    cex.yaxis=1, ...)
 {
-
-  k <- 1
-  #Extract slots -- depending on the algorithms: x@control$range
-  observed   <- x@observed[,k]
-  state      <- x@state[,k]
-  alarm      <- x@alarm[,k]
-  upperbound <- x@upperbound[,k]
-  ylim <- c(0.5, ncol(x))
-
-  ##### Handle the NULL arguments ######################################
-  if (is.null(main) && length(x@control) > 0) {
+  if (is.null(main) && length(method <- x@control$name)) {
     #a surveillance algorithm has been run
     action <- switch(class(x), "sts" = "surveillance",
                      "stsNC" = "nowcasting","stsBP" = "backprojection")
-    method <- x@control$name
     main <- paste0(action, " using ", method)
   }
 
   #Control what axis style is used
   xaxis.dates <- !is.null(xaxis.labelFormat)
 
-  # left/right help for constructing the columns
-  dx.observed <- 0.5
-  observedxl <- (1:length(observed))-dx.observed
-  observedxr <- (1:length(observed))+dx.observed
-  upperboundx <- (1:length(upperbound)) #-0.5
-
-  # control where the highest value is
-  max <- max(c(observed,upperbound),na.rm=TRUE)
-
-  #if ylim is not specified
-  if(is.null(ylim)){
-    ylim <- c(-1/20*max, max)
-  }
-
-
-  #Generate the matrices to plot
-  xstuff <- cbind(observedxl, observedxr, upperboundx)
-  ystuff <-cbind(observed, observed, upperbound)
-
-
-  #Plot the results using one Large plot call (we do this by modifying
-  #the call). Move this into a special function!
-  matplot(x=xstuff,y=ystuff,xlab=xlab,ylab="",main=main,ylim=ylim,axes = FALSE,type="n",lty=lty,col=col,...)
+  #Initialize plot
+  plot(x=c(0.5,nrow(x)+0.5),y=c(0.5,ncol(x)),xlab=xlab,ylab=ylab,main=main,axes=FALSE,type="n",...)
 
   #Label of x-axis
   if(xaxis.dates){

@@ -5,9 +5,9 @@
 ###
 ### Simulate from a HHH4 model
 ###
-### Copyright (C) 2012 Michaela Paul, 2013-2016,2018 Sebastian Meyer
-### $Revision: 2249 $
-### $Date: 2018-11-26 16:45:36 +0100 (Mon, 26. Nov 2018) $
+### Copyright (C) 2012 Michaela Paul, 2013-2016,2018,2021 Sebastian Meyer
+### $Revision: 2720 $
+### $Date: 2021-07-07 17:07:54 +0200 (Wed, 07. Jul 2021) $
 ################################################################################
 
 
@@ -101,7 +101,7 @@ simulate.hhh4 <- function (object, # result from a call to hhh4
         }
         simcall <- call("setObserved", simcall)
     }
-    res <- if (nsim==1) eval(simcall) else
+    res <- if (nsim==1 && !simplify) eval(simcall) else
            replicate(nsim, eval(simcall),
                      simplify=if (simplify) "array" else FALSE)
     if (simplify) {
@@ -215,8 +215,8 @@ checkCoefs <- function (object, coefs, reparamPsi=TRUE)
         return(xx)
 
     ## otherwise we were subsetting the array and attributes are lost
-    attr(xx, "initial") <- attr(x, "initial")
-    attr(xx, "stsObserved") <- attr(x, "stsObserved")
+    attributes(xx) <- c(attributes(xx),
+                        attributes(x)[c("initial", "stsObserved", "class")])
     subset_hhh4sims_attributes(xx, i, j)
 }
 
@@ -254,10 +254,8 @@ aggregate.hhh4sims <- function (x, units = TRUE, time = FALSE, ..., drop = FALSE
             res <- apply(X = x, MARGIN = c(1L, 3L), FUN = sum)
             if (!drop) {
                 ## restore unit dimension conforming to "hhh4sims" class
-                dim(res) <- c(ax$dim[1L], 1L, ax$dim[3L])
-                dnres <- ax$dimnames
-                dnres[2L] <- list(NULL)
-                dimnames(res) <- dnres
+                dim(res) <- replace(ax$dim, 2L, 1L)
+                dimnames(res) <- replace(ax$dimnames, 2L, list(NULL))
                 ## restore attributes
                 attr(res, "initial") <- as.matrix(rowSums(ax$initial))
                 attr(res, "stsObserved") <- aggregate(ax$stsObserved, by = "unit")
@@ -267,10 +265,8 @@ aggregate.hhh4sims <- function (x, units = TRUE, time = FALSE, ..., drop = FALSE
             stopifnot(length(units) == dim(x)[2])
             groupnames <- names(split.default(seq_along(units), units))
             res <- apply(X = x, MARGIN = 3L, FUN = rowSumsBy.matrix, by = units)
-            dim(res) <- c(ax$dim[1L], length(groupnames), ax$dim[3L])
-            dnres <- ax$dimnames
-            dnres[2L] <- list(groupnames)
-            dimnames(res) <- dnres
+            dim(res) <- replace(ax$dim, 2L, length(groupnames))
+            dimnames(res) <- replace(ax$dimnames, 2L, list(groupnames))
             if (!drop) {
                 ## restore attributes
                 attr(res, "initial") <- rowSumsBy.matrix(ax$initial, units)

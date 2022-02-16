@@ -5,9 +5,9 @@
 ###
 ### Standard methods for hhh4-fits
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2012-2020 Sebastian Meyer
-### $Revision: 2534 $
-### $Date: 2020-03-03 22:11:55 +0100 (Tue, 03. Mar 2020) $
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2022 Sebastian Meyer
+### $Revision: 2804 $
+### $Date: 2022-02-09 15:20:16 +0100 (Wed, 09. Feb 2022) $
 ################################################################################
 
 ## NOTE: we also apply print.hhh4 in print.summary.hhh4()
@@ -57,8 +57,8 @@ print.hhh4 <- function (x, digits = max(3, getOption("digits")-3), ...)
 }
 .printREmat <- function (REmat, digits = 4)
 {
-    V <- round(diag(REmat), digits=digits)
-    corr <- round(attr(REmat, "correlation"), digits=digits)
+    V <- format(diag(REmat), digits=digits)
+    corr <- format(attr(REmat, "correlation"), digits=digits)
     corr[upper.tri(corr,diag=TRUE)] <- ""
     V.corr <- cbind(V, corr, deparse.level=0)
     colnames(V.corr) <- c("Var", "Corr", rep.int("", ncol(corr)-1L))
@@ -73,7 +73,7 @@ summary.hhh4 <- function (object, maxEV = FALSE, ...)
 	return(invisible(object))
     }
     ret <- c(object[c("call", "convergence", "dim", "loglikelihood", "margll",
-                      "lags", "nTime", "nUnit")],
+                      "lags", "nObs", "nTime", "nUnit")],
              list(fixef = fixef.hhh4(object, se=TRUE, ...),
                   ranef = ranef.hhh4(object, ...),
                   REmat = .getREmat(object),
@@ -87,12 +87,13 @@ summary.hhh4 <- function (object, maxEV = FALSE, ...)
 print.summary.hhh4 <- function (x, digits = max(3, getOption("digits")-3), ...)
 {
     ## x$convergence is always TRUE if we have a summary
-    print.hhh4(x) # also works for summary.hhh4-objects
+    print.hhh4(x, digits = digits) # also works for summary.hhh4-objects
 
     if (!is.null(x$maxEV_range))
         cat("Epidemic dominant eigenvalue: ",
             paste(sprintf("%.2f", x$maxEV_range), collapse = " -- "), "\n\n")
     if(x$dim["random"]==0){
+        ## format(x$AIC,digits=4) would often yield no decimal digits (big AIC)
         cat('Log-likelihood:  ',round(x$loglikelihood,digits=digits-2),'\n')
         cat('AIC:             ',round(x$AIC,digits=digits-2),'\n')
         cat('BIC:             ',round(x$BIC,digits=digits-2),'\n\n')
@@ -102,6 +103,8 @@ print.summary.hhh4 <- function (x, digits = max(3, getOption("digits")-3), ...)
     }
     cat('Number of units:       ', x$nUnit, '\n')
     cat('Number of time points: ', x$nTime, '\n')
+    if ((nOmit <- x$nTime * x$nUnit - x$nObs) > 0)
+        cat("  (", nOmit, " observations excluded due to missingness)\n", sep = "")
     if (!is.null(x$lags)) { # only available since surveillance 1.8-0
         if (!is.na(x$lags["ar"]) && x$lags["ar"] != 1)
             cat("Non-default autoregressive lag:  ", x$lags[["ar"]], "\n")

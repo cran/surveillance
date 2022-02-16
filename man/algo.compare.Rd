@@ -35,7 +35,7 @@ survRes <- algo.call(disProgObj,
                          list(funcName = "bayes1", range = range),
                          list(funcName = "bayes2", range = range),
                          list(funcName = "bayes3", range = range),
-                         list(funcName = "bayes", name = "myBayes",
+                         list(funcName = "bayes",
                               range = range, b = 1, w = 5, actY = TRUE,alpha=0.05)
                      ))
 algo.compare(survRes)

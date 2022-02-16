@@ -131,7 +131,7 @@ w2 <- min(abs(table[,2]))
 S <- upperbound(pb.surv) / cbind(rep(w1,nrow(observed(pb.surv))),w2)
 
 #Show results
-par(mfcol=c(2,1))
+opar <- par(mfcol=c(2,1))
 plot(1:nrow(deleval),S[,1],type="l",main="Near Miss",xlab="Patient No.",
      ylab="CUSUM Statistic")
 lines(c(0,1e99), c(32,32),lty=2,col=2)
@@ -141,6 +141,7 @@ plot(1:nrow(deleval),S[,2],type="l",main="Death",xlab="Patient No.",
      ylab="CUSUM Statistic")
     lines(c(0,1e99), c(70,70),lty=2,col=2)
     lines(c(0,1e99), c(38,38),lty=2,col=3)
+par(opar)
 
 ######################################################################
 # Run the CUSUM with thresholds as in Steiner et al. (1999).

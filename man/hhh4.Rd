@@ -123,8 +123,10 @@ hhh4(stsObj,
 	(\code{method="Nelder-Mead"}) is an attractive alternative.
 	All other elements of these two lists are passed as
 	\code{control} arguments to the chosen \code{method}, e.g., if
-	\code{method="nlminb"} adding \code{iter.max=50} increases the 
+	\code{method="nlminb"}, adding \code{iter.max=50} increases the 
 	maximum number of inner iterations from 20 (default) to 50.
+	For \code{method="Nelder-Mead"}, the respective argument is
+	called \code{maxit} and defaults to 500.
       }
       \item{\code{verbose}}{non-negative integer (usually in the range
 	\code{0:3}) specifying the amount of tracing information to be

@@ -5,9 +5,9 @@
 ###
 ### Plot-method(s) for fitted hhh4() models
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2012-2020 Sebastian Meyer
-### $Revision: 2511 $
-### $Date: 2020-01-10 10:08:18 +0100 (Fri, 10. Jan 2020) $
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2022 Sebastian Meyer
+### $Revision: 2801 $
+### $Date: 2022-02-09 09:18:16 +0100 (Wed, 09. Feb 2022) $
 ################################################################################
 
 
@@ -194,11 +194,6 @@ plotHHH4_fitted1 <- function(x, unit=1, main=NULL,
     stopifnot(is.matrix(meanHHHunit), !is.null(colnames(meanHHHunit)),
               nrow(meanHHHunit) == length(x$control$subset))
     meanHHHunit <- meanHHHunit[x$control$subset %in% tpInRange,,drop=FALSE]
-    if (any(is.na(meanHHHunit))) { # -> polygon() would be wrong
-        ## could be due to wrong x$control$subset wrt the epidemic lags
-        ## a workaround is then to set 'start' to a later time point
-        stop("predicted mean contains missing values")
-    }
 
     ## check color vector
     col <- if (is.null(decompose) && length(col) == 4L) {
@@ -242,27 +237,42 @@ plotHHH4_fitted1 <- function(x, unit=1, main=NULL,
 
 plotComponentPolygons <- function (x, y, col = 1:6, border = col, add = FALSE)
 {
-    if (!is.vector(x, mode = "numeric") || is.unsorted(x, strictly = TRUE))
+    if (!is.vector(x, mode = "numeric") || length(x) == 0 ||
+        is.unsorted(x, strictly = TRUE))
         stop("'x' must be a strictly increasing sequence of time points")
-    stopifnot(nrow(y <- as.matrix(y)) == (nTime <- length(x)))  # y >= 0
+    stopifnot(is.numeric(y),  # y >= 0
+              nrow(y <- as.matrix(y)) == (nTime <- length(x)))
     yc <- if ((nPoly <- ncol(y)) > 1L) {
-        apply(X = y, MARGIN = 1L, FUN = cumsum) # nPoly x nTime
+        apply(X = y, MARGIN = 1L, FUN = function(comps)
+            if (anyNA(comps)) `is.na<-`(comps) else cumsum(comps)) # nPoly x nTime
     } else t(y)
 
     if (!add) {
         ## establish basic plot window
-        plot(range(x), range(yc[nPoly,]), type = "n")
+        plot(range(x), c(0, max(yc[nPoly,], na.rm = TRUE)), type = "n")
     }
 
     ## recycle graphical parameters
     col <- rep_len(col, nPoly)
     border <- rep_len(border, nPoly)
 
-    ## draw polygons
-    xpoly <- c(x[1L], x, x[length(x)])
+    ## draw 0-anchored polygons (piecewise if y contains missing values)
+    draw1 <- function (x, y, col, border) {
+        if (!is.na(nextNA <- match(NA_real_, y))) {
+            if (nextNA < length(y)) {
+                remainder <- (nextNA+1L):length(y)
+                draw1(x[remainder], y[remainder], col, border)
+            }
+            if (nextNA == 1L) return(invisible())
+            x <- x[seq_len(nextNA-1L)]
+            y <- y[seq_len(nextNA-1L)]
+        }
+        ## cat("drawing from x =", paste0(range(x), collapse=" to "), "\n")
+        polygon(c(x[1L], x, x[length(x)]), y = c(0, y, 0),
+                col = col, border = border)
+    }
     for (poly in nPoly:1) {
-        polygon(x = xpoly, y = c(0, yc[poly, ], 0),
-                col = col[poly], border = border[poly])
+        draw1(x, yc[poly, ], col[poly], border[poly])
     }
 }
 
@@ -369,23 +379,48 @@ plotHHH4_ri <- function (x, component, exp = FALSE,
     map <- as(x$stsObj@map, "SpatialPolygonsDataFrame")
     if (length(map) == 0L) stop("'x$stsObj' has no map")
     map$ranef <- ranefmatrix[,comp][row.names(map)]
-    .range <- c(-1, 1) * max(abs(map$ranef), na.rm = TRUE)  # 0-centered
-    if (exp) {
-        map$ranef <- exp(map$ranef)
-        .range <- exp(.range)
-    }
 
     if (is.list(at)) {
-        at <- modifyList(list(n = 10, range = .range), at)
-        at <- if (exp) {
-            stopifnot(at$range[1] > 0)
-            scales::log_breaks(n = at$n)(at$range)
-        } else {
-            seq(at$range[1L], at$range[2L], length.out = at$n)
+        if (is.null(at[["n"]]))
+            at$n <- 10
+        if (is.null(at[["range"]])) {
+            at$range <- c(-1, 1) * max(abs(map$ranef), na.rm = TRUE)  # 0-centered
+        } else if (exp) { # custom range given on exp-scale
+            stopifnot(at$range > 0)
+            at$range <- log(at$range)
         }
-        if (exp && isTRUE(colorkey))
-            colorkey <- list(at = log(at),
-                             labels = list(at = log(at), labels = at))
+        at <- seq(at$range[1L], at$range[2L], length.out = at$n)
+        ## include max value (levelplot uses right-open intervals)
+        at[length(at)] <- at[length(at)] + sqrt(.Machine$double.eps)
+    } else {
+        stopifnot(is.numeric(at), length(at) > 2)
+        if (exp) { # custom breaks given on exp-scale
+            stopifnot(at > 0)
+            at <- log(at)
+        }
+    }
+    rng <- range(map$ranef, na.rm = TRUE)
+    if (rng[1] < at[1] | rng[2] >= at[length(at)]) {
+        if (exp) rng <- exp(rng)
+        warning(paste0(
+            sprintf("color breaks ('at') do not span range of data (%.3g,%.3g)",
+                    rng[1], rng[2]),
+            if (exp) " (exp-scale)"))
+    }
+
+    if (isTRUE(colorkey)) colorkey <- list()
+    if (exp && is.list(colorkey) && is.null(colorkey[["labels"]])) {
+        ## use exp-scale axis labels
+        if (is.null(nint <- colorkey[["tick.number"]]))
+            nint <- 7
+        lab <- if (requireNamespace("scales", quietly = TRUE)) {
+            scales::log_breaks(n = nint)(exp(at))
+        } else {
+            axisTicks(log10(exp(range(at))), log = TRUE, nint = nint)
+        }
+        ## workaround colorkey labeling bug in lattice (see https://github.com/deepayan/lattice/pull/22)
+        lab <- lab[log(lab) > at[1]]
+        colorkey$labels <- list(at = log(lab), labels = lab)
     }
 
     if (is.list(gpar.missing) && any(is.na(map$ranef))) {
@@ -456,6 +491,7 @@ plotHHH4_maxEV <- function (...,
 
 getMaxEV <- function (x)
 {
+    stopifnot(inherits(x, "hhh4"))
     Lambda <- createLambda(x)
     if (identical(type <- attr(Lambda, "type"), "zero")) {
         rep.int(0, nrow(x$stsObj))
@@ -566,11 +602,13 @@ plotHHH4_season <- function (...,
                              xlab = NULL, ylab = "", main = NULL,
                              par.settings = list(), matplot.args = list(),
                              legend = NULL, legend.args = list(),
-                             refline.args = list(), unit = 1)
+                             refline.args = list(), unit = 1,
+                             period = NULL) # for harmonics with period > freq
 {
     objnams <- unlist(lapply(match.call(expand.dots=FALSE)$..., deparse))
     objects <- getHHH4list(..., .names = objnams)
     freq <- attr(objects, "freq")
+    if (is.null(period)) period <- freq
     components <- if (is.null(components)) {
         intersect(c("end", "ar", "ne"), unique(unlist(
             lapply(objects, componentsHHH4), use.names = FALSE)))
@@ -580,8 +618,6 @@ plotHHH4_season <- function (...,
     }
 
     ## x-axis
-    if (is.null(xlim))
-        xlim <- c(1,freq)
     if (is.null(xlab))
         xlab <- if (freq==52) "week" else if (freq==12) "month" else "time"
 
@@ -648,13 +684,14 @@ plotHHH4_season <- function (...,
     ## plot seasonality in individual model components
     seasons <- list()
     for(comp in setdiff(components, "maxEV")){
-        s2 <- lapply(objects, getSeason, component = comp, unit = unit)
+        s2 <- lapply(objects, getSeason, component = comp,
+                     unit = unit, period = period)
         seasons[[comp]] <- exp(vapply(s2, FUN = if (intercept) {
             function (intseas) do.call("+", intseas)
         } else {
             function (intseas) intseas$season  # disregard intercept
-        }, FUN.VALUE = numeric(freq), USE.NAMES = TRUE))
-        do.call("matplot",              # x defaults to 1:freq
+        }, FUN.VALUE = numeric(period), USE.NAMES = TRUE))
+        do.call("matplot",              # x defaults to 1:period
                 c(list(seasons[[comp]], xlim=xlim, ylim=ylim[[comp]],
                        xlab=xlab, ylab=ylab[[comp]], main=main[[comp]]),
                   matplot.args))
@@ -668,8 +705,8 @@ plotHHH4_season <- function (...,
     ## plot seasonality of dominant eigenvalue
     if ("maxEV" %in% components) {
         seasons[["maxEV"]] <- vapply(objects, FUN = function (obj) {
-            getMaxEV_season(obj)$maxEV.season
-        }, FUN.VALUE = numeric(freq), USE.NAMES = TRUE)
+            getMaxEV_season(obj, period = period)$maxEV.season
+        }, FUN.VALUE = numeric(period), USE.NAMES = TRUE)
         do.call("matplot",
                 c(list(seasons[["maxEV"]], xlim=xlim,
                        ylim=if (is.null(ylim[["maxEV"]]))
@@ -691,17 +728,17 @@ plotHHH4_season <- function (...,
 # get estimated intercept and seasonal pattern in the different components
 # CAVE: other covariates and offsets are ignored
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-getSeason <- function(x, component = c("end", "ar", "ne"), unit = 1)
+getSeason <- function(x, component = c("end", "ar", "ne"), unit = 1,
+                      period = x$stsObj@freq)
 {
     stopifnot(inherits(x, "hhh4"))
     component <- match.arg(component)
     startseason <- getSeasonStart(x)
-    freq <- x$stsObj@freq
     if (is.character(unit)) unit <- match(unit, colnames(x$stsObj))
 
     ## return -Inf is component is not in the model (-> exp(-Inf) = 0)
     if (!component %in% componentsHHH4(x))
-        return(list(intercept=-Inf, season=rep.int(-Inf, freq)))
+        return(list(intercept=-Inf, season=rep.int(-Inf, period)))
 
     ## get the intercept
     est <- fixef.hhh4(x, reparamPsi=FALSE)
@@ -726,12 +763,12 @@ getSeason <- function(x, component = c("end", "ar", "ne"), unit = 1)
         names(coefSinCos) <- sub("\\)\\..+$", ")", names(coefSinCos))
     }
     if (length(coefSinCos)==0)
-        return(list(intercept=intercept, season=rep.int(0,freq)))
+        return(list(intercept=intercept, season=rep.int(0,period)))
     fSinCos <- reformulate(
         sub(paste0("^",component,"\\."), "", names(coefSinCos)),
         intercept=FALSE)
     mmSinCos <- model.matrix(fSinCos,
-                             data=data.frame(t=startseason-1 + seq_len(freq)))
+                             data=data.frame(t=startseason-1 + seq_len(period)))
 
     ## Done
     list(intercept=intercept, season=as.vector(mmSinCos %*% coefSinCos))
@@ -742,11 +779,10 @@ getSeason <- function(x, component = c("end", "ar", "ne"), unit = 1)
 # compute dominant eigenvalue of Lambda_t
 # CAVE: no support for Lambda_it
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-getMaxEV_season <- function (x)
+getMaxEV_season <- function (x, period = x$stsObj@freq)
 {
     stopifnot(inherits(x, "hhh4"))
     nUnits <- x$nUnit
-    freq <- x$stsObj@freq
     components <- componentsHHH4(x)
 
     ## CAVE: this function ignores epidemic covariates/offsets
@@ -796,16 +832,16 @@ getMaxEV_season <- function (x)
         Lambda
     }
 
-    ## do this for t in 0:freq
+    ## do this for t in 0:period
     diagonal <- !("ne" %in% components)
     .maxEV <- function (t) {
         maxEV(createLambda(t), symmetric = FALSE, diagonal = diagonal)
     }
     maxEV.const <- .maxEV(0)
     maxEV.season <- if (all(c(s2.phi$season, s2.lambda$season) %in% c(-Inf, 0))) {
-        rep.int(maxEV.const, freq)
+        rep.int(maxEV.const, period)
     } else {
-        vapply(X = seq_len(freq), FUN = .maxEV, FUN.VALUE = 0, USE.NAMES = FALSE)
+        vapply(X = seq_len(period), FUN = .maxEV, FUN.VALUE = 0, USE.NAMES = FALSE)
     }
 
     ## Done

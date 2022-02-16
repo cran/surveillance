@@ -1,8 +1,8 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.19.1
-Date: 2021-03-30
+Version: 1.20.0
+Date: 2022-02-15
 Authors@R: c(MH = person("Michael", "Höhle",
                   email = "hoehle@math.su.se",
                   role = c("aut", "ths"),
@@ -54,7 +54,7 @@ Maintainer: Sebastian Meyer <seb.meyer@fau.de>
 Depends: R (>= 3.6.0), methods, grDevices, graphics, stats, utils, sp
         (>= 1.0-15), xtable (>= 1.7-0)
 Imports: Rcpp (>= 0.11.1), polyCub (>= 0.8.0), MASS, Matrix, nlme,
-        spatstat.geom, spatstat (>= 2.0)
+        spatstat.geom
 LinkingTo: Rcpp, polyCub
 Suggests: parallel, grid, gridExtra (>= 2.0.0), lattice, colorspace,
         scales, animation, msm, spc, quadprog, memoise, polyclip,
@@ -99,6 +99,6 @@ Additional_repositories: https://inla.r-inla-download.org/R/stable/
 Encoding: latin1
 VignetteBuilder: utils, knitr
 NeedsCompilation: yes
-Packaged: 2021-03-30 12:11:05 UTC; smeyer
+Packaged: 2022-02-16 08:34:23 UTC; smeyer
 Repository: CRAN
-Date/Publication: 2021-03-31 05:10:03 UTC
+Date/Publication: 2022-02-16 10:20:02 UTC

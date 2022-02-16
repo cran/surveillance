@@ -446,15 +446,14 @@ test_that("The code does not produce any error",{
 ## NA
 ###
 
-timeSeries <- observed <- rnorm(698)*10+runif(698)*100+30
+timeSeries <- rnorm(698)*10+runif(698)*100+30
 
 algoControl <- list(noPeriods=10,alpha = 0.01,verbose = F,
-                    b=5,w=4,weightsThreshold=2.58,pastWeeksNotIncluded=w,
+                    b=5,w=4,weightsThreshold=2.58,pastWeeksNotIncluded=NULL,
                     pThresholdTrend=1,thresholdMethod='nbPlugin',limit54 = c(4,5),
                     range = (length(timeSeries) - 1):length(timeSeries), glmWarnings = FALSE)
-seriesSTSObject <- new('sts', observed = timeSeries,
-                       epoch = as.numeric(seq(as.Date('2001-01-01'),length.out=length(timeSeries), by='1 week')),
-                       epochAsDate = TRUE)
+seriesSTSObject <- sts(timeSeries,
+                       epoch = seq(as.Date('2001-01-01'), length.out=length(timeSeries), by='1 week'))
 test_that("The code does not produce any error",{
   farringtonFlexible(seriesSTSObject, control = algoControl)
 
@@ -464,3 +463,18 @@ test_that("The code does not produce any error",{
   results2 <- farringtonFlexible(seriesSTSObject, control = algoControl)
   expect_inherits(results2, "sts")
 })
+
+
+###
+## multivariate example with populationOffset
+###
+
+msts <- sts(cbind(series1 = timeSeries, series2 = timeSeries),
+            population = c(1,2)*10000)
+algoControl$populationOffset <- TRUE
+out <- farringtonFlexible(msts, control = algoControl)
+test_that("population offsets of multivariate sts are handled correctly", {
+  ## resulting upperbounds must be the same as different offsets just rescale the intercept
+  expect_equal(out@upperbound[,1], out@upperbound[,2])
+})
+## failed in surveillance <= 1.19.1 (used series 1 offset for both fits)

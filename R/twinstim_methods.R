@@ -7,8 +7,8 @@
 ### vcov, logLik, print, summary, plot, R0, residuals, update, terms, all.equal
 ###
 ### Copyright (C) 2009-2019 Sebastian Meyer
-### $Revision: 2461 $
-### $Date: 2019-07-19 17:49:32 +0200 (Fri, 19. Jul 2019) $
+### $Revision: 2790 $
+### $Date: 2022-01-31 23:44:36 +0100 (Mon, 31. Jan 2022) $
 ################################################################################
 
 ## extract the link function used for the epidemic predictor (default: log-link)
@@ -842,5 +842,17 @@ all.equal.twinstim <- function (target, current, ..., ignore = NULL)
 
     ignore <- unique.default(c(ignore, "runtime", "call"))
     target[ignore] <- current[ignore] <- list(NULL)
+
+    ## also ignore siaf.step() cache ("cachem" is time-dependent)
+    drop_cache <- function (siaf) {
+        isStepFun <- !is.null(knots <- attr(siaf, "knots")) &&
+            !is.null(maxRange <- attr(siaf, "maxRange"))
+        if (isStepFun) {
+            structure(list(), knots = knots, maxRange = maxRange)
+        } else siaf
+    }
+    target$formula$siaf <- drop_cache(target$formula$siaf)
+    current$formula$siaf <- drop_cache(current$formula$siaf)
+
     NextMethod("all.equal")
 }

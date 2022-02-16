@@ -172,9 +172,13 @@ disProg2sts <- function(disProgObj, map=NULL) {
 
 ## The reverse action
 sts2disProg <- function(sts) {
-  disProgObj <- create.disProg(week=sts@epoch, start=sts@start, freq=sts@freq,
-                               observed=sts@observed, state=sts@state, neighbourhood=sts@neighbourhood,
-                               populationFrac=sts@populationFrac, epochAsDate=sts@epochAsDate)
+  disProgObj <- list(  # no need for create.disProg() checks, sts is formal
+    week=sts@epoch, observed=sts@observed, state=sts@state,
+    start=sts@start, freq=sts@freq,
+    neighbourhood=sts@neighbourhood, populationFrac=sts@populationFrac,
+    epochAsDate=sts@epochAsDate
+  )
+  class(disProgObj) <- "disProg"
   #For survRes: alarm=sts@alarm, upperbound=sts@upperbound)
   return(disProgObj)
 }
@@ -451,8 +455,8 @@ setMethod( "show", "sts", function( object ){
           cat("Data slot   :", ncol(object@map), "variables\n")
   }
 
-  if (ncol(object@observed) > 1) {
-      cat("\nhead of neighbourhood:\n")
+  if (ncol(object@observed) > 1 && !all(is.na(object@neighbourhood))) {
+      cat("\nHead of neighbourhood:\n")
       print( head(object@neighbourhood,n))
   }
 } )

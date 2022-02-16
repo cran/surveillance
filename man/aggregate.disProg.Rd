@@ -1,10 +1,9 @@
 \name{aggregate.disProg}
 \alias{aggregate.disProg}
-\title{Aggregate the observed counts}
+\title{Aggregate a \code{disProg} Object}
 \description{
-       Aggregates the observed counts for a multivariate
-       \code{disProgObj} over the units. Future versions 
-       of \code{surveillance} will also allow for time aggregations etc. 
+       Aggregates the observed counts of a multivariate
+       \code{disProg} object over the units.
 }
 \usage{
   \method{aggregate}{disProg}(x,\dots)
@@ -13,11 +12,11 @@
         \item{x}{Object of class \code{disProg}}
         \item{\dots}{not used at the moment}
 }
-\value{\item{x}{univariate \code{disProg} object with aggregated 
+\value{univariate \code{disProg} object with aggregated 
      counts and respective states for each time point.}
-}
-\keyword{hplot}
+\keyword{internal} % disProg is soft-deprecated
 \examples{
 data(ha)
-plot(aggregate(ha))
+dim(ha$observed)
+dim(aggregate(ha)$observed)
 }

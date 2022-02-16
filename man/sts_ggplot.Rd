@@ -8,7 +8,7 @@
   based on a \dQuote{tidy} version of the \code{"sts"} object via
   \code{\link{tidy.sts}}.
   It uses a date axis and thus only works for time series indexed by
-  dates or with a standard frequency (daily, weekly, or monthly).
+  dates or with a standard frequency (daily, (bi-)weekly, or monthly).
 }
 \usage{
 autoplot.sts(object, population = FALSE, units = NULL,
@@ -58,9 +58,10 @@ if (requireNamespace("ggplot2")) {
     autoplot.sts(measlesDE)
 }
 
+\dontshow{if (surveillance.options("allExamples"))}
 ## weekly incidence: population(measlesDE) gives population fractions,
 ## which we need to multiply by the total population
-if (surveillance.options("allExamples") && require("ggplot2")) {
+if (require("ggplot2")) {
     autoplot.sts(measlesDE, population = 1000000/82314906) +
         ylab("Weekly incidence [per 1'000'000 inhabitants]")
 }

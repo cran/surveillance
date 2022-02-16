@@ -71,21 +71,27 @@ algo.cusum(disProgObj, control = list(range = range, k = 1.04, h = 2.26,
 \author{M. Paul and M. \enc{Höhle}{Hoehle}}
 \examples{
 # Xi ~ Po(5), i=1,...,500
-disProgObj <- create.disProg(week=1:500, observed= rpois(500,lambda=5),
-                             state=rep(0,500))
+set.seed(321)
+stsObj <- sts(observed = rpois(500,lambda=5))
 # there should be no alarms as mean doesn't change
-res <- algo.cusum(disProgObj, control = list(range = 100:500,trans="anscombe"))
-plot(res)
+res <- cusum(stsObj, control = list(range = 100:500, trans = "anscombe"))
+plot(res, xaxis.labelFormat = NULL)
 
-# simulated data 
+# simulated data
 disProgObj <- sim.pointSource(p = 1, r = 1, length = 250,
                               A = 0, alpha = log(5), beta = 0, phi = 10,
-                              frequency = 10, state = NULL, K = 0)                           
+                              frequency = 10, state = NULL, K = 0)
 plot(disProgObj)
 
-# Test week 200 to 250 for outbreaks
-surv <- algo.cusum(disProgObj, control = list(range = 200:250))
+# Test weeks 200 to 250 for outbreaks
+surv0 <- algo.cusum(disProgObj, control = list(range = 200:250))
+plot(surv0, xaxis.years = FALSE)
+
+# alternatively, using the newer "sts" interface
+stsObj <- disProg2sts(disProgObj)
+surv <- cusum(stsObj, control = list(range = 200:250))
 plot(surv)
+stopifnot(upperbound(surv) == surv0$upperbound)
 }
 \references{
   G. Rossi, L. Lampugnani and M. Marchi (1999), An approximate CUSUM procedure for surveillance of health events, Statistics in Medicine, 18, 2111--2122

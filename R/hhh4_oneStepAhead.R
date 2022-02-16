@@ -1,7 +1,7 @@
 ################################################################################
 ### Compute one-step-ahead predictions at a series of time points
 ###
-### Copyright (C) 2011-2012 Michaela Paul, 2012-2018 Sebastian Meyer
+### Copyright (C) 2011-2012 Michaela Paul, 2012-2018,2021 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -15,7 +15,7 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
                          type = c("rolling", "first", "final"),
                          which.start = c("current", "final"), #if type="rolling"
                          keep.estimates = FALSE,
-                         verbose = TRUE, # verbose-1 is used as verbose setting
+                         verbose = type != "final", # verbose-1 is used
                                          # for sequentially refitted hhh4 models
                          cores = 1) # if which.start="final", the predictions
                                     # can be computed in parallel
@@ -66,7 +66,7 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
 
     ## initial fit
     fit <- if (type == "first") {
-        if (do_pb)
+        if (verbose)
             cat("\nRefitting model at first time point t =", tps[1L], "...\n")
         update.hhh4(result, subset.upper = tps[1L], use.estimates = TRUE,
                     keep.terms = TRUE) # need "model" -> $terms
@@ -142,9 +142,9 @@ oneStepAhead <- function(result, # hhh4-object (i.e. a hhh4 model fit)
 
         if (do_pb) pb <- txtProgressBar(min=0, max=ntps, initial=0, style=3)
         for(i in seq_along(tps)) {
-            if (verbose > 1L) {
-                cat("\nOne-step-ahead prediction @ t =", tps[i], "...\n")
-            } else if (do_pb) setTxtProgressBar(pb, i)
+            if (do_pb) setTxtProgressBar(pb, i) else if (verbose) {
+                cat("One-step-ahead prediction @ t =", tps[i], "...\n")
+            }
 
             if (type == "rolling") { # update fit
                 fit.old <- fit # backup

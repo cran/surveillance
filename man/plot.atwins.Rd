@@ -33,8 +33,9 @@
     }
   }
   \item{ask}{Boolean indicating whether to ask for a newline before
-    showing the next plot.}
-  \item{\dots}{Additional control for the plots, which are currently ignored.}
+    showing the next plot (only if multiple are shown).}
+  \item{\dots}{Additional arguments for \code{\link{stsplot_time}},
+    used for plot type 1.}
 }
 \details{
   For details see the plots in the paper. Basically MCMC output is
@@ -67,5 +68,4 @@ otwins <- algo.twins(hepatitisA)
 plot(otwins,which=c(1,2),ask=FALSE)
 }
 }
-\keyword{ts}
-\keyword{regression}
+\keyword{hplot}

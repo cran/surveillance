@@ -82,8 +82,8 @@ getOption("SweaveHooks")[["fig"]]()
 data("fluBYBW")
 plot(fluBYBW[year(fluBYBW) == 2001, ], # select year 2001
      type = observed ~ unit,           # total counts by region
-     population = fluBYBW@map$X31_12_01 / 100000) # per 100000 inhabitants
-grid::grid.text("Incidence [per 100'000 inhabitants]", x = 0.5, y = 0.02)
+     population = fluBYBW@map$X31_12_01 / 100000, # per 100000 inhabitants
+     colorkey = list(title = "Incidence [per 100'000 inhabitants]"))
 
 
 ###################################################

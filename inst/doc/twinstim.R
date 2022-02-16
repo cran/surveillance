@@ -162,8 +162,9 @@ text(2500, 0.08, labels="endemic", col=2, pos=2, font=2)
 for (.type in 1:2) {
     print(intensityplot(imdfit_powerlaw, aggregate="space", which="epidemic proportion",
                         types=.type, tiles=districtsD, sgrid=1000,
-                        col.regions = grey(seq(1,0,length.out=10)), at = seq(0,1,by=0.1)))
-    grid::grid.text("Epidemic proportion", x=1, rot=90, vjust=-1)
+                        xlab="x [km]", ylab="y [km]", at=seq(0,1,by=0.1),
+                        col.regions=rev(hcl.colors(10,"Reds")),
+                        colorkey=list(title="Epidemic proportion")))
 }
 
 ## ----imdfit_checkResidualProcess, fig.cap="\\code{checkResidualProcess(imdfit\\_powerlaw)}. The left-hand plot shows the \\code{ecdf} of the transformed residuals with a 95\\% confidence band obtained by inverting the corresponding Kolmogorov-Smirnov test (no evidence for deviation from uniformity). The right-hand plot suggests absence of serial correlation.", results="hide", fig.pos="p", echo=FALSE----

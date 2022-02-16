@@ -14,7 +14,9 @@ mu1 <- exp(base  + kappa)
 ## Generate counts
 set.seed(42)
 x <- rnbinom(length(t),mu=mu0*(exp(kappa)^(t>=tau)),size=1/alpha)
+suppressWarnings(
 s.ts <- create.disProg(week=t, observed=x, state=(t>=tau))
+, "deprecatedWarning")
 
 ## Define control object
 cntrl1 <- list(range=t,c.ARL=5, mu0=mu0, alpha=alpha,
