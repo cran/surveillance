@@ -43,8 +43,8 @@ permutationTest(score1, score2, nPermutation = 9999,
   individual scores to either model 1 or 2 with probability 0.5. We then
   compute the respective difference in mean for model 1 and 2 in this
   permuted set of scores. The Monte Carlo p-value is then given by
-  (1 + #{permuted differences larger than observed difference (in
-  absolute value)}) / (1 + \code{nPermutation}).
+  (1 + #\{permuted differences larger than observed difference (in
+  absolute value)\}) / (1 + \code{nPermutation}).
 }
 
 \value{

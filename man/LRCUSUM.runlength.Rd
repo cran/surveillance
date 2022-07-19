@@ -11,7 +11,7 @@
   likelihood ratio based CUSUM.
 }
 \usage{
-LRCUSUM.runlength(mu,mu0,mu1,h,dfun, n, g=5,outcomeFun=NULL,...)
+LRCUSUM.runlength(mu, mu0, mu1, h, dfun, n, g=5, outcomeFun=NULL, ...)
 }
 \arguments{
   \item{mu}{\eqn{k-1 \times T} matrix with true proportions, i.e. equal to mu0 or mu1 if one wants to compute e.g. \eqn{ARL_0} or \eqn{ARL_1}.}
@@ -27,8 +27,8 @@ LRCUSUM.runlength(mu,mu0,mu1,h,dfun, n, g=5,outcomeFun=NULL,...)
   \item{g}{The number of levels to cut the state space into when
     performing the Markov chain approximation. Sometimes also denoted
     \eqn{M}. Note that the quality of the approximation depends very
-    much on \eqn{g}. If \eqn{T} greater than, say, 50 its necessary to
-  increase the value of \eqn{g}.}
+    much on \code{g}. If \eqn{T} is greater than, say, 50 it's necessary to
+    increase the value of \code{g}.}
   \item{outcomeFun}{A hook \code{function (k,n)} to compute all possible outcome
     states to compute the likelihood ratio for. If \code{NULL} then the
     internal default function \code{surveillance:::outcomeFunStandard} is used. This

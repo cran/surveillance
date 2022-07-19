@@ -1,10 +1,10 @@
 /*
- *  16-Aug 2012 / (C) Michael Hoehle
- *  This file is a modified version of the code ks.c available
- *  at http://svn.r-project.org/R/trunk/src/library/stats/src/ks.c (r60102)
- *  The file is copyright 1999-2009 by The R Core Team under GPL-2 
- *  (or later) as shown below. As stated in the GPL-2 license 
- *  the present file is again available under GPL-2.
+ *  This file contains a *subset* of the ks.c source file from R 4.2.0
+ *  (https://svn.R-project.org/R/trunk/src/library/stats/src/ks.c, as at r81742)
+ *  with original Copyright (C) 1999-2022 The R Core Team
+ *  under GPL-2 (or later) as shown below.
+ *  The version included here just leaves out Smirnov-related functions and is
+ *  again available under GPL-2.
  *
  *  License:
  *  This program is free software; you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, a copy is available at
- *  http://www.r-project.org/Licenses/
+ *  https://www.R-project.org/Licenses/
  */
 
 /* ks.c
@@ -28,18 +28,18 @@
    in the two-sided one-sample and two-sample cases.
 */
 
+#include <math.h>
 #include <R.h>
+#include <Rinternals.h>
 #include <Rmath.h>		/* constants */
-
-/*#include "ctest.h"*/
 
 static double K(int n, double d);
 static void m_multiply(double *A, double *B, double *C, int m);
 static void m_power(double *A, int eA, double *V, int *eV, int m, int n);
 
 /* Two-sample two-sided asymptotic distribution */
-void
-pkstwo(Sint *n, double *x, double *tol)
+static void
+pkstwo(int n, double *x, double tol)
 {
 /* x[1:n] is input and output
  *
@@ -62,11 +62,11 @@ pkstwo(Sint *n, double *x, double *tol)
  *
  */
     double new, old, s, w, z;
-    Sint i, k, k_max;
+    int i, k, k_max;
 
-    k_max = (Sint) sqrt(2 - log(*tol));
+    k_max = (int) sqrt(2 - log(tol));
 
-    for(i = 0; i < *n; i++) {
+    for(i = 0; i < n; i++) {
 	if(x[i] < 1) {
 	    z = - (M_PI_2 * M_PI_4) / (x[i] * x[i]);
 	    w = log(x[i]);
@@ -82,7 +82,7 @@ pkstwo(Sint *n, double *x, double *tol)
 	    k = 1;
 	    old = 0;
 	    new = 1;
-	    while(fabs(old - new) > *tol) {
+	    while(fabs(old - new) > tol) {
 		old = new;
 		new += 2 * s * exp(z * k * k);
 		s *= -1;
@@ -91,15 +91,6 @@ pkstwo(Sint *n, double *x, double *tol)
 	    x[i] = new;
 	}
     }
-}
-
-/* The two-sided one-sample 'exact' distribution */
-void
-pkolmogorov2x(double *x, Sint *n)
-{
-    /* x is input and output. */
-
-    *x = K(*n, *x);
 }
 
 static double
@@ -125,8 +116,8 @@ K(int n, double d)
    k = (int) (n * d) + 1;
    m = 2 * k - 1;
    h = k - n * d;
-   H = (double*) Calloc(m * m, double);
-   Q = (double*) Calloc(m * m, double);
+   H = (double*) R_Calloc(m * m, double);
+   Q = (double*) R_Calloc(m * m, double);
    for(i = 0; i < m; i++)
        for(j = 0; j < m; j++)
 	   if(i - j + 1 < 0)
@@ -134,10 +125,10 @@ K(int n, double d)
 	   else
 	       H[i * m + j] = 1;
    for(i = 0; i < m; i++) {
-       H[i * m] -= pow(h, i + 1);
-       H[(m - 1) * m + i] -= pow(h, (m - i));
+       H[i * m] -= R_pow_di(h, i + 1);
+       H[(m - 1) * m + i] -= R_pow_di(h, (m - i));
    }
-   H[(m - 1) * m] += ((2 * h - 1 > 0) ? pow(2 * h - 1, m) : 0);
+   H[(m - 1) * m] += ((2 * h - 1 > 0) ? R_pow_di(2 * h - 1, m) : 0);
    for(i = 0; i < m; i++)
        for(j=0; j < m; j++)
 	   if(i - j + 1 > 0)
@@ -153,9 +144,9 @@ K(int n, double d)
 	   eQ -= 140;
        }
    }
-   s *= pow(10., eQ);
-   Free(H);
-   Free(Q);
+   s *= R_pow_di(10.0, eQ);
+   R_Free(H);
+   R_Free(Q);
    return(s);
 }
 
@@ -192,7 +183,7 @@ m_power(double *A, int eA, double *V, int *eV, int m, int n)
 	return;
     }
     m_power(A, eA, V, eV, m, n / 2);
-    B = (double*) Calloc(m * m, double);
+    B = (double*) R_Calloc(m * m, double);
     m_multiply(V, V, B, m);
     eB = 2 * (*eV);
     if((n % 2) == 0) {
@@ -209,5 +200,27 @@ m_power(double *A, int eA, double *V, int *eV, int m, int n)
 	    V[i] = V[i] * 1e-140;
 	*eV += 140;
     }
-    Free(B);
+    R_Free(B);
 }
+
+
+/* Two-sample two-sided asymptotic distribution */
+SEXP pKS2(SEXP statistic, SEXP stol)
+{
+    int n = LENGTH(statistic);
+    double tol = asReal(stol);
+    SEXP ans = duplicate(statistic);
+    pkstwo(n, REAL(ans), tol);
+    return ans;
+}
+
+
+/* The two-sided one-sample 'exact' distribution */
+SEXP pKolmogorov2x(SEXP statistic, SEXP sn)
+{
+    int n = asInteger(sn);
+    double st = asReal(statistic), p;
+    p = K(n, st);
+    return ScalarReal(p);
+}
+

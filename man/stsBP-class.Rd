@@ -28,9 +28,9 @@
 \section{Methods}{
   The methods are the same as for \code{"\linkS4class{sts}"}.
 
-  \itemize{
-    \item{\code{signature(from = "sts", to = "stsBP")}}{
-      Convert an object of class \code{sts} to class \code{stsBP}.
+  \describe{
+    \item{coerce}{\code{signature(from = "sts", to = "stsBP")}:
+      convert an object of class \code{sts} to class \code{stsBP}.
     }
   }
 }

@@ -48,15 +48,14 @@ ks.plot.unif(U, conf.level = 0.95, exact = NULL,
 \author{
   Michael H\enc{ö}{oe}hle and Sebastian Meyer.
   
-  The code contains segments originating from the source of the \link{ks.test} function
+  The code re-uses fragments from the \link{ks.test} source file
   \url{https://svn.R-project.org/R/trunk/src/library/stats/R/ks.test.R},
-  which is Copyright (C) 1995-2012 The R Core Team available under GPL-2
-  (or later) and C functionality from
+  with Copyright (C) 1995-2022 The R Core Team, available under GPL-2
+  (or later), and C functionality from the source file
   \url{https://svn.R-project.org/R/trunk/src/library/stats/src/ks.c},
-  which is copyright (C) 1999-2009 the R Core Team and available under
-  GPL-2 (or later). Somewhat hidden in their \file{ks.c} file is a statement
-  that part of their code is based on code published in
-  Marsaglia et al. (2003).
+  partially based on code published in Marsaglia et al. (2003),
+  with Copyright (C) 1999-2022 The R Core Team, also available under
+  GPL-2 (or later).
 }
 
 \references{

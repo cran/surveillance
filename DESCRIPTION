@@ -1,8 +1,8 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.20.0
-Date: 2022-02-15
+Version: 1.20.1
+Date: 2022-07-13
 Authors@R: c(MH = person("Michael", "Höhle",
                   email = "hoehle@math.su.se",
                   role = c("aut", "ths"),
@@ -99,6 +99,6 @@ Additional_repositories: https://inla.r-inla-download.org/R/stable/
 Encoding: latin1
 VignetteBuilder: utils, knitr
 NeedsCompilation: yes
-Packaged: 2022-02-16 08:34:23 UTC; smeyer
+Packaged: 2022-07-14 14:54:41 UTC; smeyer
 Repository: CRAN
-Date/Publication: 2022-02-16 10:20:02 UTC
+Date/Publication: 2022-07-19 11:50:02 UTC

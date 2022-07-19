@@ -22,7 +22,7 @@ categoricalCUSUM(stsObj,control = list(range=NULL,h=5,pi0=NULL,
     variable. Time varying number of counts \eqn{n_t} is found in slot
     \code{populationFrac}. }
   \item{control}{Control object containing several items
-    \itemize{
+    \describe{
       \item{\code{range}}{Vector of length \eqn{t_{max}} with indices of the
 	\code{observed} slot to monitor.}
       \item{\code{h}}{Threshold to use for the monitoring. Once the

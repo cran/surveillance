@@ -18,7 +18,7 @@ pairedbinCUSUM.runlength(p,w1,w2,h1,h2,h11,h22, sparse=FALSE)
     responses for each of the, say n, patients. The observed slot of
     \code{stsObj} is thus a \eqn{n \times 2}{n x 2} matrix.}
   \item{control}{Control object as a list containing several parameters.
-    \itemize{
+    \describe{
       \item{\code{range}}{Vector of indices in the observed slot to monitor.}
       \item{\code{theta0}}{In-control parameters of the paired binary CUSUM.}
       \item{\code{theta1}}{Out-of-control parameters of the paired binary CUSUM.}

@@ -7,8 +7,8 @@
 ### Specific implementations are in seperate files (e.g.: Gaussian, power law).
 ###
 ### Copyright (C) 2009-2015,2017 Sebastian Meyer
-### $Revision: 2601 $
-### $Date: 2021-01-12 18:04:57 +0100 (Tue, 12. Jan 2021) $
+### $Revision: 2849 $
+### $Date: 2022-07-13 08:02:34 +0200 (Wed, 13. Jul 2022) $
 ################################################################################
 
 
@@ -292,7 +292,7 @@ checksiaf.Fcircle <- function (Fcircle, f, pargrid, type=1,
 
 checksiaf.deriv <- function (deriv, f, pargrid, type=1, rmax=100)
 {
-    rgrid <- seq(-rmax,rmax,len=21) / sqrt(2)
+    rgrid <- seq(-rmax,rmax,length.out=21) / sqrt(2)
     rgrid <- rgrid[rgrid != 0] # some siafs are always 1 at (0,0) (deriv=0)
     sgrid <- cbind(rgrid, rgrid)
     apply(pargrid, 1, function (pars) {

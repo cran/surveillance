@@ -89,8 +89,9 @@ LRCUSUM.runlength <- function(mu,mu0,mu1,h,dfun, n, g=5,outcomeFun=NULL,...) {
   P[,g+1,g+1] <- 1
   
   #Loop over all P[t,,] and compute probabilities
-  for (i in seq_len(length(t))) {
-    cat("Looking at t=",i," out of ",length(t),"\n")
+  for (i in seq_along(t)) {
+    if (length(t) > 1)
+      cat("Looking at t =", i, "/", length(t), "\n")
 
     #Determine all possible outcomes
     outcomes <- outcomeFun(km1,n[i])

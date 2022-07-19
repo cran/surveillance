@@ -29,32 +29,32 @@ stsplot_spacetime(x, type, legend = NULL, opts.col = NULL, labels = TRUE,
     \code{observed ~ 1 | unit * time}.
   }
   \item{legend}{
-    An object of type \code{list} containing the following items used
+    a \code{list} containing the following items used
     for coloring
-    \itemize{
-      \item{dx}{position increments in x direction}
-      \item{dy}{position increments in y direction}
-      \item{x}{position in x}
-      \item{y}{position in y}
-      \item{once}{\code{Boolean} - if \code{TRUE} then only shown once}
+    \describe{
+      \item{\code{dx}}{position increments in x direction}
+      \item{\code{dy}}{position increments in y direction}
+      \item{\code{x}}{position in x}
+      \item{\code{y}}{position in y}
+      \item{\code{once}}{a Boolean; if \code{TRUE} then only shown once}
     }
     If \code{NULL} then a default legend is used.
   }
   \item{opts.col}{
-    A list containing the two elements
-    \itemize{
-      \item{ncolors}{Number of colors to use for plotting}
-      \item{use.color}{\code{Boolean} if \code{TRUE} then colors
+    a \code{list} containing the two elements
+    \describe{
+      \item{\code{ncolors}}{number of colors to use for plotting}
+      \item{\code{use.color}}{a Boolean; if \code{TRUE} then colors
 	will be used in the palette, otherwise grayscale}
     }
   }
-  \item{labels}{\code{Boolean} whether to add labels
+  \item{labels}{Boolean whether to add labels
   }
   \item{wait.ms}{Number of milliseconds to wait between each plot
   }
   \item{cex.lab}{\code{cex} of the labels
   }
-  \item{verbose}{\code{Boolean} whether to write out extra information
+  \item{verbose}{Boolean whether to write out extra information
   }
   \item{dev.printer}{Either \code{NULL} (default), which means that plotting is
     only to the screen, or a list with elements \code{device},

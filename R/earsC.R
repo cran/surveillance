@@ -167,10 +167,10 @@ earsC <- function(sts, control = list(range = NULL, method = "C1",
                 apply(refVals, 1, mean))/
          pmax(apply(refVals, 1, sd), minSigma)
 
-       partUpperboundLag2 <- pmax(rep(0, length = length(C2) - 2),
+       partUpperboundLag2 <- pmax(rep(0, length.out = length(C2) - 2),
                                   C2[1:(length(C2) - 2)] - 1)
 
-       partUpperboundLag1 <- pmax(rep(0, length = length(C2) - 2),
+       partUpperboundLag1 <- pmax(rep(0, length.out = length(C2) - 2),
                                   C2[2:(length(C2) - 1)] - 1)
        ##HB using argument 'minSigma' to avoid alerting threshold that is zero or too small
        sts@upperbound[control$range, j] <- observed(sts)[control$range, j] +

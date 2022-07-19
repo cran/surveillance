@@ -10,7 +10,7 @@
 # Author:
 # The initial code was written by J. Manitz, which was then later
 # adapted and modified for integration into the package by M. Hoehle.
-# Contributions by M. Salmon.
+# Contributions by M. Salmon and S. Meyer.
 #
 # Date:
 #  Code continuously developed during 2010-2014
@@ -28,7 +28,7 @@
 
 boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE,
                                    prior=c('iid','rw1','rw2'), alpha=0.05, mc.munu=100, 
-                                   mc.y=10, verbose=FALSE,multicore=TRUE,
+                                   mc.y=10, verbose=FALSE,
                                    samplingMethod=c('joint','marginals'),
                                    quantileMethod=c("MC","MM"))) {
 
@@ -39,12 +39,6 @@ boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE
            "  from <https://www.r-inla.org/download-install>.")
   }
 
-  #Possibly speed up the computations by using multiple cores.
-  if (is.null(control[["multicore",exact=TRUE]])) { control$multicore <- TRUE }
-  if (control$multicore) {
-      INLA::inla.setOption("num.threads", parallel::detectCores(logical = TRUE))
-  }
-  
   #Stop if the sts object is multivariate
   if (ncol(sts)>1) {
       stop("boda currently only handles univariate sts objects.")
@@ -211,73 +205,69 @@ bodaFit <- function(dat, modelformula, alpha, mc.munu, mc.y,
   # set time point
   T1 <- nrow(dat)
 
+  # workaround scoping issue with 'E' in recent versions of INLA
+  environment(modelformula) <- environment()
+
   ### fit model
   link <- 1
-  E <- mean(dat$observed, na.rm=TRUE)
+  E <- mean(dat$observed, na.rm=TRUE)  # FIXME: is this really needed?
   model <- INLA::inla(modelformula,
                       data=dat,
                       family='nbinomial', E=E, verbose=verbose,
                       control.predictor=list(compute=TRUE,link=link),
-                      control.compute=list(cpo=FALSE,config=TRUE),
+                      control.compute=c(list(cpo=FALSE,config=TRUE),
+                                        if (packageVersion("INLA") >= "21.07.10")
+                                            list(return.marginals.predictor=TRUE)),
                       control.inla = list(int.strategy = "grid",dz=1,diff.logdens = 10))
-  if(is.null(model)){
-    return(qi=NA)
+  if(is.null(model)){ # probably no longer happens in recent versions of INLA
+    warning("NULL result from INLA at t = ", T1)
+    return(NA_real_)
   }
   
   if(samplingMethod=='marginals'){
     # draw sample from marginal posteriori of muT1 & etaT1 to determine predictive
-    # quantile by sampling. hoehle: inla.marginal.transform does not exist anymore!  
-    # Since the observation corresponding to T1 is NA we manually need to transform
-    # the fitted values (had there been an observation this is not necessary!!)
-    marg <- try(INLA::inla.tmarginal(function(x) x,model$marginals.fitted.values[[T1]]), silent=TRUE)
-   
-    if(inherits(marg,'try-error')){
-        return(qi=NA)
-    }
+    # quantile by sampling.
+    marg <- model$marginals.fitted.values[[T1]]
     mT1 <- try(INLA::inla.rmarginal(n=mc.munu,marg), silent=TRUE)
     if(inherits(mT1,'try-error')){
-        return(qi=NA)
+        warning("degenerate marginal posterior at t = ", T1)
+        return(NA_real_)
     }
     # take variation in size hyperprior into account by also sampling from it
     mtheta <- model$internal.marginals.hyperpar[[1]]
     theta <- exp(INLA::inla.rmarginal(n=mc.munu,mtheta))
-    if(inherits(theta,'try-error')){
-        return(qi=NA)
-    }
-
-
-    
-
   }
   
   if (samplingMethod=='joint'){
     # Sample from the posterior
-    inla.seed <- as.integer(runif(1) * .Machine$integer.max)
-    jointSample <- INLA::inla.posterior.sample(mc.munu, model, intern = TRUE, seed = inla.seed)
+    ## CAVE: 'model' is not reproducible if num.threads != "1:1" (INLA 22.05.07),
+    ##       so there is no point in making the sampling step reproducible
+    ##inla.seed <- as.integer(runif(1) * .Machine$integer.max)
+    jointSample <- INLA::inla.posterior.sample(mc.munu, model, intern = TRUE)  #, seed = inla.seed
     # take variation in size hyperprior into account by also sampling from it
     theta <- exp(t(sapply(jointSample, function(x) x$hyperpar[[1]])))
     mT1 <- exp(t(sapply(jointSample, function(x) x$latent[[T1]])))
   }
   
-
+  valid <- mT1 >= 0 & theta > 0
+  if (any(!valid)) {
+    ## a range of (-4.7e-55, 5.8e-52) was seen for mT1 from inla.rmarginal()
+    ## which produced an error (-> NA) in previous versions of INLA
+    warning("degenerate posterior sampling at t = ", T1)
+    return(NA_real_)
+    ## mT1 <- mT1[valid]
+    ## theta <- theta[valid]
+  }
   
   if(quantileMethod=="MC"){
     #Draw (mc.munu \times mc.y) responses. Would be nice, if we could
     #determine the quantile of the predictive posterior in more direct form
-    yT1 <- numeric(mc.munu*mc.y) #NULL
-    idx <- seq(mc.y)
-    for(j in seq(mc.munu)) {
-      yT1[idx] <- rnbinom(n=mc.y,size=theta[j],mu=E*mT1[j])
-      idx <- idx + mc.y
-    }
+    yT1 <- unlist(mapply(rnbinom, size = theta, mu = E*mT1,
+                         MoreArgs = list(n = mc.y), SIMPLIFY = FALSE))
     
     qi <- quantile(yT1, probs=(1-alpha), type=3, na.rm=TRUE)
   }
   if(quantileMethod=="MM"){
-    mT1 <- mT1[mT1>=0&theta>0]
-    
-    theta <- theta[mT1>=0&theta>0]
-    
     minBracket <- qnbinom(p=(1-alpha), 
                           mu=E*min(mT1),
                           size=max(theta))
@@ -288,9 +278,6 @@ bodaFit <- function(dat, modelformula, alpha, mc.munu, mc.y,
     
     qi <- qmix(p=(1-alpha), mu=E*mT1, size=theta,
                bracket=c(minBracket, maxBracket))
-    
-    
-    
   }
   return(qi)
 } 

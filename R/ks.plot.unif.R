@@ -2,30 +2,15 @@
 # Plot the empirical distribution function of a sample from U(0,1)
 # together with a confidence band of the corresponding K-S-test.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# Copyright (C) 2012 Michael Hoehle and Sebastian Meyer
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# This file is part of the R package "surveillance",
+# free software under the terms of the GNU General Public License, version 2,
+# a copy of which is available at https://www.R-project.org/Licenses/.
 #
-#  A copy of the GNU General Public License is available at
-#  http://www.r-project.org/Licenses/
-#
-# Parts of the code are taken from stats::ks.test, which has
-# copyright 1995-2012 by The R Core Team under GPL-2 (or later).
-# Furthermore, the C function calls are taken from
-# http://svn.r-project.org/R/trunk/src/library/stats/src/ks.c (as at 2012-08-16),
-# which similarly is Copyright (C) 1999-2009 by the R Core Team
-# and available under GPL-2. Somewhat disguised in their code is a reference
-# that parts of their code uses code published in
-# George Marsaglia and Wai Wan Tsang and Jingbo Wang (2003),
-# "Evaluating Kolmogorov's distribution".
-# Journal of Statistical Software, Volume 8, 2003, Issue 18.
-# URL: http://www.jstatsoft.org/v08/i18/.
+# Parts of the 'ks.plot.unif' code are taken from R's ks.test.R source file
+# with Copyright (C) 1995-2022 The R Core Team
+# under GPL-2 (or later).
 #
 #
 # Parameters:
@@ -44,6 +29,7 @@ ks.plot.unif <- function (U, conf.level = 0.95, exact = NULL,
     stopifnot(is.vector(U, mode="numeric"))
     U <- U[!is.na(U)]
     n <- length(U)
+    if(n < 1L) stop("empty sample")
     TIES <- FALSE
     if (anyDuplicated(U)) {
         warning("ties should not be present for the Kolmogorov-Smirnov test")
@@ -52,24 +38,15 @@ ks.plot.unif <- function (U, conf.level = 0.95, exact = NULL,
     if (is.null(exact)) exact <- (n < 100) && !TIES
 
     ## Helper function to invert the K-S test. The function
-    ## pkolmogorov2x is the CDF of the Kolmogorov test statistic
-    ## and is taken from the R project sources, which
-    ## is (C) 1995-2009 by The R Core Team under GPL-2
+    ## pKolmogorov2x is the CDF of the Kolmogorov test statistic (x).
     f <- if (exact) {
-        function (x, p) {               # x is the test statistic
-            PVAL <- 1 - .C(C_pkolmogorov2x, p = as.double(x), as.integer(n))$p
+        function (x, p) {
+            PVAL <- 1 - .Call(C_pKolmogorov2x, x, n)
             PVAL - p
         }
     } else {
-        pkstwo <- function(x, tol = 1e-06) { # x is the test statistic
-            ## stopifnot(length(x) == 1L)
-            #Same copyright as above applies to the C code.
-            if (is.na(x)) NA_real_ else if (x == 0) 0 else {
-                .C(C_pkstwo, 1L, p = as.double(x), as.double(tol))$p
-            }
-        }
         function (x, p) {
-            PVAL <- 1 - pkstwo(sqrt(n) * x)
+            PVAL <- if (x == 0) 1 else 1 - .Call(C_pKS2, sqrt(n) * x, tol = 1e-6)
             PVAL - p
         }
     }

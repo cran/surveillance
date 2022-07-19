@@ -1,3 +1,15 @@
+# surveillance 1.20.1 (2022-07-13)
+
+## BUG FIXES
+
+- `ks.plot.unif()`: accommodate to `NO_S_TYPEDEFS` in R >= 4.3.0.
+
+- `boda()` with `samplingMethod="marginals"` gave all-`NA` upperbounds
+  in INLA >= 21.07.10. `boda()` now also works around a scoping issue
+  (with `E`) in recent versions of INLA that led to wrongly scaled
+  upperbounds.
+
+
 # surveillance 1.20.0 (2022-02-15)
 
 ## NEW FEATURES

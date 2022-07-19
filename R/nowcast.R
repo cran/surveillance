@@ -183,13 +183,12 @@ nowcast <- function(now, when, data, dEventCol="dHospital", dReportCol="dReport"
       }
 
       #Check breakpoint to use in case of bayes.trunc.ddcp (delay distribution with breakpoint)
-      if (is.null(control[["ddcp",exact=TRUE]][["ddChangepoint",exact=TRUE]]) ||
-          (!class(control[["ddcp",exact=TRUE]][["ddChangepoint",exact=TRUE]]) == "Date")) {
+      if (is.null(control[["ddcp"]][["ddChangepoint"]]) ||
+          !inherits(control[["ddcp"]][["ddChangepoint"]], "Date")) {
         stop("Please specify a Date object as changepoint in control$ddChangepoint.")
-      } else {
-        if (any(control[["ddcp",exact=TRUE]][["ddChangepoint"]] > now)) {
+      }
+      if (any(control[["ddcp"]][["ddChangepoint"]] > now)) {
           warning("Some of the elements in ddChangepoint are beyond 'now'. This might be problematic!")
-        }
       }
       ##Check cp_order variable
       if (!is.null(control[["ddcp",exact=TRUE]][["cp_order",exact=TRUE]])) {

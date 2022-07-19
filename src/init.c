@@ -21,8 +21,6 @@ extern void glr_nbgeneral_window(int *x, double *mu0, double *alpha_R, int *lx_R
 extern void glr_nb_window(int *x, double *mu0, double *alpha_R, int *lx_R, int *Mtilde_R, int *M_R, double *c_ARL_R, int *ret_N, double *ret_glr, int *dir_R);
 extern void lr_cusum(int *x, double *mu0, int *lx_R, double *kappa_R, double *c_ARL_R, int *ret_N, double *ret_lr, double *ret_cases, int *ret_R);
 extern void lr_cusum_nb(int *x, double *mu0, double *alpha_R, int *lx_R, double *kappa_R, double *c_ARL_R, int *ret_N, double *ret_lr, double *ret_cases, int *ret_R);
-extern void pkolmogorov2x(double *x, Sint *n);
-extern void pkstwo(Sint *n, double *x, double *tol);
 extern void siaf_polyCub1_iso(double *x, double *y, int *L, int *intrfr_code, double *pars, int *subdivisions, double *epsabs, double *epsrel, int *stop_on_error, double *value, double *abserr, int *neval);
 
 extern void SRspacetime(double *x, double *y, double *t, int *n, double *radius,
@@ -39,6 +37,8 @@ extern void twins(int *x_ptr, int *n_ptr, int *I_ptr,
 /* .Call calls */
 extern SEXP determineSources(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP eq3a(SEXP, SEXP, SEXP);
+extern SEXP pKS2(SEXP, SEXP);
+extern SEXP pKolmogorov2x(SEXP, SEXP);
 
 static const R_CMethodDef CEntries[] = {
     {"glr_cusum",            (DL_FUNC) &glr_cusum,            10},
@@ -48,8 +48,6 @@ static const R_CMethodDef CEntries[] = {
     {"glr_nb_window",        (DL_FUNC) &glr_nb_window,        10},
     {"lr_cusum",             (DL_FUNC) &lr_cusum,              9},
     {"lr_cusum_nb",          (DL_FUNC) &lr_cusum_nb,          10},
-    {"pkolmogorov2x",        (DL_FUNC) &pkolmogorov2x,         2},
-    {"pkstwo",               (DL_FUNC) &pkstwo,                3},
     {"siaf_polyCub1_iso",    (DL_FUNC) &siaf_polyCub1_iso,    12},
     {"SRspacetime",          (DL_FUNC) &SRspacetime,          13},
     {"twins",                (DL_FUNC) &twins,                16},
@@ -59,6 +57,8 @@ static const R_CMethodDef CEntries[] = {
 static const R_CallMethodDef CallEntries[] = {
     {"determineSources", (DL_FUNC) &determineSources, 6},
     {"eq3a",             (DL_FUNC) &eq3a,             3},
+    {"pKS2",             (DL_FUNC) &pKS2,             2},
+    {"pKolmogorov2x",    (DL_FUNC) &pKolmogorov2x,    2},
     {NULL, NULL, 0}
 };
 

@@ -526,9 +526,9 @@ school as a proxy for the susceptible population.
 As $v_i$ we use the proportion of children vaccinated with at least one dose
 among the ones presenting their vaccination card at school entry in district
 $i$ in the year 2004.\footnote{%
-  First year with data for all districts -- available from
+  First year with data for all districts; more recent data is available from
   the public health department of Lower Saxony
-  (\url{https://www.nlga.niedersachsen.de/portal/live.php?navigation_id=36791&article_id=135436&_psmand=20}).}
+  (\url{https://www.nlga.niedersachsen.de/impfreport/}).}
   %% Note: districts are more heterogeneous in 2004 than in later years.
   %% Data is based on abecedarians in 2004, i.e.\ born in 1998, recommended to
   %% be twice vaccinated against Measles by the end of year 2000.

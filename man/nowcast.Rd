@@ -164,7 +164,7 @@ nowcast(now, when, data, dEventCol="dHospital", dReportCol="dReport",
   progresses (until the next change-point). The later can be helpful in
   very dynamic epidemic situations where a lot of cases suddenly appear
   overwhelming the surveillance system infrastructure.}
-	  \item{code{Wextra}}{An additional design matrix part to be joined
+	  \item{\code{Wextra}}{An additional design matrix part to be joined
   onto the part originating from the change-points. Altogether, the
   column bind of these two quantities will be \eqn{W_{t,d}}. This allows
   one to include, e.g., day of the week effects or holidays.}

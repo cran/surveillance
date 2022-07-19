@@ -26,7 +26,7 @@
     \item \code{m3} 'Masern' in the 'Kreis Leer' (Germany, Niedersachsen)
     \item \code{m4} 'Masern' in the 'Stadt- und Landkreis Aachen' (Germany, Nordrhein-Westfalen)
     \item \code{m5} 'Masern' in the 'Stadt Verden' (Germany, Niedersachsen)
-    \item \code{q1\_nrwh} 'Q-Fieber' in the 'Hochsauerlandkreis' (Germany, Westfalen)
+    \item \code{q1_nrwh} 'Q-Fieber' in the 'Hochsauerlandkreis' (Germany, Westfalen)
     and in the 'Landkreis Waldeck-Frankenberg' (Germany, Hessen)
     \item \code{q2} 'Q-Fieber' in '\enc{München}{Muenchen}' (Germany, Bayern)
     \item \code{s1} 'Salmonella Oranienburg' in Germany
@@ -35,7 +35,7 @@
     \item \code{k1} 'Kryptosporidiose' in Germany, 'Baden-W\enc{ü}{ue}rttemberg'
     \item \code{n1} 'Norovirus' in 'Stadtkreis Berlin Mitte' (Germany, Berlin)
     \item \code{n2} 'Norovirus' in 'Torgau-Oschatz' (Germany, Sachsen)
-    \item \code{h1\_nrwrp} 'Hepatitis A' in 'Oberbergischer Kreis, Olpe, Rhein-Sieg-kreis'
+    \item \code{h1_nrwrp} 'Hepatitis A' in 'Oberbergischer Kreis, Olpe, Rhein-Sieg-kreis'
     (Germany, Nordrhein-Westfalen) and 'Siegenwittgenstein Altenkirchen' (Germany, Rheinland-Pfalz)
   }
 }

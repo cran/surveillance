@@ -24,7 +24,7 @@
 boda(sts, control = list(
     range=NULL, X=NULL, trend=FALSE, season=FALSE,
     prior=c('iid','rw1','rw2'), alpha=0.05, mc.munu=100, 
-    mc.y=10, verbose=FALSE,multicore=TRUE,
+    mc.y=10, verbose=FALSE,
     samplingMethod=c('joint','marginals'),
     quantileMethod=c("MC","MM")
 ))
@@ -52,8 +52,6 @@ boda(sts, control = list(
 	  \times mc.y}{mc.munu*mc.y} samples are generated.}
       \item{\code{verbose}}{Argument sent to the inla call. When using ESS
 	it might be necessary to force verbose mode for INLA to work.}
-      \item{\code{multicore}}{Detect using \code{parallel::detectCores}
-	how many logical cores are available and set INLA to use this number.}
       \item{\code{samplingMethod}}{Should one sample from the parameters joint distribution (joint) or from their respective marginal posterior distribution (marginals)?}
       \item{quantileMethod}{Character, either \code{MC} or \code{MM}. Indicates how to compute the quantile based on the posterior distribution (no matter the inference method): either by sampling \code{mc.munu} values from the posterior distribution of the parameters and then for each sampled parameters vector sampling \code{mc.y} response values so that one gets a vector of response values based on which one computes an empirical quantile (MC method, as explained in Manitz and \enc{Höhle}{Hoehle} 2013); or by sampling \code{mc.munu} from the posterior distribution of the parameters and then compute the quantile of the mixture distribution using bisectioning, which is faster.}
     }
@@ -72,9 +70,11 @@ boda(sts, control = list(
   depends on the \pkg{INLA} package so changes there might affect the
   operational ability of this function. Since the computations
   for the Bayesian GAM are quite involved do not expect this function
-  to be particularly fast. Future work could focus on improving the
-  speed, e.g., one issue would be to make the inference work in a sequential
-  fashion.
+  to be particularly fast.
+
+  Results are not reproducible if \pkg{INLA} uses parallelization (as by default);
+  set \code{INLA::inla.setOption(num.threads = "1:1")} to avoid that,
+  then do \code{\link{set.seed}} as usual.
 }
 
 \keyword{classif}

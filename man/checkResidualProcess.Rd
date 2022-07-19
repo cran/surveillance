@@ -14,7 +14,7 @@ Check the residual process of a fitted \code{twinSIR} or \code{twinstim}
   The transformation for the residuals \code{tau} is
   \code{1 - exp(-diff(c(0,tau)))} (cf. Ogata, 1988).
   Another plot inspects the serial correlation between the transformed
-  residuals (scatterplot between u_i and u_{i+1}).
+  residuals (scatterplot between \eqn{u_i} and \eqn{u_{i+1}}).
 }
 
 \usage{

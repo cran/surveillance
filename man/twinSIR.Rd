@@ -151,12 +151,12 @@ twinSIR(formula, data, weights, subset,
   \deqn{\lambda_i(t) = Y_i(t) * (e_i(t) + h_i(t))}
   where
   \describe{
-    \item{Y\_i(t)}{
+    \item{Y_i(t)}{
       is the at-risk indicator, indicating if individual \eqn{i} is
       \dQuote{at risk} of becoming infected at time point \eqn{t}.
       This variable is part of the event history \code{data}.
     }
-    \item{e\_i(t)}{
+    \item{e_i(t)}{
       is the epidemic component of the infection intensity, defined as
       \deqn{e_i(t) = \sum_{j \in I(t)} f(||s_i - s_j||)}
       where \eqn{I(t)} is the set of infectious individuals just before time
@@ -171,7 +171,7 @@ twinSIR(formula, data, weights, subset,
       with \eqn{x_{im}(t) = \sum_{j \in I(t)} B_m(||s_i - s_j||)} being the
       \eqn{m}'th epidemic variable for individual \eqn{i}.
     }
-    \item{h\_i(t)}{
+    \item{h_i(t)}{
       is the endemic (\code{cox}) component of the infection intensity, defined
       as
       \deqn{h_i(t) = \exp(h_0(t) + z_i(t)' \beta)}
