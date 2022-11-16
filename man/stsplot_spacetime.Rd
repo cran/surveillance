@@ -87,14 +87,15 @@ stsplot_spacetime(x, type, legend = NULL, opts.col = NULL, labels = TRUE,
 data("ha.sts")
 print(ha.sts)
 
-## map of total counts by district
-plot(ha.sts, type=observed ~ 1 | unit)
-## only show a sub-period total for two selected districts
-plot(ha.sts[1:20,1:2], type=observed ~ 1 | unit)
+\dontshow{if (surveillance.options("allExamples")) \{}
+## map of total counts by district (compare old vs. new implementation)
+plot(ha.sts, type = observed ~ 1 | unit)
+plot(ha.sts, type = observed ~ unit, labels = TRUE)
+\dontshow{\}}
 
 \dontrun{
 # space-time animation
-plot(aggregate(ha.sts,nfreq=13), type= observed ~ 1 | unit * time)
+plot(aggregate(ha.sts,nfreq=13), type = observed ~ 1 | unit * time)
 
 #print the frames to a png device
 #and do the animation without extra sleeping between frames

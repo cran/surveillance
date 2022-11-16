@@ -88,12 +88,12 @@ data("measlesWeserEms")
   as implemented at \url{https://MapShaper.org}.
 
   Population numbers were obtained from the Federal Statistical Office of
-  Lower Saxony (\acronym{LSN}):
-  \url{https://www.statistik.niedersachsen.de/}. % curl status 400 ...
+  Lower Saxony (\acronym{LSN}).
+  %\url{https://www.statistik.niedersachsen.de/} % curl status 400 ...
 
   Vaccination coverage was obtained from the public health department of
-  Lower Saxony (\acronym{NLGA}, \dQuote{Impfreport}):
-  \url{https://www.nlga.niedersachsen.de/}. % curl status 400 ...
+  Lower Saxony (\acronym{NLGA}, \dQuote{Impfreport}).
+  %\url{https://www.nlga.niedersachsen.de/} % curl status 400 ...
   %% Nieders\enc{ä}{ae}chsisches Landesgesundheitsamt (2005): Impfreport --
   %% Durchimpfung von Kindern im Einschulungsalter in Niedersachsen im
   %% Erhebungsjahrgang 2004.

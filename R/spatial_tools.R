@@ -1,13 +1,14 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Auxiliary functions for operations on spatial data
 ###
-### Copyright (C) 2009-2015,2018,2021 Sebastian Meyer
-### $Revision: 2602 $
-### $Date: 2021-01-13 18:36:11 +0100 (Wed, 13. Jan 2021) $
+### Copyright (C) 2009-2015,2018,2021,2022  Sebastian Meyer
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
+###
+### $Revision: 2896 $
+### $Date: 2022-10-31 16:17:36 +0100 (Mon, 31. Oct 2022) $
 ################################################################################
 
 
@@ -267,4 +268,48 @@ areaSpatialPolygons <- function (obj, byid = FALSE)
         )
         if (byid) setNames(areas, row.names(obj)) else sum(areas)
     }
+}
+
+
+### build a SpatialGrid of approx. 'n' square cells covering 'bbox(obj)'
+## replacement for maptools::Sobj_SpatialGrid()
+
+makeGrid <- function (obj, n = 128)
+{
+    bb <- bbox(obj)
+    xlim <- bb[1L,]
+    ylim <- bb[2L,]
+    xr <- xlim[[2L]] - xlim[[1L]]
+    yr <- ylim[[2L]] - ylim[[1L]]
+    asp <- if (lscape <- xr > yr) xr/yr else yr/xr
+    n1 <- ceiling(sqrt(n*asp))
+    n2 <- ceiling(n1/asp)
+    size <- (if (lscape) xr else yr) / n1
+    offset <- bb[,1L] + size/2
+    grd <- GridTopology(offset, c(size, size),
+                        if (lscape) c(n1, n2) else c(n2, n1))
+    SpatialGrid(grd, proj4string = obj@proj4string)
+}
+
+if (FALSE) {
+## alternative that usually does not produce square cells,
+## but has the same extent as bbox(obj),
+## similar to sf::st_make_grid(obj, n = magic.dim(.));
+## this would produce different spatial intensity plots than before
+makeGrid <- function (obj, n = 128)
+{
+    bb <- bbox(obj)
+    xlim <- bb[1L,]
+    ylim <- bb[2L,]
+    xr <- xlim[[2L]] - xlim[[1L]]
+    yr <- ylim[[2L]] - ylim[[1L]]
+    if (length(n) == 1) {
+        n <- magic.dim(n)
+        if (xr > yr) n <- rev(n)
+    } else stopifnot(length(n) == 2)
+    size <- c(xr, yr)/n
+    offset <- bb[, 1L] + size/2
+    grd <- GridTopology(offset, size, n)
+    SpatialGrid(grd, proj4string = obj@proj4string)
+}
 }

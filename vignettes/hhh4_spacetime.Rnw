@@ -1,6 +1,7 @@
 %\VignetteIndexEntry{hhh4 (spatio-temporal): Endemic-epidemic modeling of areal count time series}
 %\VignetteEngine{knitr::knitr}
-%\VignetteDepends{surveillance, lattice, spdep, gsl, colorspace, animation, gridExtra, scales, fanplot, hhh4contacts}
+%% additional dependencies beyond what is required for surveillance anyway:
+%\VignetteDepends{surveillance, lattice, spdep, gsl, colorspace, gridExtra, scales, fanplot, hhh4contacts}
 
 <<setup, cache = FALSE, include = FALSE, purl = FALSE>>=
 ## purl=FALSE => not included in the tangle'd R script
@@ -18,16 +19,6 @@ options(scipen = 1)  # so that 1e-4 gets printed as 0.0001
 options(xtable.booktabs = TRUE, xtable.size = "small",
         xtable.sanitize.text.function = identity,
         xtable.comment = FALSE)
-@
-
-<<include = FALSE>>=
-## load the "cool" package
-library("surveillance")
-
-## Compute everything or fetch cached results?
-message("Doing computations: ",
-        COMPUTE <- !file.exists("hhh4_spacetime-cache.RData"))
-if (!COMPUTE) load("hhh4_spacetime-cache.RData", verbose = TRUE)
 @
 
 
@@ -116,23 +107,26 @@ branching process with immigration}
 
 \begin{document}
 
-%% \vfill
-%% {
-%%   \renewcommand{\abstractname}{Outline}  % local change
-%%   \begin{abstract}
-%%     We start by describing the general model class in Section~\ref{sec:hhh4:methods}.
-%%     Section~\ref{sec:hhh4:data} introduces the data and the associated \proglang{S}4-class
-%%     \class{sts} (``surveillance time series'').
-%%     In Section~\ref{sec:hhh4:fit}, a simple model for the measles data based on the
-%%     original analysis of \citet{held-etal-2005} is introduced,
-%%     which is then sequentially improved by suitable model extensions.
-%%     The final Section~\ref{sec:hhh4:simulation} illustrates simulation from fitted
-%%     \class{hhh4} models.
-%%   \end{abstract}
-%% }
-%% \vfill
-%% \newpage
+<<vignetteDepends, include = FALSE, purl = FALSE, message = FALSE>>=
+## workaround for PR#18318 (R CMD check ignoring \VignetteDepends)
+for (.pkg in tools::vignetteInfo("hhh4_spacetime.Rnw")$depends) {
+    if (!requireNamespace(.pkg, quietly = TRUE)) {
+        message("SKIPPED due to unavailable vignette dependencies")
+        knitr::knit_exit()  # this appends \end{document}
+        break
+    }
+}
+@
 
+<<include = FALSE>>=
+## load the "cool" package
+library("surveillance")
+
+## Compute everything or fetch cached results?
+message("Doing computations: ",
+        COMPUTE <- !file.exists("hhh4_spacetime-cache.RData"))
+if (!COMPUTE) load("hhh4_spacetime-cache.RData", verbose = TRUE)
+@
 
 
 \section[Model class]{Model class: \code{hhh4}} \label{sec:hhh4:methods}
@@ -1107,7 +1101,7 @@ for further examples.
 ## create automatic references for R packages
 .Rbibfile <- file("hhh4_spacetime-R.bib", "w", encoding = "latin1")
 Rbib <- knitr::write_bib(
-    c("MASS", "Matrix", "spdep", "colorspace", "gridExtra", "lattice", "sp", "animation", "fanplot", "hhh4contacts"),
+    c("MASS", "Matrix", "spdep", "colorspace", "gridExtra", "lattice", "sp", "fanplot", "hhh4contacts"),
     file = NULL, tweak = FALSE, prefix = "R:")
 ## write_bib() to file does enc2utf8() -> fails for ISO8859-15 session charset
 writeLines(unlist(Rbib, use.names = FALSE), .Rbibfile)

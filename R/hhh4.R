@@ -2,14 +2,14 @@
 ### Endemic-epidemic modelling for univariate or multivariate
 ### time series of infectious disease counts (data class "sts")
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2012-2016,2019-2021 Sebastian Meyer
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2016,2019-2022 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
 ### a copy of which is available at https://www.R-project.org/Licenses/.
 ###
-### $Revision: 2805 $
-### $Date: 2022-02-09 15:29:47 +0100 (Wed, 09. Feb 2022) $
+### $Revision: 2874 $
+### $Date: 2022-08-05 17:15:48 +0200 (Fri, 05. Aug 2022) $
 ################################################################################
 
 ## Error message issued in loglik, score and fisher functions upon NA parameters
@@ -505,6 +505,9 @@ checkFormula <- function(f, component, data, stsObj)
   # list of variables in the component
   vars <- as.list(attr(term,"variables"))[-1] # first element is "list"
   nVars <- length(vars)
+
+  if (nVars > 0 && any(attr(term, "order") > 1))
+      warning("interaction terms are not implemented")
 
   # begin with intercept
   res <- if (intercept.all) {

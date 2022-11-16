@@ -45,14 +45,16 @@ load(system.file("shapes", "districtsD.RData", package = "surveillance"))
 ## Determine districts at the border and check the result on the map
 if (requireNamespace("rgeos")) {
     atBorder <- polyAtBorder(districtsD, method = "rgeos")
-    plot(districtsD, col = atBorder)
+    if (interactive()) plot(districtsD, col = atBorder)
+    table(atBorder)
 }
 
 ## For method = "polyclip", a higher snapping tolerance is required
 ## to obtain the correct result
 if (requireNamespace("polyclip")) {
     atBorder <- polyAtBorder(districtsD, snap = 1e-6, method = "polyclip")
-    plot(districtsD, col = atBorder)
+    if (interactive()) plot(districtsD, col = atBorder)
+    table(atBorder)
 }
 }
 

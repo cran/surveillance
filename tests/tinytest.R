@@ -1,5 +1,5 @@
 ### "lazy" transition from "testthat" to "tinytest"
-### Copyright (C) 2020-2021 Sebastian Meyer
+### Copyright (C) 2020-2022 Sebastian Meyer
 
 if (!requireNamespace("tinytest", quietly = TRUE)
     || packageVersion("tinytest") < "1.2.4") {
@@ -12,6 +12,9 @@ test_that <- function (desc, code) {
     eval(substitute(code), new.env(parent = parent.frame()))
     invisible()
 }
+
+## show warnings as they appear
+options(warn = 1)
 
 ## we use verbose = 1 to print_status() only after each test file,
 ## not after each expression (verbose = 2)

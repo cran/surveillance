@@ -2,7 +2,7 @@
  * File based on algoritmos.cpp and sv.cpp from the TerraView plugin.
  * C++ source originally created by Marcos Oliveira Prates on 06 April 2006
  *
- * R interface by Michael Höhle initiated on 12 Jan 2009
+ * R interface by Michael Hoehle initiated on 12 Jan 2009
  */
 
 #include "stcd-assuncaocorrea.h"

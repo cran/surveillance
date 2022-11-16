@@ -243,7 +243,9 @@ bodaFit <- function(dat, modelformula, alpha, mc.munu, mc.y,
     ## CAVE: 'model' is not reproducible if num.threads != "1:1" (INLA 22.05.07),
     ##       so there is no point in making the sampling step reproducible
     ##inla.seed <- as.integer(runif(1) * .Machine$integer.max)
-    jointSample <- INLA::inla.posterior.sample(mc.munu, model, intern = TRUE)  #, seed = inla.seed
+    jointSample <- INLA::inla.posterior.sample(
+      n = mc.munu, result = model, intern = TRUE,  # seed = inla.seed
+      skew.corr = FALSE)  # added with default TRUE in INLA 19.10.30, needs sn
     # take variation in size hyperprior into account by also sampling from it
     theta <- exp(t(sapply(jointSample, function(x) x$hyperpar[[1]])))
     mT1 <- exp(t(sapply(jointSample, function(x) x$latent[[T1]])))

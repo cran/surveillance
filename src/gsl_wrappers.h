@@ -1,5 +1,5 @@
 /*******************************************************************
- * Author: Michael Höhle <hoehle@stat.uni-muenchen.de>
+ * Author: Michael Hoehle <hoehle@stat.uni-muenchen.de>
  * Date:   Aug 2008 *
  *
  * Header file containing wrappers for GSL related calls

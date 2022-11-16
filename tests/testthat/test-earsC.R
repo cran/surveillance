@@ -55,7 +55,5 @@ test_that("The range is well defined",{
   surv <- earsC(salmNewportGermany,
                 control = list(method = "C1",
                                baseline = 10))
-
-  expect_true(length(surv@upperbound) == length(salmNewportGermany@observed) - 10)
-
+  expect_equal(length(surv@upperbound), length(salmNewportGermany@observed) - 10)
 })

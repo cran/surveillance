@@ -1,3 +1,34 @@
+# surveillance 1.20.3 (2022-11-14)
+
+- `vignette("monitoringCounts")` now uses **knitr** as its engine
+  to work around [Bug 18318](https://bugs.R-project.org/show_bug.cgi?id=18318).
+
+
+# surveillance 1.20.2 (2022-10-31)
+
+## NEW FEATURES
+
+- `plotHHH4_fitted()` can now produce simple (unformatted) time indexes
+  if argument `xaxis = NA`.
+
+## MINOR CHANGES
+
+- Various documentation improvements,
+  including an example for `predict.hhh4()`.
+
+- `intensityplot.twinstim()` no longer depends on package
+  [**maptools**](https://CRAN.R-project.org/package=maptools).
+
+## BUG FIXES
+
+- `hhh4()` now warns about interaction terms in model formulae.
+  These are not implemented and were silently ignored previously.
+
+- Fixed a memory leak in `algo.twins()`; note that this old experimental
+  MCMC implementation for a two-component epidemic model may be removed in
+  future versions of the package.
+
+
 # surveillance 1.20.1 (2022-07-13)
 
 ## BUG FIXES
@@ -1724,7 +1755,7 @@
   and `siaf.powerlawL()`.
 
 - More rigorous checking of `tiles` in
-  `simulate.twinstim()` and `intensityplot.twinstim`.
+  `simulate.twinstim()` and `intensityplot.twinstim()`.
 
 - `as.epidataCS()` gained a `verbose` argument.
 

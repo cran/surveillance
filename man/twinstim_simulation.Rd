@@ -281,10 +281,8 @@ simEpidataCS(endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
   the algorithm. You are advised to sacrifice some shape
   details for speed by reducing the polygon complexity,
   for example via the \command{mapshaper} JavaScript library wrapped by
-  the R package \CRANpkg{rmapshaper}.
-  Alternative tools are provided by the packages \CRANpkg{maptools}
-  (\code{\link[maptools]{thinnedSpatialPoly}}) and \CRANpkg{spatstat.geom}
-  (\code{\link[spatstat.geom]{simplify.owin}}).
+  the R package \CRANpkg{rmapshaper}, or via
+  \code{\link[spatstat.geom]{simplify.owin}}.
 }
 
 \references{
@@ -324,9 +322,11 @@ data("imdepi", "imdepifit")
 ## https://gdz.bkg.bund.de/), simplified by the "modified Visvalingam"
 ## algorithm (level=6.6\%) using MapShaper.org (v. 0.1.17):
 load(system.file("shapes", "districtsD.RData", package="surveillance"))
+\dontshow{if (surveillance.options("allExamples")) \{}
 plot(districtsD)
 plot(stateD, add=TRUE, border=2, lwd=2)
 # 'stateD' was obtained as 'rgeos::gUnaryUnion(districtsD)'
+\dontshow{\}}
 
 ## simulate 2 realizations (over a short period, for speed)
 ## considering events from data(imdepi) before t=31 as prehistory

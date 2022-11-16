@@ -114,7 +114,7 @@
 data("measlesWeserEms")
 
 ## animate the weekly counts of measles (during weeks 12-16 only, for speed)
-if (require("animation")) {
+if (interactive() && require("animation")) {
     oldwd <- setwd(tempdir())  # to not clutter up the current working dir
     saveHTML(animate(measlesWeserEms, tps=12:16),
              title="Evolution of the measles epidemic in the Weser-Ems region",

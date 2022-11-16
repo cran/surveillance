@@ -54,8 +54,8 @@ autoplot.sts(object, population = FALSE, units = NULL,
 ## compare traditional plot() with ggplot2-based autoplot.sts()
 if (requireNamespace("ggplot2")) {
     data("measlesDE")
-    plot(measlesDE)
-    autoplot.sts(measlesDE)
+    plot(measlesDE, units = 1:2)
+    autoplot.sts(measlesDE, units = 1:2)
 }
 
 \dontshow{if (surveillance.options("allExamples"))}

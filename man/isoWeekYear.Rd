@@ -4,9 +4,7 @@
 \title{Find ISO Week and Year of Date Objects}
 \description{
   The function \code{isoWeekYear} extracts the year and week of a
-  \code{\link{Date}} according to the ISO 8601 specification. It simply
-  calls \code{\link{strftime}} with format strings \code{"\%G"}
-  and \code{"\%V"}, respectively.
+  \code{\link{Date}} according to the ISO 8601 specification.
 }
 \usage{
 isoWeekYear(Y, M, D)
@@ -19,6 +17,12 @@ isoWeekYear(Y, M, D)
 \value{
   A list with entries \code{ISOYear} and \code{ISOWeek} containing the
   corresponding results.
+}
+\note{
+  As from \pkg{surveillance} 1.17.0, this function simply
+  calls \code{\link{strftime}} with format strings \code{"\%G"}
+  and \code{"\%V"}, respectively, as this is nowadays (\R >= 3.1.0)
+  also supported on Windows.
 }
 \examples{
 dates <- as.Date(c("2002-12-31","2003-01-01","2003-01-06"))

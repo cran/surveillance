@@ -63,7 +63,7 @@ data("hagelloch")
     \item{tDEAD:}{Time of death, if available.}
     \item{tR:}{Time at which the infectious period of the individual is
       assumed to end. This unknown time is calculated as
-      \deqn{tR_i = \min{tDEAD_i,tERU_i+d_0},}{tR[i] = min(tDEAD[i],tERU[i]+d0),}
+      \deqn{tR_i = \min(tDEAD_i, tERU_i+d_0),}{tR[i] = min(tDEAD[i], tERU[i] + d0),}
       where -- as in Section 3.1 of Neal and Roberts (2004) -- we use
       \eqn{d_0=3}{d0=3}.}
     \item{tI:}{Time at which the individual is assumed to become

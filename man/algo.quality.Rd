@@ -27,7 +27,7 @@ algo.quality(sts, penalty = 20)
   The lag is defined as follows:
   In the state chain just the beginnings of an outbreak chain (outbreaks directly
   following each other) are considered. In the alarm chain, the range from the beginning
-  of an outbreak until \eqn{min(next outbreak beginning,\code{penalty})} timepoints is considered. The \code{penalty} timepoints were
+  of an outbreak until \code{min(`next outbreak beginning`, penalty)} timepoints is considered. The \code{penalty} timepoints were
   chosen, to provide an upper bound on the penalty for not discovering an outbreak. Now the difference between the first alarm by the system and the defined beginning is denoted ``the lag'' Additionally outbreaks found by the system are not
   punished. At the end, the mean of the lags for every outbreak chain is returned
   as summary lag.

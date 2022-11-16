@@ -96,13 +96,13 @@ test_that("We get the expected timepoints with monthly data",{
   lala <- surveillance:::algo.farrington.referencetimepoints(dayToConsider,b=b,freq=freq,epochAsDate,epochStr)
   expect_equal(lala,c(48,36,24,12))
 })
-test_that("one gets a warning if too many years back",{
+test_that("We get an error when going too many years back",{
   dayToConsider <- 48
   b <- 3
   freq <- 12
   epochAsDate <- FALSE
   epochStr <- "month"
-  expect_warning(surveillance:::algo.farrington.referencetimepoints(dayToConsider,b=8,freq=freq,epochAsDate,epochStr), "Some reference")
+  expect_true(any(surveillance:::algo.farrington.referencetimepoints(dayToConsider,b=8,freq=freq,epochAsDate,epochStr) < 1))
 
   # apply code
    control1 <-  list(range=250,noPeriods=10,populationOffset=FALSE,
@@ -139,8 +139,8 @@ arguments <- list(dataGLM=dataGLM,
 				   control=control)
 model <- do.call(surveillance:::algo.farrington.fitGLM.flexible, args=arguments)
 
-test_that("The fit glm function gives the right class of output?",{
-  expect_identical(class(model),c("glm","lm"))
+test_that("The fit glm function gives the right class of output",{
+  expect_inherits(model, "glm")
 })
 
 test_that("The fit glm function gives as many coefficients as expected",{
@@ -342,7 +342,7 @@ lala <- surveillance:::algo.farrington.data.glm(dayToConsider, b, freq,
                                  verbose,pastWeeksNotIncluded,k)
 
 test_that("the output is a data.frame",{
-  expect_true(class(lala)=="data.frame")
+  expect_inherits(lala, "data.frame")
 })
 
 test_that("the data frame contains all variables",{
@@ -354,7 +354,7 @@ test_that("the time variable is ok with diff 1",{
 })
 
 test_that("the factor variable has the right number of levels",{
-  expect_true(length(levels(lala$seasgroups))==noPeriods)
+  expect_equal(nlevels(lala$seasgroups), noPeriods)
 })
 
 observed[1150] <- NA

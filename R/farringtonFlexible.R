@@ -324,11 +324,6 @@ algo.farrington.referencetimepoints <- function(dayToConsider,b=control$b,freq=f
 										length.out=(b+1), by="-1 year"))
 	} else {
 		referenceTimePoints <- seq(dayToConsider, length.out=(b+1), by=-freq)
-
-		if (referenceTimePoints[b+1]<=0){
-			warning("Some reference values did not exist (index<1).")
-		}
-
 	}
 
 	if (epochStr == "week") {
@@ -632,7 +627,7 @@ epochAsDate) {
     referenceTimePointsOrNot <- vectorOfDates %in%    referenceTimePoints
 
     ## VECTOR OF FACTORS
-    vectorOfFactors <- rep(NA,length(vectorOfDates))
+    vectorOfFactors <- rep(NA_real_,length(vectorOfDates))
 
     ## SETTING THE FACTORS
     # Current week
@@ -649,7 +644,7 @@ epochAsDate) {
     # Reference weeks
 
     referenceWeeks <- rev(as.numeric(
-                    vectorOfAbsoluteNumbers[referenceTimePointsOrNot=='TRUE']))
+                    vectorOfAbsoluteNumbers[referenceTimePointsOrNot]))
 
     for (i in 1:b) {
 
@@ -724,9 +719,11 @@ algo.farrington.data.glm <- function(dayToConsider, b, freq,
 														       epochStr=epochStr
 															   )
 
-	if (sum((vectorOfDates %in% min(referenceTimePoints)) == rep(FALSE,length(vectorOfDates))) == length(vectorOfDates)){
-		stop("Some reference values did not exist (index<1).")
-		}
+	if (!all(referenceTimePoints %in% vectorOfDates)) {
+		## previously only checked min(referenceTimePoints)
+		stop("Some reference time points did not exist; ",
+		     "decrease 'b' or postpone 'range'.")
+	}
 
 	if (verbose) { cat("k=", k,"\n")}
 

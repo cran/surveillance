@@ -36,7 +36,7 @@
                 values - for long series this might take very long time!}
             \item{\code{noStates}}{number of hidden states in the HMM
                 -- the typical choice is 2. The initial rates are set
-                such that the \code{noStates}'th state is the one
+                such that the \code{noStates}th state is the one
                 having the highest rate. In other words: this state is considered
                 the outbreak state.}
             \item{\code{trend}}{Boolean stating whether a linear time trend exists, i.e. if \code{TRUE} (default) then \eqn{\beta_j \neq 0}{\beta != 0}}
@@ -60,7 +60,7 @@
   the number of requested values is larger than the number of possible
   values the latter is used. Now the following happens on these reference values:
 
-  A \code{noState}-State Hidden Markov Model (HMM) is used based on
+  A \code{noStates}-State Hidden Markov Model (HMM) is used based on
   the Poisson distribution with linear predictor on the log-link
   scale. I.e.  \deqn{Y_t | X_t = j \sim Po(\mu_t^j),}{Y_t|X_t = j ~
     Po(\mu_t^j),} where \deqn{\log(\mu_t^j) = \alpha_j + \beta_j\cdot
@@ -76,7 +76,7 @@
 
   If \code{covEffectEqual} then all covariate effects parameters are
   equal for the states, i.e. \eqn{\beta_j=\beta, \gamma_j^i=\gamma^i,
-    \delta_j^i=\delta^i} for all \eqn{j=1,...,noState}.
+    \delta_j^i=\delta^i} for all \eqn{j=1,...,\code{noStates}}.
 
   In case more complicated HMM models are to be fitted it is possible to
   modify the \code{msm} code used in this function. Using

@@ -28,7 +28,42 @@
   matrix of fitted means for each time point (of \code{newSubset}) and region.
 }
 
+\note{
+  Predictions for \dQuote{newdata}, i.e., with modified covariates or
+  fixed weights, can be computed manually by adjusting the control list
+  (in a copy of the original fit), dropping the old \code{terms}, and using
+  the internal function \code{\link{meanHHH}} directly, see the Example.
+}
+
 \author{Michaela Paul and Sebastian Meyer}
 
 \keyword{methods}
 \keyword{models}
+
+\examples{
+## simulate simple seasonal noise with reduced baseline for t >= 60
+t <- 0:100
+y <- rpois(length(t), exp(3 + sin(2*pi*t/52) - 2*(t >= 60)))
+obj <- sts(y)
+plot(obj)
+
+## fit true model
+fit <- hhh4(obj, list(end = list(f = addSeason2formula(~lock)),
+                      data = list(lock = as.integer(t >= 60)),
+                      family = "Poisson"))
+coef(fit, amplitudeShift = TRUE, se = TRUE)
+
+## compute predictions for a subset of the time points
+stopifnot(identical(predict(fit), fitted(fit)))
+plot(obj)
+lines(40:80, predict(fit, newSubset = 40:80), lwd = 2)
+
+
+## advanced: compute predictions for "newdata" (here, a modified covariate)
+mod <- fit
+mod$terms <- NULL  # to be sure
+mod$control$data$lock[t >= 60] <- 0.5
+pred <- meanHHH(mod$coefficients, terms(mod))$mean
+plot(fit, xaxis = NA)
+lines(mod$control$subset, pred, lty = 2)
+}

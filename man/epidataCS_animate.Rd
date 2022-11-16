@@ -136,7 +136,7 @@ animate(imdepiB, time.spacing=NA, nmax=20, sleep=0.1)
 
 # Such an animation can be saved in various ways using the tools of
 # the animation package, e.g., saveHTML()
-if (require("animation")) {
+if (interactive() && require("animation")) {
   oldwd <- setwd(tempdir())  # to not clutter up the current working dir
   saveHTML(animate(imdepiB, interval = c(0,365), time.spacing = 7),
            nmax = Inf, interval = 0.2, loop = FALSE,

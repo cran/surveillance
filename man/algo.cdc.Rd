@@ -29,7 +29,7 @@ algo.cdc(disProgObj, control = list(range = range, b= 5, m=1,
   \code{algo.cdc} calls \code{algo.cdcLatestTimepoint} for the values
   specified in \code{range} and for the system specified in
   \code{control}.  The threshold is calculated from the predictive
-  distribution, i.e.  \deqn{mean(x) + z_{\alpha/2} * sd(x) * \sqrt(1+1/k),}
+  distribution, i.e.  \deqn{mean(x) + z_{\alpha/2} * sd(x) * \sqrt{1+1/k},}
   which corresponds to Equation 8-1 in Farrington and Andrews (2003).
   Note that an aggregation into 4-week blocks occurs in
   \code{algo.cdcLatestTimepoint} and \code{m} denotes number of 4-week

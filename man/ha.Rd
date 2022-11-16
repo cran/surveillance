@@ -5,8 +5,8 @@
 \title{Hepatitis A in Berlin}
 
 \description{
-  Number of Hepatitis A cases among adult male (age>18) in
-  Berlin 2001-2006. An increase is seen during 2006
+  Number of Hepatitis A cases among adult (age>18) males in
+  Berlin, 2001-2006. An increase is seen during 2006.
 }
 
 \usage{
@@ -17,8 +17,8 @@ data("ha.sts")
 \format{
   \code{ha} is a \code{disProg} object containing \eqn{290\times 12}{290 x 12}
   observations starting from week 1 in 2001 to week 30 in 2006.
-  \code{ha.sts} is generated from \code{ha} by the converter function
-  \code{\link{disProg2sts}} using a shape file of Berlin (see Examples).
+  \code{ha.sts} was generated from \code{ha} via the converter function
+  \code{\link{disProg2sts}} and includes a map of Berlin's districts.
 }
 
 \source{
@@ -37,10 +37,11 @@ plot(aggregate(ha))
 ## new-style "sts" object
 data("ha.sts")
 ha.sts
+plot(ha.sts, type = observed ~ time)  # = plot(aggregate(ha.sts, by = "unit"))
 plot(ha.sts, type = observed ~ unit, labels = TRUE)
 
-## conversion of the old "disProg" object 'ha' to the new S4 class "sts"
 \dontrun{
+## conversion of the old "disProg" object 'ha' to the new S4 class "sts"
 shpfile <- system.file("shapes/berlin.shp", package="surveillance")
 ha.sts <- disProg2sts(ha, map = maptools::readShapePoly(shpfile,IDvar="SNAME"))
 ## in data("ha.sts"), German umlauts in 'ha.sts@map@data$BEZIRK'

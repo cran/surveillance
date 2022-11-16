@@ -1,9 +1,21 @@
 %\VignetteIndexEntry{Monitoring count time series in R: Aberration detection in public health surveillance}
-%\VignetteDepends{surveillance, gamlss, INLA, MGLM}
+%\VignetteEngine{knitr::knitr}
+%% additional dependencies beyond what is required for surveillance anyway:
+%\VignetteDepends{surveillance, gamlss, MGLM}
+
+<<knitr, include = FALSE, purl = FALSE>>=
+knitr::opts_chunk$set(fig.path="plots/monitoringCounts-",
+                      error = FALSE, warning = FALSE, message = FALSE)
+knitr::render_sweave()             # use Sweave environments
+knitr::set_header(highlight = '')  # no \usepackage{Sweave} (part of jss class)
+options(xtable.booktabs = TRUE, xtable.comment = FALSE)
+@ 
 
 \documentclass[nojss]{jss}
 \usepackage{amsmath,bm}
-\usepackage{subfig}
+\usepackage{booktabs}
+\usepackage{subcaption} % successor of subfig, which supersedes subfigure
+\providecommand{\subfloat}[2][need a sub-caption]{\subcaptionbox{#1}{#2}}
 \newcommand{\BetaBin}{\operatorname{BetaBin}}
 \newcommand{\Var}{\operatorname{Var}}
 \newcommand{\logit}{\operatorname{logit}}
@@ -77,9 +89,20 @@
 
 
 \begin{document}
-\SweaveOpts{concordance=TRUE}
 
 \maketitle
+
+<<vignetteDepends, include = FALSE, purl = FALSE, message = FALSE>>=
+## workaround for PR#18318 (R CMD check ignoring \VignetteDepends)
+for (.pkg in tools::vignetteInfo("monitoringCounts.Rnw")$depends) {
+    if (!requireNamespace(.pkg, quietly = TRUE)) {
+        message("SKIPPED due to unavailable vignette dependencies")
+        knitr::knit_exit()  # this appends \end{document}
+        break
+    }
+}
+@
+
 
 \section{Introduction}
 \label{sec:0}
@@ -96,8 +119,7 @@ The present paper is designed as an extension of two previous articles about the
 This paper is structured as follows. Section~\ref{sec:1} gives an introduction to the data structure used in the package for representing and visualizing univariate or multivariate time series. Furthermore, the structure and use of aberration detection algorithms are explained. Section~\ref{sec:2} leads the reader through different surveillance methods available in the package. Section~\ref{sec:3} describes the integration of such methods in a complete surveillance system as currently in use at the RKI. Finally, a discussion rounds off the work.
 
 \section{Getting to know the basics of the package}
-<<SETUP, echo = FALSE,include = FALSE>>=
-options(width=77)
+<<SETUP, include = FALSE>>=
 ## create directories for plots and cache
 dir.create("plots", showWarnings=FALSE)
 dir.create("monitoringCounts-cache", showWarnings=FALSE)
@@ -105,7 +127,6 @@ dir.create("monitoringCounts-cache", showWarnings=FALSE)
 library('surveillance')
 library('gamlss')
 @
-\SweaveOpts{prefix.string=plots/monitoringCounts}
 \label{sec:1}
 
 The package provides a central S4 data class \code{sts} to capture multivariate or univariate time series. All further methods use objects of this class as an input.
@@ -136,7 +157,7 @@ Other slots enable the storage of additional information. Known aberrations are 
  which is an object of class \code{SpatialPolygonsDataFrame}~\citep{sp1,sp2} providing a shape of the $m$ areas which are monitored
 and slot \code{neighbourhood}, which is a symmetric matrix of Booleans size $m^2$ stating the neighborhood
 matrix. Slot \code{map} is pertinent when units are geographical units, whereas \code{neighbourhood} could be useful in any case, e.g., for storing a contact matrix between age groups for modeling purposes.
- Finally, if monitoring has been performed on the data the information on its control arguments and its results are stored in \code{control}, \code{upperbound} and \code{alarm} presented in Section~\ref{sec:howto}.
+ Finally, if monitoring has been performed on the data, the information on its control arguments and its results are stored in \code{control}, \code{upperbound} and \code{alarm} presented in Section~\ref{sec:howto}.
 
 \subsubsection[Creation of an object of class sts]{Creation of an object of class \texttt{sts}}
 The creation of an \code{sts} object is straightforward, requiring a call of the constructor function \code{sts} together with the slots to be assigned as arguments. The input of data from external files is one possibility for getting the counts
@@ -146,7 +167,7 @@ To exemplify the process we shall use weekly counts of \textit{Salmonella Newpor
 <<echo=FALSE>>=
 data("salmNewport")
 @
-<<test-sts2ts2sts, echo=TRUE, eval=FALSE>>=
+<<test-sts2ts2sts, echo=TRUE, eval=FALSE, purl=FALSE>>=
 all.equal(observed(salmNewport),
           observed(as(as(salmNewport, "ts"), "sts")))
 @
@@ -163,20 +184,22 @@ Using the \texttt{ts} class as intermediate step also allows the conversion betw
 # This code is the one used for the Salmon et al. (2016) JSS article.
 # Using this code all examples from the article can be reproduced.
 # computeALL is FALSE to avoid the computationally intensive parts
-# of the code (use of simulations to find a threshold value for categoricalCUSUM,
-# use of the boda function) but one can set it to TRUE to have it run.
+# of the code (simulations to find a threshold value for categoricalCUSUM,
+# INLA-driven BODA) but one can set it to TRUE to have it run.
 computeALL <- FALSE
 @
-<<echo=FALSE>>=
+<<echo=FALSE, purl=FALSE>>=
 # Define plot parameters
+cex.text <- 1.7
+line.lwd <- 2
+plotOpts <- local({
+
 #Add lines using grid by a hook function. Use NULL to align with tick marks
 hookFunc <- function() { grid(NA,NULL,lwd=1) }
-cex.text <- 1.7
 cex.axis <- cex.text
 cex.main <- cex.text
 cex.lab <-  cex.text
 cex.leg <- cex.text
-line.lwd <- 2#1
 stsPlotCol <- c("mediumblue","mediumblue","red2")
 alarm.symbol <- list(pch=17, col="red2", cex=2,lwd=3)
 #Define list with arguments to use with do.call("legend", legOpts)
@@ -185,7 +208,8 @@ legOpts <- list(x="topleft",legend=c(expression(U[t])),bty="n",lty=1,lwd=line.lw
 par.list <- list(mar=c(6,5,5,5),family="Times")
 #Do this once
 y.max <- 0
-plotOpts <- list(col=stsPlotCol,ylim=c(0,y.max),
+
+            list(col=stsPlotCol,ylim=c(0,y.max),
                  main='',lwd=c(1,line.lwd,line.lwd),
                  dx.upperbound=0, #otherwise the upperbound line is put 0.5 off
                  cex.lab=cex.lab, cex.axis=cex.axis, cex.main=cex.main,
@@ -195,67 +219,68 @@ plotOpts <- list(col=stsPlotCol,ylim=c(0,y.max),
                  xaxis.labelFreq=list("%Y"=atMedian),
                  xaxis.labelFormat="%Y",
                  par.list=par.list,hookFunc=hookFunc)
-
+})
 @
 
- \setkeys{Gin}{height=7cm, width=15cm}
 \begin{figure}
-\begin{center}
-<<NewportPlot,fig=TRUE, width=10, height=4.66667, echo=FALSE>>=
+\centering
+<<NewportPlot, fig.width=9, fig.height=4.5, out.width=".9\\linewidth", echo=FALSE, purl=FALSE>>=
 y.max <- max(aggregate(salmNewport,by="unit")@observed,na.rm=TRUE)
 plotOpts2 <- modifyList(plotOpts,list(x=salmNewport,legend.opts=NULL,ylim=c(0,y.max),type = observed ~ time),keep.null=TRUE)
 plotOpts2$par.list <- list(mar=c(6,5,0,5),family="Times")
 plotOpts2$xaxis.tickFreq <- list("%m"=atChange,"%G"=atChange)
 do.call("plot",plotOpts2)
 @
-\end{center}
-\vspace{-1cm}
 \caption{Weekly number of cases of S. Newport in Germany, 2004-2013.}
 \label{fig:Newport}
 \end{figure}
+
 \subsubsection[Basic manipulation of objects of the class sts]{Basic manipulation of objects of the class \texttt{sts}}
 This time series above is represented as a multivariate \code{sts} object whose dimensions correspond
 to the 16 German federal states. Values are weekly counts so \code{freq = 52}.
 Weeks are indexed by \code{Date} here (\code{epochAsDate = TRUE}). One can thus for instance get the weekday of the date by calling \code{weekdays(epoch(salmNewport))} (all Mondays here). Furthermore, one can use the function \code{format} (and the package specific platform independent version \code{dateFormat}) to obtain \code{strftime} compatible formatting of the epochs. Another advantage of using \code{Date} objects is that the plot functions have been re-written for better management of ticks and labelling of the x-axis based on \code{strftime} compatible conversion specifications.
-For example, to get ticks at all weeks corresponding to the first week in a month as well as all weeks corresponding to the first in a year while placing labels consisting of the year at the median index per year:
+For example, to get ticks at all weeks corresponding to the first week in a month as well as all weeks corresponding to the first in a year while placing labels consisting of the year at the median index per year (Figure~\ref{fig:Newport}):
 
-<<fig=FALSE>>=
+<<NewportPlot-simple, fig.keep = 'none'>>=
 plot(salmNewport, type = observed ~ time,
      xaxis.tickFreq = list("%m" = atChange, "%G" = atChange),
      xaxis.labelFreq = list("%Y" = atMedian), xaxis.labelFormat = "%Y")
 @
-which is shown in Figure~\ref{fig:Newport}. Here, the \code{atChange} and \code{atMedian} functions are small helper functions and the  respective tick lengths are controlled by the \pkg{surveillance} specific option \code{surveillance.options("stsTickFactors")}. Actually \code{sts} objects
-can be plotted using different options: \code{type = observed ~ time} produces the time series for whole Germany as shown in Figure~\ref{fig:Newport}, whereas \code{type = observed ~ time | unit}
+The helper functions \code{atChange} and \code{atMedian} are
+documented in \code{help("addFormattedXAxis")}.
+% and the  respective tick lengths are controlled by the \pkg{surveillance}-specific
+% option \code{surveillance.options("stsTickFactors")}.
+Actually \code{sts} objects
+can be plotted using different options: \code{type = observed ~ time} produces the time series for whole Germany as shown in Figure~\ref{fig:Newport}, whereas \code{type = observed ~ time | unit} (the default)
 is a panelled graph with each panel representing the time series of counts of a federal state as seen in Figure~\ref{fig:unit}.
- \setkeys{Gin}{height=7cm, width=9cm}
+
 \begin{figure}
-%\begin{center}
-%\hspace*{\fill}%
-\hspace{-1em}
 \subfloat[]{
 
-<<unitPlot1, fig=TRUE, echo = FALSE, results=hide, width=6, height=4.6667>>=
+<<unitPlot1, echo=FALSE, results='hide', fig.width=6, fig.height=4.5, out.width=".5\\linewidth", purl=FALSE>>=
 y.max <- max(observed(salmNewport[,2]),observed(salmNewport[,3]),na.rm=TRUE)
 plotOpts2 <- modifyList(plotOpts,list(x=salmNewport[,2],legend.opts=NULL,ylim=c(0,y.max)),keep.null=TRUE)
 plotOpts2$xaxis.tickFreq <- list("%G"=atChange)
 do.call("plot",plotOpts2)
 @
 
-}\hspace{-3em}%
+}
 \subfloat[]{
 
-<<unitPlot2, fig=TRUE, echo = FALSE, results=hide, width=6, height=4.6667>>=
+<<unitPlot2, echo=FALSE, results='hide', fig.width=6, fig.height=4.5, out.width=".5\\linewidth", purl=FALSE>>=
 plotOpts2 <- modifyList(plotOpts,list(x=salmNewport[,3],legend.opts=NULL,ylim=c(0,y.max)),keep.null=TRUE)
 plotOpts2$xaxis.tickFreq <- list("%G"=atChange)
 do.call("plot",plotOpts2)
 @
 
 }
-%\hspace*{\fill}%
 \caption{Weekly count of S. Newport in the German federal states (a) Bavaria and (b) Berlin.}
 \label{fig:unit}
-%\end{center}
 \end{figure}
+
+<<unitPlot-simple, echo = FALSE, fig.keep = 'none'>>=
+plot(salmNewport, units = 2:3)
+@
 
 Once created one can use typical subset operations on a \code{sts} object: for instance \code{salmNewport[} \code{1:10, "Berlin"]} is a new \code{sts} object
 with weekly counts for Berlin during the 10 first weeks of the initial dataset; \code{salmNewport[isoWeekYear(epoch(salmNewport))\$ISOYear<=2010,]} uses the \code{surveillance}'s \code{isoWeekYear()}
@@ -276,12 +301,12 @@ This change can be a step increase of the counts of cases or a more gradual chan
 Based on the possibility of such a change, for each time $t$ we want to differentiate between the two states \textit{in-control} and \textit{out-of-control}. At any timepoint $t_0\geq 1$, the available information -- i.e., past counts -- is defined as $\bm{y}_{t_0} = \left\{
 y_t\>;\> t\leq t_0\right\}$. Detection is based on a statistic $r(\cdot)$ with resulting
  alarm time $T_A = \min\left\{ t_0\geq 1 : r(\bm{y}_{t_0}) > g\right\}$ where $g$ is a known threshold.
-Functions for aberration detection thus use past data to estimate $r(\bm{y}_{t_0})$, and compare it to the threshold $g$,
-above which the current count can be considered as suspicious and thus doomed as \textit{out-of-control}.
+Functions for aberration detection thus use past data to estimate $r(\bm{y}_{t_0})$, and compare it to the threshold $g$
+above which the current count can be considered suspicious and thus \textit{out-of-control}.
 
 Threshold values and alarm Booleans for each timepoint of the monitored range are
-saved in the slots \code{upperbound} and \code{alarm}, of the same dimensions as \code{observed}, while the method parameters used for computing the threshold values
-and alarm Booleans
+saved in the slots \code{upperbound} and \code{alarm} (of the same dimensions as \code{observed}), respectively, while the parameters of the algorithm
+%used for computing the threshold values and alarm Booleans
 are stored in the slot \code{control}.
 
 \subsubsection{Aberration detection in the package}
@@ -307,22 +332,20 @@ and with the slots \code{upperbound} and \code{alarm} filled by the output of th
 Information relative to the \code{range} of data to be monitored
 and to the parameters of the algorithm, such as \code{alpha} for \code{earsC}, has to be formulated in the slot \code{control}.
 This information is also stored in the slot \code{control} of the returned \code{sts} object for later inspection.
-<<EARS, fig = FALSE>>=
+<<EARS, fig.keep='none'>>=
 in2011 <- which(isoWeekYear(epoch(salmNewport))$ISOYear == 2011)
 salmNewportGermany <- aggregate(salmNewport, by = "unit")
 control <- list(range = in2011, method = "C1", alpha = 0.05)
 surv <- earsC(salmNewportGermany, control = control)
 plot(surv)
 @
- \setkeys{Gin}{height=7cm, width=15cm}
+
 \begin{figure}
-\begin{center}
-<<EARSPlot,fig=TRUE, width=10, height=4.666667, echo=FALSE>>=
+\centering
+<<EARSPlot, fig.width=9, fig.height=4.5, out.width=".9\\linewidth", echo=FALSE, purl=FALSE>>=
 y.max <- max(observed(surv),upperbound(surv),na.rm=TRUE)
 do.call("plot",modifyList(plotOpts,list(x=surv,ylim=c(0,y.max)),keep.null=TRUE))
 @
-\end{center}
-\vspace{-1cm}
 \caption{Weekly reports of S. Newport in Germany in 2011 monitored by the EARS C1 method. The line
 represents the upperbound calculated by the algorithm. Triangles indicate alarms that are
 the timepoints where the observed number of counts is higher than the upperbound.}
@@ -362,19 +385,23 @@ Now, the newly implemented function \code{farringtonFlexible} supports the use o
 
 In the function \code{farringtonFlexible} one can choose to use the original method or the improved method by specification of appropriate \code{control} arguments.
 Which variant of the algorithm is to be used is determined by the contents of the \code{control} slot.
-In the example below, \code{control1} corresponds to the use of the original method and \code{control2} indicates the options for the improved method.
+In the example below, \code{con.farrington} corresponds to the use of the original method and \code{con.noufaily} indicates the options for the improved method.
 <<farHead>>=
-control1 <- list(range = in2011, noPeriods = 1,
-                 b = 4, w = 3, weightsThreshold = 1,
-                 pastWeeksNotIncluded = 3, pThresholdTrend = 0.05,
-                 thresholdMethod = "delta")
-control2 <- list(range = in2011, noPeriods = 10,
-                 b = 4, w = 3, weightsThreshold = 2.58,
-                 pastWeeksNotIncluded = 26, pThresholdTrend = 1,
-                 thresholdMethod = "nbPlugin")
+con.farrington <- list(
+    range = in2011, noPeriods = 1,
+    b = 4, w = 3, weightsThreshold = 1,
+    pastWeeksNotIncluded = 3, pThresholdTrend = 0.05,
+    thresholdMethod = "delta"
+)
+con.noufaily   <- list(
+    range = in2011, noPeriods = 10,
+    b = 4, w = 3, weightsThreshold = 2.58,
+    pastWeeksNotIncluded = 26, pThresholdTrend = 1,
+    thresholdMethod = "nbPlugin"
+)
 @
 <<echo=F>>=
-control1$limit54 <- control2$limit54 <- c(0,50)  # for the figure
+con.farrington$limit54 <- con.noufaily$limit54 <- c(0,50)  # for the figure
 @
 
 In both cases the steps of the algorithm are the same. In a first step, an overdispersed Poisson generalized linear model with log link is fitted to the reference data $\bm{y}_{t_0} \subseteq \left\{
@@ -389,8 +416,6 @@ The algorithm uses \code{w}, \code{b} and \texttt{noPeriods} to deduce the lengt
 the same length up to rounding. An exception is the reference window centred around $t_0$. Figure~\ref{fig:fPlot} shows a minimal example, where each character corresponds to a different period. Note that setting $\mathtt{noPeriods} = 1$ corresponds to using the original method with only a subset of the data:
 there is only one period defined per year, the reference window around $t_0$ and other timepoints are not included in the model.
 
-
- \setkeys{Gin}{height=3cm, width=7cm}
 \begin{figure}
 \subfloat[$\texttt{noPeriods}=2$]{
 \includegraphics[width=0.45\textwidth]{monitoringCounts-cache/fPlot1.pdf}
@@ -450,29 +475,29 @@ The original method is widely used in public health surveillance~\citep{hulth_et
  that it does not need to be fine-tuned for each specific pathogen. It is hence easy to implement it for scanning data for many different pathogens. Furthermore, it does tackle classical issues of surveillance data: overdispersion, presence of past outbreaks that are reweighted,
 seasonality that is taken into account differently in the two methods.
 An example of use of the function is shown in Figure~\ref{fig:newportFar} with the code below.
-<<oldVsNewprep, echo = T, include = F>>=
-salm.farrington <- farringtonFlexible(salmNewportGermany, control1)
-salm.noufaily <- farringtonFlexible(salmNewportGermany, control2)
+<<>>=
+salm.farrington <- farringtonFlexible(salmNewportGermany, con.farrington)
+salm.noufaily   <- farringtonFlexible(salmNewportGermany, con.noufaily)
 @
 
-
- \setkeys{Gin}{height=7cm, width=9cm}
+<<farPlot-simple, echo = FALSE, fig.keep = 'none'>>=
+par(mfrow = c(1,2))
+plot(salm.farrington)
+plot(salm.noufaily)
+@
 
 \begin{figure}
-\hspace{-1em}
-%\begin{center}
 \subfloat[]{
 
-<<farPlot1, fig=TRUE, echo = FALSE, results=hide, width=6, height=4.6667>>=
+<<farPlot1, echo = FALSE, results='hide', fig.width=6, fig.height=5.5, out.width=".5\\linewidth", purl=FALSE>>=
 y.max <- max(observed(salm.farrington),upperbound(salm.farrington),observed(salm.noufaily),upperbound(salm.noufaily),na.rm=TRUE)
 do.call("plot",modifyList(plotOpts,list(x=salm.farrington,ylim=c(0,y.max))))
 @
 
 }
-\hspace{-3em}
 \subfloat[]{
 
-<<farPlot2, fig=TRUE, echo = FALSE, results=hide, width=6, height=4.6667>>=
+<<farPlot2, echo = FALSE, results='hide', fig.width=6, fig.height=5.5, out.width=".5\\linewidth", purl=FALSE>>=
 do.call("plot",modifyList(plotOpts,list(x=salm.noufaily,ylim=c(0,y.max))))
 @
 
@@ -525,7 +550,10 @@ As an example,
 \citet{Manitz2013} studied the influence of absolute
 humidity on the occurrence of weekly reported campylobacter cases in Germany.
 
-<<campyDE, echo = FALSE, eval = FALSE>>=
+\begin{figure}
+\centering
+  
+<<campyDE, fig.width=9, fig.height=4.5, out.width=".9\\linewidth", echo=FALSE, purl=FALSE>>=
 # Load data and create \code{sts}-object
 data("campyDE")
 cam.sts <- sts(epoch=campyDE$date,
@@ -547,27 +575,17 @@ lines(campyDE$hum*50, col="white", lwd=2)
 axis(side=4, at=seq(0,2500,by=500),labels=seq(0,50,by=10),las=1,cex.lab=cex.text, cex=cex.text,cex.axis=cex.text,pos=length(epoch(cam.sts))+20)
 #mtext(side=4,text=expression(paste("Absolute humidity [ ",g/m^3,"]", sep='')),
      # las=0,line=1, cex=cex.text,family="Times")
-
 @
 
-\setkeys{Gin}{height=7cm, width=15cm}
-\begin{figure}
-\begin{center}
-
-<<campyDE,fig=TRUE, width=10, height=4.6667, echo=FALSE>>=
-<<campyDE>>
-
-@
-\end{center}
-\vspace{-1cm}
 \caption{Weekly number of reported campylobacteriosis cases in Germany 2002-2011 as vertical bars. In addition, the corresponding mean absolute humidity time series is shown as a white curve.}
 \label{fig:campyDE}
 \end{figure}
 
-<<campyDE-simple, fig=FALSE>>=
+<<campyDE-simple, fig.keep='none'>>=
 data("campyDE")
 cam.sts <- sts(epoch = campyDE$date,
                observed = campyDE$case, state = campyDE$state)
+
 plot(cam.sts, col = "mediumblue")
 lines(campyDE$hum * 50, col = "white", lwd = 2)
 axis(4, at = seq(0, 2500, by = 500), labels = seq(0, 50, by = 10))
@@ -606,7 +624,7 @@ Below we illustrate the use
 of \code{boda} to monitor the campylobacteriosis time series from 2007.
 In the first case we include in the model for $\log\left(\mu_t\right)$ penalized splines for trend and
 seasonality and a simple linear trend.
-<<boda,eval=FALSE,echo=TRUE>>=
+<<boda,eval=FALSE,echo=TRUE,purl=FALSE>>=
 library("INLA")
 rangeBoda <- which(epoch(cam.sts) >= as.Date("2007-01-01"))
 control.boda <- list(range = rangeBoda, X = NULL, trend = TRUE,
@@ -616,7 +634,7 @@ control.boda <- list(range = rangeBoda, X = NULL, trend = TRUE,
 boda <- boda(cam.sts, control = control.boda)
 @
 
-<<boda-cache, echo = FALSE, results = hide>>=
+<<boda-cache, echo = FALSE, results='hide'>>=
 if (computeALL) {
 ##hoehle 2018-07-18: changed code to use NICELOOKINGboda, but that's iid. Reason:
 ##The option 'rw1' currently crashes INLA.
@@ -638,14 +656,14 @@ whether the reporting week belongs to the W21--W30 2011 period of increased awar
 during the O104:H4 STEC outbreak. No additional correction for past outbreaks is
 made.
 
-<<boda2,eval=FALSE,echo=TRUE>>=
+<<boda2,eval=FALSE,echo=TRUE,purl=FALSE>>=
 covarNames <- c("l1.hum", "l2.hum", "l3.hum", "l4.hum",
                 "newyears", "christmas", "O104period")
 control.boda2 <- modifyList(control.boda,
                             list(X = campyDE[, covarNames], season = FALSE))
 boda.covars <- boda(cam.sts, control = control.boda2)
 @
-<<boda2-cache, echo = FALSE, results = hide>>=
+<<boda2-cache, echo = FALSE, results='hide'>>=
 if (computeALL) {
 <<boda2>>
 save(list = c("boda.covars", "covarNames", "control.boda2"),
@@ -680,24 +698,25 @@ similar to the original procedure, but the improved reweighting and trend
 inclusion produces fewer alarms.
 
 The \code{boda} method is to be seen as a step towards more Bayesian thinking in aberration detection. However, besides its time demands for a detailed modeling, the speed of the procedure is also prohibitive as regards routine application. As a response~\citet{Maelle} introduce a method which has two advantages: it allows to adjust outbreak detection for reporting delays and includes an approximate inference method much faster than the INLA inference method. However, its linear predictor is more in the style of~\citet{Noufaily2012} not allowing for additional covariates or penalized options for the intercept.
- \setkeys{Gin}{height=7cm, width=15cm}
+
 \begin{figure}
-\begin{center}
-<<bPlot,fig=TRUE, width=10, height=4.6667, echo=FALSE>>=
+\centering
+<<bPlot, fig.width=9, fig.height=4.5, out.width=".9\\linewidth", echo=FALSE, purl=FALSE>>=
 y.max <- max(observed(boda.covars),upperbound(boda.covars),na.rm=TRUE)
 plotOpts2 <- modifyList(plotOpts,list(x=boda.covars,ylim=c(0,y.max)),keep.null=TRUE)
 plotOpts2$xaxis.tickFreq <- list("%m"=atChange,"%G"=atChange)
 do.call("plot",plotOpts2)
 @
-\end{center}
-\vspace{-1cm}
+<<bPlot-simple, echo = FALSE, fig.keep = 'none'>>=
+plot(boda.covars)
+@ 
 \caption{Weekly reports of Campylobacter in Germany in 2007-2011 monitored by the boda method with covariates. The line
 represents the upperbound calculated by the algorithm. Triangles indicate alarms, \textit{i.e.}, timepoints where the observed number of counts is higher than the upperbound.}
 \label{fig:b}
 \end{figure}
 
 
-<<boda3, echo = F, include = F, results = hide>>=
+<<boda3, echo = FALSE>>=
 control.far <- list(range=rangeBoda,b=4,w=5,alpha=0.025*2)
 far <- farrington(cam.sts,control=control.far)
 #Both farringtonFlexible and algo.bayes uses a one-sided interval just as boda.
@@ -706,7 +725,7 @@ farflex <- farringtonFlexible(cam.sts,control=control.far2)
 bayes <- suppressWarnings(bayes(cam.sts,control=control.far2))
 @
 
-<<boda4, echo = F, include = F>>=
+<<boda4, echo = FALSE>>=
 # Small helper function to combine several equally long univariate sts objects
 combineSTS <- function(stsList) {
  epoch <- as.numeric(epoch(stsList[[1]]))
@@ -723,10 +742,11 @@ combineSTS <- function(stsList) {
 }
 @
 
-<<alarmplot, echo = FALSE, eval = FALSE>>=
+\begin{figure}
+\centering
+<<alarmplot, fig.width=8, fig.height=4, out.width="\\linewidth", echo=FALSE>>=
 # Make an artifical object containing two columns - one with the boda output
 # and one with the farrington output
-
 cam.surv <- combineSTS(list(boda.covars=boda.covars,boda=boda,bayes=bayes,
                             farrington=far,farringtonFlexible=farflex))
 par(mar=c(4,8,2.1,2),family="Times")
@@ -735,19 +755,10 @@ plot(cam.surv,type = alarm ~ time,lvl=rep(1,ncol(cam.surv)),
      cex.axis=1,xlab="Time (weeks)",cex.lab=1,xaxis.tickFreq=list("%m"=atChange,"%G"=atChange),xaxis.labelFreq=list("%G"=at2ndChange),
      xaxis.labelFormat="%G")
 @
-
-\setkeys{Gin}{height=7cm, width=16cm}
-\begin{figure}
-\begin{center}
-
-<<alarmplot,fig=TRUE, width=8, height=3.5, echo=FALSE>>=
-<<alarmplot>>
-
-@
-\end{center}
 \caption{Alarmplot showing the alarms for the campylobacteriosis time series for four different algorithms.}
 \label{fig:alarmplot}
 \end{figure}
+
 \subsection{Beyond one-timepoint detection}
 
 GLMs as used in the Farrington method are suitable for the purpose of aberration detection since they allow a regression approach for adjusting counts for known phenomena such as trend or seasonality in surveillance data.
@@ -803,7 +814,7 @@ seasonality and a trend. This model will be refitted after each alarm, but first
 and the data from 2011 as data to be monitored or \code{phase2}. The threshold \texttt{c.ARL} was chosen to be 4 as we found with the same approach as \citet{hoehle-mazick-2010} that it made the probability of a false alarm within one year
 smaller than 0.1. Figure~\ref{fig:glrnb}~shows the results of this monitoring.
 
-<<glrnb, results=hide>>=
+<<glrnb, results='hide'>>=
 phase1 <- which(isoWeekYear(epoch(salmNewportGermany))$ISOYear < 2011)
 phase2 <- in2011
 control <- list(range = phase2, c.ARL = 4, theta = log(2), ret = "cases",
@@ -811,15 +822,12 @@ control <- list(range = phase2, c.ARL = 4, theta = log(2), ret = "cases",
 salmGlrnb <- glrnb(salmNewportGermany, control = control)
 @
 
- \setkeys{Gin}{height=7cm, width=15cm}
 \begin{figure}
-\begin{center}
-<<glrnbPlot,fig=TRUE, width=10, height=4.6667, echo=FALSE>>=
+\centering
+<<glrnbPlot, fig.width=9, fig.height=4.5, out.width=".9\\linewidth", echo=FALSE, purl=FALSE>>=
 y.max <- max(observed(salmGlrnb),upperbound(salmGlrnb),na.rm=TRUE)
 do.call("plot",modifyList(plotOpts,list(x=salmGlrnb,ylim=c(0,y.max))))
 @
-\end{center}
-\vspace{-1cm}
 \caption{S. Newport in Germany in 2011 monitored by the \texttt{glrnb} function.}
 \label{fig:glrnb}
 \end{figure}
@@ -874,12 +882,10 @@ Figure~\ref{fig:cat1}. We use 2004--2012 data to estimate the \textit{in-control
 <<cat>>=
 data("salmHospitalized")
 isoWeekYearData <- isoWeekYear(epoch(salmHospitalized))
-
 dataBefore2013 <- which(isoWeekYearData$ISOYear < 2013)
 data2013 <- which(isoWeekYearData$ISOYear == 2013)
 dataEarly2014 <- which(isoWeekYearData$ISOYear == 2014
                        & isoWeekYearData$ISOWeek <= 4)
-
 phase1 <- dataBefore2013
 phase2 <- c(data2013, dataEarly2014)
 
@@ -896,7 +902,10 @@ We choose to model the expectation $n_t \pi_t$ using a beta-binomial model with 
 $$\logit(\pi_t)=\bm{z}_t^\top\bm{\beta}$$
 where $\bm{z}_t$ is a vector of possibly time-varying covariates and $\bm{\beta}$ a vector of covariate effects in our example.
 
-<<catPlot1, echo = FALSE, eval = FALSE>>=
+\begin{figure}
+\centering
+  
+<<catPlot1, fig.width=9, fig.height=4.5, out.width=".9\\linewidth", echo=FALSE, purl=FALSE>>=
 y.max <- max(observed(salmHospitalized)/population(salmHospitalized),upperbound(salmHospitalized)/population(salmHospitalized),na.rm=TRUE)
 plotOpts2 <- modifyList(plotOpts,list(x=salmHospitalized,legend.opts=NULL,ylab="",ylim=c(0,y.max)),keep.null=TRUE)
 plotOpts2$xaxis.tickFreq <- list("%G"=atChange,"%m"=atChange)
@@ -910,13 +919,6 @@ text(-20, 0.6, "Proportion", pos = 3, xpd = T,cex=cex.text)
 text(520, 0.6, "Total number of \n reported cases", pos = 3, xpd = T,cex=cex.text)
 @
 
-\begin{figure}
-\begin{center}
-<<catPlot1,fig=TRUE, width=10, height=4.6667, echo=FALSE>>=
-<<catPlot1>>
-@
-\end{center}
-\vspace{-1cm}
 \caption{Weekly proportion of Salmonella cases that were hospitalized in Germany 2004-2014. In addition the corresponding number of reported cases is shown as a light curve.}
 \label{fig:cat1}
 \end{figure}
@@ -932,7 +934,7 @@ We choose a model with an intercept, a time trend, two harmonic terms and a fact
 each year. The variable \code{epochInPeriod} takes into account the fact that not all years have 52 weeks.
 
 
-<<catbis, results = hide>>=
+<<catbis, results='hide'>>=
 vars <- c( "y", "n", "t", "epochInPeriod", "weekNumber")
 m.bbin <- gamlss(cbind(y, n-y) ~ 1 + t
                  + sin(2 * pi * epochInPeriod) + cos(2 * pi * epochInPeriod)
@@ -1023,7 +1025,7 @@ of values for the threshold.
 h.grid <- seq(1, 10, by = 0.5)
 @
 
-<<cath,eval=FALSE,echo=TRUE>>=
+<<cath,eval=FALSE,echo=TRUE,purl=FALSE>>=
 simone <- function(sts, h) {
   y <- rBB(length(phase2), mu = pi0m[1, , drop = FALSE],
            bd = population(sts)[phase2, ],
@@ -1051,7 +1053,7 @@ pMarkovChain <- sapply(h.grid, function(h) {
   return(tail(TA$cdf, n = 1))
 })
 @
-<<cath-cache, echo = FALSE, results = hide>>=
+<<cath-cache, echo = FALSE, results='hide'>>=
 if (computeALL) {
 <<cath>>
 save(pMC, file = "monitoringCounts-cache/pMC.RData")
@@ -1063,32 +1065,35 @@ load("monitoringCounts-cache/pMarkovChain.RData")
 @
 
 
-\setkeys{Gin}{height=7cm, width=9cm}
 \begin{figure}
-\hspace{-1em}
 \subfloat[]{
 
-<<catF, fig=TRUE, echo = FALSE, results=hide, width=6, height=4.6667>>=
+<<catF, echo = FALSE, results='hide', fig.width=6, fig.height=5.2, out.width=".5\\linewidth", purl=FALSE>>=
 y.max <- max(observed(salmHospitalizedCat[,1])/population(salmHospitalizedCat[,1]),upperbound(salmHospitalizedCat[,1])/population(salmHospitalizedCat[,1]),na.rm=TRUE)
 plotOpts3 <- modifyList(plotOpts,list(x=salmHospitalizedCat[,1],ylab="Proportion",ylim=c(0,y.max)))
-plotOpts3$legend.opts <- list(x="top",bty="n",legend=c(expression(U[t])),lty=1,lwd=line.lwd,col=alarm.symbol$col,horiz=TRUE,cex=cex.leg)
+plotOpts3$legend.opts <- list(x="top",bty="n",legend=c(expression(U[t])),lty=1,lwd=line.lwd,col=plotOpts$alarm.symbol$col,horiz=TRUE,cex=cex.text)
 do.call("plot",plotOpts3)
 @
+<<catF-simple, echo = FALSE, fig.keep = 'none'>>=
+plot(salmHospitalizedCat[,1])
+@ 
 
 }
-\hspace{-3em}
 \subfloat[]{
 
-<<catARL, fig=TRUE, echo = FALSE, results=hide, width=6, height=4.6667>>=
+<<catARL, echo = FALSE, results='hide', fig.width=6, fig.height=5.2, out.width=".5\\linewidth", purl=FALSE>>=
 par(mar=c(6,5,5,5),family="Times")
-matplot(h.grid, cbind(pMC,pMarkovChain),type="l",ylab=expression(P(T[A] <= 56 * "|" * tau * "=" * infinity)),xlab="Threshold h",col=1,cex=cex.text,
-cex.axis =cex.text,cex.lab=cex.text)
+matplot(h.grid, cbind(pMC,pMarkovChain),type="l",ylab=expression(P(T[A] <= 56 * "|" * tau * "=" * infinity)),xlab="Threshold h",col=1,cex.axis=cex.text,cex.lab=cex.text)
 prob <- 0.1
 lines(range(h.grid),rep(prob,2),lty=5,lwd=2)
-axis(2,at=prob,las=1,cex.axis=0.7,labels=FALSE)
 par(family="Times")
 legend(4,0.08,c("Monte Carlo","Markov chain"), lty=1:2,col=1,cex=cex.text,bty="n")
 @
+<<catARL-simple, echo = FALSE, fig.keep = 'none'>>=
+matplot(h.grid, cbind(pMC, pMarkovChain), type="l", lty=1:2, col=1)
+abline(h=0.1, lty=5)
+legend("center", c("Monte Carlo","Markov chain"), lty=1:2, bty="n")
+@ 
 
 }
 \caption{(a) Results of the monitoring with categorical CUSUM of the proportion of Salmonella cases that were hospitalized in Germany in Jan 2013 - Jan 2014. (b)
@@ -1107,15 +1112,14 @@ In order to illustrate the use of \code{categoricalCUSUM} for more than two clas
 are administered in children at the age of 4--6 months. Since then,
 coverage of these vaccination has steadily increased and interest is to detect possible age-shifts in the distribution of cases.
 
-<<ROTAPLOT,fig=FALSE>>=
+<<rotaPlot-simple, fig.keep='none'>>=
 data("rotaBB")
 plot(rotaBB)
 @
 
- \setkeys{Gin}{height=7cm, width=15cm}
 \begin{figure}
-%Remove this slot as soon as possible and replace it with just ROTAPLOT!!
-<<fig=true, width=7.5, height=3.5, echo=FALSE>>=
+\centering
+<<rotaPlot, fig.width=8, fig.height=4, out.width=".95\\linewidth", echo=FALSE, purl=FALSE>>=
 par(mar=c(5.1,20.1,4.1,0),family="Times")
 plot(rotaBB,xlab="Time (months)",ylab="",
      col="mediumblue",cex=cex.text,cex.lab=cex.text,cex.axis=cex.text,cex.main=cex.text,
@@ -1131,42 +1135,12 @@ mtext("Proportion of reported cases", side=2, line=19, cex=1)
 From Figure~\ref{fig:vac} we observe a shift in proportion away from the very young. However, interpreting the proportions only makes sense in combination with the absolute
 numbers. In these plots (not shown) it becomes clear that the absolute numbers in the 0--4 year old have decreased since 2009. However, in the 70+ group a small increase is observed with 2013 by far being the strongest season so far.
 
-<<echo=false>>=
-# Select a palette for drawing
-pal <- c("#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00")
-#= RColorBrewer::brewer.pal("Set1",n=ncol(rotaBB))
-
-# Show time series of monthly proportions (matplot does not work with dates)
-plotTS <- function(prop=TRUE) {
-  for (i in 1:ncol(rotaBB)) {
-    fun <- if (i==1) plot else lines
-    if (!prop) {
-      fun(epoch(rotaBB),observed(rotaBB)[,i],type="l",xlab="Time (months)",ylab="Reported cases",ylim=c(0,max(observed(rotaBB))),col=pal[i],lwd=2)
-    } else {
-      fun(epoch(rotaBB),observed(rotaBB)[,i,drop=FALSE]/rowSums(observed(rotaBB)),type="l",xlab="Time (months)",ylab="Proportion of reported cases",ylim=c(0,max(observed(rotaBB)/rowSums(observed(rotaBB)))),col=pal[i],lwd=2)
-    }
-  }
-  # Add legend
-  axis(1,at=as.numeric(epoch(rotaBB)),labels=FALSE,tck=-0.01)
-  legend(x="left",colnames(rotaBB),col=pal,lty=1,lwd=2,bg="white")
-}
-
-# plotTS(prop=TRUE)
-# Show absolute cases
-plotTS(prop=FALSE)
-
-# Even easier
-rotaBB.copy <- rotaBB ; rotaBB.copy@multinomialTS <- FALSE
-plot(rotaBB.copy)
-
-@
 Hence, our interest is in prospectively detecting a possible age-shift. Since the vaccine was recommended for routine vaccination in Brandenburg in 2009 we choose to start
 the monitoring at that time point. We do so by fitting a multinomial logit-model containing a trend as well as one harmonic wave and use the age group 0--4 years as reference category,
 to the data from the years 2002-2008. Different \proglang{R} packages implement such type of modeling, but we shall use the \pkg{MGLM} package~\citep{MGLM}, because it also offers the fitting of extended multinomial regression models allowing for extra dispersion.
 
 <<>>=
 rotaBB.df <- as.data.frame(rotaBB)
-
 X <- with(rotaBB.df, cbind(intercept = 1, epoch,
                            sin1 = sin(2 * pi * epochInPeriod),
                            cos1 = cos(2 * pi * epochInPeriod)))
@@ -1186,7 +1160,6 @@ Based on this, the \textit{in-control} and \textit{out-of-control} proportions a
 
 <<>>=
 m1 <- m0
-
 m1@coefficients[1, ] <- m0@coefficients[1, ] + log(2)
 
 pi0 <- t(predict(m0, newdata = X[phase2, ])[, reorder])
@@ -1207,12 +1180,12 @@ control <- list(range = seq(nrow(rotaBB))[phase2], h = h, pi0 = pi0,
 surv <- categoricalCUSUM(rotaBB,control=control)
 @
 
-<<echo=false, eval=false>>=
-alarmDates <- epoch(surv)[which(alarms(surv)[,1]==1)]
+<<include = FALSE>>=
+alarmDates <- epoch(surv)[which(alarms(surv)[,1])]
 format(alarmDates,"%b %Y")
 @
 
-<<CATCUSUMMC,echo=false,eval=false>>=
+<<CATCUSUMMC,echo=FALSE,eval=FALSE>>=
 #Number of MC samples
 nSamples <- 1e4
 
@@ -1277,37 +1250,31 @@ matlines(alpha1/rowSums(alpha1),type="l",lwd=1,lty=2)
 @
 
 
-
-\setkeys{Gin}{height=7cm, width=9cm}
 \begin{figure}
-\hspace{-1em}
 \subfloat[]{
 
-<<ctPlot1, fig=TRUE, echo = FALSE, results=hide, width=6, height=4.6667>>=
+<<ctPlot1, echo = FALSE, results='hide', fig.width=6, fig.height=4.5, out.width=".5\\linewidth", purl=FALSE>>=
 surv@observed[,1] <- 0
 surv@multinomialTS <- FALSE
 surv.dm@observed[,1] <- 0
 surv.dm@multinomialTS <- FALSE
 y.max <- max(observed(surv.dm[,1]),upperbound(surv.dm[,1]),observed(surv[,1]),upperbound(surv[,1]),na.rm=TRUE)
 plotOpts3 <- modifyList(plotOpts,list(x=surv[,1],ylim=c(0,y.max),ylab=expression(C[t]),xlab=""))
-plotOpts3$legend.opts <- list(x="topleft",bty="n",legend="R",lty=1,lwd=line.lwd,col=alarm.symbol$col,horiz=TRUE,cex=cex.leg)
+plotOpts3$legend.opts <- list(x="topleft",bty="n",legend="R",lty=1,lwd=line.lwd,col=plotOpts$alarm.symbol$col,horiz=TRUE,cex=cex.text)
 do.call("plot",plotOpts3)
-lines( c(0,1e99), rep(h,2),lwd=2,col="darkgray",lty=1)
+abline(h=h, lwd=2, col="darkgrey")
 par(family="Times")
 mtext(side=1,text="Time (weeks)",
       las=0,line=3, cex=cex.text)
 @
 
 }
-\hspace{-3em}
 \subfloat[]{
 
-<<ctPlot2, fig=TRUE, echo = FALSE, results=hide, width=6, height=4.6667>>=
-plotOpts3 <- modifyList(plotOpts,list(x=surv.dm[,1],ylim=c(0,y.max),ylab=expression(C[t]),xlab=""))
-plotOpts3$legend.opts <- list(x="topleft",bty="n",legend="R",lty=1,lwd=line.lwd,col=alarm.symbol$col,horiz=TRUE,cex=cex.text)
-y.max <- max(observed(surv.dm[,1]),upperbound(surv.dm[,1]),observed(surv[,1]),upperbound(surv[,1]),na.rm=TRUE)
+<<ctPlot2, echo = FALSE, results='hide', fig.width=6, fig.height=4.5, out.width=".5\\linewidth", purl=FALSE>>=
+plotOpts3$x <- surv.dm[,1]
 do.call("plot",plotOpts3)
-lines( c(0,1e99), rep(h,2),lwd=2,col="darkgray",lty=1)
+abline(h=h, lwd=2, col="darkgrey")
 par(family="Times")
 mtext(side=1,text="Time (weeks)",
       las=0,line=3, cex=cex.text)
@@ -1318,6 +1285,19 @@ mtext(side=1,text="Time (weeks)",
 \label{fig:ct}
 
 \end{figure}
+
+<<ctPlot-simple, echo = FALSE, fig.keep = 'none'>>=
+par(mfrow = c(1,2))
+surv@multinomialTS <- surv.dm@multinomialTS <- FALSE  # trick plot method ...
+plot(surv[,1], col=c(NA,NA,4), ylab = expression(C[t]), ylim = c(0,33),
+     xaxis.tickFreq=list("%Y"=atChange, "%m"=atChange),
+     xaxis.labelFreq=list("%Y"=atMedian), xaxis.labelFormat="%Y")
+abline(h=h, lwd=2, col="darkgrey")
+plot(surv.dm[,1], col=c(NA,NA,4), ylab = expression(C[t]), ylim = c(0,33),
+     xaxis.tickFreq=list("%Y"=atChange, "%m"=atChange),
+     xaxis.labelFreq=list("%Y"=atMedian), xaxis.labelFormat="%Y")
+abline(h=h, lwd=2, col="darkgrey")
+@ 
 
 The resulting CUSUM statistic $C_t$ using the Dirichlet multinomial distribution is shown in Figure~\ref{fig:ct}(b).
 We notice a rather similar behavior even though the shift-type specified by this model is slightly different than in the model of Figure~\ref{fig:ct}(a).
@@ -1334,9 +1314,8 @@ solution is that one has to specify the change parameter \code{R} in advance, wh
 The package also offers another CUSUM method suitable for binary data, \code{pairedbinCUSUM} that implements the method introduced by~\citet{Steiner1999}, which does not, however, take overdispersion into account as well as \code{glrnb}. The algorithm \code{rogerson} also supports the analysis of binomial data. See Table~\ref{table:ref} for the corresponding references.
 
 \subsection{Other algorithms implemented in the package}
-We conclude this description of surveillance methods by giving an overview of all algorithms implemented in the package with the corresponding references in Table~\ref{table:ref}.
-One can refer to the relative reference articles and to the reference
- manual of the package for more information about each method.
+We conclude this description of surveillance methods by giving an overview of all algorithms implemented in the package in Table~\ref{table:ref}.
+Please see the cited articles or the package manual for more information about each method.
 
  Criteria
 for choosing a method in practice are numerous. First one needs to ponder on the amount of historical data at hand -- for instance the EARS methods only need data for the last
@@ -1352,9 +1331,9 @@ will be the topic of Section~\ref{sec:routine}.
 \begin{table}[t!]
 \centering
 \begin{tabular}{lp{11cm}}
-\hline
+\toprule
 Function & References \\
-\hline
+\midrule
 \code{bayes}   & \citet{riebler2004} \\
 \code{boda} & \citet{Manitz2013}  \\
 \code{bodaDelay} & \citet{Maelle}  \\
@@ -1370,7 +1349,7 @@ Function & References \\
 \code{pairedbinCUSUM} & \citet{Steiner1999} \\
 \code{rki}  & Not available -- unpublished   \\
 \code{rogerson} & \citet{rogerson_yamada2004}   \\
-\hline
+\bottomrule
 \end{tabular}
 \caption{Algorithms for aberration detection implemented in \pkg{surveillance}.}
 \label{table:ref}
@@ -1390,15 +1369,14 @@ into a whole analysis stack, first through the introduction of a simple workflow
 
 \subsection{A simple surveillance system}
 Suppose you have a database with surveillance time series but little resources to build a surveillance system encompassing all the above stages. Using \proglang{R} and \code{Sweave} or \code{knitr} for \LaTeX~you can still set up
- a simple surveillance analysis without having to do everything by hand. You only need to input the data into \proglang{R} and create \code{sts} objects for each time series of interest
- as explained thoroughly in~\citet{hoehle-mazick-2010}. Then, after choosing a surveillance algorithm, say \code{farringtonFlexible}, and
- feeding it with the appropriate \code{control} argument, you can get a \code{sts} object with upperbounds and alarms for each of your time series of interest over the \code{range}
- supplied in \code{control}. For defining the range automatically one could use the \proglang{R} function \code{Sys.Date()} to get today's date.
+ a simple surveillance analysis without having to do everything by hand. You only need to import the data into \proglang{R} and create \code{sts} objects for each time series of interest
+ as explained thoroughly in~\citet{hoehle-mazick-2010}. Then, calling a surveillance algorithm, say \code{farringtonFlexible}, with
+ an appropriate \code{control} argument gives an \code{sts} object with upperbounds and alarms over \code{control$range}.
+ To define the range automatically one could use the \proglang{R} function \code{Sys.Date()} to get today's date.
  These steps can be introduced as a code chunk in a \code{Sweave} or \code{knitr} code that will translate it into a report that you can send to the epidemiologists in charge of the respective pathogen whose cases are monitored.
 
- Below is an example of a short code segment showing the analysis of the \textit{S. Newport} weekly counts of cases in the German federal states Baden-W\"{u}rttemberg and North Rhine-Westphalia
-with the improved method implemented in \code{farringtonFlexible}. The package provides a \code{toLatex} method for \code{sts} objects that produces a table with the observed number of counts and upperbound for each column in
-\code{observed}, where alarms can be highlighted by for instance bold text. The resulting table is shown in Table~\ref{tableResults}.
+ Below is an example of a short code segment showing the analysis of the \textit{S. Newport} weekly counts in the German federal states Baden-W\"{u}rttemberg and North Rhine-Westphalia
+using the improved method implemented in \code{farringtonFlexible}. The package provides a \code{toLatex} method for \code{sts} objects that produces a table of the observed counts and upperbound values for each unit; alarms are highlighted by default. The result is shown in Table~\ref{tableResults}.
 <<>>=
 today <- which(epoch(salmNewport) == as.Date("2013-12-23"))
 rangeAnalysis <- (today - 4):today
@@ -1416,7 +1394,7 @@ results <- farringtonFlexible(salmNewport[, c("Baden.Wuerttemberg",
                               control = algoParameters)
 @
 
-<<results = tex>>=
+<<results='asis'>>=
 start <- isoWeekYear(epoch(salmNewport)[min(rangeAnalysis)])
 end <- isoWeekYear(epoch(salmNewport)[max(rangeAnalysis)])
 caption <- paste0("Results of the analysis of reported S. Newport ",

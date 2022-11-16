@@ -103,9 +103,9 @@ to \code{control$range}.
 #load "disProg" data
 data("salmonella.agona")
 
-#Do surveillance for the last 100 weeks.
+#Do surveillance for the last 42 weeks
 n <- length(salmonella.agona$observed)
-control <- list(b=4,w=3,range=(n-100):n,reweight=TRUE, verbose=FALSE,alpha=0.01)
+control <- list(b=4,w=3,range=(n-42):n,reweight=TRUE, verbose=FALSE,alpha=0.01)
 res <- algo.farrington(salmonella.agona,control=control)
 plot(res)
 
@@ -114,16 +114,16 @@ set.seed(123)
 x <- rpois(520,lambda=1)
 stsObj <- sts(observed=x, frequency=52)
 
+\dontshow{if (surveillance.options("allExamples")) \{}
 #Compare timing of the two possible fitters for algo.farrington
 range <- 312:520
-\dontshow{if (!interactive()) range <- 460:520} % for faster checks
 system.time( sts1 <- farrington(stsObj, control=list(range=range,
                        fitFun="algo.farrington.fitGLM.fast"), verbose=FALSE))
 system.time( sts2 <- farrington(stsObj, control=list(range=range,
                        fitFun="algo.farrington.fitGLM"), verbose=FALSE))
-
 #Check if results are the same
 stopifnot(upperbound(sts1) == upperbound(sts2))
+\dontshow{\}}
 }
 
 \author{M. \enc{Höhle}{Hoehle}}

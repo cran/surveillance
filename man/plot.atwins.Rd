@@ -1,16 +1,17 @@
 \name{plot.atwins}
 \alias{plot.atwins}
 \encoding{latin1}
-\title{Plot results of a twins model fit} 
+\title{Plots for Fitted \code{algo.twins} Models}
 \description{
   Plot results of fitting a twins model using MCMC output. Plots similar
-  to those in the Held et al. (2006) paper are generated
+  to those in the Held et al. (2006) paper are generated.
 }
 \usage{
   \method{plot}{atwins}(x, which=c(1,4,6,7), ask=TRUE, \dots) 
 }
 \arguments{
-  \item{x}{An object of class \code{atwins}.}
+  \item{x}{An object of class \code{"atwins"} as returned by
+    \code{\link{algo.twins}}.}
   \item{which}{a vector containing the different plot types to show
     \describe{
       \item{1}{A plot of the observed time series Z is shown together
@@ -39,33 +40,14 @@
 }
 \details{
   For details see the plots in the paper. Basically MCMC output is
-  visualized. This function is together with \code{algo.twins} still
-  experimental.  
+  visualized. This function is experimental, as is \code{\link{algo.twins}}.
 }
-\value{This function does not return anything.}
+%\value{NULL (invisibly)}
 \references{Held, L., Hofmann, M., \enc{Höhle}{Hoehle}, M. and Schmid V. (2006)
   A two-component
   model for counts of infectious diseases, Biostatistics, \bold{7}, pp.
   422--437.
 }
 \author{M. Hofmann and M. \enc{Höhle}{Hoehle}}
-\seealso{\link{algo.twins}}
-\examples{
-\dontrun{
-#Apparently, the algo.atwins can crash on some LINUX systems
-#thus for now the example section is commented
-
-#Load the data used in the Held et al. (2006) paper
-data("hepatitisA")
-
-#Fix seed - this is used for the MCMC samplers in twins
-set.seed(123)
-
-#Call algorithm and save result
-otwins <- algo.twins(hepatitisA)
-
-#This shows the entire output
-plot(otwins,which=c(1,2),ask=FALSE)
-}
-}
+\seealso{\code{\link{algo.twins}} (with an example)}
 \keyword{hplot}

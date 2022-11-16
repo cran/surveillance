@@ -115,7 +115,7 @@ algo.glrpois(disProgObj, control = list(range=range, c.ARL=5,
     of class disProg. The \code{upperbound} slot of the object are
     filled with the current \eqn{GLR(n)} value or with the number of
     cases that are necessary to produce an alarm at any time point
-    \eqn{<=n}. Both lead to the same alarm timepoints, but
+    \eqn{\leq n}{<=n}. Both lead to the same alarm timepoints, but
     \code{"cases"} has an obvious interpretation.
 }
 

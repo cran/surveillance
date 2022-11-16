@@ -17,7 +17,8 @@ sizeHHH(theta, model, subset = model$subset)
 decompose.hhh4(x, coefs = x$coefficients, ...)
 }
 \arguments{
-  \item{theta,coefs}{numeric vector of model parameters.}
+  \item{theta,coefs}{numeric vector of \emph{untransformed} model parameters,
+    i.e., the \code{coefficients} element of the \code{"hhh4"} object.}
   \item{model}{the model terms as returned by the
     \code{\link{terms}}-method for \code{"hhh4"} objects.}
   \item{subset}{vector of time points for which to compute the component

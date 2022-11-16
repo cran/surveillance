@@ -76,13 +76,12 @@ algo.twins <- function(disProgObj,
   ## Log files
   results <- read.table(control$logFile,header=T,na.strings=c("NaN","-NaN"))
   results2 <- read.table(control$logFile2,header=T,na.strings=c("NaN","-NaN"))
-  acc <- read.table(paste(control$logFile,".acc",sep=""),col.names=c("name","RWSigma","acc"))
+  ## and currently not returned:
+  ## acc <- read.table(paste(control$logFile,".acc",sep=""),col.names=c("name","RWSigma","acc"))
+  ## rownames(acc) <- acc[,1]
+  ## acc <- acc[,-1]
 
-  rownames(acc) <- acc[,1]
-  acc <- acc[,-1]
-
-  ## Nothing is returned by the function - result is not a
-  ## standard survObj
+  ## result is not a standard survObj
   result <- structure(list(control=control,
                            disProgObj=disProgObj,
                            logFile=results,
@@ -270,13 +269,13 @@ plot.atwins <- function(x, which=c(1,4,6,7), ask=TRUE,...) {
 
     if (show[6]) {
         par(mfcol=c(1,2))
-        hist(x$logFile$K,main="",xlab=expression(K),prob=TRUE,breaks=seq(-0.5,max(x$logFile$K)+0.5,1))
-        hist(x$logFile$psi,main="",xlab=expression(psi),prob=TRUE,nclass=50)
+        hist(x$logFile$K,main="",xlab=expression(K),probability=TRUE,breaks=seq(-0.5,max(x$logFile$K)+0.5,1))
+        hist(x$logFile$psi,main="",xlab=expression(psi),probability=TRUE,nclass=50)
     }
 
     if (show[7]) {
         par(mfcol=c(1,1))
-        hist(x$logFile$Znp1,main="",xlab=expression(Z[n+1]),prob=TRUE,breaks=seq(-0.5,max(x$logFile$Znp1)+0.5,1))
+        hist(x$logFile$Znp1,main="",xlab=expression(Z[n+1]),probability=TRUE,breaks=seq(-0.5,max(x$logFile$Znp1)+0.5,1))
     }
     
     invisible()

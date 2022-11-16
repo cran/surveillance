@@ -1,9 +1,9 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.20.1
-Date: 2022-07-13
-Authors@R: c(MH = person("Michael", "Höhle",
+Version: 1.20.3
+Date: 2022-11-14
+Authors@R: c(MH = person("Michael", "Hoehle",
                   email = "hoehle@math.su.se",
                   role = c("aut", "ths"),
                   comment = c(ORCID = "0000-0002-0423-6702")),
@@ -21,36 +21,16 @@ Authors@R: c(MH = person("Michael", "Höhle",
              person("Christian", "Lang", role = "ctb"),
              person("Juliane", "Manitz", role = "ctb"),
              person("Andrea", "Riebler", role = "ctb"),
-             person("Daniel", "Sabanés Bové", role = "ctb"),
-             MS = person("Maëlle", "Salmon", role = "ctb"),
+             person("Daniel", "Sabanes Bove", role = "ctb"),
+             MS = person("Maelle", "Salmon", role = "ctb"),
              DS = person("Dirk", "Schumacher", role = "ctb"),
              person("Stefan", "Steiner", role = "ctb"),
              person("Mikko", "Virtanen", role = "ctb"),
              person("Wei", "Wei", role = "ctb"),
              person("Valentin", "Wimmer", role = "ctb"),
              person("R Core Team", role = "ctb",
-                    comment = "A few code segments are modified versions of
-                               code from base R"))
-Author: Michael Höhle [aut, ths] (<https://orcid.org/0000-0002-0423-6702>),
-  Sebastian Meyer [aut, cre] (<https://orcid.org/0000-0002-1791-9449>),
-  Michaela Paul [aut],
-  Leonhard Held [ctb, ths],
-  Howard Burkom [ctb],
-  Thais Correa [ctb],
-  Mathias Hofmann [ctb],
-  Christian Lang [ctb],
-  Juliane Manitz [ctb],
-  Andrea Riebler [ctb],
-  Daniel Sabanés Bové [ctb],
-  Maëlle Salmon [ctb],
-  Dirk Schumacher [ctb],
-  Stefan Steiner [ctb],
-  Mikko Virtanen [ctb],
-  Wei Wei [ctb],
-  Valentin Wimmer [ctb],
-  R Core Team [ctb] (A few code segments are modified versions of code
-    from base R)
-Maintainer: Sebastian Meyer <seb.meyer@fau.de>
+                    comment = paste("A few code segments are modified",
+                                    "versions of code from base R")))
 Depends: R (>= 3.6.0), methods, grDevices, graphics, stats, utils, sp
         (>= 1.0-15), xtable (>= 1.7-0)
 Imports: Rcpp (>= 0.11.1), polyCub (>= 0.8.0), MASS, Matrix, nlme,
@@ -71,7 +51,7 @@ Description: Statistical methods for the modeling and monitoring of time series
         reliability engineering, econometrics, or social sciences. The package
         implements many typical outbreak detection procedures such as the
         (improved) Farrington algorithm, or the negative binomial GLR-CUSUM
-        method of Höhle and Paul (2008) <doi:10.1016/j.csda.2008.02.015>.
+        method of Hoehle and Paul (2008) <doi:10.1016/j.csda.2008.02.015>.
         A novel CUSUM approach combining logistic and multinomial logistic
         modeling is also included. The package contains several real-world data
         sets, the ability to simulate outbreak data, and to visualize the
@@ -85,7 +65,7 @@ Description: Statistical methods for the modeling and monitoring of time series
         <doi:10.1002/sim.4177> and Meyer and Held (2014) <doi:10.1214/14-AOAS743>.
         twinSIR() models the susceptible-infectious-recovered (SIR) event
         history of a fixed population, e.g, epidemics across farms or networks,
-        as a multivariate point process as proposed by Höhle (2009)
+        as a multivariate point process as proposed by Hoehle (2009)
         <doi:10.1002/bimj.200900050>. twinstim() estimates self-exciting point
         process models for a spatio-temporal point pattern of infective events,
         e.g., time-stamped geo-referenced surveillance data, as proposed by
@@ -99,6 +79,26 @@ Additional_repositories: https://inla.r-inla-download.org/R/stable/
 Encoding: latin1
 VignetteBuilder: utils, knitr
 NeedsCompilation: yes
-Packaged: 2022-07-14 14:54:41 UTC; smeyer
+Packaged: 2022-11-14 22:04:22 UTC; smeyer
+Author: Michael Hoehle [aut, ths] (<https://orcid.org/0000-0002-0423-6702>),
+  Sebastian Meyer [aut, cre] (<https://orcid.org/0000-0002-1791-9449>),
+  Michaela Paul [aut],
+  Leonhard Held [ctb, ths],
+  Howard Burkom [ctb],
+  Thais Correa [ctb],
+  Mathias Hofmann [ctb],
+  Christian Lang [ctb],
+  Juliane Manitz [ctb],
+  Andrea Riebler [ctb],
+  Daniel Sabanes Bove [ctb],
+  Maelle Salmon [ctb],
+  Dirk Schumacher [ctb],
+  Stefan Steiner [ctb],
+  Mikko Virtanen [ctb],
+  Wei Wei [ctb],
+  Valentin Wimmer [ctb],
+  R Core Team [ctb] (A few code segments are modified versions of code
+    from base R)
+Maintainer: Sebastian Meyer <seb.meyer@fau.de>
 Repository: CRAN
-Date/Publication: 2022-07-19 11:50:02 UTC
+Date/Publication: 2022-11-16 12:10:10 UTC

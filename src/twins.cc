@@ -5,9 +5,11 @@
  *   Volker Schmid
  * Contributors:
  *   Michaela Paul
- *   Daniel Sabanes Bove <daniel.sabanesbove@ifspm.uzh.ch>
- *   Sebastian Meyer <sebastian.meyer@ifspm.uzh.ch>
+ *   Daniel Sabanes Bove
+ *   Sebastian Meyer
  * History:
+ *   October 2022 (SM) -- dropped deprecated sprintf and a lot of unused code
+ *                        and fixed a memory leak
  *   July 2016 (SM) -- dropped deprecated "register" storage class specifier
  *   April 2012 (SM) -- replaced exit() calls by Rf_error()
  *   March 2012 (DSB) -- changed long types to int to be in accordance with R
@@ -17,8 +19,7 @@
  * Markov Chain Monte Carlo (MCMC) estimation in the Branching Process
  * like Epidemic Model. Instead of a slow R solution this code
  * provides a faster C++ solution. Can be invoked through R or be
- * programmed as a librrary. This code uses the Gnu Scientific Library
- * (GSL) available from http://sources.redhat.com/gsl/
+ * programmed as a librrary.
  *
  * For now this code is quick & dirty. A more OO framework would be nice
  * to enable better programming, but this will probably be speedwise slower.
@@ -218,44 +219,7 @@ double epsilon_b=0.001;
 
 
 /*********************************************************************
- * Compute sum from 1 to I and 1 to n of a vektor with indices 0,...,I 
- * of a vektor with indices 0,...,n
- * Parameters:
- *
- * X a vector with indices 0,..,I of a vector with indices 0,...,n
- * I "length" of vector (true length due to zero indice is I+1)
- *********************************************************************/
-double sumIn(const LongMatrix& X, int I, int n) {
-  double res = 0;
-  for (int i=1; i<=I; i++){
-    for (int t=1; t<=n; t++) {
-      res += X[i][t]; 
-    }
-  }
-  return(res);
-}
-
-/*********************************************************************
- * Compute sum from 1 to I and 1 to n of a vektor with indices 0,...,I 
- * of a vektor with indices 0,...,n
- * This is the double version
- * Parameters:
- *
- * X a vector with indices 0,..,I of a vector with indices 0,...,n
- * I "length" of vector (true length due to zero indice is I+1)
- *********************************************************************/
-double sumIn(const DoubleMatrix& X, int I, int n) {
-  double res = 0;
-  for (int i=1; i<=I; i++){
-    for (int t=1; t<=n; t++) {
-      res += X[i][t]; 
-    }
-  }
-  return(res);
-}
-
-/*********************************************************************
- * Compute sum from 1 to I and 1 to n of a vektor with indices 0,...,I 
+ * Compute sum from 1 to I and 2 to n of a vektor with indices 0,...,I 
  * of a vektor with indices 0,...,n
  * Parameters:
  *
@@ -274,7 +238,7 @@ double sumIn2(const LongMatrix& X, int I, int n) {
 
 
 /*********************************************************************
- * Compute sum from 1 to I and 1 to n of a vektor with indices 0,...,I 
+ * Compute sum from 1 to I and 2 to n of a vektor with indices 0,...,I 
  * of a vektor with indices 0,...,n
  * This is the double version
  * Parameters:
@@ -294,52 +258,6 @@ double sumIn2(const DoubleMatrix& X, int I, int n) {
 
 
 /*********************************************************************
- * Compute sum from 1 to I of a vektor with indices 0,...,I 
- * of a vektor with indices 0,...,n
- * Parameters:
- *
- * X a vector with indices 0,..,I of a vector with indices 0,...,n
- * I "length" of vector (true length due to zero indice is I+1)
- *********************************************************************/
-double sumI1(const LongMatrix& X, int I, int t) {
-  double res = 0;
-  for (int i=1; i<=I; i++) { res += X[i][t]; }
-  return(res);
-}
-
-/*********************************************************************
- * Compute sum from 1 to I of a vektor with indices 0,...,I 
- * of a vektor with indices 0,...,n
- * This is the double version
- * Parameters:
- *
- * X a vector with indices 0,..,I of a vector with indices 0,...,n
- * I "length" of vector (true length due to zero indice is I+1)
- *********************************************************************/
-double sumI1(const DoubleMatrix& X, int I, int t) {
-  double res = 0;
-  for (int i=1; i<=I; i++) { res += X[i][t]; }
-  return(res);
-}
-
-/*********************************************************************
- * factorial function
- *********************************************************************/
-long factorial(long x){
-  long fac=1;
-  if(x<0){ Rf_error("negative value passed to factorial function\n");}
-  else{
-    if(x==0){fac=1;}
-    else{
-      for(int i=1;i<=x;i++){
-        fac*=i;
-      }
-    }
-  }
-  return(fac);
-}
-
-/*********************************************************************
  * logit function
  *********************************************************************/
 double logit(double y){
@@ -350,8 +268,6 @@ double logit(double y){
   logit = log(y/(1-y));
     return(logit);
 }
-
-
 
 
 /*********************************************************************
@@ -374,31 +290,6 @@ double invlogitd(double y){
 }
 
 
-
-
-/*********************************************************************
- * Makes one Metropolis-Hastings update step, log-scale
- *********************************************************************/
-double updateMHlog(double &par, double parStar, double logFpar, double logFparStar, double &acceptedpar) {
-  double accpar = exp(logFparStar - logFpar); 
-  if (gsl_rng_uniform() <= accpar) {par = parStar; acceptedpar++;}
-  return(0);
-}
-
-/*********************************************************************
- * Makes one Metropolis-Hastings update step
- *********************************************************************/
-double updateMH(double &par, double parStar, double Fpar, double FparStar, double &acceptedpar) {
-  double accpar = FparStar/Fpar; 
-  if (gsl_rng_uniform() <= accpar) {par = parStar; acceptedpar++;}
-  return(0);
-}
-
-
-
-
-
-
 /*********************************************************************
  * Tunes a parameter
  *********************************************************************/
@@ -414,203 +305,6 @@ double tune(double& parameter, double accepted, double samples, double& tunepar,
       return(0);
 }
 
-double ABS(double x)
-{
-  if (x>0){return x;}else{return -x;}
-}
-double MIN(double a, double b)
-{
-  if (a<b){return a;}else{return b;}
-}
-
-double xMx(double* Q, double* x, int noa, int b)
-{
-  double erg=0.0;
-  
-  for (int i=0; i<noa; i++)
-    {
-      for (int j=0; j<noa; j++)
-	{
-	  if (ABS(i-j) < b)
-	    {
-	      erg += x[i]*x[j]*Q[(int)(MIN(i,j)*b+ABS(i-j))];
-	      if (i==j)
-		{
-		  erg -= 0.5*x[i]*x[j]*Q[(int)(MIN(i,j)*b+ABS(i-j))];
-		}
-	    }
-	}
-    }
-
-  return erg;
-}
-
-double xMx2(double* Q, double* x, int n, int b)
-{
-  double erg=0.0;
-  
-  for (int i=0; i<=n; i++)
-    {
-      for (int j=0; j<=n; j++)
-	{
-	  if (ABS(i-j) < b)
-	    {
-	      erg += x[i]*x[j]*Q[(int)(MIN(i,j)*b+ABS(i-j))];
-	    }
-	}
-    }
-
-  return erg;
-}
-
-
-/* BERECHNET A-1, k ist matrixlaenge*/
-void invers(double* A,int k)
-{
-  DoubleVector ergebnis(k * k);
-  
-  if (k==1)
-    {
-      ergebnis[0] = 1.0/A[0];
-    }
-
-  if (k==2)
-    {
-      double det = A[0]*A[3]-A[1]*A[2];
-      ergebnis[0] = A[3]/det;
-      ergebnis[1] = 0.0-A[1]/det;
-      ergebnis[2] = 0.0-A[2]/det;
-      ergebnis[3] = A[0]/det;
-    }
-
-  if (k>2)
-    {
-      REprintf("Error in the twins.cc function invers()\n");
-    }
-
-  for (int i=0; i< k*k; i++)
-    {
-      A[i]=ergebnis[i];
-    }
-  
-  return;
-}
-
-void mxschreibe(double* A, int a, int b)
-{
-  for (int i=0; i<a; i++)
-    {
-      for (int j=0; j<b; j++)
-	{
-	  Rprintf("%f ", A[i*b+j]);
-	}
-      Rprintf("\n");
-    }
-  Rprintf("\n");
-  return;
-}
-
-
-int mxcheck(int n, const IntMatrix& matrix)
-{
-  int zs=0;
-  for (int i=0; i<n; i++)
-    {
-      zs=0;
-      for (int j=0; j<n; j++)
-	{
-	  zs+=matrix[i][j];
-	  if (matrix[i][j]!=matrix[j][i])
-	    {
-	      REprintf("Error: Matrix is not symmetric! (Row: %d, Column %d\n",i,j); 
-	      return 1;
-	    }
-	}
-      if (zs != 0)
-	{
-	  REprintf("Error: Row sum not zero in row %d",i,"\n");
-	  return 1;
-	}
-    }
-  return 0;
-}
-
-
-
-
-
-/*updatealphabeta
-  Erzeugt Normalverteilten Zufallsvektor der Laenge noa*/
-void gausssample(double* temp, int noa)
-{
-  
-  for (int i=0; i< noa; i++)
-    {
-      temp[i]=gsl_ran_gaussian(1);
-    }
-  
-  return;
-}
-
-double hyper(int rw, double* theta, double k_a, double k_b, int n)
-{
-
-  double aa;
-  double bb;
-  double kappa_neu=0;
-  
-  if (rw==1)
-    {
-      double summe = 0.0;
-      
-      aa = k_a + 0.5 * double(n-1-rw);
-      
-      for (int i=3; i <= n; i++)
-	{
-	  summe = summe + (theta[i] - theta[i-1]) * (theta[i] - theta[i-1]);
-	}
-      bb = k_b + 0.5 * summe;
-      
-      kappa_neu = gsl_ran_gamma(aa,1/bb);
-    }
-  if (rw==2)
-    {
-      
-      double dopp_diff;
-      double summe = 0.0;
-      
-      aa = k_a + 0.5 * double(n-1-rw);
-      
-      for (int i=3; i < n; i++)
-	{
-	  dopp_diff = theta[i-1] - 2*theta[i] + theta[i+1];
-	  summe = summe + dopp_diff * dopp_diff;
-	}
-      bb = k_b + 0.5 * summe;
-      
-      
-      
-      kappa_neu = gsl_ran_gamma( aa, 1/bb);
-    }
-  if (rw==0)
-    {
-      double summe = 0.0;
-      
-      aa = k_a + 0.5 * double(n-1-rw);
-      
-      for (int i=2; i <= n; i++){
-	summe = summe + (theta[i] * theta[i]);
-      }
-      
-      bb = k_b + 0.5 * summe;
-      
-      kappa_neu = gsl_ran_gamma(aa,1/bb);
-    }
-  
-  return kappa_neu;
-}
-
-
 double update_tau_alpha(const DoubleVector& alpha, int I, double aa, double bb, DoubleVector& xreg)
 {
   
@@ -624,73 +318,6 @@ double update_tau_alpha(const DoubleVector& alpha, int I, double aa, double bb, 
 }
 
 
-double update_tau_gamma(const DoubleVector& alpha, int ncov, double aa, double bb)
-{
-  
-  aa += double(ncov);
-  for (int i=0; i<ncov; i++)
-    {
-      bb += alpha[i]*alpha[i];
-    }
-  double neu=gsl_ran_gamma( aa, 1/bb);
-  return neu;
-}
-
-void berechneQ(double* temp, int age_block, double kappa, int noa,int nop, double delta)
-{
-
-  if (age_block==1)
-    {
-      int index=0;
-      temp[index]=kappa+delta*nop;
-      index++;
-      temp[index]=-kappa;
-      index++;
-      for (int i=1; i<noa-1; i++)
-	{
-	  temp[index]=2*kappa+delta*nop;
-	  index++;
-	  temp[index]=-kappa;
-	  index++;
-	}
-      temp[index]=kappa+delta*nop;
-    }
-  if (age_block==2)
-    {
-      int index=0;
-      temp[index]=kappa+delta*nop;
-      index++;
-      temp[index]=-2*kappa;
-      index++;
-      temp[index]=kappa;
-      index++;
-      temp[index]=5*kappa+delta*nop;
-      index++;
-      temp[index]=-4*kappa;
-      index++;
-      temp[index]=kappa;
-      index++;
-      for (int i=2; i<noa-2; i++)
-	{
-	  temp[index]=6*kappa+delta*nop;
-	  index++;
-	  temp[index]=-4*kappa;
-	  index++;
-	  temp[index]=kappa;
-	  index++;
-	}
-      temp[index]=5*kappa+delta*nop;
-      index++;
-      temp[index]=-2*kappa;
-      index++;
-      index++;
-      temp[index]=kappa+delta*nop;
-    }
-
-  return;
-}
-
-
 
 double sumg(int ncov, const DoubleMatrix& xcov, DoubleVector& gamma, int t, int scov)
 {
@@ -701,8 +328,6 @@ double sumg(int ncov, const DoubleMatrix& xcov, DoubleVector& gamma, int t, int 
     }
   return sum;
 }
-
-
 
 
 void alphaupdate(DoubleVector& gamma, DoubleVector& alpha, DoubleVector& beta, DoubleVector& delta, const DoubleMatrix& lambda, double p, int I, int n, const LongMatrix& Y, const LongMatrix& X, long& acc_alpha, double taualpha, int ncov, const DoubleMatrix& xcov, DoubleVector& xreg, const DoubleMatrix& omega, const DoubleMatrix& omegaX, int scov, int mode){
@@ -751,100 +376,6 @@ void alphaupdate(DoubleVector& gamma, DoubleVector& alpha, DoubleVector& beta, D
   return;
 }
 
-
-
-void erzeuge_b_Q(DoubleVector& gamma  , double* my, double* Q, const DoubleVector& alpha, DoubleVector& delta, DoubleVector& beta, const LongMatrix& X, const LongMatrix& Z, const LongMatrix& Y,
-		 int n, int I, double taubeta, int rw, const DoubleMatrix& lambda, double p, const DoubleMatrix& xcov, int ncov, const DoubleMatrix& omega, const DoubleMatrix& omegaX,int scov, int mode)
-{
-  if (mode==1)
-    {
-      /* b-vektor des Proposals*/
-      for (int t=0;t<n; t++)
-	{
-	  my[t]=0.0;
-	  for (int i=1; i<=I; i++)
-	    {
-	      my[t]+=X[i][t+2];
-	      my[t]-=(1-beta[t+2])*omegaX[i][t+2]*delta[t+2]*(exp(sumg(ncov,xcov,gamma,t+2,scov)+alpha[i]+beta[t+2]));
-	    }
-	}
-    }
-  if (mode==2)
-    {
-      /* b-vektor des Proposals*/
-      for (int t=2;t<=n; t++)
-	{
-	  my[t-2]=0.0;
-	  for (int i=1; i<=I; i++)
-	    {
-	      my[t-2]+=Y[i][t];
-	      my[t-2]-=(1-beta[t])*(omega[i][t]*Z[i][t-1]*exp(sumg(ncov,xcov,gamma,t,scov)+alpha[i]+beta[t]));
-	    }
-	}
-      
-      
-    }
-  
-  /* Praezisionsmatrix*/
-  berechneQ(Q, rw, taubeta, n, 1, 0.0);
-  
-  if (mode==1)
-    {
-      for (int i=1; i<=I; i++)
-	{
-	  for (int t=0; t<n; t++)
-	    {
-	      Q[(rw+1)*(t)]+= omegaX[i][t+2]*delta[t+2]*exp(sumg(ncov,xcov,gamma,t+2,scov)+alpha[i]+beta[t+2]);
-	    }	
-	}
-    }
-  
-  if (mode==2)
-    {
-      for (int i=1; i<=I; i++)
-	{
-	  for (int t=2; t<=n; t++)
-	    {
-	      Q[(rw+1)*(t-2)]+= omega[i][t]*Z[i][t-1]*exp(sumg(ncov,xcov,gamma,t,scov)+alpha[i]+beta[t]);
-	    }
-	}	
-    }
-  
-  return;
-}
-
-
-void erzeuge_b_Q_2(double* my, double* Q, const DoubleVector& alpha, DoubleVector& beta, DoubleVector& gamma, DoubleVector& delta, const LongMatrix& X,
-		   int n, int I, double taubeta, int rw, const DoubleMatrix& xcov, int ncov, int scov, const DoubleMatrix& omega)
-{
-
-  /* b-vektor des Proposals*/
-  for (int t=0;t<=n; t++)
-    {
-      my[t]=0.0;
-      for (int i=1; i<=I; i++)
-	{
-	  my[t]+=X[i][t+2];
-	  my[t]-=(1-beta[t])*omega[i][t+2]*delta[t+2]*exp(sumg(ncov,xcov,gamma,t+2,scov)+alpha[i]+beta[t]);
-	}
-    }
-
-
-  /* Praezisionsmatrix*/
-  berechneQ(Q, rw, taubeta, n+1, 1, 0.0);
-
-  for (int i=1; i<=I; i++)
-    {
-      for (int t=0; t<=n; t++)
-	{
-	  Q[(rw+1)*(t)]+= omega[i][t+2]*delta[t+2]*exp(sumg(ncov,xcov,gamma,t+2,scov)+alpha[i]+beta[t]);
-	}	
-    }
-
-
-
-  return;
-}
 
 
 
@@ -926,79 +457,6 @@ void update_gamma_j(int j, const DoubleVector& alpha, DoubleVector& beta, Double
 
   return;
 }
-
-
-
-void update_beta_t(int t, const DoubleVector& alpha, DoubleVector& beta, DoubleVector& gamma, DoubleVector& delta, int ncov, const DoubleMatrix& xcov, const LongMatrix& X, int n, int I, double taubeta, long& acc_beta, const DoubleMatrix& omega, int scov)
-{
-  double h = 0;
-  double c = 0;
-  double d = 0;
-  for(int i=1;i<=I;i++){
-    h -= omega[i][t]*delta[t]*exp(alpha[i] + beta[t] + sumg(ncov,xcov,gamma,t,scov)); /* h ist h(beta[t]^0), beta ist \beta^0, betatStar ist \beta*/
-    c += X[i][t];
-  }
-  if(t==2){
-    c -= taubeta*(beta[t+2]-2*beta[t+1]);
-    d = taubeta;
-  }
-  if(t==3){
-    c -= taubeta*((beta[t+2]-2*beta[t+1]) + (-2*beta[t+1] - 2*beta[t-1]));
-    d = 5*taubeta;
-  }
-  if((t>=4)&&(t<=(n-2))){
-    c -= taubeta*((beta[t+2]-2*beta[t+1]) + (-2*beta[t+1] - 2*beta[t-1]) + (beta[t-2] - 2*beta[t-1]));
-    d = 6*taubeta;
-  }
-  if(t==(n-1)){
-    c -= taubeta*((-2*beta[t+1] - 2*beta[t-1]) + (beta[t-2] - 2*beta[t-1]));
-    d = 5*taubeta;
-  }
-  if(t==n){
-    c -= taubeta*(beta[t-2] - 2*beta[t-1]);
-    d = taubeta;
-  }
-
-
-
-  double s = sqrt(1/(d - h)); /* s ist s*/
-  double b = c + (1 - beta[t])*h;
-  double m = b*s*s;
-
-  double betatStar = gsl_ran_gaussian(s) + m;
-
-  double h2 = 0;
-  for(int i=1;i<=I;i++){
-    h2 -= omega[i][t]*delta[t]*exp(alpha[i] + betatStar + sumg(ncov,xcov,gamma,t,scov)); /* h2 ist h(beta[t])*/
-  }
-
-  double s2 = sqrt(1/(d - h2)); /* s2 ist s^0*/
-  double b2 = c + (1 - betatStar)*h2;
-  double m2 = b2*s2*s2;
-
-
-  double a = 0;
-
-  a += betatStar*c;
-  a -= beta[t]*c;
-  a -= 0.5*d*betatStar*betatStar;
-  a += 0.5*d*beta[t]*beta[t];
-  a += h2;
-  a -= h;
-  a += log(s);
-  a -= log(s2);
-  a += 0.5*((betatStar-m)/s)*((betatStar-m)/s);
-  a -= 0.5*((beta[t]-m2)/s2)*((beta[t]-m2)/s2);
-
-  if(exp(a)>gsl_rng_uniform()){
-    beta[t] = betatStar;
-    acc_beta += 1;
-  }
-
-  return;
-}
-
-
 
 
 
@@ -1935,112 +1393,6 @@ LongMatrix surveillancedata2twin(int* x, int n, int I) {
 
 
 
-/*********************************************************************
- * Read integer data from file. The format is: n Z_1 Z_2 ... Z_n
- *********************************************************************/
-
-// this could also be changed to return LongMatrix, but it is not used...
-// long** readData(char* fileName, long *size, long *size2) {
-//   //Read Data from file and check if everything went allright
-
-//   //cout << "\"" << fileName  << "\"" <<  endl;
-
-//   ifstream fin(fileName);
-  
-//   if (! fin) {
-//     cerr << "Error: File \"" << fileName << "\" not found!" << endl;
-//     return(NULL);
-//   }
-  
-//   // cout << fin << endl;
-//   //Count the number of data entries
-//   int n=0;
-//   fin >> n;
-//   Rprintf("n=%d\n",n);
-//   int I=1; 
-//   //fin >> I;
-//   //cout << "I=" << I << endl;
-
-//   long **Z = new long*[I+1];
-//   for (long i=0; i<=I; i++){
-//     Z[i] = new long[n+1];
-//   }
-
-	
-//   for (long t=0; t<=n; t++){
-//     Z[0][t]=0;
-//   }
-	
-//   for (long i=0; i<=I; i++){
-//     Z[i][0]=0;
-//   }
-	
-//   //Start @ index 1. (Z[0] is not defined)
-//   int t=1;
-//   while (!fin.eof() && (t<=n)) { 	
-//     int i=1;
-//     while (!fin.eof() && (i<=I)) { 
-//       fin >> Z[i][t];
-//       i++;
-//     }
-//     t++;
-//   }
-
-//   fin.close();
-
-//   //Return the result consisting of Z and n
-//   *size = n;
-//   *size2 = I;
-
-//   return(Z);
-// }
-
-
-/* Calculate the deviance of the data we use that the data, Z, is a
- *  sum of Poisson distributed variables, i.e. it is Poisson
- *  distributed.
- *
- *    Z_t = S_t + X_t + Y_t, i.e. 
- *    Z_t ~ Po(nu*p + nu*(1-p) + lambda*W_{t-1})
- *
- *    D = -2log p(Z|theta) + 2 log p(Z|\mu(theta)=Z)
- */
-double satdevalt(int n, int I, const LongMatrix& X, const LongMatrix& Y, const LongMatrix& Z, 
-		 const DoubleMatrix& omega, const DoubleMatrix& lambda, const DoubleMatrix& nu, double *xi, DoubleMatrix& eta, DoubleMatrix& eta2, DoubleMatrix& varr, double psi, int overdispersion) {
-  double res = 0;
-  //Loop over all data
-  for (int i=1; i<=I; i++) {
-    for (int t=2; t<=n; t++) {
-      //Use the equation derived for the saturated deviance in the paper
-      //calculate the mean and variance of Z[i][t]
-      eta[i][t] = (nu[i][t]*xi[i]+lambda[i][t]*Z[i][t-1]);
-      eta2[i][t] = eta[i][t];
-      if(overdispersion){
-        varr[i][t] = eta2[i][t]*(1+eta2[i][t]/psi);
-      }else{
-	varr[i][t] = eta2[i][t];
-      }
-      //calculate the Deviance in the Poisson and NegBin case
-      if(!overdispersion){
-        if (Z[i][t] == 0) {
-          res += 2 * eta[i][t];
-        } else {
-          res += 2 * ( Z[i][t] * log(Z[i][t]/eta[i][t]) - Z[i][t] + eta[i][t]);
-        }
-      }
-      if(overdispersion){
-        if (Z[i][t] == 0) {
-          res += 2 * ( - (Z[i][t]+psi) * log((Z[i][t]+psi)/(eta[i][t]+psi)));
-        } else {
-          res += 2 * ( - (Z[i][t]+psi) * log((Z[i][t]+psi)/(eta[i][t]+psi)) + Z[i][t] * log(Z[i][t]/eta[i][t]));
-        }
-      }
-    }
-  }
-  return(res);
-}
-
-
 /* Calculate the deviance of the data we use that the data, Z, is a
  *  sum of Poisson distributed variables, i.e. it is Poisson
  *  distributed.
@@ -2070,37 +1422,6 @@ double satdev(int n, int I, const LongMatrix& Z,
   }
   return(res);
 }
-
-
-
-// Calculate chi square the sum of the qudratic pearson residuals (z-mean)/sd
-
-
-double chisq(int n, int I, const LongMatrix& Z, 
-	     const DoubleMatrix& lambda, const DoubleMatrix& nu, double *xi, DoubleVector& epsilon, DoubleMatrix& eta, DoubleMatrix& varr, DoubleMatrix& rpearson, double psi, int overdispersion) {
-  double res = 0;
-  //Loop over all data
-  for (int i=1; i<=I; i++) {
-    for (int t=2; t<=n; t++) {
-      //calculate the mean and variance of Z[i][t]
-      eta[i][t] = (epsilon[t] + nu[i][t]*xi[i]+lambda[i][t]*Z[i][t-1]);
-      if(overdispersion){
-        varr[i][t] = eta[i][t]*(1+eta[i][t]/psi);
-      }else{
-	varr[i][t] = eta[i][t];
-      }
-      rpearson[i][t] = (Z[i][t]-eta[i][t])/sqrt(varr[i][t]);
-      //calculate chisq in the Poisson and NegBin case
-      res += rpearson[i][t]*rpearson[i][t];
-    }
-  }
-  return(res);
-}
-  
-
-
-
-
 
 
 
@@ -2418,7 +1739,7 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
 
   
   if(varnu){ 
-    for (int i=0; i<=I; i++) {
+    for (int i=1; i<=I; i++) {
       alpha[i] = log(xreg[i]);
     }
     
@@ -2466,8 +1787,7 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
   long acc_gamma=0;
 
 
-  /*hoehle: min/max is deprecated double tuneSampleSize = 1000<?burnin; */
-  double tuneSampleSize = MIN(1000,burnin);
+  double tuneSampleSize = (burnin < 1000 ? burnin : 1000);
 
   double need = 0; 
   double tunex = 0; 
@@ -2754,22 +2074,6 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
       if (rw>0)
 	{
 
-	  //  update_beta_nurrw(gamma, alpha, beta, delta, X, Z, Y, n, I,  taubeta,  rw, 1, lambda, acc_beta, sampleCounter, my, my2, temp, z, theta, Q, Q2, L, L2, xcov, ncov, scov, omega, omega, 1);
-	  //update_beta_block(alpha, beta, gamma, delta, X, n, I, taubeta, rw, acc_beta, sampleCounter, n1, n2, my, my2, z, theta, beta0, Q, Q2, L, L2, xcov, ncov, scov, omega);
-
-	  /*hofmann - no fortran
-	    update_beta_tau_block(alpha, beta, gamma, delta, beta_a, beta_b, X, n, I, taubeta, rw, acc_beta, taubetaRWSigma, taubetaStar, sampleCounter, n1, n2, my, my2, z, theta, beta0, Q, Q2, L, L2, xcov, ncov, scov, omega);
-	  */
-	  //taubeta=beta_a/beta_b;
-	  // taubeta=hyper(rw, beta, beta_a, beta_b, n);
-	  //taubeta=720;
-
-	  //if(sampleCounter%500==1){cout << taubeta << endl << endl;}
-	  //  for(int t=2;t<=n;t++){
-	  //  update_beta_t(t, alpha, beta, gamma, delta, ncov, xcov, X, n, I, taubeta, acc_beta, omega, scov);
-	  //   }
-  
-	 
 	  if(scov==0){
 	    //  if (sampleCounter%1==0)
 	    //   {
@@ -3095,9 +2399,9 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
   return;
     
 
+}//bplem_estimate
 
 
-}//funktion
 
 /* hoehle: interface for calling twins from R */
 
@@ -3187,7 +2491,7 @@ extern "C" {
   ofstream logfile,logfile2,accfile;
 
   char accFile[200];
-  sprintf(accFile, "%s.acc", logFile);
+  snprintf(accFile, 200, "%s.acc", logFile);
 
   logfile.open(logFile);
   logfile2.open(logFile2);

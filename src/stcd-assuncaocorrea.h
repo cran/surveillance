@@ -3,7 +3,7 @@
  * C++ source originally created by Marcos Oliveira Prates from the
  * Department of Statistics, UFMG, Brazil on 06 April 2006
  * 
- * R interface by Michael Höhle initiated on 12 Jan 2009
+ * R interface by Michael Hoehle initiated on 12 Jan 2009
  * Note: Some function names and documentation are in Portugese
  */
 

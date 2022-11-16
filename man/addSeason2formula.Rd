@@ -31,23 +31,25 @@ addSeason2formula(f = ~1, S = 1, period = 52, timevar = "t")
 \details{
   The function adds the seasonal terms
   \deqn{
-        \sum_{s=1}^\code{S} \gamma_s \sin(\frac{2\pi s}{\code{period}} t)
-                    +\delta_s \cos(\frac{2\pi s}{\code{period}} t),
-        }{
-        sum_s gamma_s * sin(2*pi*s/period * t) 
-              + delta_s * cos(2*pi*s/period * t),
-        }
-  where \eqn{\gamma_s}{gamma_s} and \eqn{\delta_s}{delta_s} are the unknown 
-  parameters and \eqn{t}, \eqn{t = 1, 2, \ldots} denotes the time
-  variable \code{timevar}, to an existing formula \code{f}.
+    \sin( s \cdot 2\pi \cdot \code{timevar}/\code{period} ),\;
+    \cos( s \cdot 2\pi \cdot \code{timevar}/\code{period} ),
+  }{
+    sin( s * 2 * pi * \code{timevar}/\code{period} ),
+    cos( s * 2 * pi * \code{timevar}/\code{period} ),
+  }
+  for \eqn{s = 1,\dots,\code{S}} to an existing formula \code{f}.
 
-  Note that the seasonal terms can also be expressed as
-  \deqn{\gamma_{s} \sin(\frac{2\pi s}{\code{period}} t) + \delta_{s} \cos(\frac{2\pi s}{\code{period}} t) = 
-        A_s \sin(\frac{2\pi s}{\code{period}} t + \epsilon_s)}{%
-      \gamma_s sin(2*pi*s/period * t) + \delta_s cos2*pi*s/period * t) = 
-        A_s sin(2*pi*s/period * t + \epsilon_s)}
-  with amplitude \eqn{A_s=\sqrt{\gamma_s^2 +\delta_s^2}}{A_s=sqrt{\gamma_s^2 +\delta_s^2}} 
-  and phase shift \eqn{\tan(\epsilon_s) = \delta_s / \gamma_s}. 
+  Note the following equivalence when interpreting the coefficients of
+  the seasonal terms:
+  \deqn{
+    \gamma \sin(\omega t) + \delta \cos(\omega t) = 
+    A \sin(\omega t + \epsilon)
+  }{
+    gamma sin(omega * t) + delta cos(omega * t) = 
+    A sin(omega * t + epsilon)
+  }
+  with amplitude \eqn{A = \sqrt{\gamma^2 + \delta^2}}{A = sqrt(gamma^2 + delta^2)}
+  and phase shift \eqn{\epsilon = \arctan(\delta / \gamma)}. 
   The amplitude and phase shift can be obtained from a fitted
   \code{\link{hhh4}} model via \code{coef(..., amplitudeShift = TRUE)},
   see \code{\link{coef.hhh4}}.

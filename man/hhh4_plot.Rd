@@ -1,5 +1,5 @@
 \encoding{latin1}
-\name{plot.hhh4}
+\name{hhh4_plot}
 \alias{plot.hhh4}
 \alias{plotHHH4_fitted}
 \alias{plotHHH4_fitted1}
@@ -144,10 +144,11 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
   \item{start,end}{time range to plot specified by vectors of length two
     in the form \code{c(year,number)}, see \code{"\linkS4class{sts}"}.}
   \item{xaxis}{if this is a list (of arguments for
-    \code{\link{addFormattedXAxis}}, the time axis is nicely labelled
+    \code{\link{addFormattedXAxis}}), the time axis is nicely labelled
     similar to \code{\link{stsplot_time}}.
-    Note that in this case, the time indexes \code{1:nrow(x$stsObj)}
-    will be used as x-values in the plot, which is different from the
+    Note that in this case or if \code{xaxis = NA},
+    the basic time indexes \code{1:nrow(x$stsObj)}
+    will be used as x coordinates, which is different from the
     long-standing default (\code{xaxis = NULL}) with a real time scale.}
   \item{xlim}{numeric vector of length 2 specifying the x-axis range.
     The default (\code{NULL}) is to plot the complete time range

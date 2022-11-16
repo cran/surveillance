@@ -168,8 +168,7 @@ as.epidata(data, ...)
     individuals just before time \eqn{t}.
     Then, for individual \eqn{i} at time \eqn{t}, the
     \eqn{m}'th covariate has the value
-    \eqn{\sum_{j \in I(t)} f_m(d_{ij})}{%
-         \sum_{j in I(t)} f[[m]](d[i,j])},
+    \eqn{\sum_{j \in I(t)} f_m(d_{ij})}{\sum_{j in I(t)} f[[m]](d[i,j])},
     where \eqn{d_{ij}}{d[i,j]} denotes entries of the distance matrix
     (by default this is the Euclidean distance \eqn{||s_i - s_j||}
     between the individuals' coordinates, but see argument \code{D}).
@@ -315,7 +314,7 @@ myEpi <- as.epidata(hagelloch.df, t0 = 0,
                     tI.col = "tI", tR.col = "tR", id.col = "PN",
                     coords.cols = c("x.loc", "y.loc"),
                     keep.cols = c("SEX", "AGE", "CL"))
-\dontshow{
+\dontshow{if (surveillance.options("allExamples")) {
 ## test consistency with default method
 evHist <- as.data.frame(myEpi)[,-1]
 myEpi2 <- as.epidata(
@@ -324,13 +323,14 @@ myEpi2 <- as.epidata(
     coords.cols = c("x.loc", "y.loc")
 )
 stopifnot(identical(myEpi, myEpi2))
-}
+}}
 
 str(myEpi)
 head(as.data.frame(myEpi))  # "epidata" has event history format
 summary(myEpi)              # see 'summary.epidata'
 plot(myEpi)                 # see 'plot.epidata' and also 'animate.epidata'
 
+\dontshow{if (surveillance.options("allExamples")) \{}
 ## add distance- and covariate-based weights for the force of infection
 ## in a twinSIR model, see vignette("twinSIR") for a description
 myEpi <- update(myEpi,
@@ -345,15 +345,16 @@ myEpi <- update(myEpi,
 )
 ## this is now identical to the prepared hagelloch "epidata"
 stopifnot(all.equal(myEpi, hagelloch))
+\dontshow{\}}
 
-\dontshow{
+\dontshow{if (surveillance.options("allExamples")) {
 ## test with precomputed distance matrix D
 myEpi3 <- suppressWarnings( # from overwriting existing f columns
     update(hagelloch, f = attr(hagelloch, "f"),
            D = as.matrix(dist(hagelloch.df[c("x.loc", "y.loc")])))
 )
 stopifnot(identical(hagelloch, myEpi3))
-}
+}}
 }
 
 \keyword{spatial}

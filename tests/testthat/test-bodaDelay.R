@@ -83,40 +83,39 @@ dataGLMNoDelay <- surveillance:::bodaDelay.data.glm(dayToConsider=dayToConsider,
                                   delay=delay)
 
 test_that("the output is a data.frame",{
-  expect_true(class(dataGLM)=="data.frame")
-  expect_true(class(dataGLMNoDelay)=="data.frame")
+  expect_inherits(dataGLM, "data.frame")
+  expect_inherits(dataGLMNoDelay, "data.frame")
 })
 
 test_that("the data frame contains all variables",{
-  expect_equal(names(dataGLM)==c( "response", "wtime","population","seasgroups","vectorOfDates","delay"),rep(TRUE,6))
-  expect_equal(names(dataGLMNoDelay)==c( "response", "wtime","population","seasgroups","vectorOfDates"),rep(TRUE,5))
+  expect_identical(names(dataGLM), c("response", "wtime","population","seasgroups","vectorOfDates","delay"))
+  expect_identical(names(dataGLMNoDelay), c("response", "wtime","population","seasgroups","vectorOfDates"))
   })
 
 test_that("the variables have the right class",{
-  expect_equal(class(dataGLM$response),"numeric")
-  expect_equal(class(dataGLM$wtime),"numeric")
-  expect_equal(class(dataGLM$population),"numeric")
-  expect_equal(class(dataGLM$seasgroups),"factor")
-  expect_equal(class(dataGLM$vectorOfDates),"Date")
-  expect_equal(class(dataGLM$delay),"numeric")
+  expect_inherits(dataGLM$response, "numeric")
+  expect_inherits(dataGLM$wtime, "numeric")
+  expect_inherits(dataGLM$population, "numeric")
+  expect_inherits(dataGLM$seasgroups, "factor")
+  expect_inherits(dataGLM$vectorOfDates, "Date")
+  expect_inherits(dataGLM$delay, "numeric")
 
-  expect_equal(class(dataGLMNoDelay$response),"numeric")
-  expect_equal(class(dataGLMNoDelay$wtime),"numeric")
-  expect_equal(class(dataGLMNoDelay$population),"numeric")
-  expect_equal(class(dataGLMNoDelay$seasgroups),"factor")
-  expect_equal(class(dataGLMNoDelay$vectorOfDates),"Date")
+  expect_inherits(dataGLMNoDelay$response, "numeric")
+  expect_inherits(dataGLMNoDelay$wtime, "numeric")
+  expect_inherits(dataGLMNoDelay$population, "numeric")
+  expect_inherits(dataGLMNoDelay$seasgroups, "factor")
+  expect_inherits(dataGLMNoDelay$vectorOfDates, "Date")
 })
 
 test_that("the time variable is ok with diff 1",{
   delayWtime <- as.numeric(levels(as.factor(dataGLM$wtime)))
-  expect_equal(diff(delayWtime)==rep(1,length(delayWtime)-1),rep(TRUE,length(delayWtime)-1))
-
-  expect_equal(diff(dataGLMNoDelay$wtime)==rep(1,length(dataGLMNoDelay$wtime)-1),rep(TRUE,length(dataGLMNoDelay$wtime)-1))
+  expect_equal(diff(delayWtime), rep(1,length(delayWtime)-1))
+  expect_equal(diff(dataGLMNoDelay$wtime), rep(1,length(dataGLMNoDelay$wtime)-1))
 })
 
 test_that("the factor variable has the right number of levels",{
-  expect_true(length(levels(dataGLM$seasgroups))==noPeriods)
-  expect_true(length(levels(dataGLMNoDelay$seasgroups))==noPeriods)
+  expect_equal(nlevels(dataGLM$seasgroups), noPeriods)
+  expect_equal(nlevels(dataGLMNoDelay$seasgroups), noPeriods)
 })
 
 
@@ -135,14 +134,14 @@ if(surveillance.options("allExamples") && require("INLA")) { # needs to be attac
   argumentsGLM$inferenceMethod <- "INLA"
   model <- do.call(surveillance:::bodaDelay.fitGLM, args=argumentsGLM)
   test_that("the fitGLM function gives the right class of output",{
-    expect_equal(class(model),"inla")
+    expect_inherits(model, "inla")
   })
 }
 
 argumentsGLM$inferenceMethod <- "asym"
 model <- do.call(surveillance:::bodaDelay.fitGLM, args=argumentsGLM)
 test_that("the fitGLM function gives the right class of output",{
-  expect_equal(class(model), c("negbin", "glm", "lm"))
+  expect_inherits(model, "negbin")
 })
 
 

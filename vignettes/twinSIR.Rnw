@@ -1,5 +1,6 @@
 %\VignetteIndexEntry{twinSIR: Individual-level epidemic modeling for a fixed population with known distances}
 %\VignetteEngine{knitr::knitr}
+%% additional dependencies beyond what is required for surveillance anyway:
 %\VignetteDepends{surveillance, quadprog}
 
 <<setup, cache = FALSE, include = FALSE, purl = FALSE>>=
@@ -18,16 +19,6 @@ options(scipen = 1)  # so that 1e-4 gets printed as 0.0001
 options(xtable.booktabs = TRUE, xtable.size = "small",
         xtable.sanitize.text.function = identity,
         xtable.comment = FALSE)
-@
-
-<<include = FALSE>>=
-## load the "cool" package
-library("surveillance")
-
-## Compute everything or fetch cached results?
-message("Doing computations: ",
-        COMPUTE <- !file.exists("twinSIR-cache.RData"))
-if (!COMPUTE) load("twinSIR-cache.RData", verbose = TRUE)
 @
 
 
@@ -121,6 +112,26 @@ branching process with immigration}
 
 \begin{document}
 
+<<vignetteDepends, include = FALSE, purl = FALSE, message = FALSE>>=
+## workaround for PR#18318 (R CMD check ignoring \VignetteDepends)
+for (.pkg in tools::vignetteInfo("twinSIR.Rnw")$depends) {
+    if (!requireNamespace(.pkg, quietly = TRUE)) {
+        message("SKIPPED due to unavailable vignette dependencies")
+        knitr::knit_exit()  # this appends \end{document}
+        break
+    }
+}
+@
+
+<<include = FALSE>>=
+## load the "cool" package
+library("surveillance")
+
+## Compute everything or fetch cached results?
+message("Doing computations: ",
+        COMPUTE <- !file.exists("twinSIR-cache.RData"))
+if (!COMPUTE) load("twinSIR-cache.RData", verbose = TRUE)
+@
 
 
 \section[Model class]{Model class: \code{twinSIR}} \label{sec:twinSIR:methods}

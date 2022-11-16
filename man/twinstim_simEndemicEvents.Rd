@@ -39,23 +39,24 @@ data("imdepi", "imdepifit")
 load(system.file("shapes", "districtsD.RData", package="surveillance"))
 
 ## Fit an endemic-only twinstim()
-m_noepi <- update(imdepifit, epidemic = ~0, siaf = NULL, model = TRUE)
+m_noepi <- update(imdepifit, epidemic = ~0, siaf = NULL, model = TRUE,
+                  T = 120)  # using a restricted time range, for speed
 
 ## Simulate events from the above endemic model
 set.seed(1)
 s1 <- simEndemicEvents(m_noepi, tiles = districtsD)
 class(s1)  # just a "SpatialPointsDataFrame"
 summary(s1)
-plot(s1, col = s1$type, cex = 0.5); plot(imdepi$W, lwd = 2, add = TRUE)
+plot(imdepi$W, lwd = 2); plot(s1, col = s1$type, cex = 0.5, add = TRUE)
 
-\dontrun{
-## the general simulation method takes several seconds
+\dontshow{if (surveillance.options("allExamples")) \{}
+## the general simulation method takes longer
 s0 <- simulate(m_noepi, seed = 1, data = imdepi, tiles = districtsD)
 class(s0)  # gives a full "simEpidataCS" with several methods applicable
 methods(class = "epidataCS")
 plot(s0, "time")
 plot(s0, "space", points.args = list(pch = 3), lwd = 2)
-}
+\dontshow{\}}
 }
 \keyword{datagen}
 \keyword{models}

@@ -2,7 +2,7 @@
 
   C routines for the surveillance package
 
-  Author: (C) Michael Höhle <http://www.stat.uni-muenchen.de/~hoehle>
+  Author: (C) Michael Hoehle <http://www.stat.uni-muenchen.de/~hoehle>
   Date:   8 Jan 2008
 
   This program is free software; you can redistribute it and/or modify

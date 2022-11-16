@@ -1,6 +1,7 @@
 %\VignetteIndexEntry{twinstim: An endemic-epidemic modeling framework for spatio-temporal point patterns}
 %\VignetteEngine{knitr::knitr}
-%\VignetteDepends{surveillance, grid, animation, polyclip, memoise, maptools, spdep, colorspace}
+%% additional dependencies beyond what is required for surveillance anyway:
+%\VignetteDepends{surveillance, grid, polyclip, memoise, spdep, colorspace}
 
 <<setup, cache = FALSE, include = FALSE, purl = FALSE>>=
 ## purl=FALSE => not included in the tangle'd R script
@@ -30,16 +31,6 @@ options(scipen = 1)  # so that 1e-4 gets printed as 0.0001
 options(xtable.booktabs = TRUE, xtable.size = "small",
         xtable.sanitize.text.function = identity,
         xtable.comment = FALSE)
-@
-
-<<include = FALSE>>=
-## load the "cool" package
-library("surveillance")
-
-## Compute everything or fetch cached results?
-message("Doing computations: ",
-        COMPUTE <- !file.exists("twinstim-cache.RData"))
-if (!COMPUTE) load("twinstim-cache.RData", verbose = TRUE)
 @
 
 
@@ -130,23 +121,26 @@ branching process with immigration}
 
 \begin{document}
 
-%% \vfill
-%% {
-%%   \renewcommand{\abstractname}{Outline}  % local change
-%%   \begin{abstract}
-%%     We start by describing the general model class in
-%%     Section~\ref{sec:twinstim:methods}.
-%%     Section~\ref{sec:twinstim:data} introduces the example data and the
-%%     associated class \class{epidataCS},
-%%     Section~\ref{sec:twinstim:fit} presents the core functionality of
-%%     fitting and analyzing such data using \code{twinstim}, and
-%%     Section~\ref{sec:twinstim:simulation} shows how to simulate realizations
-%%     from a fitted model.
-%%   \end{abstract}
-%% }
-%% \vfill
-%% \newpage
+<<vignetteDepends, include = FALSE, purl = FALSE, message = FALSE>>=
+## workaround for PR#18318 (R CMD check ignoring \VignetteDepends)
+for (.pkg in tools::vignetteInfo("twinstim.Rnw")$depends) {
+    if (!requireNamespace(.pkg, quietly = TRUE)) {
+        message("SKIPPED due to unavailable vignette dependencies")
+        knitr::knit_exit()  # this appends \end{document}
+        break
+    }
+}
+@
 
+<<include = FALSE>>=
+## load the "cool" package
+library("surveillance")
+
+## Compute everything or fetch cached results?
+message("Doing computations: ",
+        COMPUTE <- !file.exists("twinstim-cache.RData"))
+if (!COMPUTE) load("twinstim-cache.RData", verbose = TRUE)
+@
 
 
 \section[Model class]{Model class: \code{twinstim}} \label{sec:twinstim:methods}
@@ -505,12 +499,11 @@ in the point process log-likelihood~\eqref{eqn:twinstim:loglik},
 the more detailed the polygons of \code{W} are
 the longer it will take to fit a \code{twinstim}.
 It is thus advisable to sacrifice some shape details for speed by reducing
-the polygon complexity, e.g., by applying \code{ms_simplify}
-from the \CRANpkg{rmapshaper} package \citep{R:rmapshaper}.
-Alternative tools in \proglang{R} are
-\CRANpkg{spatstat}'s \code{simplify.owin} procedure \citep{R:spatstat} and the function
-\code{thinnedSpatialPoly} in package \CRANpkg{maptools} \citep{R:maptools}, which
-implements the Douglas-Peucker reduction method.
+the polygon complexity. In \proglang{R} this can be achieved via, e.g.,
+\code{ms_simplify} from the \CRANpkg{rmapshaper} package \citep{R:rmapshaper},
+or \code{simplify.owin} from \CRANpkg{spatstat.geom} \citep{R:spatstat}.
+% \code{thinnedSpatialPoly} in package \CRANpkg{maptools},  % will retire
+% which implements the Douglas-Peucker reduction method.
 The \pkg{surveillance} package already contains a simplified representation of
 Germany's boundaries:
 <<imdepi_W_echo, echo=TRUE, eval=FALSE, purl=FALSE>>=
@@ -553,6 +546,7 @@ In our example, the area-level data only consists of the population density
 %% characteristics to model psychiatric hospital admissions.
 
 
+\pagebreak
 \subsection{Data handling and visualization}
 
 The generated \class{epidataCS} object \code{imdepi} is a simple list of the
@@ -1168,7 +1162,7 @@ and otherwise corresponds to the row index of the infective source.
 .Rbibfile <- file("twinstim-R.bib", "w", encoding = "latin1")
 Rbib <- knitr::write_bib(
     c("memoise", "sp", "polyclip",
-      "maptools", "animation", "xtable"),
+      "xtable"),
     file = NULL, tweak = FALSE, prefix = "R:")
 ## write_bib() to file does enc2utf8() -> fails for ISO8859-15 session charset
 writeLines(unlist(Rbib, use.names = FALSE), .Rbibfile)

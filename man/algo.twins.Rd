@@ -2,10 +2,13 @@
 \name{algo.twins}
 \alias{algo.twins}
 
-\title{Model fit based on a two-component epidemic model} 
+\title{Fit a Two-Component Epidemic Model using MCMC}
 \description{
-  Fits a negative binomial model (as described in Held et al. (2006)
-  to an univariate time series of counts.  
+  Fits a negative binomial model as described in Held et al. (2006)
+  to an univariate time series of counts.
+
+  This is an experimental implementation that may be removed
+  in future versions of the package.
 }
 
 \usage{
@@ -41,7 +44,8 @@ algo.twins(disProgObj, control=list(burnin=1000, filter=10,
 }
 }
 
-\details{Note that for the time being this function is not a
+\note{
+  This function is not a
   surveillance algorithm, but only a modelling approach as described in
   the Held et. al (2006) paper.
 
@@ -50,14 +54,6 @@ algo.twins(disProgObj, control=list(burnin=1000, filter=10,
   \file{twins.log.acc} and \file{twins.log2}.
   Thus you need to have write permissions in the current working
   directory.
-
-  Finally, inspection of the C++ code using valgrind shows some memory
-  leaks when running the old underlying C++ program. As we are unable to
-  fix this impurity at the present time, we have instead put the example
-  code in a 'dontrun' environment. The example code, however, works fine
-  -- the measure is thus more aimed at reducing the number of CRAN
-  problems with the package.
-  
 }
 
 \value{Returns an object of class \code{atwins} with elements 
@@ -78,7 +74,6 @@ algo.twins(disProgObj, control=list(burnin=1000, filter=10,
 }
 
 \examples{
-\dontrun{
 # Load the data used in the Held et al. (2006) paper
 data("hepatitisA")
 
@@ -86,8 +81,10 @@ data("hepatitisA")
 set.seed(123)
 
 # Call algorithm and save result (use short chain without filtering for speed)
+oldwd <- setwd(tempdir())  # where logfiles will be written
 otwins <- algo.twins(hepatitisA,
                      control=list(burnin=500, filter=1, sampleSize=1000))
+setwd(oldwd)
 
 # This shows the entire output (use ask=TRUE for pause between plots)
 plot(otwins, ask=FALSE)
@@ -96,7 +93,6 @@ plot(otwins, ask=FALSE)
 hist(otwins$logFile$psi,xlab=expression(psi),main="")
 if (require("coda")) {
     print(summary(mcmc(otwins$logFile[,c("psi","xipsi","K")])))
-}
 }
 }
 

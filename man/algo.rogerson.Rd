@@ -27,7 +27,7 @@ algo.rogerson(disProgObj, control = list(range = range,
            (in the range of \code{theta0t}) }
       \item{distribution}{\code{"poisson"} or \code{"binomial"} }
       \item{nt}{optional matrix with varying sample sizes for the binomial CUSUM}
-      \item{FIR}{a FIR CUSUM with head start \eqn{\frac{\code{h}}{2}}
+      \item{FIR}{a FIR CUSUM with head start \eqn{h/2}
             is applied to the data if \code{TRUE}, otherwise no head start is used;
             see details }
       \item{limit}{numeric that determines the procedure after an alarm is given, see details}
@@ -41,25 +41,26 @@ algo.rogerson(disProgObj, control = list(range = range,
 The CUSUM for a sequence of Poisson or binomial
 variates \eqn{x_t} is computed as
 \deqn{S_t = \max \{0, S_{t-1} + c_t (x_t- k_t)\} , \, t=1,2,\ldots ,}
-where \eqn{S_0=0} and \eqn{c_t=\frac{h}{h_t} }; \eqn{k_t} and \eqn{h_t} are time-varying
+where \eqn{S_0=0} and \eqn{c_t=h/h_t}; \eqn{k_t} and \eqn{h_t} are time-varying
 reference values and decision intervals.
-An alarm is given at time \eqn{t} if \eqn{S_t \geq h}.
+An alarm is given at time \eqn{t} if \eqn{S_t \geq h}{S_t >= h}.
 
 If \code{FIR=TRUE}, the CUSUM starts
-with a head start value \eqn{S_0=\frac{\code{h}}{2}} at time \eqn{t=0}.
+with a head start value \eqn{S_0=h/2} at time \eqn{t=0}.
 After an alarm is given, the FIR CUSUM starts again at this head start value.
   
 The procedure after the CUSUM gives an alarm can be determined by \code{limit}.
-Suppose that the CUSUM signals at time \eqn{t}, i.e. \eqn{S_t \geq h}.
+Suppose that the CUSUM signals at time \eqn{t}, i.e. \eqn{S_t \geq h}{S_t >= h}.
 For numeric values of \code{limit}, the CUSUM is bounded
 above after an alarm is given, % at time \eqn{t-1},
-i.e. \eqn{S_{t}} is set to \eqn{ \min\{\code{limit} \cdot h,S_{t}\} }.
+i.e. \eqn{S_t} is set to
+\eqn{ \min\{\code{limit} \cdot h, S_t\} }{min(limit*h, S_t)}.
 %\deqn{S_{t} = \max \{0, S_{t-1} + c_t(x_t - k_t)\}. }
 Using \code{limit}=0 corresponds to
 resetting \eqn{S_t} to zero after an alarm as proposed in the original
 formulation of the CUSUM. If \code{FIR=TRUE},
-\eqn{S_{t}} is reset to \eqn{ \frac{\code{h}}{2} }
-(i.e. \code{limit}=\eqn{\frac{\code{h}}{2} } ).
+\eqn{S_t} is reset to \eqn{ h/2 }
+(i.e. \code{limit}=\eqn{h/2} ).
 If \code{limit=NULL}, no resetting occurs after an alarm is given.
 }
 \note{\code{algo.rogerson} is a univariate CUSUM method. If the data are
@@ -69,7 +70,7 @@ multiple univariate CUSUMs are applied to each region.
 \value{Returns an object of class \code{survRes} with elements
  \item{alarm}{indicates whether the CUSUM signaled at time \eqn{t} or not
             (1 = alarm, 0 = no alarm) }
- \item{upperbound}{CUSUM values \eqn{S_{t}} }
+ \item{upperbound}{CUSUM values \eqn{S_t} }
  \item{disProgObj}{\code{disProg} object }
  \item{control}{list with the alarm threshold \eqn{h} and the specified
     control object}

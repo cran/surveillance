@@ -205,7 +205,7 @@ epitest(imdfitB50, imdepiB50, method = "LRT")
 
 ## permutation test
 et <- epitest(imdfitB50, imdepiB50,
-              B = 9,        # limited here for speed
+              B = 5,        # CAVE: limited here for speed
               verbose = 2,  # (tracing does not work on Windows)
               .seed = 1, .parallel = 2)
 et

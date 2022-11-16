@@ -490,8 +490,10 @@ bodaDelay.data.glm <- function(dayToConsider, b, freq,
                                                              epochStr=epochStr
   )
 
-  if (sum((vectorOfDates %in% min(referenceTimePoints)) == rep(FALSE,length(vectorOfDates))) == length(vectorOfDates)){
-    warning("Some reference values did not exist (index<1).")
+  if (!all(referenceTimePoints %in% vectorOfDates)) {
+    ## previously only checked min(referenceTimePoints)
+    warning("Some reference time points did not exist; ",
+            "decrease 'b' or postpone 'range'.")
   }
 
 

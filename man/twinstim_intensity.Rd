@@ -107,10 +107,9 @@ intensity.twinstim(x,
   \item{sgrid}{
     either an object of class \code{"\linkS4class{SpatialPixels}"} (or
     coercible to that class) representing the locations where to
-    evaluate \code{which}, or a scalar representing the total
+    evaluate \code{which}, or a scalar representing the approximate
     number of points of a grid constructed on the bounding box of
-    \code{tiles} (using \code{\link[maptools]{Sobj_SpatialGrid}}
-    from package \pkg{maptools}).
+    \code{tiles}.
     \code{sgrid} is internally subsetted to contain only
     points inside \code{tiles}.
     This argument is unused for \code{aggregate = "time"}.
@@ -203,9 +202,7 @@ text(2500, 0.08, labels="endemic", col=2, pos=2, font=2)
 
 
 ## spatial shape of the intensity (aggregated over time)
-\dontshow{if (surveillance.options("allExamples"))}
-if (requireNamespace("maptools"))
-{
+\dontshow{if (surveillance.options("allExamples")) \{}
   ## load borders of Germany's districts
   load(system.file("shapes", "districtsD.RData", package="surveillance"))
 
@@ -225,7 +222,7 @@ if (requireNamespace("maptools"))
   })
   plot(maps_epiprop[[1]], split=c(1,1,2,1), more=TRUE)
   plot(maps_epiprop[[2]], split=c(2,1,2,1))
-}
+\dontshow{\}}
 }
 
 \keyword{hplot}
