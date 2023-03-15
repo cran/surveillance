@@ -5,7 +5,7 @@
 \alias{plot,stsNC,missing-method}
 \alias{stsplot} % for convenience
 
-\title{Plot-Methods for Surveillance Time-Series Objects}
+\title{Plot Methods for Surveillance Time-Series Objects}
 \description{
   This page gives an overview of plot types
   for objects of class \code{"sts"}.
@@ -60,21 +60,14 @@
       time. See \code{\link{stsplot_space}} for optional arguments,
       details and examples.
     }
-    \item{\code{observed ~ 1 | unit}}{old version of the map plot, which
-      supports shading regions with an alarm.
-      The plotting is done by the function \code{\link{stsplot_spacetime}}.
-      Use \code{type=observed~unit} for the new implementation as function
-      \code{\link{stsplot_space}} (without alarm support, though).
+    \item{\code{observed ~ 1 | unit}}{old version of the map plot,
+      via the deprecated \code{\link{stsplot_spacetime}} function.
+      Use \code{type = observed ~ unit} instead.
     }
 
     \item{\code{observed ~ 1 | unit * time}}{old version for animated
-      maps via the \code{\link{stsplot_spacetime}} function.
-      Each of the \code{nrow(x)} frames contains the
-      number of counts per region for the current row in the
-      \code{observed} matrix. It is possible to redirect the output
-      into files, e.g. to generate an animated GIF.
-      NOTE: the new \code{\link{animate.sts}} method supersedes this
-      plot \code{type}!
+      maps via the deprecated \code{\link{stsplot_spacetime}} function.
+      Use the \code{\link[=animate.sts]{animate}} method instead.
     }
   }
 }
@@ -87,9 +80,7 @@
 \seealso{
   the documentation of the individual plot types
   \code{\link{stsplot_time}}, \code{\link{stsplot_space}},
-  \code{\link{stsplot_spacetime}} (obsolete), as well as the
-  \code{animate}-method \code{\link{animate.sts}}.
-  \code{\link{plot.survRes}} is the old implementation.
+  as well as the \code{\link[=animate.sts]{animate}} method.
 }
 
 \keyword{ts}

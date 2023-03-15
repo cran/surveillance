@@ -52,9 +52,6 @@ if (requireNamespace("spdep")) {
     ## a visual check of the district-specific number of neighbours
     plot(fluBYBW@map)
     text(coordinates(fluBYBW@map), labels=rowSums(adjmat==1), font=2, col=2)
-
-    ## the neighbourhood graph can be plotted with spdep
-    plot(spdep::mat2listw(adjmat), coordinates(fluBYBW@map))
 }
 }
 

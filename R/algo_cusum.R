@@ -199,7 +199,7 @@ anscombeNB <- function(y,mu,alpha=0.1) {
 find.kh <- function(ARLa=500,ARLr=7,sided="one",method="BFGS",verbose=FALSE)
 {
   if (!requireNamespace("spc"))
-      stop("find.kh() requires package ", dQuote("spc"))
+      stop("find.kh() requires package ", sQuote("spc"))
   #Small helper function which is to be minimized
   fun <- function(k) {
     if (k>0) {

@@ -90,7 +90,8 @@ layout.scalebar(obj, corner = c(0.05, 0.95), scale = 1,
 Sebastian Meyer
 }
 
-\examples{
+\examples{if (requireNamespace("sf")) { # required by recent 'sp'
+
 ## districts in the Regierungsbezirk Weser-Ems (longlat coordinates)
 data("measlesWeserEms")
 mapWE <- measlesWeserEms@map
@@ -116,6 +117,8 @@ layout.scalebar(bavaria, corner = c(0.75, 0.9), scale = 50,
                 labels = c("0", "50 km"), plot = TRUE)
 layout.labels(bavaria, labels = list(cex = 0.8,
               labels = substr(bavaria$GEN, 1, 3)), plot = TRUE)
+
+}
 }
 
 \keyword{aplot}

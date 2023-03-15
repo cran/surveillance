@@ -21,7 +21,7 @@ stsplot_space(x, tps = NULL, map = x@map, population = NULL,
               colorkey = list(space = "bottom", labels = list(at=at)),
               total.args = NULL,
               gpar.missing = list(col = "darkgrey", lty = 2, lwd = 2),
-              sp.layout = NULL,
+              sp.layout = NULL, %aspect = mapasp(map),
               xlim = bbox(map)[1, ], ylim = bbox(map)[2, ])
 }
 
@@ -119,6 +119,9 @@ stsplot_space(x, tps = NULL, map = x@map, population = NULL,
   \item{sp.layout}{
     optional list of additional layout items, see \code{\link{spplot}}.
   }
+  %% currently hard-coded for simplicity (rarely needed):
+  %% \item{aspect}{the aspect ratio, see \code{\link[lattice]{levelplot}}.
+  %%   Defaults to \code{"iso"} for projected coordinates.}
   \item{xlim,ylim}{numeric vectors of length 2 specifying the axis limits.}
 }
 

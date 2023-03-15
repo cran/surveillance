@@ -8,9 +8,9 @@
 ### spatstat package authored by Adrian Baddeley and Rolf Turner, which is
 ### available under GPL-2 from http://CRAN.R-project.org/package=spatstat
 ###
-### Copyright (C) 2012 Sebastian Meyer
-### $Revision: 960 $
-### $Date: 2014-08-22 16:18:13 +0200 (Fri, 22. Aug 2014) $
+### Copyright (C) 2012 Sebastian Meyer, 2014 Michael Hoehle
+### $Revision: 2944 $
+### $Date: 2023-03-08 17:43:25 +0100 (Wed, 08. Mar 2023) $
 ################################################################################
 
 .Options <- new.env()
@@ -20,6 +20,7 @@
     default = FALSE, # no gpclib due to license restrictions
     check = function(x) {
         if (!is.logical(x) || length(x) != 1L) return(FALSE)
+        ## if (x) gpcWarning()
         if (x && !requireNamespace("gpclib")) {
             warning("cannot set gpclib=TRUE")
             return(FALSE)

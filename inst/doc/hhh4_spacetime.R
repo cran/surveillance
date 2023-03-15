@@ -14,9 +14,12 @@ counts <- observed(measlesWeserEms)
 map <- measlesWeserEms@map
 populationFrac <- measlesWeserEms@populationFrac
 
-## ----measlesWeserEms_neighbourhood-------------------------------------------------
-weserems_adjmat <- poly2adjmat(map)
-weserems_nbOrder <- nbOrder(weserems_adjmat, maxlag = Inf)
+## ----measlesWeserEms_neighbourhood, eval=FALSE-------------------------------------
+#  weserems_adjmat <- poly2adjmat(map)
+#  weserems_nbOrder <- nbOrder(weserems_adjmat)
+
+## ----echo=FALSE--------------------------------------------------------------------
+weserems_nbOrder <- measlesWeserEms@neighbourhood
 
 ## ----measlesWeserEms_construct-----------------------------------------------------
 measlesWeserEms <- sts(counts, start = c(2001, 1), frequency = 52,

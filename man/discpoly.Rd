@@ -7,9 +7,9 @@
   Generates a polygon representing a disc/circle (in planar
   coordinates) as an object of one of three possible
   classes: \code{"\link[sp:Polygon-class]{Polygon}"},
-  \code{"\link[spatstat.geom]{owin}"}, or -- if \pkg{rgeos} (or
-  \pkg{gpclib}) are available --
-  \code{"\link[rgeos:gpc.poly-class]{gpc.poly}"}.
+  \code{"\link[spatstat.geom]{owin}"}, or -- if
+  \pkg{gpclib} is available --
+  \code{"\link[gpclib:gpc.poly-class]{gpc.poly}"}.
 }
 
 \usage{
@@ -35,8 +35,8 @@ discpoly(center, radius, npoly = 64,
 \value{
   A polygon of class \code{class} representing a
   circle/disc with \code{npoly} edges accuracy.\cr
-  If \code{class="gpc.poly"} although this formal class is not
-  currently defined (and \pkg{rgeos} is not available), only the
+  If \code{class="gpc.poly"} and this S4 class is neither registered
+  nor available via loading \pkg{gpclib}, only the
   \code{pts} slot of a \code{"gpc.poly"} is returned with a warning.
 }
 
@@ -58,13 +58,13 @@ plot(disc1, axes=TRUE, main="", border=2)
 print(disc2)
 lines(disc2, col=3)
 
-if (requireNamespace("rgeos")) { # for the "gpc.poly" class definition
+if (surveillance.options("gpclib") && requireNamespace("gpclib")) {
     disc3 <- discpoly(c(0,0), 5, npoly=64, class = "gpc.poly")
     print(disc3)
     plot(disc3, add=TRUE, poly.args=list(border=4))
 }
 
-## if one only wants to _draw_ a circle without an object behind
+## to only _draw_ a circle
 symbols(0, 0, circles=5, inches=FALSE, add=TRUE, fg=5)
 }
 

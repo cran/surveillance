@@ -6,8 +6,8 @@
 ### Spatial and temporal tie-breaking of events
 ###
 ### Copyright (C) 2012-2014,2018 Sebastian Meyer
-### $Revision: 2120 $
-### $Date: 2018-04-19 11:30:21 +0200 (Thu, 19. Apr 2018) $
+### $Revision: 2934 $
+### $Date: 2023-01-10 11:17:42 +0100 (Tue, 10. Jan 2023) $
 ################################################################################
 
 
@@ -129,7 +129,7 @@ untie.matrix <- function (x, amount = NULL, minsep = 0,
     }
     if (!is.null(constraint)) {
         stopifnot(inherits(constraint, "SpatialPolygons"))
-        proj4string(constraint) <- CRS(NA_character_)
+        constraint@proj4string <- new("CRS")
         outOfConstraint <- function (x) {
             is.na(over(SpatialPoints(x), constraint))
         }

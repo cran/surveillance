@@ -1,8 +1,8 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.20.3
-Date: 2022-11-14
+Version: 1.21.0
+Date: 2023-03-14
 Authors@R: c(MH = person("Michael", "Hoehle",
                   email = "hoehle@math.su.se",
                   role = c("aut", "ths"),
@@ -36,9 +36,9 @@ Depends: R (>= 3.6.0), methods, grDevices, graphics, stats, utils, sp
 Imports: Rcpp (>= 0.11.1), polyCub (>= 0.8.0), MASS, Matrix, nlme,
         spatstat.geom
 LinkingTo: Rcpp, polyCub
-Suggests: parallel, grid, gridExtra (>= 2.0.0), lattice, colorspace,
-        scales, animation, msm, spc, quadprog, memoise, polyclip,
-        rgeos, gpclib, maptools, intervals, spdep, numDeriv, maxLik,
+Suggests: parallel, grid, gridExtra (>= 2.0.0), lattice, sf,
+        colorspace, scales, animation, msm, spc, quadprog, memoise,
+        polyclip, rgeos, gpclib, intervals, spdep, numDeriv, maxLik,
         gsl, fanplot, hhh4contacts, tinytest (>= 1.2.4), coda, splancs,
         gamlss, INLA, runjags, MGLM (>= 0.1.0), knitr
 Enhances: xts, ggplot2
@@ -79,7 +79,7 @@ Additional_repositories: https://inla.r-inla-download.org/R/stable/
 Encoding: latin1
 VignetteBuilder: utils, knitr
 NeedsCompilation: yes
-Packaged: 2022-11-14 22:04:22 UTC; smeyer
+Packaged: 2023-03-14 23:26:50 UTC; smeyer
 Author: Michael Hoehle [aut, ths] (<https://orcid.org/0000-0002-0423-6702>),
   Sebastian Meyer [aut, cre] (<https://orcid.org/0000-0002-1791-9449>),
   Michaela Paul [aut],
@@ -101,4 +101,4 @@ Author: Michael Hoehle [aut, ths] (<https://orcid.org/0000-0002-0423-6702>),
     from base R)
 Maintainer: Sebastian Meyer <seb.meyer@fau.de>
 Repository: CRAN
-Date/Publication: 2022-11-16 12:10:10 UTC
+Date/Publication: 2023-03-15 13:10:02 UTC

@@ -6,8 +6,8 @@
 ### Old implementation of (animated) maps of an sts-object
 ###
 ### Copyright (C) 2007-2013 Michael Hoehle, 2016 Sebastian Meyer
-### $Revision: 2434 $
-### $Date: 2019-07-03 15:53:11 +0200 (Wed, 03. Jul 2019) $
+### $Revision: 2969 $
+### $Date: 2023-03-14 15:34:37 +0100 (Tue, 14. Mar 2023) $
 ################################################################################
 
 
@@ -37,8 +37,11 @@ stsplot_spacetime <- function(
   #Formula is of type "observed ~ 1|unit" (i.e. no time)
   aggregate <- type[[3]][[3]] == "unit"
   if (aggregate) {
+    .Deprecated("stsplot_space")
     o <- t(as.matrix(apply(o,MARGIN=2,sum)))
     alarm <- t(as.matrix(apply(alarm,MARGIN=2,sum)))>0
+  } else {
+    .Deprecated("animate")
   }
 
   #Number of time points
@@ -95,11 +98,8 @@ stsplot_spacetime <- function(
     screen(n=1)
     plot(map,col=o.col[t,],xlab="",ylab="",...)
     #Indicate alarms as shaded overlays
-    if (!all(is.na(alarm.col))) {
-      #Plotting using density "NA" does not appear to work
-      #anymore in the new sp versions
-      alarm.col[is.na(alarm.col)] <- 0
-      plot(map,dens=alarm.col*15,add=TRUE)
+    if (length(alarmIdx <- which(alarm.col[t,] > 0))) {
+      plot(map[alarmIdx,], density=15, add=TRUE)
     }
 
 

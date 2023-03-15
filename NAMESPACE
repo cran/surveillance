@@ -76,7 +76,7 @@ export(fixef, ranef)  # we define corresponding methods for "hhh4" models
 
 ### twinstim-specific
 
-importFrom(spatstat.geom, area.owin, as.im.function, diameter,
+importFrom(spatstat.geom, area.owin, as.im.function,
                      diameter.owin, disc, edges, inside.owin, intersect.owin,
                      is.polygonal, as.polygonal, bdist.points, owin, ppp,
                      shift.owin, spatstat.options, vertices)
@@ -119,7 +119,6 @@ export(discpoly)
 export(unionSpatialPolygons)
 export(inside.gpc.poly)
 S3method(scale, gpc.poly)   # redefined method for gpc.poly in spatial_stuff.R
-S3method(diameter, gpc.poly)
 export(nbOrder)
 export(poly2adjmat)
 export(polyAtBorder)

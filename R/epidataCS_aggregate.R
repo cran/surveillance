@@ -6,8 +6,8 @@
 ### Convert "epidataCS" to the (aggregated) classes "epidata" or "sts"
 ###
 ### Copyright (C) 2009-2016,2018 Sebastian Meyer
-### $Revision: 2217 $
-### $Date: 2018-09-14 11:07:33 +0200 (Fri, 14. Sep 2018) $
+### $Revision: 2945 $
+### $Date: 2023-03-08 21:49:32 +0100 (Wed, 08. Mar 2023) $
 ################################################################################
 
 
@@ -26,7 +26,7 @@ as.epidata.epidataCS <- function (data, tileCentroids, eps = 0.001, ...)
 {
     if (!requireNamespace("intervals"))
         stop("conversion from ", dQuote("epidataCS"), " to ", dQuote("epidata"),
-             " requires the ", dQuote("intervals"), " package")
+             " requires the ", sQuote("intervals"), " package")
 
     ### generate twinSIR's epidata object from stgrid (no events)
     centroidIdx <- match(levels(data$stgrid$tile), rownames(tileCentroids), nomatch = NA_integer_)

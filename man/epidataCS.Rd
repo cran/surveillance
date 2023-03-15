@@ -379,27 +379,21 @@ subset(imdepi, type=="B")   # only consider event type B
 ## observation region
 load(system.file("shapes", "districtsD.RData", package="surveillance"),
      verbose = TRUE)
-summary(stateD)
 
 ## extract point pattern of events from the "imdepi" data
-data(imdepi)
-events <- marks(imdepi)  # data frame with coordinate columns
-coordinates(events) <- c("x", "y")  # promote to a "SpatialPointsDataFrame"
-#proj4string(events) <- proj4string(stateD)
-events@proj4string <- stateD@proj4string  # exact copy (avoid CRS reformatting)
-
-## or, much simpler, use the corresponding coerce-method
-\dontshow{
-events@coords.nrs <- numeric(0L)
-stopifnot(all.equal(as(imdepi, "SpatialPointsDataFrame"), events))
-}
+## a) as a data frame with coordinate columns via marks()
+eventsData <- marks(imdepi)
+## b) as a Spatial object via the coerce-method
 events <- as(imdepi, "SpatialPointsDataFrame")
-summary(events)
 
-## plot observation region with events
-plot(stateD, axes=TRUE); title(xlab="x [km]", ylab="y [km]")
-points(events, pch=unclass(events$type), cex=0.5, col=unclass(events$type))
-legend("topright", legend=levels(events$type), title="Type", pch=1:2, col=1:2)
+## plot observation region with events (may require package 'sf')
+if (requireNamespace("sf")) {% https://github.com/r-spatial/evolution/issues/10
+  plot(stateD, axes=TRUE); title(xlab="x [km]", ylab="y [km]")
+  points(events, pch=unclass(events$type), cex=0.5, col=unclass(events$type))
+  legend("topright", legend=levels(events$type), title="Type", pch=1:2, col=1:2)
+
+  summary(events)
+}
 
 ## space-time grid with endemic covariates
 head(stgrid <- imdepi$stgrid[,-1])

@@ -46,8 +46,9 @@ m_noepi <- update(imdepifit, epidemic = ~0, siaf = NULL, model = TRUE,
 set.seed(1)
 s1 <- simEndemicEvents(m_noepi, tiles = districtsD)
 class(s1)  # just a "SpatialPointsDataFrame"
-summary(s1)
-plot(imdepi$W, lwd = 2); plot(s1, col = s1$type, cex = 0.5, add = TRUE)
+summary(s1@data)
+plot(imdepi$W, lwd = 2, asp = 1)  % to avoid sp -> sf
+plot(s1, col = s1$type, cex = 0.5, add = TRUE)
 
 \dontshow{if (surveillance.options("allExamples")) \{}
 ## the general simulation method takes longer

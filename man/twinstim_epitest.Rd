@@ -196,7 +196,7 @@ data("imdepi", "imdepifit")
 ## test for space-time interaction of the B-cases
 ## assuming spatial interaction to be constant within 50 km
 imdepiB50 <- update(subset(imdepi, type == "B"), eps.s = 50)
-imdfitB50 <- update(imdepifit, data = imdepiB50,
+imdfitB50 <- update(imdepifit, data = imdepiB50, subset = NULL,
                     epidemic = ~1, epilink = "identity", siaf = NULL,
                     start = c("e.(Intercept)" = 0))
 
@@ -206,8 +206,8 @@ epitest(imdfitB50, imdepiB50, method = "LRT")
 ## permutation test
 et <- epitest(imdfitB50, imdepiB50,
               B = 5,        # CAVE: limited here for speed
-              verbose = 2,  # (tracing does not work on Windows)
-              .seed = 1, .parallel = 2)
+              verbose = 2,  # (tracing does not work on Windows
+              .seed = 1, .parallel = 1)       # if parallelized)
 et
 plot(et)
 

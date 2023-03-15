@@ -7,8 +7,8 @@
 ### These are no longer used by the surveillance package itself
 ###
 ### Copyright (C) 2009-2013 Sebastian Meyer
-### $Revision: 666 $
-### $Date: 2013-11-08 15:45:36 +0100 (Fri, 08. Nov 2013) $
+### $Revision: 2946 $
+### $Date: 2023-03-08 21:52:14 +0100 (Wed, 08. Mar 2023) $
 ################################################################################
 
 
@@ -16,6 +16,7 @@
 
 scale.gpc.poly <-
     function (x, center = c(0,0), scale = c(1,1)) {
+        gpcWarning()
         x@pts <- lapply(x@pts, function (p) {
             p$x <- (p$x-center[1]) / scale[1]
             p$y <- (p$y-center[2]) / scale[2]
@@ -29,6 +30,7 @@ scale.gpc.poly <-
 
 inside.gpc.poly <- function(x, y = NULL, polyregion, mode.checked = FALSE)
 {
+    gpcWarning()
     xy <- xy.coords(x, y, recycle=FALSE)
     N <- length(xy$x)
     # check for each polygon of polyregion if points are in the polygon
@@ -40,21 +42,4 @@ inside.gpc.poly <- function(x, y = NULL, polyregion, mode.checked = FALSE)
     })
     if (N == 1) sum(locations) > 0 else
     .rowSums(locations, N, length(polyregion@pts)) > 0
-}
-
-
-### Maximum extent of a gpc.poly (i.e. maximum distance of two vertices)
-
-diameter.gpc.poly <- function (object)
-{
-    pts <- object@pts
-    x <- unlist(lapply(pts, "[[", "x"), use.names=FALSE)
-    y <- unlist(lapply(pts, "[[", "y"), use.names=FALSE)
-    
-    ## The diagonal of the bounding box provides a fast upper bound
-    ##ext <- sqrt(diff(range(x))^2 + diff(range(y))^2)
-
-    xy <- cbind(x,y)
-    dists <- dist(xy)
-    max(dists)
 }

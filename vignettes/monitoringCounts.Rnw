@@ -92,17 +92,6 @@ options(xtable.booktabs = TRUE, xtable.comment = FALSE)
 
 \maketitle
 
-<<vignetteDepends, include = FALSE, purl = FALSE, message = FALSE>>=
-## workaround for PR#18318 (R CMD check ignoring \VignetteDepends)
-for (.pkg in tools::vignetteInfo("monitoringCounts.Rnw")$depends) {
-    if (!requireNamespace(.pkg, quietly = TRUE)) {
-        message("SKIPPED due to unavailable vignette dependencies")
-        knitr::knit_exit()  # this appends \end{document}
-        break
-    }
-}
-@
-
 
 \section{Introduction}
 \label{sec:0}

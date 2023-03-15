@@ -1,7 +1,7 @@
 %\VignetteIndexEntry{hhh4 (spatio-temporal): Endemic-epidemic modeling of areal count time series}
 %\VignetteEngine{knitr::knitr}
 %% additional dependencies beyond what is required for surveillance anyway:
-%\VignetteDepends{surveillance, lattice, spdep, gsl, colorspace, gridExtra, scales, fanplot, hhh4contacts}
+%\VignetteDepends{surveillance, lattice, gsl, colorspace, gridExtra, scales, fanplot, hhh4contacts}
 
 <<setup, cache = FALSE, include = FALSE, purl = FALSE>>=
 ## purl=FALSE => not included in the tangle'd R script
@@ -106,17 +106,6 @@ branching process with immigration}
 
 
 \begin{document}
-
-<<vignetteDepends, include = FALSE, purl = FALSE, message = FALSE>>=
-## workaround for PR#18318 (R CMD check ignoring \VignetteDepends)
-for (.pkg in tools::vignetteInfo("hhh4_spacetime.Rnw")$depends) {
-    if (!requireNamespace(.pkg, quietly = TRUE)) {
-        message("SKIPPED due to unavailable vignette dependencies")
-        knitr::knit_exit()  # this appends \end{document}
-        break
-    }
-}
-@
 
 <<include = FALSE>>=
 ## load the "cool" package
@@ -252,12 +241,15 @@ orders~$o_{ji}$ between the districts.
 A map of the districts in the form of a \code{SpatialPolygons} object (defined
 by the \CRANpkg{sp} package of \citealp{R:sp}) can be used to
 derive the matrix of adjacency orders automatically using the functions
-\code{poly2adjmat} and \code{nbOrder},
-which wrap functionality of package \CRANpkg{spdep} \citep{R:spdep}:
-<<measlesWeserEms_neighbourhood>>=
+\code{poly2adjmat} and \code{nbOrder}, where the former
+wraps functionality of package \CRANpkg{spdep} \citep{R:spdep}:
+<<measlesWeserEms_neighbourhood, eval=FALSE>>=
 weserems_adjmat <- poly2adjmat(map)
-weserems_nbOrder <- nbOrder(weserems_adjmat, maxlag = Inf)
+weserems_nbOrder <- nbOrder(weserems_adjmat)
 @
+<<echo=FALSE>>=
+weserems_nbOrder <- measlesWeserEms@neighbourhood
+@ 
 Visual inspection of the adjacencies identified by \code{poly2adjmat} is
 recommended, e.g., via labelling each district with the number of its neighbors,
 i.e., \code{rowSums(weserems_adjmat)}.
@@ -1101,7 +1093,7 @@ for further examples.
 ## create automatic references for R packages
 .Rbibfile <- file("hhh4_spacetime-R.bib", "w", encoding = "latin1")
 Rbib <- knitr::write_bib(
-    c("MASS", "Matrix", "spdep", "colorspace", "gridExtra", "lattice", "sp", "fanplot", "hhh4contacts"),
+    c("MASS", "Matrix", "colorspace", "gridExtra", "lattice", "sp", "fanplot", "hhh4contacts"),
     file = NULL, tweak = FALSE, prefix = "R:")
 ## write_bib() to file does enc2utf8() -> fails for ISO8859-15 session charset
 writeLines(unlist(Rbib, use.names = FALSE), .Rbibfile)

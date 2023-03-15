@@ -6,8 +6,8 @@
 ### Snapshot map (spplot) of an sts-object or matrix of counts
 ###
 ### Copyright (C) 2013-2014,2016,2017,2020,2021 Sebastian Meyer
-### $Revision: 2736 $
-### $Date: 2021-09-24 13:34:17 +0200 (Fri, 24. Sep 2021) $
+### $Revision: 2963 $
+### $Date: 2023-03-13 23:24:10 +0100 (Mon, 13. Mar 2023) $
 ################################################################################
 
 ## x: "sts" or (simulated) matrix of counts
@@ -29,6 +29,7 @@ stsplot_space <- function (x, tps = NULL, map = x@map, population = NULL,
                            total.args = NULL,
                            gpar.missing = list(col="darkgrey", lty=2, lwd=2),
                            sp.layout = NULL,
+                           ## aspect = mapasp(map), # currently hard-coded
                            xlim = bbox(map)[1, ], ylim = bbox(map)[2, ])
 {
     counts <- if (inherits(x, "sts")) observed(x) else x
@@ -96,7 +97,8 @@ stsplot_space <- function (x, tps = NULL, map = x@map, population = NULL,
     ## generate the spplot()
     args <- list(quote(map[!is.na(map$ncases),]), "ncases", main=main,
                  col.regions=col.regions, at=at, colorkey=colorkey,
-                 sp.layout=sp.layout, xlim=xlim, ylim=ylim, quote(...))
+                 sp.layout=sp.layout, aspect=mapasp(map), xlim=xlim, ylim=ylim,
+                 quote(...))
     do.call("spplot", args)
 }
 

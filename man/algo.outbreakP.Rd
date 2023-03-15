@@ -73,9 +73,9 @@ algo.outbreakP(disProgObj, control = list(range = range, k=100,
 \source{
  The code is an extended R port of the Java code by Marianne
  \enc{Frisén}{Frisen} and Linus \enc{Schiöler}{Schioeler} from the
- CASE project available under the GNU GPL License v3. See
- \url{https://case.folkhalsomyndigheten.se/} for further details on the CASE
- project.
+ Computer Assisted Search For Epidemics (CASE) project,
+ formerly available from \verb{https://case.folkhalsomyndigheten.se/}
+ under the GNU GPL License v3.
  %% A manual on how to use an Excel implementation of the method
  %% is available at \url{http://economics.handels.gu.se/english/Units+and+Centra/statistical_research_unit/software}.
 

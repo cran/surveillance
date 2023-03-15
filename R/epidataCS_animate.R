@@ -8,8 +8,8 @@
 ### package, and it is advisable to use it within saveHTML() or similar
 ###
 ### Copyright (C) 2009-2014 Sebastian Meyer
-### $Revision: 1096 $
-### $Date: 2014-10-30 11:59:12 +0100 (Thu, 30. Oct 2014) $
+### $Revision: 2963 $
+### $Date: 2023-03-13 23:24:10 +0100 (Mon, 13. Mar 2023) $
 ################################################################################
 
 
@@ -117,7 +117,7 @@ animate.epidataCS <- function (object, interval = c(0,Inf), time.spacing = NULL,
         t <- if (sequential) s$eventTimes[it] else it
         infectious <- I(t)
         removed <- R(t)
-        plot(object$W, ...)             # FIXME: use default lwd = 2
+        plot(object$W, asp = 1, ...)  # hard-coded 'asp' avoids sp -> sf
         title(main = main)
         if (doLegend) do.call(legend, legend.opts)
         if (doTimer) {

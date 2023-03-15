@@ -4,24 +4,18 @@
 ### a copy of which is available at http://www.r-project.org/Licenses/.
 ###
 ### Functions concerning graphs: neighbourhood order, adjacency matrix
-### These are wrappers around functionality from package "spdep" by Roger Bivand
 ###
-### Copyright (C) 2009-2013,2017 Sebastian Meyer
-### $Revision: 2022 $
-### $Date: 2017-10-25 14:04:47 +0200 (Wed, 25. Oct 2017) $
+### Copyright (C) 2009-2013,2017,2023 Sebastian Meyer
+### $Revision: 2956 $
+### $Date: 2023-03-10 00:36:39 +0100 (Fri, 10. Mar 2023) $
 ################################################################################
 
 
 ### Determine the matrix of neighbourhood orders
 ### given the binary matrix of first-order neighbours.
-### Working horse: spdep::nblag()
 
-nbOrder <- function (neighbourhood, maxlag = 1)
+nbOrder <- function (neighbourhood, maxlag = Inf)
 {
-    if (!requireNamespace("spdep"))
-        stop("package ", dQuote("spdep"),
-             " is required to determine neighbourhood orders")
-
     stopifnot(isScalar(maxlag), maxlag > 0)
     checkNeighbourhood(neighbourhood)
     neighbourhood <- neighbourhood == 1           # convert to binary matrix
@@ -33,44 +27,32 @@ nbOrder <- function (neighbourhood, maxlag = 1)
         return(neighbourhood)
     }
 
-    ## manually convert to spdep's "nb" class
-    ## region.idxs <- seq_len(nregions)
-    ## nb <- lapply(region.idxs, function(i) {
-    ##     nbs <- which(neighbourhood[i,])
-    ##     if (length(nbs) > 0L) nbs else 0L
-    ## })
-    ## class(nb) <- "nb"
-
-    ## convert first-order neighbourhood to spdep's "nb" class
-    nb <- spdep::mat2listw(neighbourhood)$neighbours
-    attr(nb, "region.id") <- NULL
-
-    ## compute higher order neighbours using spdep::nblag()
-    nb.lags <- spdep::nblag(nb, maxlag=maxlag)
+    ## list of indexes of first-order neighbours by region
+    ##first <- apply(neighbourhood, 1L, which, simplify = FALSE) # R >= 4.1.0
+    first <- lapply(seq_len(nregions), function (i) which(neighbourhood[i,]))
 
     ## Side note: fast method to determine neighbours _up to_ specific order:
     ## crossprod(neighbourhood) > 0  # up to second order neighbours (+set diag to 0)
     ## (neighbourhood %*% neighbourhood %*% neighbourhood) > 0  # up to order 3
     ## and so on...
 
-    ## convert to a single matrix
-    nbmat <- neighbourhood   # logical first-order matrix
-    storage.mode(nbmat) <- "numeric"
-    for (lag in 2:maxlag) {
-        if (any(spdep::card(nb.lags[[lag]]) > 0L)) { # any neighbours of this order
-            nbmat.lag <- spdep::nb2mat(nb.lags[[lag]], style="B",
-                                       zero.policy=TRUE)
-            nbmat <- nbmat + lag * nbmat.lag
+    ## now find recursive neighbours for each region
+    nbmat <- `diag<-`(neighbourhood, NA)  # skip self in which() below
+    for (i in seq_len(nregions)) {  # slightly faster than [l]apply() variants
+        nblags <- as.integer(nbmat[i,])
+        lag <- 1L
+        while (lag < maxlag) {
+            nbs <- which(nblags == lag)
+            nbs2 <- unlist(first[nbs])
+            new <- intersect(nbs2, which(nblags == 0))
+            if (length(new)) {
+                lag <- lag + 1L
+                nblags[new] <- lag
+            } else break
         }
+        nbmat[i,] <- nblags
     }
-    attr(nbmat, "call") <- NULL
-    storage.mode(nbmat) <- "integer"
-
-    ## message about maximum neighbour order by region
-    maxlagbyrow <- apply(nbmat, 1, max)
-    message("Note: range of maximum neighbour order by region is ",
-            paste0(range(maxlagbyrow), collapse="-"),
-            if (max(maxlagbyrow) == maxlag) " ('maxlag' reached)")
+    diag(nbmat) <- 0L
 
     ## Done
     nbmat
@@ -83,7 +65,7 @@ nbOrder <- function (neighbourhood, maxlag = 1)
 poly2adjmat <- function (SpP, ..., zero.policy = TRUE)
 {
     if (!requireNamespace("spdep"))
-        stop("package ", dQuote("spdep"),
+        stop("package ", sQuote("spdep"),
              " is required to derive adjacencies from SpatialPolygons")
     nb <- spdep::poly2nb(SpP, ...)
     adjmat <- spdep::nb2mat(nb, style="B", zero.policy=zero.policy)

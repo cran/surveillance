@@ -2,7 +2,7 @@
 \name{stsplot_spacetime}
 \alias{stsplot_spacetime}
 \title{
-  Map of Disease Incidence
+  Animated Map of Disease Incidence (DEPRECATED)
 }
 
 \description{
@@ -112,3 +112,4 @@ system(paste0("convert -delay 50 ", imgname,
 \keyword{hplot}
 \keyword{dynamic}
 \keyword{spatial}
+\keyword{internal}

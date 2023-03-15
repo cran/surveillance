@@ -189,13 +189,11 @@ plot(imdepi, "time", subset = type == "C", main = "Finetype C")
 par(opar)
 
 # Plot the spatial distribution of the events in W
-plot(imdepi, "space", points.args = list(col=c("indianred", "darkblue")),
-     axes = TRUE, lwd = 2)
-title(xlab = "x [km]", ylab = "y [km]")
+plot(imdepi, "space", points.args = list(col=c("indianred", "darkblue")))
 
 \dontrun{
 # or manually (no legends, no account for tied locations)
-plot(imdepi$W, lwd=2)
+plot(imdepi$W, lwd=2, asp=1) % to avoid sp -> sf
 plot(imdepi$events, pch=c(3,4)[imdepi$events$type], cex=0.8,
      col=c("indianred", "darkblue")[imdepi$events$type], add=TRUE)
 }

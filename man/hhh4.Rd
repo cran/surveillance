@@ -422,7 +422,7 @@ f.end.S3 <- addSeason2formula(
 ## for power-law weights, we need adjaceny orders, which can be
 ## computed from the binary adjacency indicator matrix
 nbOrder1 <- neighbourhood(fluBYBW)
-neighbourhood(fluBYBW) <- nbOrder(nbOrder1, 15)
+neighbourhood(fluBYBW) <- nbOrder(nbOrder1)
 
 ## full model specification
 fluModel <- list(

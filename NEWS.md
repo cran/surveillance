@@ -1,3 +1,28 @@
+# surveillance 1.21.0 (2023-03-14)
+
+- **surveillance** no longer relies on the **maptools** package:
+  `unionSpatialPolygons()` with `method = "gpclib"` is deprecated
+  and now uses the default method with a warning.
+
+- Long unused `scale.gpc.poly()` and `inside.gpc.poly()` are deprecated;
+  the unused and undocumented `diameter.gpc.poly()` method has been removed.
+
+- `nbOrder()` has been re-implemented: it is now more efficient and no
+  longer depends on **spdep**. Furthermore, it now defaults to
+  `maxlag = Inf`; the historical default `maxlag = 1` was barely useful.
+  It no longer messages (about the range of the detected orders).
+
+- Accommodate the current evolution of **sp**: **sf** is suggested and
+  some examples are now conditionalized on its availability.
+
+- Printing `"sts"` objects with a map now shows the first row of the
+  attached data (if present) instead of the object summary.
+
+- `stsplot_spacetime()` is formally deprecated; it has long been
+  superseded by `stsplot_space()` and an `animate()` method for `"sts"`
+  objects.
+
+
 # surveillance 1.20.3 (2022-11-14)
 
 - `vignette("monitoringCounts")` now uses **knitr** as its engine

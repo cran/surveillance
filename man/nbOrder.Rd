@@ -7,12 +7,11 @@
 \description{
   Given a square binary adjacency matrix, the function
   \code{nbOrder} determines the integer matrix of neighbourhood orders
-  (shortest-path distance) using the function \code{\link[spdep]{nblag}}
-  from the \pkg{spdep} package.
+  (shortest-path distance).
 }
 
 \usage{
-nbOrder(neighbourhood, maxlag = 1)
+nbOrder(neighbourhood, maxlag = Inf)
 }
 
 \arguments{
@@ -24,11 +23,10 @@ nbOrder(neighbourhood, maxlag = 1)
   }
   \item{maxlag}{
     positive scalar integer specifying an upper bound for the
-    neighbourhood order. The default (1) just returns the input
+    neighbourhood order. The default (\code{Inf}) means no truncation
+    (but orders cannot be larger than the number of regions minus 1),
+    whereas \code{maxlag = 1} just returns the input
     neighbourhood matrix (converted to binary integer mode).
-    \code{maxlag} is automatically trimmed to one less than the number
-    of regions (there cannot be higher orders) and then converted to
-    integer, thus, \code{maxlag = Inf} also works.
   }
 }
 
@@ -38,18 +36,12 @@ distance matrix of the vertices.
 The \code{dimnames} of the input \code{neighbourhood} matrix are preserved.
 }
 
-\note{
-By the end, the function issues a \code{\link{message}} informing about the
-range of maximum neighbourhood order by region.
-}
-
 \author{
 Sebastian Meyer
 }
 
 \seealso{
-  \code{\link[spdep]{nblag}} from the \pkg{spdep} package, on which this
-  wrapper depends.
+  \code{\link[spdep]{nblag}} from the \pkg{spdep} package
 }
 
 \examples{
@@ -62,10 +54,8 @@ adjmat <- adjmat + t(adjmat)
 adjmat
 
 ## determine neighbourhood order matrix
-if (requireNamespace("spdep")) {
-    nbmat <- nbOrder(adjmat, maxlag=Inf)
-    nbmat
-}
+nblags <- nbOrder(adjmat)
+nblags
 }
 
 \keyword{spatial}

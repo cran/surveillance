@@ -66,7 +66,8 @@ imdepi_untied <- untie(imdepi, amount = list(s = minsep / 2))
 imdepi_untied_infeps <- update(imdepi_untied, eps.s = Inf)
 
 ## ----imdsts_plot, fig.cap="IMD cases (joint types) aggregated as an \\class{sts} object by month and district.", fig.subcap=c("Time series of monthly counts.", "Disease incidence (per 100\\,000 inhabitants)."), fig.width=5, fig.height=5, out.width="0.5\\linewidth", fig.pos="ht", echo=-2----
-imdsts <- epidataCS2sts(imdepi, freq = 12, start = c(2002, 1), tiles = districtsD)
+imdsts <- epidataCS2sts(imdepi, freq = 12, start = c(2002, 1), tiles = districtsD,
+                        neighbourhood = NULL) # skip adjacency matrix (needs spdep)
 par(las = 1, lab = c(7,7,7), mar = c(5,5,1,1))
 plot(imdsts, type = observed ~ time)
 plot(imdsts, type = observed ~ unit, population = districtsD$POPULATION / 100000)
@@ -162,6 +163,7 @@ text(2500, 0.08, labels="endemic", col=2, pos=2, font=2)
 for (.type in 1:2) {
     print(intensityplot(imdfit_powerlaw, aggregate="space", which="epidemic proportion",
                         types=.type, tiles=districtsD, sgrid=1000,
+                        # scales=list(draw=TRUE), # default, now needs 'sf'
                         xlab="x [km]", ylab="y [km]", at=seq(0,1,by=0.1),
                         col.regions=rev(hcl.colors(10,"Reds")),
                         colorkey=list(title="Epidemic proportion")))

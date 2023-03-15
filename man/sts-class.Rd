@@ -272,7 +272,7 @@ weserems_nbOrder <- neighbourhood(measlesWeserEms)
 ## orders of adjacency can also be determined from the map
 if (requireNamespace("spdep")) {
     stopifnot(identical(weserems_nbOrder,
-                        nbOrder(poly2adjmat(map), maxlag = 10)))
+                        nbOrder(poly2adjmat(map))))
 }
 mymeasles <- sts(counts, start = c(2001, 1), frequency = 52,
                  population = populationFrac,

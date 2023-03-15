@@ -22,15 +22,12 @@ reset.surveillance.options()
     \describe{
       \item{gpclib:}{
         Logical flag indicating whether \pkg{gpclib}, the General
-	Polygon Clipping Library for \R, which has a restricted license
+	Polygon Clipping Library for \R, which (in some versions) has a restricted license
 	(commercial use prohibited), 
-	may be used. This is no longer required since package
+	may be used. This is currently not required since package
 	\pkg{surveillance} has switched to alternatives such as
-	\pkg{polyclip} and \pkg{rgeos} for generating \code{"epidataCS"}
+	\pkg{polyclip} and \pkg{rgeos} for generating \code{"\link{epidataCS}"}
 	objects by \code{as.epidataCS} or \code{simEpidataCS}.
-	However, for \code{\link{unionSpatialPolygons}} and
-	\code{\link{intersectPolyCircle.gpc.poly}}, using \pkg{gpclib}
-	is still an option (mainly for backwards compatibility).
 	The default setting is \code{FALSE}.
       }
       

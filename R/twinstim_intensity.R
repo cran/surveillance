@@ -7,8 +7,8 @@
 ### free software under the terms of the GNU General Public License, version 2,
 ### a copy of which is available at https://www.R-project.org/Licenses/.
 ###
-### $Revision: 2896 $
-### $Date: 2022-10-31 16:17:36 +0100 (Mon, 31. Oct 2022) $
+### $Revision: 2963 $
+### $Date: 2023-03-13 23:24:10 +0100 (Mon, 13. Mar 2023) $
 ################################################################################
 
 
@@ -280,6 +280,7 @@ intensityplot.twinstim <- function (x,
         if (add) message("'add'ing is not possible with 'aggregate=\"space\"'")
         if (! "xlim" %in% nms) dotargs$xlim <- bbox(tiles)[1,]
         if (! "ylim" %in% nms) dotargs$ylim <- bbox(tiles)[2,]
+        if (! "aspect" %in% nms) dotargs$aspect <- "iso"  # always projected
         if (! "scales" %in% nms) dotargs$scales <- list(draw = TRUE)
         do.call("spplot", args=c(alist(sgridy, zcol="yvals", sp.layout=lobjs,
                           checkEmptyRC=FALSE), dotargs))

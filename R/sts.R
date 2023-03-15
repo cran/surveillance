@@ -1,7 +1,7 @@
 ################################################################################
 ### Initialization and other basic methods for the S4 class "sts"
 ###
-### Copyright (C) 2007-2014 Michael Hoehle, 2012-2019,2021 Sebastian Meyer
+### Copyright (C) 2007-2014 Michael Hoehle, 2012-2019,2021,2023 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -448,11 +448,14 @@ setMethod( "show", "sts", function( object ){
   print(head(object@observed,n))
 
   if (npoly <- length(object@map)) {
-      cat("\nmap:\n")
-      print(modifyList(summary(object@map), list(data=NULL))) # no data summary
-      cat("Features    :", npoly, "\n")
-      if (inherits(object@map, "SpatialPolygonsDataFrame"))
-          cat("Data slot   :", ncol(object@map), "variables\n")
+      cat("\nmap:", npoly, "Polygons, ")
+      ## no longer print SpatialPolygons as this may load heavy sf (for is.projected)
+      ## print(modifyList(summary(object@map), list(data=NULL))) # no data summary
+      if (inherits(object@map, "SpatialPolygonsDataFrame")) {
+          cat(ncol(object@map), "variables")
+          cat("\nHead of map@data:\n")
+          print(head(object@map@data, n))
+      } else cat("without data\n")
   }
 
   if (ncol(object@observed) > 1 && !all(is.na(object@neighbourhood))) {
@@ -460,5 +463,3 @@ setMethod( "show", "sts", function( object ){
       print( head(object@neighbourhood,n))
   }
 } )
-
-

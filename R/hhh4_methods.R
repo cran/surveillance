@@ -5,9 +5,9 @@
 ###
 ### Standard methods for hhh4-fits
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2012-2022 Sebastian Meyer
-### $Revision: 2804 $
-### $Date: 2022-02-09 15:20:16 +0100 (Wed, 09. Feb 2022) $
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2023 Sebastian Meyer
+### $Revision: 2939 $
+### $Date: 2023-03-01 09:24:32 +0100 (Wed, 01. Mar 2023) $
 ################################################################################
 
 ## NOTE: we also apply print.hhh4 in print.summary.hhh4()
@@ -133,7 +133,7 @@ logLik.hhh4 <- function(object, ...)
     }
     attr(val, "df") <- if (object$dim["random"])
         NA_integer_ else object$dim[["fixed"]]  # use "[[" to drop the name
-    attr(val, "nobs") <- nobs.hhh4(object)
+    attr(val, "nobs") <- nobs(object)
     class(val) <- "logLik"
     val
 }
@@ -264,7 +264,7 @@ ranef.hhh4 <- function (object, tomatrix = FALSE, intercept = FALSE, ...)
     if (!tomatrix) return(ranefvec)
 
     ## transform to a nUnits x c matrix (c %in% 1:3)
-    model <- terms.hhh4(object)
+    model <- terms(object)
     idxRE <- model$indexRE
     idxs <- unique(idxRE)
     mat <- vapply(X = idxs, FUN = function (idx) {
@@ -317,8 +317,8 @@ predict.hhh4 <- function(object, newSubset = object$control$subset,
         ## we can extract fitted means from object
         object$fitted.values[m,,drop=FALSE]
     } else { ## means for time points not fitted (not part of object$control$subset)
-        predicted <- meanHHH(coef.hhh4(object, reparamPsi=FALSE),
-                             terms.hhh4(object),
+        predicted <- meanHHH(object$coefficients,
+                             terms(object),
                              subset=newSubset)
         if (type=="response") predicted$mean else {
             type <- match.arg(type, names(predicted))
@@ -441,7 +441,7 @@ hhh4coef2start <- function (fit)
 coeflist.hhh4 <- function (x, ...)
 {
     ## determine number of parameters by parameter group
-    model <- terms.hhh4(x)
+    model <- terms(x)
     dim.fe.group <- unlist(model$terms["dim.fe",], recursive = FALSE, use.names = FALSE)
     dim.re.group <- unlist(model$terms["dim.re",], recursive = FALSE, use.names = FALSE)
     nFERE <- lapply(X = list(fe = dim.fe.group, re = dim.re.group),
@@ -469,7 +469,7 @@ coeflist.hhh4 <- function (x, ...)
 ## extract estimated overdispersion in dnbinom() parametrization (and as matrix)
 psi2size.hhh4 <- function (object, subset = object$control$subset, units = NULL)
 {
-    size <- sizeHHH(object$coefficients, terms.hhh4(object), subset = subset)
+    size <- sizeHHH(object$coefficients, terms(object), subset = subset)
     if (!is.null(size) && !is.null(units)) {
         if (is.null(subset)) {
             warning("ignoring 'units' (not compatible with 'subset = NULL')")
@@ -526,7 +526,7 @@ formula.hhh4 <- function (x, ...)
 decompose.hhh4 <- function (x, coefs = x$coefficients, ...)
 {
     ## get three major components from meanHHH() function
-    meancomps <- meanHHH(coefs, terms.hhh4(x))
+    meancomps <- meanHHH(coefs, terms(x))
 
     ## this contains c("endemic", "epi.own", "epi.neighbours")
     ## but we really want the mean by neighbour
@@ -582,7 +582,7 @@ neOffsetArray <- function (object, pars = coefW(object),
         }
         ## stopifnot(all.equal(
         ##     colSums(res),  # sum over j
-        ##     terms.hhh4(object)$offset$ne(pars)[subset,,drop=FALSE],
+        ##     terms(object)$offset$ne(pars)[subset,,drop=FALSE],
         ##     check.attributes = FALSE))
     }
 

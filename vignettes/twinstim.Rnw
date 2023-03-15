@@ -1,7 +1,7 @@
 %\VignetteIndexEntry{twinstim: An endemic-epidemic modeling framework for spatio-temporal point patterns}
 %\VignetteEngine{knitr::knitr}
 %% additional dependencies beyond what is required for surveillance anyway:
-%\VignetteDepends{surveillance, grid, polyclip, memoise, spdep, colorspace}
+%\VignetteDepends{surveillance, grid, sf, polyclip, memoise, colorspace}
 
 <<setup, cache = FALSE, include = FALSE, purl = FALSE>>=
 ## purl=FALSE => not included in the tangle'd R script
@@ -120,17 +120,6 @@ branching process with immigration}
 
 
 \begin{document}
-
-<<vignetteDepends, include = FALSE, purl = FALSE, message = FALSE>>=
-## workaround for PR#18318 (R CMD check ignoring \VignetteDepends)
-for (.pkg in tools::vignetteInfo("twinstim.Rnw")$depends) {
-    if (!requireNamespace(.pkg, quietly = TRUE)) {
-        message("SKIPPED due to unavailable vignette dependencies")
-        knitr::knit_exit()  # this appends \end{document}
-        break
-    }
-}
-@
 
 <<include = FALSE>>=
 ## load the "cool" package
@@ -453,6 +442,8 @@ summary(events)
 <<imdepi_events, echo=FALSE, purl=FALSE>>=
 oopt <- options(width=100)
 ## hack to reduce the 'print.gap' in the data summary but not for the bbox
+## Note: 'sp' "evolution" needs 'sf' for summary(events),
+##       see https://github.com/r-spatial/evolution/issues/10
 local({
     print.summary.Spatial <- sp:::print.summary.Spatial
     environment(print.summary.Spatial) <- environment()
@@ -623,9 +614,8 @@ cases (by type), where the areas of the points are proportional to the number of
 cases at the respective location.
 Additional shading by the population is possible and exemplified in
 \code{help("plot.epidataCS")}.
-
-The above static plots do not capture the space-time dynamics of epidemic
-spread. An animation may provide additional insight and can be produced by the
+%The above static plots do not capture the space-time dynamics of epidemic spread.
+An animation may provide additional insight and can be produced by the
 corresponding \code{animate}-method. For instance, to look at the first year of
 the B-type in a weekly sequence of snapshots in a web browser (using facilities of the
 \CRANpkg{animation} package of \citealp{R:animation}):
@@ -680,7 +670,8 @@ The latter could be analyzed by an
 areal time-series model such as \code{hhh4} (see \code{vignette("hhh4\_spacetime")}).
 We can also use \class{sts} visualizations, e.g.\ (Figure~\ref{fig:imdsts_plot}):
 <<imdsts_plot, fig.cap="IMD cases (joint types) aggregated as an \\class{sts} object by month and district.", fig.subcap=c("Time series of monthly counts.", "Disease incidence (per 100\\,000 inhabitants)."), fig.width=5, fig.height=5, out.width="0.5\\linewidth", fig.pos="ht", echo=-2>>=
-imdsts <- epidataCS2sts(imdepi, freq = 12, start = c(2002, 1), tiles = districtsD)
+imdsts <- epidataCS2sts(imdepi, freq = 12, start = c(2002, 1), tiles = districtsD,
+                        neighbourhood = NULL) # skip adjacency matrix (needs spdep)
 par(las = 1, lab = c(7,7,7), mar = c(5,5,1,1))
 plot(imdsts, type = observed ~ time)
 plot(imdsts, type = observed ~ unit, population = districtsD$POPULATION / 100000)
@@ -1050,6 +1041,7 @@ even more so if the population density is low.
 for (.type in 1:2) {
     print(intensityplot(imdfit_powerlaw, aggregate="space", which="epidemic proportion",
                         types=.type, tiles=districtsD, sgrid=1000,
+                        # scales=list(draw=TRUE), # default, now needs 'sf'
                         xlab="x [km]", ylab="y [km]", at=seq(0,1,by=0.1),
                         col.regions=rev(hcl.colors(10,"Reds")),
                         colorkey=list(title="Epidemic proportion")))

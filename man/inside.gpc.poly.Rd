@@ -47,7 +47,7 @@ Sebastian Meyer
 }
 
 \examples{
-if (requireNamespace("rgeos")) {
+if (surveillance.options("gpclib") && requireNamespace("gpclib")) {
     poly <- discpoly(c(0.5,0.5), 0.5, npoly=4, class="gpc.poly")
     pts <- cbind(x=runif(50), y=runif(50))
     plot(poly)

@@ -39,14 +39,6 @@ data("ha.sts")
 ha.sts
 plot(ha.sts, type = observed ~ time)  # = plot(aggregate(ha.sts, by = "unit"))
 plot(ha.sts, type = observed ~ unit, labels = TRUE)
-
-\dontrun{
-## conversion of the old "disProg" object 'ha' to the new S4 class "sts"
-shpfile <- system.file("shapes/berlin.shp", package="surveillance")
-ha.sts <- disProg2sts(ha, map = maptools::readShapePoly(shpfile,IDvar="SNAME"))
-## in data("ha.sts"), German umlauts in 'ha.sts@map@data$BEZIRK'
-## have been replaced for compatibility
-}
 }
 
 \keyword{datasets}

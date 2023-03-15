@@ -209,7 +209,7 @@ text(2500, 0.08, labels="endemic", col=2, pos=2, font=2)
   # total intensity (using a rather sparse 'sgrid' for speed)
   intensityplot(imdepifit, which="total intensity",
                 aggregate="space", tiles=districtsD, sgrid=500,
-                col.regions=rev(heat.colors(100)))
+                col.regions=rev(heat.colors(100))) % needs sf in longlat.scales
 
   # epidemic proportion by type
   maps_epiprop <- lapply(1:2, function (type) {

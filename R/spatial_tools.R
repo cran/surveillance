@@ -1,14 +1,14 @@
 ################################################################################
 ### Auxiliary functions for operations on spatial data
 ###
-### Copyright (C) 2009-2015,2018,2021,2022  Sebastian Meyer
+### Copyright (C) 2009-2015,2018,2021-2023  Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
 ### a copy of which is available at https://www.R-project.org/Licenses/.
 ###
-### $Revision: 2896 $
-### $Date: 2022-10-31 16:17:36 +0100 (Mon, 31. Oct 2022) $
+### $Revision: 2963 $
+### $Date: 2023-03-13 23:24:10 +0100 (Mon, 13. Mar 2023) $
 ################################################################################
 
 
@@ -31,15 +31,17 @@ discpoly <- function (center, radius, npoly = 64,
 
     ## do it myself for the "Polygon" and "gpc.poly" classes
     stopifnot(radius > 0, isScalar(npoly), npoly > 2)
-    theta <- seq(2*pi, 0, length = npoly+1)[-(npoly+1)]   # for clockwise order
+    theta <- seq(2*pi, 0, length.out = npoly+1)[-(npoly+1)]   # for clockwise order
     if (hole) theta <- rev(theta)   # for anticlockwise order
     x <- center[1] + radius * cos(theta)
     y <- center[2] + radius * sin(theta)
     switch(class,
         "Polygon" = Polygon(cbind(c(x,x[1]),c(y,y[1])), hole=hole),
         "gpc.poly" = {
+            ##gpcWarning()
             pts <- list(list(x=x, y=y, hole=hole))
-            if (isClass("gpc.poly") || requireNamespace("rgeos")) {
+            if (isClass("gpc.poly") ||
+                (gpclibCheck() && requireNamespace("gpclib"))) {
                 new("gpc.poly", pts = pts)
             } else {
                 warning("formal class \"gpc.poly\" not available")
@@ -50,12 +52,16 @@ discpoly <- function (center, radius, npoly = 64,
 }
 
 
-### Wrapper for polyclip or rgeos::gUnaryUnion or maptools::unionSpatialPolygons
+### Wrapper for polyclip or rgeos::gUnaryUnion
 
 unionSpatialPolygons <- function (SpP,
-                                  method = c("rgeos", "polyclip", "gpclib"),
+                                  method = c("rgeos", "polyclip"),
                                   ...)
 {
+    if (identical(method, "gpclib")) {
+        .Deprecated(msg = "method = \"gpclib\" is deprecated; using default")
+        method <- NULL
+    }
     method <- match.arg(method)
     W <- switch(
         method,
@@ -71,21 +77,14 @@ unionSpatialPolygons <- function (SpP,
                 ID="1")
             SpatialPolygons(list(W_Polygons))
         },
-        "rgeos" = rgeos::gUnaryUnion(SpP, ...),
-        "gpclib" = {
-            ## rgeosStatus needed by maptools::unionSpatialPolygons is only
-            ## set in maptools:::.onAttach. Since it is bad practice to do
-            ## library("maptools") in package code (cf. R-exts 1.1.3.1),
-            ## the user has to attach "maptools" manually beforehand
-            if (!"maptools" %in% .packages()) {
-                stop("need 'library(\"maptools\")'; ",
-                     "then call surveillance::unionSpatialPolygons")
-            }
-            gpclibCheck() && maptools::gpclibPermit()
-            maptools::unionSpatialPolygons(
-                SpP, IDs = rep.int(1,length(SpP@polygons)),
-                avoidGEOS = TRUE, ...)
-        })
+        "rgeos" = rgeos::gUnaryUnion(SpP, ...)
+        ## "gpclib" = {
+        ##     gpclibCheck() && maptools::gpclibPermit()
+        ##     maptools::unionSpatialPolygons(
+        ##         SpP, IDs = rep.int(1,length(SpP@polygons)),
+        ##         avoidGEOS = TRUE, ...)
+        ## }
+    )
     ## ensure that W has exactly the same proj4string as SpP
     W@proj4string <- SpP@proj4string
     W
@@ -207,7 +206,7 @@ layout.scalebar <- function (obj, corner = c(0.05, 0.95), scale = 1,
     stopifnot(inherits(obj, "Spatial"))
     BB <- bbox(obj)
     force(labels)  # the default should use the original 'scale' value in km
-    if (identical(FALSE, is.projected(obj))) {
+    if (isFALSE(is.projected(obj, warn = TRUE))) {
         ## 'obj' has longlat coordinates, 'scale' is interpreted in kilometres
         scale <- .scale2longlat(t(rowMeans(BB)), scale)
     }
@@ -247,16 +246,49 @@ layout.scalebar <- function (obj, corner = c(0.05, 0.95), scale = 1,
     rightLL[,1L] - focusLL[,1L]
 }
 
+## internal wrapper for sp::is.projected to catch its (future) sf dependence
+is.projected <- function (obj, warn = FALSE)
+{
+    res <- tryCatch(sp::is.projected(obj), error = identity)
+    if (inherits(res, "error")) {
+        pkg <- if (inherits(res, "packageNotFoundError"))
+                   res$package
+               else if (startsWith(res$message, "sf required"))
+                   ## FIXME: temporarily used by "sp" with evolution status 2
+                   "sf"
+               else stop(res)
+        ## fallback: grep for longlat in (deprecated) Proj.4 representation
+        p4s <- as.character(obj@proj4string@projargs)
+        if (is.na(p4s) || !nzchar(p4s)) {
+            if (warn)
+                warning("could not determine projection status; package ",
+                        sQuote(pkg), " is missing")
+            NA
+        } else {
+            !grepl("longlat", p4s, fixed = TRUE)
+        }
+    } else res
+}
+
+## internal replacement for sp::mapasp using the above is.projected wrapper
+mapasp <- function (data)
+{
+    if (isFALSE(is.projected(data))) {
+        bb <- bbox(data)
+        xlim <- bb[1L,]
+        ylim <- bb[2L,]
+        (diff(ylim)/diff(xlim)) / cos((mean(ylim) * pi)/180)
+    } else "iso"
+}
+
 
 ### determine the total area of a SpatialPolygons object
-## CAVE: sum(sapply(obj@polygons, slot, "area"))
-##       is not correct if the object contains holes
 
 areaSpatialPolygons <- function (obj, byid = FALSE)
 {
-    if (requireNamespace("rgeos", quietly = TRUE)) {
-        rgeos::gArea(obj, byid = byid)
-    } else {
+    ## if (requireNamespace("rgeos", quietly = TRUE)) {
+    ##     rgeos::gArea(obj, byid = byid)
+    ## } else {
         areas <- vapply(
             X = obj@polygons,
             FUN = function (p) sum(
@@ -267,7 +299,7 @@ areaSpatialPolygons <- function (obj, byid = FALSE)
             FUN.VALUE = 0, USE.NAMES = FALSE
         )
         if (byid) setNames(areas, row.names(obj)) else sum(areas)
-    }
+    ## }
 }
 
 
