@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Simulate from a HHH4 model
 ###
 ### Copyright (C) 2012 Michaela Paul, 2013-2016,2018,2021 Sebastian Meyer
-### $Revision: 2939 $
-### $Date: 2023-03-01 09:24:32 +0100 (Wed, 01. Mar 2023) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

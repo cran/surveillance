@@ -11,10 +11,11 @@ gpcWarning <- function ()
 gpclibCheck <- function (fatal = TRUE)
 {
     gpclibOK <- surveillance.options("gpclib")
-    if (!gpclibOK && fatal) {
-        message("Note: The gpclib license is accepted by ",
-                sQuote("surveillance.options(gpclib=TRUE)"), ".")
-        stop("acceptance of the gpclib license is required")
+    if (!gpclibOK) {
+        message(gettextf("Note: use %s to accept the gpclib license.",
+                         sQuote("surveillance.options(gpclib=TRUE)")),
+                domain = NA)
+        if (fatal) stop("acceptance of the gpclib license is required")
     }
     gpclibOK
 }

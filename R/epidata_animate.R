@@ -1,15 +1,13 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Two types of spatio-temporal animations of "epidata" are supported:
 ### - sequential plots regardless of time between events (i.e. only ordering)
 ### - chronological animation with timer
 ###
 ### Copyright (C) 2008-2009, 2012, 2014, 2019 Sebastian Meyer
-### $Revision: 2357 $
-### $Date: 2019-02-20 16:41:09 +0100 (Wed, 20. Feb 2019) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 animate.epidata <- function (object, ...)

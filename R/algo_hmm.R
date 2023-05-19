@@ -53,7 +53,7 @@ algo.hmm <- function(disProgObj, control = list(range=range, Mtilde=-1, noStates
     }
   
     #Obtain crude inits
-    q <- quantile(observed,seq(0,1,length=control$noStates+1))
+    q <- quantile(observed,seq(0,1,length.out=control$noStates+1))
     lvl <- cut(observed,breaks=q,include.lowest=TRUE)
     crudeMean <- as.numeric(tapply(observed, lvl, mean))
 

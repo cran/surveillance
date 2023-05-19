@@ -212,7 +212,7 @@ lines(1:length(Y)+0.2,X,col="red",type="h",lty=2)
 
 #Helper function to show the EM step
 plotIt <- function(cur.sts) {
-  plot(cur.sts,xaxis.labelFormat=NULL, legend=NULL,ylim=c(0,140))
+  plot(cur.sts,xaxis.labelFormat=NULL, legend.opts=NULL,ylim=c(0,140))
 }
 
 #Call non-parametric back-projection function with hook function but
@@ -241,13 +241,10 @@ for (j in 1:ncol(sts.bp)) {
 #Show the fit
 lines(1:nrow(sts.bp)-0.5,mu[,1],col="green",type="s",lwd=3)
 
-#Non-parametric back-projection including boostrap CIs. B=10 is only
-#used for illustration in the documentation example
-#In practice use a realistic value of B=1000 or more.
-bpnp.control2 <- modifyList(bpnp.control, list(hookFun=NULL,k=2,B=10,eq3a.method="C"))
-\dontrun{
-bpnp.control2 <- modifyList(bpnp.control, list(hookFun=NULL,k=2,B=1000,eq3a.method="C"))
-}
+#Non-parametric back-projection including boostrap CIs
+bpnp.control2 <- modifyList(bpnp.control, list(hookFun=NULL, k=2,
+  B=10, # in practice, use B >= 1000 !
+  eq3a.method="C"))
 sts.bp2 <- backprojNP(Ysts, incu.pmf=inc.pmf, control=bpnp.control2)
 
 ######################################################################

@@ -328,7 +328,7 @@ backprojNP <- function(sts, incu.pmf,control=list(k=2,eps=rep(0.005,2),iter.max=
 
   #Compute an equal tailed (1-alpha)*100% confidence intervals based on the
   #bootstrap samples. The dimension is (ci.low,ci.high) x time x series
-  ci <- apply(lambda,MARGIN=c(1,2), quantile, p=c(control$alpha/2,1-control$alpha/2))
+  ci <- apply(lambda,MARGIN=c(1,2), quantile, probs=c(control$alpha/2,1-control$alpha/2))
 
   #Convert output to stsBP object and add information to the extra slots
   stsk <- as(stsk,"stsBP")

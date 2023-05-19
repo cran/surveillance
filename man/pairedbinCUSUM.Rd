@@ -74,19 +74,14 @@ dPBin <- function(yz,theta) {
 #Likelihood ratio for all four possible configurations
 p <- c(dPBin(c(0,0), theta=theta0), dPBin(c(0,1), theta=theta0),
        dPBin(c(1,0), theta=theta0), dPBin(c(1,1), theta=theta0))
-
+\dontshow{if (surveillance.options("allExamples"))}
 #Compute ARL using non-sparse matrix operations
-\dontrun{
-pairedbinCUSUM.runlength(p,w1=c(-1,37,-9,29),w2=c(-1,7),h1=70,h2=32,h11=38,h22=17)
-}
+pairedbinCUSUM.runlength(p,w1=c(-1,37,-9,29),w2=c(-1,7),h1=70,h2=32,
+                         h11=38,h22=17)
 
-#Sparse computations don't work on all machines (e.g. the next line
-#might lead to an error. If it works this call can be considerably (!) faster
-#than the non-sparse call.
-\dontrun{
+#Sparse computations can be considerably (!) faster
 pairedbinCUSUM.runlength(p,w1=c(-1,37,-9,29),w2=c(-1,7),h1=70,h2=32,
                          h11=38,h22=17,sparse=TRUE)
-}
 
 #Use paired binary CUSUM on the De Leval et al. (1994) arterial switch
 #operation data on 104 newborn babies

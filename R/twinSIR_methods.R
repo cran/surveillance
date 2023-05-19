@@ -1,8 +1,4 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Methods for "twinSIR" fits, specifically:
 ### - vcov: enabling the use of function confint to calculate Wald
 ###         confidence intervals for the parameter estimates.
@@ -11,8 +7,10 @@
 ### - print, summary, print.summary, plot (intensityPlot), ...
 ###
 ### Copyright (C) 2009-2014 Sebastian Meyer, contributions by Michael Hoehle
-### $Revision: 1088 $
-### $Date: 2014-10-24 09:29:43 +0200 (Fri, 24. Oct 2014) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 ### don't need a specific coef-method (identical to stats:::coef.default)
@@ -46,7 +44,7 @@ logLik.twinSIR <- function (object, ...)
                       perl = FALSE, fixed = FALSE, useBytes = FALSE,
                       invert = FALSE))
     px <- npar - pz   # number of constrained (non-negative) parameters
-    
+
     penalty <- if (px == 0L) {
         k * pz   # default AIC penalty (with k = 2)
     } else if (px == 1L) {
@@ -66,7 +64,7 @@ logLik.twinSIR <- function (object, ...)
           #as npar=pz+px, we have that npar-px = pz, hence the sum is
         k * sum(w.sim * (pz + 0:px))
     }
-    
+
     attr(penalty, "exact") <- px <= 2
     penalty
 }
@@ -80,11 +78,11 @@ AIC.twinSIR <- function (object, ..., k = 2, one.sided = NULL, nsim = 1e3)
     ## I don't see any easy way of using AIC.default while avoiding ":::".
     ## NextMethod() does not fit due to extra arguments one.sided & nsim.
     ## Could maybe unclass "object" and all objects in "..." and then use AIC()
-    
+
     if (is.null(one.sided)) {
         one.sided <- object$method == "L-BFGS-B"
     }
-    
+
     if (one.sided) {
         penalty <- .OSAICpenalty(object, k = k, nsim = nsim)
         edf <- length(coef(object))
@@ -103,7 +101,7 @@ extractAIC.twinSIR <- function (fit, scale = 0, k = 2, one.sided = NULL,
     if (is.null(one.sided)) {
         one.sided <- fit$method == "L-BFGS-B"
     }
-    
+
     loglik <- logLik(fit)
     edf <- attr(loglik, "df")
     penalty <- if (one.sided) {
@@ -111,8 +109,8 @@ extractAIC.twinSIR <- function (fit, scale = 0, k = 2, one.sided = NULL,
                } else {
                    k * edf                                  # default AIC
                }
-    res <- c(edf = edf, AIC = -2 * c(loglik) + penalty)            
-    
+    res <- c(edf = edf, AIC = -2 * c(loglik) + penalty)
+
     attr(res, "type") <- if (one.sided) "One-sided AIC" else "Standard AIC"
     attr(res, "exact") <- if (one.sided) attr(penalty, "exact") else TRUE
     res
@@ -240,7 +238,7 @@ residuals.twinSIR <- function(object, ...)
   eventTimes <- attr(object$model$survs,"eventTimes")
   sortedStop <- sort(unique(object$model$survs[,"stop"]))
   eventTimesIdx <- match(eventTimes, sortedStop)
-  
+
   #Dimensions and zero vector (in case we need it)
   nTimes <- nrow(object$model$X)
   zerovec <- numeric(nTimes)

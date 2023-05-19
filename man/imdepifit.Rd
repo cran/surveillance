@@ -11,6 +11,12 @@ Example \code{twinstim} Fit for the \code{imdepi} Data
 \usage{data("imdepifit")}
 \format{
   an object of class \code{"\link{twinstim}"}
+  obtained from the following call using \code{data(imdepi)}:
+  
+  \Sexpr[stage=build,results=verbatim]{
+    data(imdepifit, package="surveillance")
+    writeLines(deparse(imdepifit$call, width.cutoff = 25))
+  }
 }
 \seealso{
   common methods for \code{"twinstim"} fits,
@@ -21,18 +27,10 @@ Example \code{twinstim} Fit for the \code{imdepi} Data
 \examples{
 data("imdepi", "imdepifit")
 
-\dontrun{
+## how this fit was obtained
+imdepifit$call
+\dontshow{if (surveillance.options("allExamples"))}
 ## reproduce "imdepifit"
-myimdepifit <- twinstim(
-    endemic = addSeason2formula(~ offset(log(popdensity)) + I(start/365-3.5),
-                                S = 1, period = 365, timevar = "start"),
-    epidemic = ~ type + agegrp, siaf = siaf.gaussian(),
-    data = imdepi, subset = !is.na(agegrp),
-    optim.args = list(control = list(reltol = sqrt(.Machine$double.eps))),
-    ## the historical default for reltol is 1e-6, which is rather large
-    model = FALSE, cumCIF = FALSE
-)
-stopifnot(all.equal(imdepifit, myimdepifit))
-}
+stopifnot(all.equal(imdepifit, eval(imdepifit$call)))
 }
 \keyword{datasets}

@@ -1,3 +1,9 @@
+# surveillance 1.21.1 (2023-05-16)
+
+- This is a maintenance release, fixing encoding-related portability
+  issues and increasing test coverage for rarely used functionality.
+
+
 # surveillance 1.21.0 (2023-03-14)
 
 - **surveillance** no longer relies on the **maptools** package:

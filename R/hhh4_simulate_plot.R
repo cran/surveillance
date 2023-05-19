@@ -1,14 +1,12 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Plots for an array "hhh4sims" of simulated counts from an "hhh4" model,
 ### or a list thereof as produced by different "hhh4" models (same period!)
 ###
 ### Copyright (C) 2013-2018,2020-2021 Sebastian Meyer
-### $Revision: 2777 $
-### $Date: 2021-11-17 00:29:49 +0100 (Wed, 17. Nov 2021) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 plot.hhh4sims <- function (x, ...) {

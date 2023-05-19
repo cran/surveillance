@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Knox test for space-time interaction
 ###
 ### Copyright (C) 2015-2016 Sebastian Meyer
-### $Revision: 1703 $
-### $Date: 2016-04-26 11:21:55 +0200 (Tue, 26. Apr 2016) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

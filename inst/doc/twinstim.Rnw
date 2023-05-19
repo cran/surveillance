@@ -35,7 +35,8 @@ options(xtable.booktabs = TRUE, xtable.size = "small",
 
 
 \documentclass[nojss,nofooter,article]{jss}
-\usepackage[latin1]{inputenc} % Rnw is ASCII, but automatic package bib isn't
+\usepackage[utf8]{inputenc} % Rnw is ASCII, but auto-generated bib file isn't
+                            % (specification is redundant in LaTeX >= 2018-04-01)
 
 \title{%
   \vspace{-1.5cm}
@@ -1151,14 +1152,10 @@ and otherwise corresponds to the row index of the infective source.
 
 <<Rbib, include = FALSE, purl = FALSE>>=
 ## create automatic references for R packages
-.Rbibfile <- file("twinstim-R.bib", "w", encoding = "latin1")
-Rbib <- knitr::write_bib(
+knitr::write_bib( # produces UTF-8
     c("memoise", "sp", "polyclip",
       "xtable"),
-    file = NULL, tweak = FALSE, prefix = "R:")
-## write_bib() to file does enc2utf8() -> fails for ISO8859-15 session charset
-writeLines(unlist(Rbib, use.names = FALSE), .Rbibfile)
-close(.Rbibfile)
+    file = "twinstim-R.bib", tweak = FALSE, prefix = "R:")
 @
 
 \bibliography{references,twinstim-R}

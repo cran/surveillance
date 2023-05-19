@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Time series plot for sts-objects
 ###
 ### Copyright (C) 2007-2014 Michael Hoehle, 2013-2016,2021-2022 Sebastian Meyer
-### $Revision: 2815 $
-### $Date: 2022-02-11 16:33:40 +0100 (Fri, 11. Feb 2022) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

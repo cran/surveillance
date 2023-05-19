@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Helper functions for neighbourhood weight matrices in hhh4()
 ###
 ### Copyright (C) 2012-2016,2020,2022 Sebastian Meyer
-### $Revision: 2805 $
-### $Date: 2022-02-09 15:29:47 +0100 (Wed, 09. Feb 2022) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 
@@ -152,7 +150,7 @@ checkWeightsArray <- function (W, nUnits, nTime, name = deparse(substitute(W)),
     if (any(dim(W)[1:2] != nUnits) || isTRUE(dim(W)[3] != nTime))
         stop("'", name, "' must conform to dimensions ",
              nUnits, " x ", nUnits, " (x ", nTime, ")")
-    if (any(is.na(W))) {
+    if (anyNA(W)) {
         if (islands) # normalization of parametric weights yields division by 0
             warning("neighbourhood structure contains islands")
         stop("missing values in '", name, "' are not allowed")

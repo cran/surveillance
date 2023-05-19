@@ -2,14 +2,11 @@
 ### Endemic-epidemic modelling for univariate or multivariate
 ### time series of infectious disease counts (data class "sts")
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2012-2016,2019-2022 Sebastian Meyer
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2016,2019-2023 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
 ### a copy of which is available at https://www.R-project.org/Licenses/.
-###
-### $Revision: 2874 $
-### $Date: 2022-08-05 17:15:48 +0200 (Fri, 05. Aug 2022) $
 ################################################################################
 
 ## Error message issued in loglik, score and fisher functions upon NA parameters
@@ -173,7 +170,7 @@ setControl <- function (control, stsObj)
   defaultControl <- eval(formals(hhh4)$control)
   environment(defaultControl$ar$f) <- environment(defaultControl$ne$f) <-
       environment(defaultControl$end$f) <- .GlobalEnv
-  control <- modifyList(defaultControl, control)
+  control <- modifyList(defaultControl, control, keep.null = TRUE)
 
   ## check that component specifications are list objects
   for (comp in c("ar", "ne", "end")) {
@@ -261,7 +258,7 @@ setControl <- function (control, stsObj)
           if (!identical(dim(control[[comp]]$offset), dim(stsObj)))
               stop("'control$",comp,"$offset' must be a numeric matrix of size ",
                    nTime, "x", nUnit)
-          if (any(is.na(control[[comp]]$offset)))
+          if (anyNA(control[[comp]]$offset))
               stop("'control$",comp,"$offset' must not contain NA values")
       } else if (!identical(as.numeric(control[[comp]]$offset), 1)) {
           stop("'control$",comp,"$offset' must either be 1 or a numeric ",
@@ -1927,7 +1924,7 @@ updateParams_nlm <- function (start, ll, sc, fi, ..., control)
     ## run the optimization
     res <- do.call("nlm", args=c(alist(p=start, f=negllscfi, ...), control))
     ## Done
-    list(par=res$estimate, ll=-res$minimum,
+    list(par=setNames(res$estimate, names(start)), ll=-res$minimum,
          rel.tol=getRelDiff(res$estimate, start),
          convergence=as.numeric(res$code>2), message=res$message)
     ## nlm returns convergence status in $code, 1-2 indicate convergence,

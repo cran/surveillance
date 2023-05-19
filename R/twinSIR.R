@@ -1,16 +1,14 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Function 'twinSIR' performs (penalized) maximum likelihood inference
 ### for the Hoehle (2009) model. Now with REML estimation of smoothing
 ### parameter lambda.
 ###
 ### Copyright (C) 2008-2009 Michael Hoehle
 ### Copyright (C) 2008-2009,2014,2017 Sebastian Meyer
-### $Revision: 2046 $
-### $Date: 2017-11-16 15:51:54 +0100 (Thu, 16. Nov 2017) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 ## ATTENTION: the .loglik and .score functions assume atRiskY == 1 data

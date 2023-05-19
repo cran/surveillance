@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Functions concerning graphs: neighbourhood order, adjacency matrix
 ###
 ### Copyright (C) 2009-2013,2017,2023 Sebastian Meyer
-### $Revision: 2956 $
-### $Date: 2023-03-10 00:36:39 +0100 (Fri, 10. Mar 2023) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

@@ -401,8 +401,7 @@ plot(fluBYBW, type = observed ~ unit,
 ## Paul and Held (2011), including predictive model assessement
 ## using proper scoring rules, see the (computer-intensive)
 ## demo("fluBYBW") script:
-demoscript <- system.file(file.path("demo", "fluBYBW.R"),
-                          package = "surveillance")
+demoscript <- system.file("demo", "fluBYBW.R", package = "surveillance")
 demoscript
 #file.show(demoscript)
 

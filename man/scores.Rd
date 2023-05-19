@@ -119,9 +119,8 @@ rps(y, mu = mu, size = size)
 \dontshow{# failed in surveillance <= 1.19.1
     stopifnot(!is.unsorted(rps(3, mu = 10^-(0:8)), strictly = TRUE))
 }
-\dontrun{# rps() gives NA (with a warning) if the NegBin is too wide
+## rps() gives NA (with a warning) if the NegBin is too wide
 rps(1e5, mu = 1e5, size = 1e-5)
-}
 }
 
 \keyword{univar}

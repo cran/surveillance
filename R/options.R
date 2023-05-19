@@ -1,16 +1,13 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
-### Description: Set up surveillance.options.
-### The code below is inspired by the options management of the
-### spatstat package authored by Adrian Baddeley and Rolf Turner, which is
-### available under GPL-2 from http://CRAN.R-project.org/package=spatstat
+### Set up .Options for "surveillance".
+### Inspired by the options management in the R package "spatstat" (1.29-0)
+### by Adrian Baddeley and Rolf Turner (2012).
 ###
 ### Copyright (C) 2012 Sebastian Meyer, 2014 Michael Hoehle
-### $Revision: 2944 $
-### $Date: 2023-03-08 17:43:25 +0100 (Wed, 08. Mar 2023) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 .Options <- new.env()

@@ -26,7 +26,7 @@ intersectPolyCircle(object, center, radius, ...)
 \arguments{
   \item{object}{a polygonal domain of one of the supported classes.}
   \item{center,radius,npoly}{see \code{\link{discpoly}}.}
-  \item{useGEOS}{logical indicating if package \pkg{rgeos}
+  \item{useGEOS}{(deprecated) logical indicating if package \pkg{rgeos}
     (\code{\link[rgeos]{gIntersection}}) should be used instead of
     package \pkg{gpclib}. The latter (default) requires explicit
     acceptance of \pkg{gpclib}'s restricted license via

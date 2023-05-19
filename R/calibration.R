@@ -1,14 +1,12 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Calibration tests for count data based on proper scoring rules
 ### Reference: Wei and Held (2014), Test, 23, 787-805
 ###
 ### Copyright (C) 2015,2018 Sebastian Meyer
-### $Revision: 2223 $
-### $Date: 2018-09-19 14:49:30 +0200 (Wed, 19. Sep 2018) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

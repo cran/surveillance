@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### calibrationTest() for "hhh4" fits
 ###
 ### Copyright (C) 2015,2017 Sebastian Meyer
-### $Revision: 1829 $
-### $Date: 2017-01-23 14:00:47 +0100 (Mon, 23. Jan 2017) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 calibrationTest.hhh4 <- function (x,

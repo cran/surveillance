@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Monte Carlo Permutation Test for Space-Time Interaction in "twinstim"
 ###
 ### Copyright (C) 2015-2016,2018,2021 Sebastian Meyer
-### $Revision: 2742 $
-### $Date: 2021-10-07 11:59:12 +0200 (Thu, 07. Oct 2021) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 epitest <- function (model, data, tiles, method = "time", B = 199,

@@ -74,6 +74,21 @@ test_that("score vector and Fisher info agree with numerical approximations", if
     test(W_np(maxlag = 3, truncate = TRUE, normalize = TRUE, from0 = TRUE))
 })
 
+test_that("alternative optimizers give equivalent results", {
+    ctrl_nlm <- list(method = "nlm", check.analyticals = TRUE)
+    expect_equal(
+        update(measlesFit, optimizer = list(regression = ctrl_nlm),
+               use.estimates = FALSE),
+        measlesFit, tolerance = 1e-5, ignore = "control"
+    )
+    ctrl_BFGS <- list(method = "BFGS", reltol = 1e-12)
+    expect_equal(
+        update(measlesFit, optimizer = list(regression = ctrl_BFGS),
+               use.estimates = FALSE),
+        measlesFit, tolerance = 1e-5, ignore = "control"
+    )
+})
+
 test_that("automatic and manual normalization are equivalent", {
     ## check for equivalent functions
     for (type in c("powerlaw", "np")) {

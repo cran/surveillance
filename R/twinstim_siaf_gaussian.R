@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Gaussian spatial interaction function for twinstim's epidemic component
 ###
 ### Copyright (C) 2009-2014,2017 Sebastian Meyer
-### $Revision: 1986 $
-### $Date: 2017-10-06 10:18:25 +0200 (Fri, 06. Oct 2017) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

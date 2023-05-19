@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Plot estimated interaction kernel (siaf/tiaf) as a function of distance
 ###
 ### Copyright (C) 2012-2015 Sebastian Meyer
-### $Revision: 1325 $
-### $Date: 2015-04-30 13:56:23 +0200 (Thu, 30. Apr 2015) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 
@@ -33,7 +31,7 @@ iafplot <- function (object, which = c("siaf", "tiaf"), types = NULL,
     epiloglink <- .epilink(object) == "log"
     typeNames <- rownames(object$qmatrix)
     nTypes <- length(typeNames)
-    
+
     ## interaction function
     which <- match.arg(which)
     IAFobj <- object$formula[[which]]
@@ -82,7 +80,7 @@ iafplot <- function (object, which = c("siaf", "tiaf"), types = NULL,
         scale <- eval(SCALE)
         vals <- scale * IAF(x, iafpars, types)
     }
-    
+
     ## truncate at eps
     if (truncated && epsIsFixed) {
         body(FUN) <- as.call(c(as.list(body(FUN)), expression(
@@ -90,7 +88,7 @@ iafplot <- function (object, which = c("siaf", "tiaf"), types = NULL,
             vals
             )))
     }
-    
+
     ## if (loglog) {
     ##     body(FUN)[[length(body(FUN))]] <-
     ##         call("log", body(FUN)[[length(body(FUN))]])
@@ -214,7 +212,7 @@ iafplot <- function (object, which = c("siaf", "tiaf"), types = NULL,
                           Sigma=vcov(object)[idxpars,idxpars,drop=FALSE]),
                   deparse.level=0)
         })
-        
+
         ## add confidence limits
         if (!is.null(parSample)) {
             fvalsSample <- apply(parSample, 1, if (scaled == "intercept") {
@@ -254,7 +252,7 @@ iafplot <- function (object, which = c("siaf", "tiaf"), types = NULL,
                 }
             }
         }
-        
+
         ## add point estimate
         res[,1L+i] <- FUN(xgrid, iafpars, types[i], gamma0)
         if (isStepFun) {
@@ -291,7 +289,7 @@ iafplot <- function (object, which = c("siaf", "tiaf"), types = NULL,
                   lty = lty[1], col = col.estimate[i], lwd = lwd[1])
         }
     }
-    
+
     ## add legend
     if (isTRUE(legend) || is.list(legend)) {
         default.legend <- list(x = "topright", legend = typeNamesSel,

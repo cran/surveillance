@@ -32,7 +32,7 @@ formatDate(x, format)
 }
 
 \examples{
-formatDate(Sys.Date(), "\%G/\%OQ/\%q")
+formatDate(as.Date("2021-10-13"), "\%G/\%OQ/\%q")
 }
 
 \keyword{chron}

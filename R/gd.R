@@ -8,7 +8,7 @@
 #  rgd - sample from the generalized Dirichlet distribution
 #  Egd - expectation of the generalized Dirichlet distribution
 #
-# Author: Michael Höhle <hoehle@math.su.se>
+# Author: Michael Hoehle <hoehle@math.su.se>
 # Date:   LaMo Apr 2014. 
 ######################################################################
 

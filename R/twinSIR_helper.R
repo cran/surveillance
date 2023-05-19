@@ -1,14 +1,12 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Auxiliary functions for twinSIR()
 ### and to compute one-sided AIC by simulation (in twinSIR_methods.R)
 ###
 ### Copyright (C) 2009-2014 Sebastian Meyer, contributions by Michael Hoehle
-### $Revision: 991 $
-### $Date: 2014-09-01 23:13:26 +0200 (Mon, 01. Sep 2014) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

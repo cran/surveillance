@@ -14,8 +14,8 @@ Function for creating an \code{\linkS4class{sts}} object with a given observatio
 }
 \examples{
 data("salmAllOnset")
-salmAllOnsety2013m01d20 <- sts_observation(salmAllOnset,
-dateObservation="2014-01-20",cut=FALSE)
+salmAllOnsety2014m01d20 <- sts_observation(salmAllOnset,
+  dateObservation="2014-01-20",cut=FALSE)
 plot(salmAllOnset)
-lines(salmAllOnsety2013m01d20@observed,t="h",col="red")
+lines(observed(salmAllOnsety2014m01d20),type="h",col="red")
 }

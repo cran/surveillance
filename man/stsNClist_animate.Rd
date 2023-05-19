@@ -3,8 +3,9 @@
 \alias{animate_nowcasts}
 \encoding{latin1}
 
-\title{Animate a sequence of nowcasts}
-\description{Animate a sequence of nowcasts stored as a list.
+\title{Animate a Sequence of Nowcasts}
+\description{
+  Animate a sequence of nowcasts stored as a list.
 }
 \usage{
 animate_nowcasts(nowcasts,linelist_truth, method="bayes.trunc.ddcp",
@@ -15,7 +16,7 @@ animate_nowcasts(nowcasts,linelist_truth, method="bayes.trunc.ddcp",
                    showLambda=TRUE)
 }
 \arguments{
-  \item{nowcasts}{A list of objects of class \code{stsNC}}
+  \item{nowcasts}{A list of objects of class \code{\linkS4class{stsNC}}}
   \item{linelist_truth}{True linelist}
   \item{method}{Which method to show (has to be present in the
     nowcasts)}
@@ -24,16 +25,11 @@ animate_nowcasts(nowcasts,linelist_truth, method="bayes.trunc.ddcp",
     the epidemic curve (only applied to \code{bayes.trunc.ddcp})}
 }
 \value{
-  This function is experimental and is not yet documented.
-}
-\details{
-  This function is experimental and might be changed in the future.
+  This function is experimental and not yet fully documented.
 }
 \author{M. \enc{Höhle}{Hoehle}}
-\examples{
-## See http://staff.math.su.se/hoehle/blog/2016/07/19/nowCast.html for
-## a worked through example. Code will migrate into the package in due
-## course.
+\seealso{
+  \url{https://staff.math.su.se/hoehle/blog/2016/07/19/nowCast.html}
+  for a worked through example.
 }
 \keyword{hplot}
-

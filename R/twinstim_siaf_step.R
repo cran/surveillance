@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### twinstim's spatial interaction function as a step function
 ###
-### Copyright (C) 2014,2018 Sebastian Meyer
-### $Revision: 2789 $
-### $Date: 2022-01-31 22:41:24 +0100 (Mon, 31. Jan 2022) $
+### Copyright (C) 2014,2018,2022 Sebastian Meyer
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

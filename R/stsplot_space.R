@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Snapshot map (spplot) of an sts-object or matrix of counts
 ###
 ### Copyright (C) 2013-2014,2016,2017,2020,2021 Sebastian Meyer
-### $Revision: 2963 $
-### $Date: 2023-03-13 23:24:10 +0100 (Mon, 13. Mar 2023) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 ## x: "sts" or (simulated) matrix of counts
@@ -73,7 +71,7 @@ stsplot_space <- function (x, tps = NULL, map = x@map, population = NULL,
         colorkey <- modifyList(eval(formals()$colorkey), colorkey)
 
     ## automatic additions to sp.layout (region labels and total)
-    if (is.list(gpar.missing) && any(is.na(map$ncases))) {
+    if (is.list(gpar.missing) && anyNA(map$ncases)) {
         layout.missing <- c(list("sp.polygons", obj=map[is.na(map$ncases),]),
                             gpar.missing)
         sp.layout <- c(sp.layout, list(layout.missing))

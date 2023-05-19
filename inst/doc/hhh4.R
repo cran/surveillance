@@ -219,18 +219,26 @@ summary(result, idx2Exp=1:3)
 ### code chunk number 22: plot-fit_men
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
-plot(result, units = 1:2, legend = 2, legend.args = list(
+plot(result, units = NULL, pch = 20, legend = 2, legend.args = list(
      legend = c("influenza-driven", "autoregressive", "endemic")))
 
 
 ###################################################
-### code chunk number 23: ri (eval = FALSE)
+### code chunk number 23: plot-fit_men_decomposed
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+plot(result, units = NULL, pch = 20, legend = 2,
+     decompose = TRUE, col = c(7, 4))
+
+
+###################################################
+### code chunk number 24: ri (eval = FALSE)
 ###################################################
 ## f.end <- ~ -1 + ri(type = "iid", corr = "all")
 
 
 ###################################################
-### code chunk number 24: modelFluBYBW
+### code chunk number 25: modelFluBYBW
 ###################################################
 # endemic component: iid random effects, linear trend, S=3 seasonal terms
 f.end <- addSeason2formula(f = ~ -1 + ri(type="iid", corr="all") +
@@ -249,7 +257,7 @@ set.seed(42)
 
 
 ###################################################
-### code chunk number 25: computeFluBYBW
+### code chunk number 26: computeFluBYBW
 ###################################################
 if(compute){
   result.B2 <- hhh4(fluBYBW, model.B2)
@@ -265,7 +273,7 @@ if(compute){
 
 
 ###################################################
-### code chunk number 26: fitFluBYBW (eval = FALSE)
+### code chunk number 27: fitFluBYBW (eval = FALSE)
 ###################################################
 ## # fit the model (takes about 35 seconds)
 ## result.B2 <- hhh4(fluBYBW, model.B2)
@@ -273,38 +281,38 @@ if(compute){
 
 
 ###################################################
-### code chunk number 27: hhh4.Rnw:661-662
+### code chunk number 28: hhh4.Rnw:670-671
 ###################################################
 s.B2
 
 
 ###################################################
-### code chunk number 28: oneStepAhead_rolling (eval = FALSE)
+### code chunk number 29: oneStepAhead_rolling (eval = FALSE)
 ###################################################
 ## pred.B2 <- oneStepAhead(result.B2, tp = nrow(fluBYBW) - 2*52)
 
 
 ###################################################
-### code chunk number 29: oneStepAhead_fake (eval = FALSE)
+### code chunk number 30: oneStepAhead_fake (eval = FALSE)
 ###################################################
 ## predfinal.B2 <- oneStepAhead(result.B2, tp = nrow(fluBYBW) - 2*52,
 ##                              type = "final")
 
 
 ###################################################
-### code chunk number 30: scores (eval = FALSE)
+### code chunk number 31: scores (eval = FALSE)
 ###################################################
 ## colMeans(scores(predfinal.B2, which = c("logs", "rps")))
 
 
 ###################################################
-### code chunk number 31: hhh4.Rnw:694-695
+### code chunk number 32: hhh4.Rnw:703-704
 ###################################################
 meanSc.B2[c("logs", "rps")]
 
 
 ###################################################
-### code chunk number 32: createVacc
+### code chunk number 33: createVacc
 ###################################################
 data(MMRcoverageDE)
 cardVac1 <- MMRcoverageDE[1:16,3:4]
@@ -320,13 +328,13 @@ colnames(vac0) <- colnames(measles2w)
 
 
 ###################################################
-### code chunk number 33: hhh4.Rnw:741-742
+### code chunk number 34: hhh4.Rnw:750-751
 ###################################################
 vac0[1:2, 1:6]
 
 
 ###################################################
-### code chunk number 34: fitMeasles
+### code chunk number 35: fitMeasles
 ###################################################
 # endemic component: Intercept + sine/cosine terms
 f.end <- addSeason2formula(f = ~ 1, S = 1, period = 26)

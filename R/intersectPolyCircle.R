@@ -1,14 +1,12 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Compute the intersection of a circular domain with a polygonal domain of
 ### various classes (currently: owin, gpc.poly, or SpatialPolygons)
 ###
 ### Copyright (C) 2009-2015 Sebastian Meyer
-### $Revision: 2944 $
-### $Date: 2023-03-08 17:43:25 +0100 (Wed, 08. Mar 2023) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 
@@ -17,6 +15,7 @@ intersectPolyCircle.gpc.poly <- function (object, center, radius,
 {
     ## gpcWarning()
     if (useGEOS) {
+        .Deprecated(msg = "argument 'useGEOS' will soon be defunct")
         loadNamespace("rgeos")  # coerce gpc.poly to SpatialPolygons
         res <- intersectPolyCircle.SpatialPolygons(as(object, "SpatialPolygons"),
                                                center, radius, npoly)

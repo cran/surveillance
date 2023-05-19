@@ -130,42 +130,56 @@ num[i] <- table(algo.glrnb(disProgObj=shadar,control=c(control,c.ARL=i))$alarm)[
 
 
 ###################################################
-### code chunk number 18: glrnb.Rnw:319-321 (eval = FALSE)
+### code chunk number 18: glrnb.Rnw:311-319
+###################################################
+getOption("SweaveHooks")[["fig"]]()
+control=list(range=209:295,c.ARL=5.1,mu0=list(S=1,trend=TRUE),
+             alpha=NULL,M=52,change="epi")
+surv <- algo.glrnb(shadar, control)
+plot(surv,col=c(NA,8,4),lty=c(1,0,1),lwd=c(1,1,3),legend.opts=NULL)
+lines(surv$control$mu0,lty=2,lwd=2,col=2)
+abline(h=surv$control$c.ARL,lty=2,col=3)
+legend(1,20,expression(GLR(n),mu[0],c[gamma]),
+       col=c(4,2,3),lty=c(1,2,2),lwd=c(3,2,1))
+
+
+###################################################
+### code chunk number 19: glrnb.Rnw:325-327 (eval = FALSE)
 ###################################################
 ## control=list(range=105:295,theta=0.4)
 ## algo.glrnb(disProgObj=shadar,control=control)
 
 
 ###################################################
-### code chunk number 19: glrnb.Rnw:326-328 (eval = FALSE)
+### code chunk number 20: glrnb.Rnw:332-334 (eval = FALSE)
 ###################################################
 ## control=list(range=105:295,theta=NULL)
 ## algo.glrnb(disProgObj=shadar,control=control)
 
 
 ###################################################
-### code chunk number 20: glrnb.Rnw:336-338
+### code chunk number 21: glrnb.Rnw:342-344
 ###################################################
 control=list(range=105:295,ret="cases",alpha=0)
 surv2 <- algo.glrnb(disProgObj=shadar,control=control)
 
 
 ###################################################
-### code chunk number 21: glrnb.Rnw:341-342
+### code chunk number 22: glrnb.Rnw:347-348
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 plot(surv2, col=c(8,NA,4))
 
 
 ###################################################
-### code chunk number 22: glrnb.Rnw:352-354
+### code chunk number 23: glrnb.Rnw:358-360
 ###################################################
 control=list(range=105:295,ret="cases",dir="dec",alpha=0)
 surv3 <- algo.glrnb(disProgObj=shadar,control=control)
 
 
 ###################################################
-### code chunk number 23: glrnb.Rnw:357-358
+### code chunk number 24: glrnb.Rnw:363-364
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 plot(surv3, col=c(8,NA,4))

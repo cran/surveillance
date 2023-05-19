@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Step function implementation for temporal interaction
 ###
 ### Copyright (C) 2014 Sebastian Meyer
-### $Revision: 735 $
-### $Date: 2014-01-31 22:52:57 +0100 (Fri, 31. Jan 2014) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

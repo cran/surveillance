@@ -90,7 +90,6 @@ cbind("empirical" = scores(salmSims, "logs"), "density" = logs_kde)
 ##    currently only implemented in HIDDA.forecasting::dhhh4sims()
 
 
-\dontrun{
 ### produce a PIT histogram
 
 ## using empirical distribution of simulated counts as forecast distribition
@@ -98,7 +97,6 @@ pit(x = observed(attr(salmSims, "stsObserved")),
     pdistr = apply(salmSims, 1:2, ecdf))
 ## long-term forecast is badly calibrated (lower tail is unused, see fan above)
 ## we also get a warning for the same reason as infinite log-scores
-}
 }
 
 \keyword{univar}

@@ -1,14 +1,12 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Methods for objects of class "twinstim", specifically:
 ### vcov, logLik, print, summary, plot, R0, residuals, update, terms, all.equal
 ###
-### Copyright (C) 2009-2019 Sebastian Meyer
-### $Revision: 2790 $
-### $Date: 2022-01-31 23:44:36 +0100 (Mon, 31. Jan 2022) $
+### Copyright (C) 2009-2019,2022 Sebastian Meyer
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 ## extract the link function used for the epidemic predictor (default: log-link)
@@ -690,7 +688,7 @@ profile.twinstim <- function (fitted, profile, alpha = 0.05,
     if (is.na(profile[[i]][3])) profile[[i]][3] <- theta.ml[idx] + 3*se[idx]
     #Evaluate profile loglik on a grid (if requested)
     if (profile[[i]][4] > 0) {
-      thetai.grid <- seq(profile[[i]][2],profile[[i]][3],length=profile[[i]][4])
+      thetai.grid <- seq(profile[[i]][2],profile[[i]][3],length.out=profile[[i]][4])
       resProfile[[i]] <- matrix(NA, nrow = length(thetai.grid), ncol = 4L,
         dimnames = list(NULL, c("grid","profile","estimated","wald")))
 

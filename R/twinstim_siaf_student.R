@@ -1,16 +1,14 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Student (t) kernel f(s) = (||s||^2+sigma^2)^-d
 ### This is a reparametrization of the t-kernel; For d=1, this is the kernel of
 ### the Cauchy density with scale sigma; in Geostatistics, a correlation
 ### function of this kind is known as the Cauchy model.
 ###
 ### Copyright (C) 2013-2014,2017 Sebastian Meyer
-### $Revision: 1988 $
-### $Date: 2017-10-06 11:04:19 +0200 (Fri, 06. Oct 2017) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

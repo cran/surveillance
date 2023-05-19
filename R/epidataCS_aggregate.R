@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Convert "epidataCS" to the (aggregated) classes "epidata" or "sts"
 ###
 ### Copyright (C) 2009-2016,2018 Sebastian Meyer
-### $Revision: 2945 $
-### $Date: 2023-03-08 21:49:32 +0100 (Wed, 08. Mar 2023) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 
@@ -30,7 +28,7 @@ as.epidata.epidataCS <- function (data, tileCentroids, eps = 0.001, ...)
 
     ### generate twinSIR's epidata object from stgrid (no events)
     centroidIdx <- match(levels(data$stgrid$tile), rownames(tileCentroids), nomatch = NA_integer_)
-    if (any(is.na(centroidIdx))) {
+    if (anyNA(centroidIdx)) {
         stop("some levels of 'data$stgrid$tile' are not available from 'tileCentroids'")
     }
     centroids <- tileCentroids[centroidIdx,]

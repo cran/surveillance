@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### plot-method for "epidataCS" objects
 ###
 ### Copyright (C) 2009-2015 Sebastian Meyer
-### $Revision: 2963 $
-### $Date: 2023-03-13 23:24:10 +0100 (Mon, 13. Mar 2023) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Non-parametric specification of neighbourhood weights in hhh4()
 ###
 ### Copyright (C) 2014,2018 Sebastian Meyer
-### $Revision: 2246 $
-### $Date: 2018-11-22 15:10:21 +0100 (Thu, 22. Nov 2018) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

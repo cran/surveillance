@@ -580,9 +580,18 @@ A plot of the estimated mean components can be obtained as follows:
 \setkeys{Gin}{width=1\textwidth}
 \begin{center}
 <<plot-fit_men, fig=TRUE, width=10, height=4.5>>=
-plot(result, units = 1:2, legend = 2, legend.args = list(
+plot(result, units = NULL, pch = 20, legend = 2, legend.args = list(
      legend = c("influenza-driven", "autoregressive", "endemic")))
 @
+\end{center}
+
+Alternatively, use the \code{decompose} argument to show the unit-specific
+contributions to the fitted mean:
+\begin{center}
+<<plot-fit_men_decomposed, fig=TRUE, width=10, height=4.5>>=
+plot(result, units = NULL, pch = 20, legend = 2,
+     decompose = TRUE, col = c(7, 4))
+@ 
 \end{center}
 
 

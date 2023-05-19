@@ -336,8 +336,7 @@ pit(measlesFit, subset = 53:104, units = "03452")
 ### For a more sophisticated multivariate analysis of
 ### areal time series of influenza counts - data("fluBYBW") -
 ### see the (computer-intensive) demo("fluBYBW") script:
-demoscript <- system.file(file.path("demo", "fluBYBW.R"),
-                          package = "surveillance")
+demoscript <- system.file("demo", "fluBYBW.R", package = "surveillance")
 demoscript
 #file.show(demoscript)
 }

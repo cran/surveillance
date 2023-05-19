@@ -1,14 +1,12 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Data structure "epidata" representing the SIR event history of a fixed
 ### geo-referenced population (e.g., farms, households) for twinSIR() analysis
 ###
 ### Copyright (C) 2008-2010, 2012, 2014-2018, 2020 Sebastian Meyer
-### $Revision: 2520 $
-### $Date: 2020-02-19 15:28:13 +0100 (Wed, 19. Feb 2020) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 ## CAVE:
@@ -177,7 +175,7 @@ as.epidata.default <- function(data, id.col, start.col, stop.col, atRiskY.col,
         }
         if (is.character(colidx)) {
             colidx <- match(colidx, colnames(data))
-            if (any(is.na(colidx))) {
+            if (anyNA(colidx)) {
                 stop("'", colarg, " = ", deparse(cl[[colarg]]), "': ",
                      "column does not exist in 'data'")
             }

@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Spatial and temporal tie-breaking of events
 ###
 ### Copyright (C) 2012-2014,2018 Sebastian Meyer
-### $Revision: 2934 $
-### $Date: 2023-01-10 11:17:42 +0100 (Tue, 10. Jan 2023) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

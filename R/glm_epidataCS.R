@@ -1,14 +1,12 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Formulation of an endemic-only twinstim as a Poisson-GLM with response the
 ### number of events per space-time cell of stgrid and offset log(dt*ds)
 ###
 ### Copyright (C) 2013-2014,2018 Sebastian Meyer
-### $Revision: 2111 $
-### $Date: 2018-04-18 15:05:00 +0200 (Wed, 18. Apr 2018) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

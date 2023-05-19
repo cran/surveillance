@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Animated map (and time series chart) of an sts-object (or matrix of counts)
 ###
 ### Copyright (C) 2013-2016,2018,2020 Sebastian Meyer
-### $Revision: 2570 $
-### $Date: 2020-10-28 11:55:57 +0100 (Wed, 28. Oct 2020) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

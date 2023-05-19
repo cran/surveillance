@@ -1,15 +1,13 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Space-time K-function analysis of "epidataCS" objects
 ### along the lines of Diggle et al (1995):
 ### "Second-order analysis of space-time clustering" (Stat Methods Med Res)
 ###
 ### Copyright (C) 2015 Sebastian Meyer
-### $Revision: 1347 $
-### $Date: 2015-05-29 11:45:51 +0200 (Fri, 29. May 2015) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 ## call K-function methods in package "splancs"
@@ -17,11 +15,11 @@ stKcall <- function (which = c("stkhat", "stsecal", "stmctest"),
                      object, eps.s, eps.t, ...)
 {
     stopifnot(inherits(object, "epidataCS"))
-    
+
     ## get the function
     which <- match.arg(which)
     FUN <- get(which, mode = "function", envir = getNamespace("splancs"))
-    
+
     ## default arguments
     commonArgs <- list(
         pts = coordinates(object$events), times = object$events$time,
@@ -37,7 +35,7 @@ stKcall <- function (which = c("stkhat", "stsecal", "stmctest"),
     if (which == "stmctest" && is.null(args[["nsim"]])) {
         args$nsim <- 199L
     }
-    
+
     ## unfortunately, argument names are not consistent across functions
     if (which == "stsecal")
         names(args)[names(args) == "tlimits"] <- "tlim"
@@ -48,7 +46,7 @@ stKcall <- function (which = c("stkhat", "stsecal", "stmctest"),
     do.call(FUN, args)
 }
 
-## Monte-Carlo test for space-time interaction 
+## Monte-Carlo test for space-time interaction
 stKtest <- function (object, eps.s = NULL, eps.t = NULL, B = 199,
                      cores = 1, seed = NULL, poly = object$W)
 {
@@ -56,7 +54,7 @@ stKtest <- function (object, eps.s = NULL, eps.t = NULL, B = 199,
               isScalar(cores), cores > 0, isScalar(B), B > 0)
     cores <- as.integer(cores)
     B <- as.integer(B)
-    
+
     ## naive default grids
     if (is.null(eps.s))
         eps.s <- seq(0, min(object$events$eps.s, apply(bbox(object$W), 1, diff)/2),
@@ -64,7 +62,7 @@ stKtest <- function (object, eps.s = NULL, eps.t = NULL, B = 199,
     if (is.null(eps.t))
         eps.t <- seq(0, min(object$events$eps.t, tail(object$stgrid$stop,1L)/2),
                      length.out = 10)
-    
+
     ## extract coordinates of the polygon
     polycoordslist <- xylist(poly)
     if (length(polycoordslist) > 1L) {
@@ -117,12 +115,12 @@ plot.stKtest <- function (x, which = c("D", "R", "MC"),
     stkh <- x$stK
     stse <- x$seD
     stmc <- x$mctest
-    
+
     if (identical(which, "stdiagn")) {
         splancs::stdiagn(pts = x$pts, stkh = stkh, stse = stse, stmc = stmc)
         return(invisible())
     }
-    
+
     which <- match.arg(which, several.ok = TRUE)
     stopifnot(is.list(args.D), is.list(args.D0), is.list(args.R), is.list(args.MC))
 

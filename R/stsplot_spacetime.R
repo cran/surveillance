@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Old implementation of (animated) maps of an sts-object
 ###
 ### Copyright (C) 2007-2013 Michael Hoehle, 2016 Sebastian Meyer
-### $Revision: 2969 $
-### $Date: 2023-03-14 15:34:37 +0100 (Tue, 14. Mar 2023) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

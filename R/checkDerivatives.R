@@ -1,15 +1,13 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Simple wrapper around functionality of the numDeriv and maxLik packages
 ### to check the score vector and the Fisher information matrix
 ### CAVE: the return values of both wrappers are not unified
 ###
 ### Copyright (C) 2012, 2015 Sebastian Meyer
-### $Revision: 1327 $
-### $Date: 2015-05-08 14:02:44 +0200 (Fri, 08. May 2015) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

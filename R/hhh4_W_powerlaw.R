@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Parametric power-law specification for neighbourhood weights in hhh4()
 ###
 ### Copyright (C) 2012-2016,2018 Sebastian Meyer
-### $Revision: 2244 $
-### $Date: 2018-11-20 15:08:51 +0100 (Tue, 20. Nov 2018) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

@@ -1,14 +1,12 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### profile-method for class "twinSIR" to calculate the profile log-likelihood
 ### (normalized) as well as profile likelihood based confidence intervals
 ###
 ### Copyright (C) 2009 Michael Hoehle, 2014 Sebastian Meyer
-### $Revision: 2662 $
-### $Date: 2021-03-16 10:53:29 +0100 (Tue, 16. Mar 2021) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

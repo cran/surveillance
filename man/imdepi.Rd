@@ -191,12 +191,10 @@ par(opar)
 # Plot the spatial distribution of the events in W
 plot(imdepi, "space", points.args = list(col=c("indianred", "darkblue")))
 
-\dontrun{
 # or manually (no legends, no account for tied locations)
 plot(imdepi$W, lwd=2, asp=1) % to avoid sp -> sf
 plot(imdepi$events, pch=c(3,4)[imdepi$events$type], cex=0.8,
      col=c("indianred", "darkblue")[imdepi$events$type], add=TRUE)
-}
 
 \dontrun{
   # Show a dynamic illustration of the spatio-temporal dynamics of the 

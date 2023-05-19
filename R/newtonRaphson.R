@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Michaela's own implementation of a Newton-Raphson optimizer
 ###
 ### Copyright (C) 2010-2012 Michaela Paul
-### $Revision: 589 $
-### $Date: 2013-07-08 10:25:30 +0200 (Mon, 08. Jul 2013) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

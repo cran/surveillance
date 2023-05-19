@@ -363,11 +363,10 @@ str(imdepi, max.level=4)
 ## see help("imdepi") for more info on the data set
 
 ## extraction methods subset the 'events' component
-## (thereby taking care of the validity of the epidataCS object,
-## for instance the hidden auxiliary column .sources)
 imdepi[101:200,]
-tail(imdepi, n=4)           # reduce the epidemic to the last 4 events
-subset(imdepi, type=="B")   # only consider event type B
+head(imdepi, n=1)           # only first event
+tail(imdepi, n=4)           # only last 4 events
+subset(imdepi, type=="B")   # only events of type B
 
 ## see help("plot.epidataCS") for convenient plot-methods for "epidataCS"
 
@@ -401,12 +400,11 @@ head(stgrid <- imdepi$stgrid[,-1])
 ## reconstruct the "imdepi" object from its components
 myimdepi <- as.epidataCS(events = events, stgrid = stgrid,
                          W = stateD, qmatrix = diag(2), nCircle2Poly = 16)
-\dontrun{
+\dontshow{if (surveillance.options("allExamples"))}
 ## This reconstructed object is equal to 'imdepi' as long as the internal
 ## structures of the embedded classes ("owin", "SpatialPolygons", ...), and
 ## the calculation of the influence regions by "polyclip" have not changed:
 stopifnot(all.equal(imdepi, myimdepi))
-}
 }
 
 \keyword{spatial}

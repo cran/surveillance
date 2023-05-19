@@ -113,7 +113,7 @@
 
   \Sexpr[stage=build,results=rd]{
     paste0("\\\itemize{\n", paste0("\\\item ", tools::toRd(
-      readCitationFile(find_inst_file("CITATION"), list(Encoding="latin1"))
+      readCitationFile(find_inst_file("CITATION"))  # gives marked UTF-8 strings
     ), collapse = "\n\n"), "\n}")
   }
 

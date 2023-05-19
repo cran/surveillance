@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
-### Plot-method(s) for fitted hhh4() models
+### Plot method(s) for fitted "hhh4" models
 ###
 ### Copyright (C) 2010-2012 Michaela Paul, 2012-2023 Sebastian Meyer
-### $Revision: 2963 $
-### $Date: 2023-03-13 23:24:10 +0100 (Mon, 13. Mar 2023) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 
@@ -432,7 +430,7 @@ plotHHH4_ri <- function (x, component, exp = FALSE,
         colorkey$labels <- list(at = log(lab), labels = lab)
     }
 
-    if (is.list(gpar.missing) && any(is.na(map$ranef))) {
+    if (is.list(gpar.missing) && anyNA(map$ranef)) {
         sp.layout <- c(sp.layout,
                        c(list("sp.polygons", map[is.na(map$ranef),]),
                          gpar.missing))

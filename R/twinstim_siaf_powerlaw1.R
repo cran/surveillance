@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### 1-parameter power-law kernel f(s) = (1 + ||s||)^-d, i.e., sigma = 1
 ###
 ### Copyright (C) 2019 Sebastian Meyer
-### $Revision: 2430 $
-### $Date: 2019-07-02 16:32:45 +0200 (Tue, 02. Jul 2019) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 

@@ -295,23 +295,29 @@ num[i] <- table(algo.glrnb(disProgObj=shadar,control=c(control,c.ARL=i))$alarm)[
 }
 @
 
-\begin{table}[h]
-\centering
-\caption{Number of alarms for salmonella hadar data for varying c.ARL}
-\label{c.ARL}
+\begin{center}
 \begin{tabular}{l|cccccc}
 \verb+c.ARL+ & 1 & 2 & 3 & 4 & 5 & 6 \\
 \hline
 no. of alarms & \Sexpr{num[1]} & \Sexpr{num[2]} & \Sexpr{num[3]} & \Sexpr{num[4]} & \Sexpr{num[5]} & \Sexpr{num[6]}
 \end{tabular}
-\end{table}
-
-
+\end{center}
 
 
 
 \item \verb+change+ \\
-There are two possibilitys to define an outbreak. The intercept-change is described in Section \ref{sec:glr} and equation \ref{interceptchange}. Use \verb+change="intercept"+ to choose this possibility. The other alternative is the epidemic chart, where an auto-regressive model is used. See \citet{held-etal-2005} and \citet{hoehle.paul2008} for more details. A call with \verb+change="epi"+ in the control-settings leads to this alternative. Note that in the epidemic chart not every feature of \verb+algo.glrnb+ is available.
+There are two possibilitys to define an outbreak. The intercept-change is described in Section \ref{sec:glr} and equation \ref{interceptchange}. Use \verb+change="intercept"+ to choose this possibility. The other alternative is the epidemic chart, where an auto-regressive model is used. See \citet{hoehle.paul2008} for details. The plot below reproduces Figure 9 from that paper, using \verb+change="epi"+ in the control settings. Note that in the epidemic chart not every feature of \verb+algo.glrnb+ is available.
+
+<<fig=T,width=10,height=5>>=
+control=list(range=209:295,c.ARL=5.1,mu0=list(S=1,trend=TRUE),
+             alpha=NULL,M=52,change="epi")
+surv <- algo.glrnb(shadar, control)
+plot(surv,col=c(NA,8,4),lty=c(1,0,1),lwd=c(1,1,3),legend.opts=NULL)
+lines(surv$control$mu0,lty=2,lwd=2,col=2)
+abline(h=surv$control$c.ARL,lty=2,col=3)
+legend(1,20,expression(GLR(n),mu[0],c[gamma]),
+       col=c(4,2,3),lty=c(1,2,2),lwd=c(3,2,1))
+@ 
 
 \item \verb+theta+ \\
 If the change in intercept in the intercept-charts is known in advance, this value can be passed to the function (see Section \ref{sec:glr}). These LR-charts are faster but can lead to inferior results if a wrong value of \verb+theta+ is used compared to the actual out-of-control value (\citet{hoehle.paul2008}). If  an increase of 50 percent in cases is common when there is an outbreak which corresponds to a $\kappa$ of $\log(1.5)=0.405$ in equation \ref{interceptchange} use

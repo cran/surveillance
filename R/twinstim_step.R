@@ -1,14 +1,12 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Functions and methods to make step() work for twinstim objects
 ### (restricted to one component at a time)
 ###
 ### Copyright (C) 2013 Sebastian Meyer
-### $Revision: 645 $
-### $Date: 2013-09-08 15:17:42 +0200 (Sun, 08. Sep 2013) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 
@@ -63,7 +61,7 @@ update.twinstim_stependemic <- function (object, endemic, ..., evaluate = TRUE)
 {
     object <- .step2twinstim(object)
     res <- NextMethod("update")         # use update.twinstim()
-    
+
     ## we need to keep the special class such that step() will keep invoking
     ## the special update- and terms-methods on the result
     stepClass <- sub("update.", "", .Method, fixed=TRUE)
@@ -101,7 +99,7 @@ stepComponent <- function (object, component = c("endemic", "epidemic"),
 
     ## Convert to special twinstim class where $formula is the component formula
     object_step <- do.call(paste0("twinstim_step", component), alist(object))
-    
+
     ## silent optimizations
     if (trace <= 2) object_step$call$optim.args$control$trace <-
         object_step$optim.args$control$trace <- 0
@@ -110,7 +108,7 @@ stepComponent <- function (object, component = c("endemic", "epidemic"),
     ## Run the selection procedure
     res <- step(object_step, scope = scope, direction = direction,
                 trace = trace, ...)
-    
+
     ## Restore original trace and verbose arguments
     if (trace <= 2) {
         res$call$optim.args$control <- object$call$optim.args$control
@@ -134,7 +132,7 @@ add1.twinstim <- drop1.twinstim <-
               trace = 2, ...)
 {
     component <- match.arg(component)
-    
+
     ## Convert to special twinstim class where $formula is the component formula
     object <- do.call(paste0("twinstim_step", component), alist(object))
 

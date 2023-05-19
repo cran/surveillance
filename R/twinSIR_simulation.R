@@ -1,13 +1,11 @@
 ################################################################################
-### Part of the surveillance package, http://surveillance.r-forge.r-project.org
-### Free software under the terms of the GNU General Public License, version 2,
-### a copy of which is available at http://www.r-project.org/Licenses/.
-###
 ### Simulate from a "twinSIR" model as described in Hoehle (2009)
 ###
 ### Copyright (C) 2009 Michael Hoehle, 2009,2012,2014,2019,2021 Sebastian Meyer
-### $Revision: 2743 $
-### $Date: 2021-10-07 15:07:04 +0200 (Thu, 07. Oct 2021) $
+###
+### This file is part of the R package "surveillance",
+### free software under the terms of the GNU General Public License, version 2,
+### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
 ## Apart from simulation of SIR data, it is possible to simulate
@@ -55,7 +53,7 @@ simEpidata <- function (formula, data, id.col, I0.col, coords.cols,
             colidx <- get(colarg, inherits = FALSE)
             if (is.numeric(colidx)) {
                 tmp <- names(data)[colidx]
-                if (any(is.na(tmp))) {
+                if (anyNA(tmp)) {
                     stop("'", colarg, " = ", deparse(cl[[colarg]]), "': ",
                          "column index must be in [1; ", ncol(data),
                          "=ncol(data)]")
@@ -185,7 +183,7 @@ simEpidata <- function (formula, data, id.col, I0.col, coords.cols,
                 "(number of epidemic terms), must be specified"), nPredEpi))
         }
         alpha <- alpha[c(names(f), names(w))]
-        if (any(is.na(alpha))) {
+        if (anyNA(alpha)) {
             stop("'alpha' is incomplete for 'f' or 'w'")
         }
         stopifnot(alpha >= 0)

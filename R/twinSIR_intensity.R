@@ -29,11 +29,11 @@
     pz <- ncol(Z)
     alpha <- theta[seq_len(px)]
     beta <- theta[px + seq_len(pz)]
-    
+
     # Calculate the epidemic component e(t|H_t) and the endemic component h(t)
     e <- if (px > 0L) drop(X %*% alpha) else numeric(nRows)
     h <- if (pz > 0L) drop(exp(Z %*% beta)) else numeric(nRows)
-    
+
     # Return the two components of the infection intensity related to the
     # rows of the event history in a two column matrix
     eh <- cbind(e = e, h = h)
@@ -66,6 +66,7 @@
 # RETURNS: value of the cumulative hazard function at time t
 ################################################################################
 
+if (FALSE) { # unused
 Lambda <- function(t, theta, X, Z, survs, weights)
 {
     timeRange <- attr(survs, "timeRange")
@@ -92,13 +93,13 @@ Lambda <- function(t, theta, X, Z, survs, weights)
     } else { # if t >= attr(survs, "timeRange")[2], we take all rows
         .eh(theta, X, Z)
     }
-    
+
     lambda <- rowSums(eh)
     dt <- survs$stop - survs$start
     intlambda <- sum(weights * lambda * dt)   # no individual sums as in loglik
     return(intlambda)
 }
-
+}
 
 
 ################################################################################
@@ -110,7 +111,7 @@ Lambda <- function(t, theta, X, Z, survs, weights)
 ################################################################################
 
 # 'model' is the result of getModel(x)
-# if x is of class "twinSIR": theta = (alpha, beta) = (alpha, (h0coefs, betarest)) 
+# if x is of class "twinSIR": theta = (alpha, beta) = (alpha, (h0coefs, betarest))
 # if x is of class "simEpidata": theta = (alpha, 1, betarest)
 # per default, the function uses the fitted or true parameters, respectively
 intensityplot_twinSIR <- function(model,
@@ -118,7 +119,7 @@ intensityplot_twinSIR <- function(model,
     aggregate = TRUE, theta = NULL, plot = TRUE, add = FALSE, rug.opts = list(), ...)
 {
     which <- match.arg(which)
-    
+
     ## model components
     survs <- model$survs
     start <- attr(survs, "timeRange")[1L]
@@ -129,7 +130,7 @@ intensityplot_twinSIR <- function(model,
     # otherwise would terminate in advance if all individuals have been infected
     nTimes <- length(timepoints)
     idlevels <- levels(survs$id)
-    
+
     ## helper function for use with by()
     intensity <- function(iddata, what) {
         # 'iddata' will be a subset of survs, 'what' will be "wlambda" or "we"
@@ -137,21 +138,21 @@ intensityplot_twinSIR <- function(model,
         y[match(iddata$stop, timepoints)] <- iddata[[what]]
         y
     }
-    
+
     ## Calculate epidemic (e) and endemic (h) component in each row of the model
     eh <- do.call(".eh", args = c(list(theta = theta), model[c("X", "Z")]))
-    
+
     ## Calculate individual _total intensity_ paths
     lambda <- rowSums(eh)
     survs$wlambda <- as.vector(model$weights * lambda)
-    
+
     ## put individual intensity paths into a matrix [nTimes x n]
     wlambdaID <- by(data = survs, INDICES = survs["id"],
                     FUN = intensity, what = "wlambda", simplify = FALSE)
     # initially infectious individuals (without re-infection) don't appear in
     # survs, since they are never atRiskY => wlambdaID[[i]] is NULL for such an
     # individual i but should be a 0-vector of length nTimes
-    initiallyInfected <- names(which(sapply(wlambdaID, is.null)))
+    initiallyInfected <- names(which(vapply(wlambdaID, is.null, TRUE)))
     #if (length(initiallyInfected) > 0L)   # not necessary
     wlambdaID[initiallyInfected] <- rep(list(numeric(nTimes)), length(initiallyInfected))
     wlambdaIDmatrix <- as.matrix(as.data.frame(c(wlambdaID), optional = TRUE))
@@ -163,7 +164,7 @@ intensityplot_twinSIR <- function(model,
     ##     iddata <- survs[survs$id == ID,]
     ##     wlambdaIDmatrix[match(iddata$stop, timepoints), ID] <- iddata$wlambda
     ## }
-    
+
     if (which != "total intensity") {
         ## Calculate individual _epidemic intensity_ paths
         survs$we <- {
@@ -188,7 +189,7 @@ intensityplot_twinSIR <- function(model,
         ##     weIDmatrix[match(iddata$stop, timepoints), ID] <- iddata$we
         ## }
     }
-    
+
     ## Generate matrix with data for 'matplot'
     ydata2plot <-
         if (which == "total intensity") {
@@ -209,17 +210,17 @@ intensityplot_twinSIR <- function(model,
     }
     ydata2plot <- as.matrix(ydata2plot)
     colnames(ydata2plot) <- if (aggregate) which else idlevels
-    
+
     if (which != "total intensity") {
         # there may be NAs in data2plot where the total intensity equals 0
         # => when calculating proportions we get 0 / 0 = NA
         # we redefine those values to 0. (0-intensity => 0-proportion)
         ydata2plot[is.na(ydata2plot)] <- 0
     }
-    
+
     # prepend time (x) column
     data2plot <- cbind(stop = timepoints, ydata2plot)
-    
+
     # if the epidemic is SIRS or SIS (re-susceptibility), there may be time
     # blocks during the observation period, where no individual is susceptible:
     # Problem: those time blocks are not included in the model component,
@@ -237,7 +238,7 @@ intensityplot_twinSIR <- function(model,
         )
         data2plot <- data2plot[order(data2plot[,1L]),]
     }
-    
+
     ## Plot and return data
     if (plot) {
         dotargs <- list(...)

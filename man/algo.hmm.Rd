@@ -42,7 +42,7 @@
             \item{\code{trend}}{Boolean stating whether a linear time trend exists, i.e. if \code{TRUE} (default) then \eqn{\beta_j \neq 0}{\beta != 0}}
             \item{\code{noHarmonics}}{number of harmonic waves to include in the linear predictor. Default is 1.}
             \item{\code{covEffectEqual}}{see details}
-            \item{\code{saveHMMs}}{Boolean, if \code{TRUE} then the result of the fitted HMMs is saved. With this option the function can also be used to analyse data retrospectively. Default option is \code{FALSE}}
+            \item{\code{saveHMMs}}{Boolean, if \code{TRUE} then the fitted HMMs are saved. With this option the function can also be used to analyse data retrospectively. Default option is \code{FALSE}}
             \item{\code{extraMSMArgs}}{A named list with additional arguments to send to the \code{\link[msm:msm]{msm}} HMM fitting function. Note that the \code{msm} arguments \code{formula}, \code{data}, \code{qmatrix}, \code{hmodel}, \code{hcovariates} and \code{hconstraint} are automatically filled by \code{algo.hmm}, thus these should NOT be modified.}
             }
           }
@@ -52,8 +52,9 @@
   vector of alarm values for every timepoint in \code{range}. No
   \code{upperbound} can be specified and is put equal to zero.
     
-  The resulting object contains a slot \code{control$hmm}, which
-  contains the \code{msm} object with the fitted HMM.
+  The resulting object contains a list \code{control$hmms}, which
+  contains the \code{"msm"} objects with the fitted HMMs
+  (if \code{saveHMMs=TRUE}).
 }
 \details{
   For each time point t the reference values values are extracted. If
@@ -109,7 +110,7 @@ counts <- sim.pointSource(p = 0.98, r = 0.8, length = 3*52,
 surv <- algo.hmm(counts, control=list(range=(2*52):length(counts$observed),
                                    Mtilde=2*52,noStates=2,trend=FALSE,
                                    covEffectsEqual=TRUE,extraMSMargs=list()))
-plot(surv,legend=list(x="topright"))
+plot(surv,legend.opts=list(x="topright"))
 }
 
 if (require("msm")) {
@@ -119,7 +120,7 @@ surv <- algo.hmm(counts,control=list(range=length(counts$observed),Mtilde=-1,noS
                           trend=FALSE,covEffectsEqual=TRUE, saveHMMs=TRUE))
 
 #Compute most probable state using the viterbi algorithm - 1 is "normal", 2 is "outbreak".
-viterbi.msm(surv$control$hmm[[1]])$fitted
+viterbi.msm(surv$control$hmms[[1]])$fitted
 
 #How often correct?
 tab <- cbind(truth=counts$state + 1 ,
