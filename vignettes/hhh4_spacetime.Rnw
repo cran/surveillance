@@ -986,7 +986,7 @@ The plots of \code{type = "season"} and \code{type = "maxEV"} for \class{hhh4} f
 can visualize the estimated component seasonality.
 
 Performing model selection and interpreting seasonality or other covariate
-effects across \emph{three} different model components may become quiet
+effects across \emph{three} different model components may become quite
 complicated. Power-law weights actually enable a more parsimonious model
 formulation, where the autoregressive and neighbourhood components are
 merged into a single epidemic component:

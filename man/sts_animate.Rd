@@ -14,8 +14,6 @@
   It is worth using functionality of the \pkg{animation} package
   (e.g., \code{\link[animation]{saveHTML}}) to directly export the
   animation into a useful format.
-  See Meyer and Held (2014, Supplement A) for an example with the
-  \code{\link{fluBYBW}} data.
 }
 
 \usage{
@@ -89,15 +87,6 @@
   These are of class \code{"gtable"} (from \CRANpkg{gtable})
   if the \code{timeplot} is included, otherwise of class
   \code{"\code{\link[lattice:trellis.object]{trellis}"}.
-}
-
-\references{
-  Meyer, S. and Held, L. (2014):
-  Power-law models for infectious disease spread.
-  \emph{The Annals of Applied Statistics}, \bold{8} (3), 1612-1639.
-  \doi{10.1214/14-AOAS743}.\cr
-  Supplement A is available from
-  \url{https://www.biostat.uzh.ch/static/powerlaw/}.
 }
 
 \author{

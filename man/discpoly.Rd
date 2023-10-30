@@ -35,8 +35,8 @@ discpoly(center, radius, npoly = 64,
   A polygon of class \code{class} representing a
   circle/disc with \code{npoly} edges accuracy.
   
-  If \code{class="gpc.poly"} and this S4 class is neither registered
-  nor available via loading \pkg{gpclib}, only the
+  If \code{class="gpc.poly"} and this S4 class is not yet registered
+  in the current \R session (by loading \pkg{gpclib} beforehand), only the
   \code{pts} slot of a \code{"gpc.poly"} is returned with a warning.
 }
 

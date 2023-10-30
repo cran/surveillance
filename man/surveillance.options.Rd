@@ -20,17 +20,6 @@ reset.surveillance.options()
     or a sequence of \code{name=value} pairs, or a named list of
     options. Available options are:
     \describe{
-      \item{gpclib:}{
-        Logical flag indicating whether \pkg{gpclib}, the General
-	Polygon Clipping Library for \R, which (in some versions) has a restricted license
-	(commercial use prohibited), 
-	may be used. This is currently not required since package
-	\pkg{surveillance} has switched to alternatives such as
-	\pkg{polyclip} and \pkg{rgeos} for generating \code{"\link{epidataCS}"}
-	objects by \code{as.epidataCS} or \code{simEpidataCS}.
-	The default setting is \code{FALSE}.
-      }
-      
       \item{stsTickFactors:}{
 	A named vector containing tick sizes for the \code{"sts"} x-axis relative to
 	\code{\link{par}("tcl")}. Each entry contains the size at \code{\link{strptime}}

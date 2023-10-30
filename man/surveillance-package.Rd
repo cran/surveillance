@@ -79,7 +79,7 @@
   }
 
   Maintainer: Sebastian Meyer \email{seb.meyer@fau.de}
-  %\packageMaintainer{surveillance}  % FIXME @ R 4.2.1: does not know Authors@R
+  %\packageMaintainer{surveillance}  % only R >= 4.3.2 knows about Authors@R
 }
 
 %% Dynamically extract contributors from the DESCRIPTION file
@@ -100,9 +100,8 @@
         file.path(pkgdir, file)
     }
     ## internally, Rd objects are assumed to be in UTF-8, see parse_Rd()
-    ## FIXME @ R 4.2.1: tools:::processRdChunk() should enc2utf8(err) also in the "text" case
-    thanks <- enc2utf8(readLines(find_inst_file("THANKS"), encoding="latin1"))
-    paste0(grep("^(#|$)", trimws(thanks), invert=TRUE, value=TRUE), collapse = ", ")
+    thanks <- readLines(find_inst_file("THANKS"), encoding = "UTF-8")
+    toString(grep("^(#|$)", trimws(thanks), invert=TRUE, value=TRUE))
   }.
 }
 

@@ -325,7 +325,6 @@ load(system.file("shapes", "districtsD.RData", package="surveillance"))
 \dontshow{if (surveillance.options("allExamples")) \{}
 plot(districtsD)
 plot(stateD, add=TRUE, border=2, lwd=2)
-# 'stateD' was obtained as 'rgeos::gUnaryUnion(districtsD)'
 \dontshow{\}}
 
 ## simulate 2 realizations (over a short period, for speed)

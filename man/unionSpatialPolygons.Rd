@@ -7,12 +7,14 @@
 \description{
 Union all subpolygons of a
 \code{"\link[sp:SpatialPolygons-class]{SpatialPolygons}"} object.
-This is a wrapper for the polygon clipping engines implemented by
-packages \pkg{rgeos} and \pkg{polyclip}.
+This is a legacy wrapper for the polygon clipping engines implemented by
+packages \pkg{sf} and \pkg{polyclip}.
+Internally, both \code{method}s need to convert the input polygons to a
+class appropriate for the \code{method}, so are rather inefficient.
 }
 
 \usage{
-unionSpatialPolygons(SpP, method = c("rgeos", "polyclip"), ...)
+unionSpatialPolygons(SpP, method = c("sf", "polyclip"), ...)
 }
 
 \arguments{
@@ -23,12 +25,11 @@ unionSpatialPolygons(SpP, method = c("rgeos", "polyclip"), ...)
     which an \code{\link{xylist}}-method exists should work as input.
   }
   \item{method}{
-    polygon clipping machinery to use. Default is to simply call
-    \code{\link[rgeos]{gUnaryUnion}} in package \pkg{rgeos}.
+    polygon clipping machinery to use. Default is to call
+    \code{\link[sf]{st_union}} in package \pkg{sf}.
     For \code{method="polyclip"}, function
     \code{\link[polyclip]{polyclip}} from package \pkg{polyclip} is used.
-    The alternative \code{method="gpclib"} via package \pkg{maptools}
-    is no longer provided in \pkg{surveillance} > 1.20.3.
+    The old \code{method="gpclib"} is no longer available.
   }
   \item{\dots}{further arguments passed to the chosen \code{method}.}
 }
@@ -44,7 +45,7 @@ unionSpatialPolygons(SpP, method = c("rgeos", "polyclip"), ...)
 }
 
 \seealso{
-  \code{\link[rgeos]{gUnaryUnion}} in package \pkg{rgeos},
+  \code{\link[sf]{st_union}} in package \pkg{sf},
   \code{\link[polyclip]{polyclip}} in package \pkg{polyclip}.
 }
 
@@ -53,9 +54,9 @@ unionSpatialPolygons(SpP, method = c("rgeos", "polyclip"), ...)
 load(system.file("shapes", "districtsD.RData", package = "surveillance"))
 plot(districtsD, border = "gray", asp = 1)  % to avoid sp -> sf
 
-## Union these districts using either "rgeos" or "polyclip"
-if (requireNamespace("rgeos"))  {
-    stateD <- unionSpatialPolygons(districtsD, method = "rgeos")
+## Union these districts using either "sf" or "polyclip"
+if (requireNamespace("sf"))  {
+    stateD <- unionSpatialPolygons(districtsD, method = "sf")
     plot(stateD, add = TRUE, border = 2, lwd = 2)
 }
 if (requireNamespace("polyclip")) {

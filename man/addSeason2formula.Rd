@@ -1,7 +1,7 @@
 \name{addSeason2formula}
 \alias{addSeason2formula}
 \title{
-  Function that adds a sine-/cosine formula to an existing formula.
+  Add Harmonics to an Existing Formula
 }
 \description{
   This function helps to construct a \code{\link{formula}} object that

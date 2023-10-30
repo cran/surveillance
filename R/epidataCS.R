@@ -47,7 +47,7 @@ reservedColsNames_stgrid <- c("BLOCK")
 
 as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
                           nCircle2Poly = 32, T = NULL,
-                          clipper = c("polyclip", "rgeos"),
+                          clipper = "polyclip",
                           verbose = interactive())
 {
     clipper <- match.arg(clipper)
@@ -170,9 +170,8 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
 
     # Construct spatial influence regions around events
     if (verbose) cat("Constructing spatial influence regions around events ...\n")
-    events$.influenceRegion <- if (clipper == "polyclip") {
+    events$.influenceRegion <-
         .influenceRegions(events, Wowin, nCircle2Poly, clipper=clipper)
-    } else .influenceRegions(events, W, nCircle2Poly, clipper=clipper)
 
     # Return components in a list of class "epidataCS"
     res <- list(events = events, stgrid = stgrid, W = W, qmatrix = qmatrix)
@@ -485,7 +484,6 @@ check_tiles_areas <- function (areas.tiles, areas.stgrid, tolerance = 0.05)
 # If it is actually a circular influence region, then there is an attribute
 # "radius" denoting the radius of the influence region.
 # Argument 'W' can be of class "owin" (preferred) or "SpatialPolygons"
-# (especially for clipper="rgeos")
 .influenceRegions <- function (events, W, npoly, maxExtent = NULL,
                                clipper = "polyclip")
 {
@@ -495,9 +493,9 @@ check_tiles_areas <- function (areas.tiles, areas.stgrid, tolerance = 0.05)
         clipper,  # which package to use for polygon intersection
         "polyclip" = function (center, eps)
             intersectPolyCircle.owin(Wowin, center, eps, npoly),
-        "rgeos" = function (center, eps) SpP2owin(
-            intersectPolyCircle.SpatialPolygons(
-                as(W, "SpatialPolygons"), center, eps, npoly)),
+        ## "rgeos" = function (center, eps) SpP2owin(
+        ##     intersectPolyCircle.SpatialPolygons(
+        ##         as(W, "SpatialPolygons"), center, eps, npoly)),
         stop("unsupported polygon clipping engine: '", clipper, "'")
         )
 

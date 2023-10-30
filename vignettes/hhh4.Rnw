@@ -248,7 +248,7 @@ a map of the administrative districts of Bavaria and Baden-W\"urttemberg.
 This works by specifying a \code{"SpatialPolygons"} representation of the
 districts as an extra argument \code{map} in the above \sts\ call. Such a
 \code{"SpatialPolygons"} object can be obtained from, e.g, an external shapefile
-using the function \mbox{\code{readOGR}} from package \pkg{rgdal}.
+using the \pkg{sf} functions \code{st\_read} followed by \code{as\_Spatial}.
 A map enables plots and animations of the cumulative number of cases by region.
 For instance, a disease incidence map of the year 2001 can be obtained as
 follows:

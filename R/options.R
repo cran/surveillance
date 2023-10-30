@@ -3,7 +3,7 @@
 ### Inspired by the options management in the R package "spatstat" (1.29-0)
 ### by Adrian Baddeley and Rolf Turner (2012).
 ###
-### Copyright (C) 2012 Sebastian Meyer, 2014 Michael Hoehle
+### Copyright (C) 2012,2023 Sebastian Meyer, 2014 Michael Hoehle
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -12,21 +12,24 @@
 
 .Options <- new.env()
 
-## Specify options
+## the "gpclib" option is obsolete and no longer documented
 .Options$gpclib <- list(
     default = FALSE, # no gpclib due to license restrictions
     check = function(x) {
         if (!is.logical(x) || length(x) != 1L) return(FALSE)
-        ## if (x) gpcWarning()
-        if (x && !requireNamespace("gpclib")) {
-            warning("cannot set gpclib=TRUE")
-            return(FALSE)
+        if (x) {
+            .Deprecated(msg = paste("Option", dQuote("gpclib"), "is obsolete."))
+            if (!requireNamespace("gpclib")) {
+                warning("cannot use ", sQuote("gpclib"), call. = FALSE)
+                return(FALSE)
+            }
         }
         TRUE
     },
     valid = "a single logical value"
     )
 
+## mainly a maintainer-level switch driven by _R_SURVEILLANCE_ALL_EXAMPLES_
 .Options$allExamples <- list(
     default = TRUE,  # maybe disabled by .onAttach()
     check = function(x) is.logical(x) && length(x) == 1L,

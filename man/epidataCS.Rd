@@ -36,7 +36,7 @@
 \usage{
 as.epidataCS(events, stgrid, W, qmatrix = diag(nTypes),
              nCircle2Poly = 32L, T = NULL,
-             clipper = c("polyclip", "rgeos"), verbose = interactive())
+             clipper = "polyclip", verbose = interactive())
 
 \method{print}{epidataCS}(x, n = 6L, digits = getOption("digits"), ...)
 
@@ -158,8 +158,8 @@ getSourceDists(object, dimension = c("space", "time"))
     \code{.influenceRegion}s of events (see the Value section below).
     Default is the \CRANpkg{polyclip} package (called via
     \code{\link{intersect.owin}} from package \CRANpkg{spatstat.geom}).
-    In \pkg{surveillance} <= 1.6-0, package \pkg{gpclib} was used, which
-    has a restrictive license. This is no longer supported.}
+    In \pkg{surveillance} <= 1.6-0, package \pkg{gpclib} was used;
+    this is no longer supported, neither is \pkg{rgeos}.}
 
   \item{verbose}{logical indicating if status messages should be printed
   during input checking and \code{"epidataCS"} generation. The default

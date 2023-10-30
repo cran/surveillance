@@ -2,24 +2,6 @@
 ### Hook functions for package start-up
 #######################################
 
-gpcWarning <- function ()
-    .Deprecated(msg = paste(dQuote("gpc.poly"), "methods are deprecated",
-                            "in package", sQuote("surveillance")))
-
-## might no longer be needed in the future:
-## https://en.wikipedia.org/wiki/General_Polygon_Clipper
-gpclibCheck <- function (fatal = TRUE)
-{
-    gpclibOK <- surveillance.options("gpclib")
-    if (!gpclibOK) {
-        message(gettextf("Note: use %s to accept the gpclib license.",
-                         sQuote("surveillance.options(gpclib=TRUE)")),
-                domain = NA)
-        if (fatal) stop("acceptance of the gpclib license is required")
-    }
-    gpclibOK
-}
-
 .onLoad <- function (libname, pkgname)
 {
     ## initialize options
@@ -35,10 +17,9 @@ gpclibCheck <- function (fatal = TRUE)
                           " for an overview.")
 
     if (!interactive()) { # particularly for R CMD check
-        ## skip long examples and disallow gpclib, unless:
+        ## skip long examples, unless:
         allExamples <- nzchar(Sys.getenv("_R_SURVEILLANCE_ALL_EXAMPLES_"))
-        ## not using surveillance.options() as this would load gpclib already
-        .Options$allExamples$value <- .Options$gpclib$value <- allExamples
+        .Options$allExamples$value <- allExamples
     }
 }
 

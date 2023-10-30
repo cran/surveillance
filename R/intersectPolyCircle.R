@@ -1,6 +1,6 @@
 ################################################################################
 ### Compute the intersection of a circular domain with a polygonal domain of
-### various classes (currently: owin, gpc.poly, or SpatialPolygons)
+### various classes (currently: "owin" or "SpatialPolygons")
 ###
 ### Copyright (C) 2009-2015 Sebastian Meyer
 ###
@@ -9,23 +9,6 @@
 ### a copy of which is available at https://www.R-project.org/Licenses/.
 ################################################################################
 
-
-intersectPolyCircle.gpc.poly <- function (object, center, radius,
-                                          npoly = 32, useGEOS = FALSE, ...)
-{
-    ## gpcWarning()
-    if (useGEOS) {
-        .Deprecated(msg = "argument 'useGEOS' will soon be defunct")
-        loadNamespace("rgeos")  # coerce gpc.poly to SpatialPolygons
-        res <- intersectPolyCircle.SpatialPolygons(as(object, "SpatialPolygons"),
-                                               center, radius, npoly)
-        as(res, "gpc.poly")  # also defined in rgeos
-    } else {
-        gpclibCheck()
-        circle <- discpoly(center, radius, npoly = npoly, class = "gpc.poly")
-        gpclib::intersect(circle, object)  # this order seems to be faster
-    }
-}
 
 intersectPolyCircle.owin <- function (object, center, radius, npoly = 32, ...)
 {
@@ -38,9 +21,14 @@ intersectPolyCircle.owin <- function (object, center, radius, npoly = 32, ...)
 intersectPolyCircle.SpatialPolygons <- function (object, center, radius,
                                                  npoly = 32, ...)
 {
-    circle <- discpoly(center, radius, npoly = npoly, class = "Polygon")
-    circleSpP <- SpatialPolygons(list(Polygons(list(circle), "0")))
-    ## ensure that circleSpP has exactly the same proj4string as 'object'
-    circleSpP@proj4string <- object@proj4string
-    rgeos::gIntersection(circleSpP, object)
+    .Defunct()
+    ## FIXME: could implement and wrap a method for sf polygons
+    ##intersectPolyCircle.sfc(sf::st_as_sfc(object), center, radius, npoly, ...)
 }
+
+## intersectPolyCircle.sfc <- function (object, center, radius, npoly = 32, ...)
+## {
+##     ## FIXME: assert polygonal object
+##     circle <- discpoly(center, radius, npoly = npoly, class = "sfg") # or sfc?
+##     sf::st_intersection(object, circle)
+## }

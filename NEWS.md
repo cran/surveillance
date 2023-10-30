@@ -1,3 +1,16 @@
+# surveillance 1.22.0 (2023-10-30)
+
+- Long unused methods for `"gpc.poly"` objects (from package **gpclib**)
+  have now been removed and `surveillance.options("gpclib")` is obsolete.
+
+- Package **rgeos** is no longer available as a `clipper` method for
+  `as.epidataCS()`. The previous default **polyclip** remains as the only
+  option.
+
+- Legacy functions `unionSpatialPolygons()` and `polyAtBorder()` now use
+  **sf** in place of **rgeos**.
+
+
 # surveillance 1.21.1 (2023-05-16)
 
 - This is a maintenance release, fixing encoding-related portability

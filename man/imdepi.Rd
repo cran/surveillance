@@ -95,9 +95,8 @@ data("imdepi")
   
   The entry \code{W} contains the observation window as a
   \code{"\linkS4class{SpatialPolygons}"} object, in this case the
-  boundaries of Germany. It was obtained as
-  \code{stateD <- rgeos::gUnaryUnion(districtsD)},
-  where \code{districtsD} represents Germany's districts as at
+  boundaries of Germany (\code{stateD}). It was obtained as the
+  \dQuote{UnaryUnion} of Germany's districts (\code{districtsD}) as at
   2009-01-01, simplified by the \dQuote{modified Visvalingam} algorithm
   (level 6.6\%) available at \url{https://MapShaper.org} (v. 0.1.17).
   The objects \code{districtsD} and \code{stateD} are contained in

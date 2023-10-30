@@ -245,7 +245,7 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     only if \code{siaf} and \code{tiaf} provide the necessary
     derivatives).\cr
     Note that fitted objects with a model environment might consume
-    quiet a lot of memory since they contain the \code{data}.
+    quite a lot of memory since they contain the \code{data}.
   }
   \item{cumCIF}{
     logical (default: \code{FALSE}) indicating whether to

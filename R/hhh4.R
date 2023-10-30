@@ -1894,24 +1894,6 @@ updateParams_nlminb <- function (start, ll, sc, fi, ..., control)
          convergence=res$convergence, message=res$message)
 }
 
-updateParams_nr <- function (start, ll, sc, fi, ..., control)
-{
-    ## objective function
-    llscfi <- function (x, ...) {
-        loglik <- ll(x, ...)
-        attr(loglik, "score") <- sc(x, ...)
-        attr(loglik, "fisher") <- fi(x, ...)
-        loglik
-    }
-    ## run the optimization
-    res <- newtonRaphson(start, llscfi, ...,
-                         control=control, verbose=control$verbose)
-    ## Done
-    list(par=res$coefficients, ll=res$loglikelihood,
-         rel.tol=getRelDiff(res$coefficients, start),
-         convergence=res$convergence, message=res$message)
-}
-
 updateParams_nlm <- function (start, ll, sc, fi, ..., control)
 {
     ## objective function
@@ -1972,8 +1954,6 @@ defaultOptimControl <- function (method = "nlminb", lower = -Inf, upper = Inf,
     if (is.null(iter.max)) iter.max <- 20 + 480*(method=="Nelder-Mead")
     lowVerbose <- verbose %in% 0:2
     luOptimMethod <- method %in% c("Brent", "L-BFGS-B")
-    defaults.nr <- list(scoreTol=1e-5, paramTol=1e-7, F.inc=0.01, stepFrac=0.5,
-                        niter=iter.max, verbose=verbose)
     defaults.nlminb <- list(iter.max=iter.max, scale=1, lower=lower, upper=upper,
                             trace=if(lowVerbose) c(0,0,5)[verbose+1] else 1)
     defaults.nlm <- list(iterlim=iter.max, check.analyticals=FALSE,
@@ -1981,7 +1961,7 @@ defaultOptimControl <- function (method = "nlminb", lower = -Inf, upper = Inf,
     defaults.optim <- list(maxit=iter.max, fnscale=-1, trace=max(0,verbose-1),
                            lower=if (luOptimMethod) lower else -Inf,
                            upper=if (luOptimMethod) upper else Inf)
-    switch(method, "nr" = defaults.nr, "nlm" = defaults.nlm,
+    switch(method, "nlm" = defaults.nlm,
            "nlminb" = defaults.nlminb, defaults.optim)
 }
 
@@ -2016,7 +1996,7 @@ fitHHH <- function(theta, sd.corr, model,
                   " (dim(", deparse(substitute(start)), ")=1)")
       }
       list(paste("updateParams",
-                 if (method %in% c("nlminb", "nlm", "nr"))
+                 if (method %in% c("nlminb", "nlm"))
                  method else "optim", sep="_"),
            control = setOptimControl(method, cntrl, ...))
   }

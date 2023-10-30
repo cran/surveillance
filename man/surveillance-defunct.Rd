@@ -13,14 +13,27 @@
 \alias{algo.hhh.grid}
 \alias{create.grid}
 \alias{qlomax}
+\alias{inside.gpc.poly}
+\alias{intersectPolyCircle.gpc.poly}
+\alias{scale.gpc.poly}
 \description{
   The functions listed here are no longer part of \pkg{surveillance}.
 }
 \usage{
-## Defunct in surveillance 1.20.0
-qlomax(p, scale, shape)
+## Removed in surveillance 1.17.0
+compMatrix.writeTable(compMatrix)
+correct53to52(disProgObj, firstweek = 1)
+enlargeData(disProgObj, range = 1:156, times = 1)
+makePlot(outputpath, data = "k1", method = "rki1",
+         name, disease, range = 157:339)
+readData(abb, week53to52=TRUE, sysPath=TRUE)
+test(data = c("k1", "m5"), range = 157:339)
+testSim(p = 0.99, r = 0.01, length = 400, A = 1, alpha = 1,
+        beta = 0, phi = 0, frequency = 1, state = NULL, K, 
+        range = 200:400)
+toFileDisProg(disProgObj, toFile)
 
-## Defunct in surveillance 1.18.0
+## Removed in surveillance 1.18.0
 algo.hhh(disProgObj, control=list(
              lambda=TRUE, neighbours=FALSE, linear=FALSE, nseason=0,
              negbin=c("none", "single", "multiple"),
@@ -36,27 +49,16 @@ create.grid(disProgObj, control, params=list(
                 negbin=c(0.3, 12, 10)
             ))
 
-## Defunct in surveillance 1.17.0
-compMatrix.writeTable(compMatrix)
-correct53to52(disProgObj, firstweek = 1)
-enlargeData(disProgObj, range = 1:156, times = 1)
-makePlot(outputpath, data = "k1", method = "rki1",
-         name, disease, range = 157:339)
-readData(abb, week53to52=TRUE, sysPath=TRUE)
-test(data = c("k1", "m5"), range = 157:339)
-testSim(p = 0.99, r = 0.01, length = 400, A = 1, alpha = 1,
-        beta = 0, phi = 0, frequency = 1, state = NULL, K, 
-        range = 200:400)
-toFileDisProg(disProgObj, toFile)
+## Removed in surveillance 1.20.0
+qlomax(p, scale, shape)
+
+## Removed in surveillance 1.22.0
+inside.gpc.poly(x, y = NULL, polyregion, mode.checked = FALSE)
+\method{intersectPolyCircle}{gpc.poly}(object, center, radius, npoly = 32,
+                   useGEOS = FALSE, ...)
+\method{scale}{gpc.poly}(x, center = c(0,0), scale = c(1,1))
 }
 \details{
-  A \code{qlomax} function is provided in package \pkg{VGAM}.
-  
-  \code{algo.hhh} was an early implementation of the HHH regression
-  framework for multivariate time series of infectious disease counts.
-  An improved and considerably extended implementation is provided by
-  the \code{\link{hhh4}} function since 2012.
-  
   The trivial function \code{compMatrix.writeTable} is no longer used
   (it did nothing more than generating an \code{\link{xtable}} of its input).
   
@@ -75,6 +77,16 @@ toFileDisProg(disProgObj, toFile)
   class are no longer needed. The effect of \code{toFileDisProg} could
   still be achieved via \code{\link{write.table}} of
   \code{as.data.frame(disProg2sts(disProgObj))[c("epoch", "observed", "state")]}.
+
+  \code{algo.hhh} was an early implementation of the HHH regression
+  framework for multivariate time series of infectious disease counts.
+  An improved and considerably extended implementation is provided by
+  the \code{\link{hhh4}} function since 2012.
+
+  A \code{qlomax} function is provided in package \pkg{VGAM}.
+
+  Long unused methods for \code{"gpc.poly"} objects have been removed;
+  the corresponding package \pkg{gpclib} has been unmaintained on CRAN.
 }
 \seealso{
   \code{\link{Defunct}}

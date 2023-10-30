@@ -1,8 +1,7 @@
 \name{intersectPolyCircle}
 \alias{intersectPolyCircle}
 \alias{intersectPolyCircle.owin}
-\alias{intersectPolyCircle.SpatialPolygons}
-\alias{intersectPolyCircle.gpc.poly}
+%\alias{intersectPolyCircle.SpatialPolygons} # defunct in surveillance 1.22.0
 
 \title{
   Intersection of a Polygonal and a Circular Domain
@@ -12,25 +11,21 @@
   This is a unifying wrapper around functionality of various packages
   dealing with spatial data. It computes the intersection of a circular
   domain and a polygonal domain (whose class defines the specific method).
+
+  Currently the only supported class is \code{"\link[spatstat.geom]{owin}"}
+  from package \CRANpkg{spatstat.geom}.
 }
 
 \usage{
 intersectPolyCircle(object, center, radius, ...)
 
 \method{intersectPolyCircle}{owin}(object, center, radius, npoly = 32, ...)
-\method{intersectPolyCircle}{SpatialPolygons}(object, center, radius, npoly = 32, ...)
-\method{intersectPolyCircle}{gpc.poly}(object, center, radius, npoly = 32,
-                   useGEOS = FALSE, ...)
+%\method{intersectPolyCircle}{SpatialPolygons}(object, center, radius, npoly = 32, ...)
 }
 
 \arguments{
   \item{object}{a polygonal domain of one of the supported classes.}
   \item{center,radius,npoly}{see \code{\link{discpoly}}.}
-  \item{useGEOS}{(deprecated) logical indicating if package \pkg{rgeos}
-    (\code{\link[rgeos]{gIntersection}}) should be used instead of
-    package \pkg{gpclib}. The latter (default) requires explicit
-    acceptance of \pkg{gpclib}'s restricted license via
-    \code{\link{surveillance.options}(gpclib=TRUE)}.}
   \item{\dots}{potential further arguments (from the generic).}
 }
 

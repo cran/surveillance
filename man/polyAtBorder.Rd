@@ -11,7 +11,7 @@ spatial union of all polygons (constructed using
 
 \usage{
 polyAtBorder(SpP, snap = sqrt(.Machine$double.eps),
-             method = "rgeos", ...)
+             method = "sf", ...)
 }
 
 \arguments{
@@ -22,7 +22,7 @@ polyAtBorder(SpP, snap = sqrt(.Machine$double.eps),
     tolerance used to consider coordinates as identical.
   }
   \item{method}{method to use for \code{\link{unionSpatialPolygons}}.
-    Defaults to \code{"rgeos"}, since \pkg{polyclip} uses integer
+    Defaults to \pkg{sf}, since \pkg{polyclip} uses integer
     arithmetic, which causes rounding errors usually requiring tuning of
     (i.e., increasing) the tolerance parameter \code{snap} (see example
     below).}
@@ -43,8 +43,8 @@ logical vector of the same length as \code{SpP} also inheriting its
 load(system.file("shapes", "districtsD.RData", package = "surveillance"))
 
 ## Determine districts at the border and check the result on the map
-if (requireNamespace("rgeos")) {
-    atBorder <- polyAtBorder(districtsD, method = "rgeos")
+if (requireNamespace("sf")) {
+    atBorder <- polyAtBorder(districtsD, method = "sf")
     if (interactive()) plot(districtsD, col = atBorder)
     table(atBorder)
 }
