@@ -175,7 +175,7 @@ print(res,digits=3)
 
 ## import shapefile as "SpatialPolygonsDataFrame"
 shp <- system.file("shapes/berlin.shp",package="surveillance")
-if (requireNamespace("maptools")) { # deprecated package
+if (requireNamespace("maptools")) { # archived on 2023-10-16
     map <- maptools::readShapePoly(shp, IDvar = "SNAME")
 } else { # replacement code
     map <- sf::as_Spatial(sf::st_read(shp, stringsAsFactors = TRUE, quiet = TRUE))

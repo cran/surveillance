@@ -4,7 +4,7 @@
 ### Czado, C., Gneiting, T. & Held, L. (2009)
 ### Biometrics 65:1254-1261
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2013-2015,2017,2019 Sebastian Meyer
+### Copyright (C) 2010-2012 Michaela Paul, 2013-2015,2017,2019,2023 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -44,7 +44,7 @@ pit.default <- function (x, pdistr, J=10, relative=TRUE, ..., plot = list())
     scale <- if (relative) J else 1
     f_j <- scale * diff.default(Fbar_seq)
 
-    res <- list(breaks = breaks, counts = f_j, density = f_j,
+    res <- list(breaks = breaks, counts = rep(NA_integer_, J), density = f_j,
                 mids = breaks[-(J+1)] + 1/J/2, xname = "PIT", equidist = TRUE)
     class(res) <- c("pit", "histogram")
 
@@ -84,13 +84,14 @@ pitPxPxm1 <- function (x, pdistr, ...)
 
 ## plot the PIT histogram
 
-plot.pit <- function (x, main = "", ylab = NULL, ...)
+plot.pit <- function (x, main = "", ylab = NULL, freq = FALSE, ...)
 {
+    if (freq) warning("'freq' is ignored") # we have no counts
     relative <- isTRUE(all.equal(1, sum(x$density)))
     if (is.null(ylab))
         ylab <- if (relative) "Relative Frequency" else "Density"
     ## call plot.histogram
-    NextMethod("plot", main = main, ylab = ylab, ...)
+    NextMethod("plot", main = main, ylab = ylab, freq = FALSE, ...)
     ## add reference line
     abline(h = if (relative) 1/length(x$mids) else 1, lty = 2, col = "grey")
     invisible(x)

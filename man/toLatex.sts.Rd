@@ -50,7 +50,8 @@ control <- list(range=(260:312),
                 pThresholdTrend=0.05,trend=TRUE,
                 thresholdMethod="delta",alpha=0.1)
 salm <- farringtonFlexible(salm,control=control)
-toLatex(salm)
+
+toLatex(salm, sanitize.text.function=identity, comment=FALSE)
 }
 
 \author{Dirk Schumacher}

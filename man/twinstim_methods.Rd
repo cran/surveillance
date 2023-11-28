@@ -184,10 +184,11 @@ nobs(imdepifit)
 (s <- summary(imdepifit, correlation=TRUE, symbolic.cor=TRUE, runtime=TRUE))
 
 # create LaTeX code of coefficient table
-toLatex(s, withAIC=FALSE)
-
+toLatex(s, digits=2)
+\dontshow{.opt <- options(xtable.comment = FALSE)}
 # or using the xtable-method (which produces rate ratios)
 xtable(s)
+\dontshow{options(.opt)}
 }
 
 \keyword{methods}

@@ -243,7 +243,7 @@ ret <- capture.output({
                 ifelse(is.na(x), "", paste0("$",x,"$")) # (test.iaf=FALSE)
             })
             cat(if (booktabs) "\\midrule" else "\\hline", "\n")
-            print(xtable(tab2), only.contents=TRUE, hline.after=NULL,
+            print(xtable(tab2), only.contents=TRUE, hline.after=NULL, comment=FALSE,
                   include.colnames=FALSE, sanitize.text.function=identity)
         }
     }

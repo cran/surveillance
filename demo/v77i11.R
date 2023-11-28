@@ -19,6 +19,8 @@
 
 ##M use old RNGversion to reproduce published simulation results in Section 3.4
 RNGversion("3.3.3")  # sampling has changed in R 3.6.0
+##M reduce printed precision for less machine-specific output
+options(digits = 5)
 
 ################################################################################
 ## Section 3: Spatio-temporal point pattern of infective events

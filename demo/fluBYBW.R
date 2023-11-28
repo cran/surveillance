@@ -15,8 +15,11 @@
 ### a copy of which is available at http://www.r-project.org/Licenses/.
 ################################################################################
 
-set.seed(1)  # for reproducibility (affects initial values for ri() terms)
 library("surveillance")
+
+## Reproducibility
+set.seed(1)  # affects initial values for ri() terms
+options(digits = 5)  # avoid machine-specific output
 
 ## Weekly counts of influenza in 140 districts of Bavaria and Baden-Wuerttemberg
 data("fluBYBW")  # data corrected in surveillance 1.6-0

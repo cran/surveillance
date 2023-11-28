@@ -161,10 +161,10 @@ knoxtest <- knox(
 knoxtest
 ## The Poisson approximation works well for these data since
 ## the proportion of close pairs is rather small (204/56280).
-
+\dontshow{.opt <- options(xtable.comment = FALSE)}
 ## contingency table in LaTeX
 toLatex(knoxtest)
-
+\dontshow{options(.opt)}
 
 ## Obtain the p-value via a Monte Carlo permutation test,
 ## where the permutations can be computed in parallel

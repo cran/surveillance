@@ -277,17 +277,18 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
   The function performs maximum likelihood inference
   for the additive-multiplicative spatio-temporal intensity model
   described in Meyer et al. (2012). It uses \code{\link{nlminb}} as the
-  default optimizer and returns an object of class \code{twinstim}. 
+  default optimizer and returns an object of class \code{"twinstim"}.
   Such objects have \code{print}, \code{\link[=plot.twinstim]{plot}} and
   \code{\link[=summary.twinstim]{summary}} methods.
-  The output of the \code{summary} can be
-  processed by the \code{\link[=toLatex.summary.twinstim]{toLatex}}
-  function. Furthermore, the usual model 
-  fit methods such as \code{coef}, \code{vcov}, \code{logLik},
+  The \code{summary} output can be converted via corresponding
+  \code{\link[=xtable.summary.twinstim]{xtable}} or
+  \code{\link[=toLatex.summary.twinstim]{toLatex}} methods.
+  Furthermore, the usual accessor methods are implemented, including
+  \code{coef}, \code{vcov}, \code{logLik},
   \code{\link[=residuals.twinstim]{residuals}}, and
-  \code{update} are implemented. 
-  A specific add-on is the use of the functions \code{\link{R0}} and
-  \code{\link[=simulate.twinstim]{simulate}}.
+  \code{update}.
+  Additional functionality is provided by the \code{\link{R0}} and
+  \code{\link[=simulate.twinstim]{simulate}} methods.
 }
 
 \value{
@@ -447,12 +448,7 @@ pchisq(2*c(logLik(m_noepi_type)-logLik(m_noepi)), df=1, lower.tail=FALSE)
 m0 <- update(m_noepi, epidemic=~1, model=TRUE)
 
 ## summarize the model fit
-s <- summary(m0, correlation = TRUE, symbolic.cor = TRUE)
-s
-# output the table of coefficients as LaTeX code
-toLatex(s, digits=2)
-# or, to report rate ratios
-xtable(s)
+summary(m0, correlation = TRUE, symbolic.cor = TRUE)
 
 ## the default confint-method can be used for Wald-CI's
 confint(m0, level=0.95)

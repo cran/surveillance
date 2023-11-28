@@ -329,10 +329,12 @@ plot(stateD, add=TRUE, border=2, lwd=2)
 
 ## simulate 2 realizations (over a short period, for speed)
 ## considering events from data(imdepi) before t=31 as prehistory
+\dontshow{## IGNORE_RDIFF_BEGIN}
 mysims <- simulate(imdepifit, nsim=2, seed=1, data=imdepi,
                    tiles=districtsD, newcoef=c("e.typeC"=-1),
                    t0=31, T=if (interactive()) 180 else 45, # for CRAN
                    simplify=TRUE)
+\dontshow{## IGNORE_RDIFF_END}
 \dontshow{
     ## check construction and selection from "simEpidataCSlist"
     local({

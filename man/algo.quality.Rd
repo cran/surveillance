@@ -1,5 +1,6 @@
 \name{algo.quality}
 \alias{algo.quality}
+\alias{xtable.algoQV}
 \title{Computation of Quality Values for a Surveillance System Result}
 \description{
   Computation of the quality values for a surveillance system output.
@@ -13,6 +14,7 @@ algo.quality(sts, penalty = 20)
 \item{penalty}{the maximal penalty for the lag}
 }
 \value{
+  an object of class \code{"algoQV"}, which is
   a list of quality values:
   \item{TP}{Number of correct found outbreaks.}
   \item{FP}{Number of false found outbreaks.}
@@ -27,8 +29,12 @@ algo.quality(sts, penalty = 20)
   The lag is defined as follows:
   In the state chain just the beginnings of an outbreak chain (outbreaks directly
   following each other) are considered. In the alarm chain, the range from the beginning
-  of an outbreak until \code{min(`next outbreak beginning`, penalty)} timepoints is considered. The \code{penalty} timepoints were
-  chosen, to provide an upper bound on the penalty for not discovering an outbreak. Now the difference between the first alarm by the system and the defined beginning is denoted ``the lag'' Additionally outbreaks found by the system are not
+  of an outbreak until \code{min(\var{next outbreak beginning}, penalty)}
+  timepoints is considered. The \code{penalty} timepoints were
+  chosen, to provide an upper bound on the penalty for not discovering
+  an outbreak. Now the difference between the first alarm by the system
+  and the defined beginning is denoted \dQuote{the lag}.
+  Additionally outbreaks found by the system are not
   punished. At the end, the mean of the lags for every outbreak chain is returned
   as summary lag.
 }
@@ -42,7 +48,14 @@ disProgObj <- sim.pointSource(p = 0.99, r = 0.5, length = 200, A = 1,
 # Let this object be tested from rki1
 survResObj <- algo.rki1(disProgObj, control = list(range = 50:200))
 
-# Compute the quality values
-algo.quality(survResObj)
+# Compute the list of quality values
+quality <- algo.quality(survResObj)
+quality # the list is printed in matrix form
+
+\dontshow{.opt <- options(xtable.comment = FALSE)}
+# Format as an "xtable", which is printed with LaTeX markup (by default)
+library("xtable")
+xtable(quality)
+\dontshow{options(.opt)}
 }
 \keyword{misc}

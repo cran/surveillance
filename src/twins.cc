@@ -1894,12 +1894,12 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
       
       if(delta_rev){     
 	if ((sampleCounter % 100 == 0)) {
-	  Rprintf("K_delta\t%f  delta[2]\t%f\n", K_delta, delta[2]);
+	  Rprintf("K_delta\t%d  delta[2]\t%f\n", K_delta, delta[2]);
 	}
       }
       if(epsilon_rev){     
 	if ((sampleCounter % 100 == 0)) {
-	  Rprintf("K_epsilon\t%f  epsilon[2]\t%f\n", K_epsilon, epsilon[2]);
+	  Rprintf("K_epsilon\t%d  epsilon[2]\t%f\n", K_epsilon, epsilon[2]);
 	}
       }
     }
@@ -2521,7 +2521,7 @@ extern "C" {
   Rprintf(" ====== The data =======\n");
   for (int t=0; t<=n; t++) {
     for (int i=0; i<=I; i++) {
-      Rprintf("%d\t", Z[i][t]);
+      Rprintf("%ld\t", Z[i][t]);
     }
     Rprintf("\n");
   }

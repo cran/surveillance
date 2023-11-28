@@ -2028,9 +2028,10 @@ fitHHH <- function(theta, sd.corr, model,
 
   ## Let's go
   if (verbose>0) {
-      cat(as.character(Sys.time()), ":",
-          if (dimRE == 0) "Optimization of regression parameters" else
-          "Iterative optimization of regression & variance parameters", "\n")
+      if (verbose > 1) utils::timestamp()
+      cat(if (dimRE == 0) "Optimization of regression parameters"
+          else "Iterative optimization of regression & variance parameters",
+          "\n", sep = "")
   }
 
   if (dimRE == 0) { # optimization of regression coefficients only
@@ -2098,9 +2099,9 @@ fitHHH <- function(theta, sd.corr, model,
   }
 
   if(verbose > 0) {
-    cat("\n")
-    cat(as.character(Sys.time()), ":", if (convergence==0)
-        "Optimization converged" else "Optimization DID NOT CONVERGE", "\n\n")
+    cat("\n", if (convergence==0) "Optimization converged"
+        else "Optimization DID NOT CONVERGE", "\n", sep = "")
+    if (verbose > 1) utils::timestamp()
   }
 
   ll     <- penLogLik(theta, sd.corr, model)
