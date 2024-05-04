@@ -4,7 +4,7 @@
  * Department of Statistics, UFMG, Brazil on 06 April 2006
  * 
  * R interface by Michael Hoehle initiated on 12 Jan 2009
- * Note: Some function names and documentation are in Portugese
+ * Note: Some function names and documentation are in Portuguese
  */
 
 

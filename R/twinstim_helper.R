@@ -301,7 +301,7 @@ control2nlminb <- function (control, defaults)
 
 
 ### Internal wrapper used in twinstim() and simEpidataCS() to evaluate the siaf
-### and tiaf arguments. If succesful, returns checked interaction function.
+### and tiaf arguments. If successful, returns checked interaction function.
 
 .parseiaf <- function (iaf, type, eps = NULL, verbose = TRUE)
 {

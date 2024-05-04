@@ -106,30 +106,30 @@ sts(observed, start = c(2000, 1), frequency = 52,
     \item{\code{freq}:}{number of observations per year, e.g.,
       52 for weekly data, 12 for monthly data.}
     \item{\code{start}:}{vector of length two denoting the year and the
-      sample number (week, month, etc.) of the first observation}
-    \item{\code{observed}:}{A matrix of size \code{length(epoch)} times the
+      sample number (week, month, etc.) of the first observation.}
+    \item{\code{observed}:}{matrix of size \code{length(epoch)} times the
       number of regions containing the weekly/monthly number of counts in
       each region. The colnames of the matrix should match the ID values of
       the shapes in the \code{map} slot.}
-    \item{\code{state}:}{Matrix with the same dimension as \code{observed}
+    \item{\code{state}:}{matrix with the same dimensions as \code{observed}
       containing Booleans whether at the specific time point there was an
-      outbreak in the region}
-    \item{\code{alarm}:}{Matrix with the same dimension as
+      outbreak in the region.}
+    \item{\code{alarm}:}{matrix with the same dimensions as
       \code{observed} specifying whether an outbreak detection algorithm
       declared a specific time point in the region as having an alarm.}
-    \item{\code{upperbound}:}{Matrix with upper bound values }
-    \item{\code{neighbourhood}:}{Symmetric matrix of size
+    \item{\code{upperbound}:}{matrix with upper-bound values.}
+    \item{\code{neighbourhood}:}{symmetric matrix of size
       \eqn{(number of regions)^2} describing the neighbourhood structure. It
       may either be a binary adjacency matrix or contain neighbourhood orders
       (see the Examples for how to infer the latter from the \code{map}).}
-    \item{\code{populationFrac}:}{A \code{matrix} of population 
+    \item{\code{populationFrac}:}{\code{matrix} of population 
       fractions or absolute numbers (see \code{multinomialTS} below)
       with dimensions \code{dim(observed)}.}
-    \item{\code{map}:}{Object of class \code{\linkS4class{SpatialPolygons}}
-      (or \code{\linkS4class{SpatialPolygonsDataFrame}})
-      providing a shape of the areas which are monitored. }
-    \item{\code{control}:}{Object of class \code{list}, this is a
-      rather free data type to be returned by the surveillance algorithms. }
+    \item{\code{map}:}{object of class \code{"\linkSPclass{SpatialPolygons}"}
+      (or \code{"\linkSPclass{SpatialPolygonsDataFrame}"})
+      providing a shape of the areas which are monitored.}
+    \item{\code{control}:}{\code{\link{list}} of settings; this is a
+      rather free data type to be returned by the surveillance algorithms.}
     \item{\code{epochAsDate}:}{a Boolean indicating
       if the \code{epoch} slot corresponds to \code{Date}s.}
     \item{\code{multinomialTS}:}{a Boolean

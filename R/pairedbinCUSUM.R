@@ -1,5 +1,5 @@
 ######################################################################
-# Compute ARL for paired binary CUSUM charts as introducted in Steiner,
+# Compute ARL for paired binary CUSUM charts as introduced in Steiner,
 # Cook and Farefwell, 1999, Monitoring paired binary surgical outcomes,
 # Stats in Med, 18, 69-86.
 #
@@ -54,7 +54,7 @@ pairedbinCUSUM.runlength <- function(p,w1,w2,h1,h2,h11,h22, sparse=FALSE) {
       for (k in 1:2) {
         x1n <- x1+w1[j+2*(k-1)]   #death chart
         x2n <- x2+w2[k]  #look at all possible combinations of weights
-        #we cant go below zero
+        #we can't go below zero
         if (x1n<0) { x1n <- 0 }
         if (x2n<0) { x2n <- 0 }
         newcond=0

@@ -1,8 +1,8 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.22.1
-Date: 2023-11-27
+Version: 1.23.0
+Date: 2024-05-03
 Authors@R: c(
     MH = person("Michael", "Hoehle",
                 email = "hoehle@math.su.se",
@@ -80,7 +80,7 @@ URL: https://surveillance.R-Forge.R-project.org/
 Additional_repositories: https://inla.r-inla-download.org/R/stable/
 VignetteBuilder: utils, knitr
 NeedsCompilation: yes
-Packaged: 2023-11-28 09:02:24 UTC; smeyer
+Packaged: 2024-05-03 14:07:02 UTC; smeyer
 Author: Michael Hoehle [aut, ths] (<https://orcid.org/0000-0002-0423-6702>),
   Sebastian Meyer [aut, cre] (<https://orcid.org/0000-0002-1791-9449>),
   Michaela Paul [aut],
@@ -102,4 +102,4 @@ Author: Michael Hoehle [aut, ths] (<https://orcid.org/0000-0002-0423-6702>),
     from base R)
 Maintainer: Sebastian Meyer <seb.meyer@fau.de>
 Repository: CRAN
-Date/Publication: 2023-11-28 10:10:02 UTC
+Date/Publication: 2024-05-04 05:50:02 UTC

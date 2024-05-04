@@ -46,7 +46,7 @@ data("measlesWeserEms")
     \code{data("measles.weser")} is as of \dQuote{Jahrbuch 2004}.
 
     \item it contains a map of the region (as a
-    \code{"\linkS4class{SpatialPolygonsDataFrame}"}) with the following
+    \code{"\linkSPclass{SpatialPolygonsDataFrame}"}) with the following
     variables:
     \describe{
       \item{\code{GEN}}{district label.}

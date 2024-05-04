@@ -125,7 +125,7 @@ void lr_cusum(int* x,double* mu0, int *lx_R, double *kappa_R, double *c_ARL_R,in
     n++;
   }
 
-  /* Return value (add 1 for R/SPlus array compability */
+  /* Return value (add 1 for R/SPlus array compatibility */
   *ret_N = N+1;
 }
 
@@ -338,7 +338,7 @@ void glr_cusum(int* x,double* mu0, int *lx_R, int *n0_R, double *c_ARL_R,int *re
     n++;
   }
 
-   /* Return value (add 1 for R/SPlus array compability */
+   /* Return value (add 1 for R/SPlus array compatibility */
   *ret_N = N+1;
 }
 
@@ -433,7 +433,7 @@ void glr_cusum_window(int* x,double* mu0, int *lx_R, int *M_R, int *Mtilde_R, do
     n++;
   }
 
-  /* Return value (add 1 for R/SPlus array compability */
+  /* Return value (add 1 for R/SPlus array compatibility */
   *ret_N = N+1;
 }
 
@@ -588,7 +588,7 @@ void glr_epi_window(int* x,double* mu0, int *lx_R, int *Mtilde_R, int *M_R, doub
   /*Set the remaining values to zero */
   for (i=n+1;i<lx;i++) { ret_glr[i] = 0; }
 
-  /*Return value (add 1 for R/SPlus array compability*/
+  /*Return value (add 1 for R/SPlus array compatibility*/
   *ret_N = N+1;
 }
 
@@ -598,7 +598,7 @@ void glr_epi_window(int* x,double* mu0, int *lx_R, int *Mtilde_R, int *M_R, doub
                               Negative binomial chart
 
 
-  Comment/ToDo: move to seperate files?
+  Comment/ToDo: move to separate files?
   ======================================================================
 */
 
@@ -681,7 +681,7 @@ void lr_cusum_nb(int* x, double* mu0, double* alpha_R, int *lx_R, double *kappa_
     n++;
   }
 
-  /* Return value (add 1 for R/SPlus array compability */
+  /* Return value (add 1 for R/SPlus array compatibility */
   *ret_N = N+1;
 }
 
@@ -857,7 +857,7 @@ void glr_nb_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *Mtilde_R
   /*Set the remaining values to zero */
   for (i=n+1;i<lx;i++) { ret_glr[i] = 0; }
 
-  /*Return value (add 1 for R/SPlus array compability*/
+  /*Return value (add 1 for R/SPlus array compatibility*/
   *ret_N = N+1;
 }
 
@@ -1110,7 +1110,7 @@ void glr_nbgeneral_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *M
   /*Set the remaining values to zero */
   for (i=n+1;i<lx;i++) { ret_glr[i] = 0; }
 
-  /*Return value (add 1 for R/SPlus array compability*/
+  /*Return value (add 1 for R/SPlus array compatibility*/
   *ret_N = N+1;
 }
 

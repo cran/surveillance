@@ -72,7 +72,7 @@ arlCusum <- function(h=10, k=3, theta=2.4, distr=c("poisson","binomial"), W=NULL
   x <- seq(((-M-1)+K)/N,(M+K)/N,by=(1/denrat))
   probs <- distribution(x, theta,...)
 
-  # Winsorization (any observation exeeding some treshold value W is replaced by W
+  # Winsorization (any observation exceeding some threshold value W is replaced by W
   # CUSUM is then: S_n = max{0, S_n-1 + min(X_n,W) - k}
   probs[x>=W] <- 1
 
@@ -145,7 +145,7 @@ findK <- function(theta0,theta1,distr=c("poisson","binomial"),roundK=FALSE,digit
   # so there is a limited set of possible values of h (and ARL)
 
   if(roundK){
-  # add/substract 0.05 to k so that k isn't an integer or a multiple of 0.5
+  # add/subtract 0.05 to k so that k isn't an integer or a multiple of 0.5
   # when rounded (then the Markov Chain has more states)
     if(round(k,digits=digits)%%1 == 0.5 | round(k,digits=digits)%%1 == 0){
       round.k <- ((k-floor(k))*10^digits)%%1

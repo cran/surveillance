@@ -338,7 +338,7 @@ isInModel <- function(formula, name=deparse(substitute(formula)))
 fe <- function(x,          # covariate
                unitSpecific = FALSE, # TRUE means which = rep.int(TRUE, nUnits)
                which=NULL, # NULL = overall, vector with booleans = unit-specific
-               initial=NULL) # vector of inital values for parameters
+               initial=NULL) # vector of initial values for parameters
 {
   stsObj <- get("stsObj", envir=parent.frame(1), inherits=TRUE) #checkFormula()
   nTime <- nrow(stsObj)
@@ -553,7 +553,7 @@ checkFormula <- function(f, component, data, stsObj)
 ## Create function (pars, type = "response") which
 ## returns the weighted sum of time-lagged counts of neighbours
 ## (or its derivates, if type = "gradient" or type = "hessian").
-## For type="reponse", this is a nTime x nUnits matrix (like Y),
+## For type="response", this is a nTime x nUnits matrix (like Y),
 ## otherwise a list of such matrices,
 ## which for the gradient has length length(pars) and
 ## length(pars)*(length(pars)+1)/2 for the hessian.
@@ -1036,7 +1036,7 @@ penScore <- function(theta, sd.corr, model)
 
     for(i in seq_len(nGroups)){
       comp <- term["offsetComp",i][[1]]
-      Xit<- term["terms",i][[1]] # eiter 1 or a matrix with values
+      Xit<- term["terms",i][[1]] # either 1 or a matrix with values
       if(is.matrix(Xit)){
         Xit <- Xit[subset,,drop=FALSE]
       }
@@ -1295,7 +1295,7 @@ penFisher <- function(theta, sd.corr, model, attributes=FALSE)
       # parameter group belongs to which components
       comp.i <- term["offsetComp",i][[1]]
       # get covariate value
-      Xit <- term["terms",i][[1]] # eiter 1 or a matrix with values
+      Xit <- term["terms",i][[1]] # either 1 or a matrix with values
       if(is.matrix(Xit)){
         Xit <- Xit[subset,,drop=FALSE]
       }
@@ -1356,7 +1356,7 @@ penFisher <- function(theta, sd.corr, model, attributes=FALSE)
       for(j in i:nGroups){
         comp.j <- term["offsetComp",j][[1]]
 
-        Xjt <- term["terms",j][[1]] # eiter 1 or a matrix with values
+        Xjt <- term["terms",j][[1]] # either 1 or a matrix with values
         if(is.matrix(Xjt)){
           Xjt <- Xjt[subset,,drop=FALSE]
         }
@@ -2119,7 +2119,7 @@ fitHHH <- function(theta, sd.corr, model,
 
 
 
-## check analytical score functions and Fisher informations for
+## check analytical score functions and Fisher information for
 ## a given model (the result of interpretControl(control, stsObj))
 ## and given parameters theta (regression par.) and sd.corr (variance par.).
 ## This is a wrapper around functionality of the numDeriv and maxLik packages.

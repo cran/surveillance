@@ -28,7 +28,7 @@ test_that("autoregressive model has a diagonal Lambda matrix", {
 measlesFit2 <- update(measlesFit1,
     ne = list(f = ~1, weights = neighbourhood(measlesWeserEms) == 1)) # symmetric
 measlesFit3 <- update(measlesFit2,
-    ne = list(normalize = TRUE)) # asymetric
+    ne = list(normalize = TRUE)) # asymmetric
 
 test_that("getMaxEV() and getMaxEV_season() agree", {
     expect_equal(getMaxEV_season(measlesFit2)$maxEV.season,

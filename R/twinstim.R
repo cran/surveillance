@@ -2,7 +2,7 @@
 ### Maximum Likelihood inference for the two-component spatio-temporal intensity
 ### model described in Meyer et al (2012), DOI: 10.1111/j.1541-0420.2011.01684.x
 ###
-### Copyright (C) 2009-2019 Sebastian Meyer
+### Copyright (C) 2009-2019,2024 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -185,6 +185,8 @@ twinstim <- function (
     qmatrix <- checkQ(qmatrix, typeNames)
     # we only need the integer codes for the calculations
     eventTypes <- as.integer(eventTypes)
+    # coords are needed for intensityplot(), so even for endemic-only models
+    eventCoords <- coordinates(data$events)[inmfe,,drop=FALSE]
 
 
     ### Generate model matrix
@@ -204,7 +206,6 @@ twinstim <- function (
         bdist <- mfe[["(bdist)"]]
         gIntUpper <- mfe[["(obsInfLength)"]]
         gIntLower <- pmax(0, t0-eventTimes)
-        eventCoords <- coordinates(data$events)[inmfe,,drop=FALSE]
         influenceRegion <- data$events@data$.influenceRegion[inmfe]
         iRareas <- vapply(X = influenceRegion, FUN = attr, which = "area",
                           FUN.VALUE = 0, USE.NAMES = FALSE)
@@ -855,7 +856,7 @@ twinstim <- function (
         siafpars <- theta[nbeta0+p+q+seq_len(nsiafpars)]
         tiafpars <- theta[nbeta0+p+q+nsiafpars+seq_len(ntiafpars)]
 
-        # calculcate the observed intensities
+        # calculate the observed intensities
         hEvents <- if (hash) .hEvents(beta0, beta) else 0
         eEvents <- if (hase) {
                 gammapred <- drop(epilinkinv(mme %*% gamma))  # N-vector
@@ -976,7 +977,8 @@ twinstim <- function (
     if (nbeta0 > 0)
         initpars[seq_len(nbeta0)] <- crudebeta0(
             nEvents = Nin,
-            offset.mean = if (is.null(offsetGrid)) 0 else weighted.mean(offsetGrid, ds),
+            offset.mean = if (is.null(offsetGrid)) 0
+                          else weighted.mean(offsetGrid, replace(ds, !is.finite(offsetGrid), 0)),
             W.area = sum(ds[gridBlocks==histIntervals[1,"BLOCK"]]),
             period = T-t0, nTypes = nTypes
         )
@@ -1012,6 +1014,13 @@ twinstim <- function (
     if (epilink == "identity" && "e.(Intercept)" %in% names(initpars) &&
         initpars["e.(Intercept)"] < 0)
         warning("identity link and negative start value for \"e.(Intercept)\"")
+
+    ## check that start values are finite
+    if (any(!is.finite(initpars))) {
+        print(initpars[!is.finite(initpars)])
+        stop("initial parameter values must be finite; set 'start'",
+             call. = FALSE)
+    }
 
     ## update optim.args$par
     optim.args$par <- initpars
@@ -1299,6 +1308,10 @@ twinstim <- function (
            converged = if (all(fixed) || (optimRes$convergence == 0))
                        TRUE else msgConvergence
            )
+
+    ## fix convergence status
+    if (isTRUE(fit$converged) && !is.finite(fit$loglik))
+        fit$converged <- warning("non-finite log-likelihood")
 
 
     ### Add Fisher information matrices

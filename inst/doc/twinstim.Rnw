@@ -443,7 +443,7 @@ summary(events)
 <<imdepi_events, echo=FALSE, purl=FALSE>>=
 oopt <- options(width=100)
 ## hack to reduce the 'print.gap' in the data summary but not for the bbox
-## Note: 'sp' "evolution" needs 'sf' for summary(events),
+## Note: sp >= 2.0-0 loads 'sf' for summary(events), but has a fallback,
 ##       see https://github.com/r-spatial/evolution/issues/10
 local({
     print.summary.Spatial <- sp:::print.summary.Spatial
@@ -706,7 +706,7 @@ to be associated with the force of infection.
 %% $\eta_j = \rho_{[\bm{s}_j]}^{\gamma_{\rho}} \exp(\gamma_0 + \gamma_C \ind(k_j=C))$,
 %% which models different infectivity of the event types, and scales
 %% with population density (a grid-based covariate) to reflect higher
-%% contact rates and thus infectivity in more densly populated regions.
+%% contact rates and thus infectivity in more densely populated regions.
 For the interaction functions, several alternatives are predefined as listed in
 Table~\ref{tab:iafs}. They are applicable out-of-the-box and
 illustrated as part of the following modeling exercise for the IMD data.
@@ -1042,7 +1042,7 @@ even more so if the population density is low.
 for (.type in 1:2) {
     print(intensityplot(imdfit_powerlaw, aggregate="space", which="epidemic proportion",
                         types=.type, tiles=districtsD, sgrid=1000,
-                        # scales=list(draw=TRUE), # default, now needs 'sf'
+                        # scales=list(draw=TRUE), # default (sp>=2 uses 'sf', with a fallback)
                         xlab="x [km]", ylab="y [km]", at=seq(0,1,by=0.1),
                         col.regions=rev(hcl.colors(10,"Reds")),
                         colorkey=list(title="Epidemic proportion")))

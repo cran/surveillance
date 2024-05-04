@@ -38,7 +38,7 @@ algo.cdcLatestTimepoint <- function(disProgObj, timePoint = NULL, control = list
   # Farrington & Andrew (2003))
   upCi <- mean(basevec)+qnorm(1-control$alpha/2)*sd(basevec)*sqrt(1+1/length(basevec))
 
-  #Counts for the current mounth
+  #Counts for the current month
   yt0 <- sum(observed[timePoint:(timePoint-3)])
   # Alarm if the actual value is larger than the upper limit.
   alarm <- yt0 > upCi

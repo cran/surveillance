@@ -38,7 +38,7 @@ epidataCS2sts(object, freq, start, neighbourhood,
     is actually optional, \code{neighbourhood=NULL} also works.
   }  
   \item{tiles}{
-    object inheriting from \code{"\linkS4class{SpatialPolygons}"}
+    object inheriting from \code{"\linkSPclass{SpatialPolygons}"}
     representing the regions in \code{object$stgrid} (column
     \code{"tile"}). It will become the \code{"map"} slot of the
     resulting \code{"sts"} object.

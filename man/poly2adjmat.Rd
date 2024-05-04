@@ -7,7 +7,7 @@ Derive Adjacency Structure of \code{"SpatialPolygons"}
 \description{
 Wrapping around functionality of the \pkg{spdep} package, this function
 computes the symmetric, binary (0/1), adjacency matrix from a
-\code{"\linkS4class{SpatialPolygons}"} object.
+\code{"\linkSPclass{SpatialPolygons}"} object.
 It essentially applies
 \code{\link[spdep]{nb2mat}(\link[spdep]{poly2nb}(SpP, ...), style="B",
   zero.policy=zero.policy)}.
@@ -18,7 +18,7 @@ poly2adjmat(SpP, ..., zero.policy = TRUE)
 }
 
 \arguments{
-  \item{SpP}{an object inheriting from \code{"\linkS4class{SpatialPolygons}"}.}
+  \item{SpP}{an object inheriting from \code{"\linkSPclass{SpatialPolygons}"}.}
   \item{\dots}{arguments passed to \code{\link[spdep]{poly2nb}}.
     Its \code{snap} argument might be particularly useful to handle maps
     with sliver polygons.}

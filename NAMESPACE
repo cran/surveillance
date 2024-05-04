@@ -19,7 +19,7 @@ import(methods, grDevices, graphics, stats)
 ## (we "Depend" on package sp since it defines essential data classes & methods)
 import(sp)
 
-## we define own methods for generating xtable()'s, which we want to be useable
+## we define own methods for generating xtable()'s, which we want to be usable
 import(xtable)
 
 
@@ -44,7 +44,7 @@ importFrom(utils, packageName, packageVersion,
                   methods)
 
 
-### sampling from mv.Gausian for OSAIC weights (twinSIR) and iafplot (twinstim)
+### sampling from mv.Gaussian for OSAIC weights (twinSIR) and iafplot (twinstim)
 
 importFrom(MASS, mvrnorm)
 

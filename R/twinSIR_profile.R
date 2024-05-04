@@ -29,7 +29,7 @@
 likelihood.ci <- function (logliktilde, theta.hat, lower, upper,
     alpha = 0.05, ...)
 {
-  # Highest Likelihood intervall -- target function
+  # Highest Likelihood interval -- target function
   f <- function(theta, ...) {
     logliktilde(theta, ...) + 1/2*qchisq(1-alpha, df=1)
   }

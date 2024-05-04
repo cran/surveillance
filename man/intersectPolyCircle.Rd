@@ -42,9 +42,10 @@ intersectPolyCircle(object, center, radius, ...)
 }
 
 \examples{
-library("spatstat.geom")
-plot(letterR)
-plot(intersectPolyCircle(letterR, c(3,2), 1), add=TRUE, col=2, lwd=3)
+letterR <- surveillance:::LETTERR  # an "owin" (internally used for checks)
+plot(letterR, axes = TRUE)
+plot(intersectPolyCircle(letterR, center = c(-1, 2), radius = 2),
+     add = TRUE, col = 4, lwd = 3)
 }
 
 \keyword{spatial}

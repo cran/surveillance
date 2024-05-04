@@ -147,17 +147,17 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
     These arguments control the accuracy of the cubature routines from
     package \pkg{polyCub} involved in non-constant \code{siaf}
     specifications, e.g., the bandwidth of the midpoint rule
-    \code{\link{polyCub.midpoint}}, the number of Gaussian
-    quadrature points for \code{\link{polyCub.SV}}, or the relative
-    tolerance of \code{\link{integrate}} in \code{\link{polyCub.iso}}.\cr
+    \code{\link[polyCub]{polyCub.midpoint}}, the number of Gaussian
+    quadrature points for \code{\link[polyCub]{polyCub.SV}}, or the relative
+    tolerance of \code{\link{integrate}} in \code{\link[polyCub]{polyCub.iso}}.\cr
     For instance, \code{\link{siaf.gaussian}(F.adaptive = TRUE)} uses the
-    midpoint-cubature \code{\link{polyCub.midpoint}} with an
+    midpoint-cubature \code{\link[polyCub]{polyCub.midpoint}} with an
     adaptive bandwidth of \code{eps=adapt*sd} to numerically integrate the
     kernel \eqn{f(\bold{s})}, and the default \code{adapt} value (0.1)
     can be overwritten by setting \code{control.siaf$F$adapt}.
     However, the default version \code{siaf.gaussian()}
     as well as \code{\link{siaf.powerlaw}()} and friends use
-    \code{\link{polyCub.iso}} and thus accept control arguments for the
+    \code{\link[polyCub]{polyCub.iso}} and thus accept control arguments for the
     standard \code{\link{integrate}} routine (such as \code{rel.tol})
     via \code{control.siaf$F} and \code{control.siaf$Deriv}.\cr
     This argument list is ignored in the case

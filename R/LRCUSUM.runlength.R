@@ -39,7 +39,7 @@ LLR.fun <- function(outcomes, mu, mu0, mu1, dfun, ...) {
 outcomeFunStandard <- function(k,n) {
   #Compute all possible likelihood ratios and their probability under mu
   #Note: Currently all states are investigated. This might be way too
-  #much work as defacto many states have an occurence prob near 0!!
+  #much work as defacto many states have an occurrence prob near 0!!
   outcomes <- as.matrix(expand.grid(rep(list(0:n), k), KEEP.OUT.ATTRS=FALSE))
   
   #Take only valid outcomes (might reduce drastically the number of cells)
@@ -133,7 +133,7 @@ LRCUSUM.runlength <- function(mu,mu0,mu1,h,dfun, n, g=5,outcomeFun=NULL,...) {
   pRL <- c(alarmUntilTime[1],diff(alarmUntilTime))
 
   mom <- NA
-  #If the Markov chain is homogenous then compute ARL by inverting
+  #If the Markov chain is homogeneous then compute ARL by inverting
   if (length(t) == 1) {
     R <- P[,1:g,1:g]
     I <- diag(nrow=g)

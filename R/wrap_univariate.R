@@ -52,7 +52,7 @@ wrap.algo <- function(sts, algo, control,
   #Set correct theta0t matrix for all
   sts@control$theta0t <- control$theta0t
 
-  #Reduce sts object to only those obervations in range
+  #Reduce sts object to only those observations in range
   sts <- sts[control$range, ]
 
   return(sts)

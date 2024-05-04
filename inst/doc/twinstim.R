@@ -163,7 +163,7 @@ text(2500, 0.08, labels="endemic", col=2, pos=2, font=2)
 for (.type in 1:2) {
     print(intensityplot(imdfit_powerlaw, aggregate="space", which="epidemic proportion",
                         types=.type, tiles=districtsD, sgrid=1000,
-                        # scales=list(draw=TRUE), # default, now needs 'sf'
+                        # scales=list(draw=TRUE), # default (sp>=2 uses 'sf', with a fallback)
                         xlab="x [km]", ylab="y [km]", at=seq(0,1,by=0.1),
                         col.regions=rev(hcl.colors(10,"Reds")),
                         colorkey=list(title="Epidemic proportion")))

@@ -255,7 +255,7 @@ residuals.twinSIR <- function(object, ...)
   if (pz > 0) { h <- as.vector(exp(object$model$Z %*% as.matrix(beta))) } else { h <- zerovec }
   lambda <- (e + h)
 
-  #Determine bloks
+  #Determine blocks
   BLOCK <- as.numeric(factor(object$model$survs$start))
 
   # lambda_i integrals, i.e. integral of \lambda_i until t for each individual

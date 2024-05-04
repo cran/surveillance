@@ -400,7 +400,7 @@ algo.farrington <- function(disProgObj, control=list(
     #Time trend
     #
     #Check whether to include time trend, to do this we need to check whether
-    #1) wtime is signifcant at the 95lvl
+    #1) wtime is significant at the 95lvl
     #2) the predicted value is not larger than any observed value
     #3) the historical data span at least 3 years.
     doTrend <- control$trend

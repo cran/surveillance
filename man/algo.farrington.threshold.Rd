@@ -15,7 +15,7 @@ algo.farrington.threshold(pred,phi,alpha=0.01,skewness.transform="none",y)
 }
 \arguments{
 \item{pred}{A GLM prediction object}
-\item{phi}{Current overdispersion parameter (superflous?)}
+\item{phi}{Current overdispersion parameter (superfluous?)}
 \item{alpha}{Quantile level in Gaussian based CI, i.e. an \eqn{(1-\alpha)\cdot 100\%}
     confidence interval is computed. }
 \item{skewness.transform}{Skewness correction, i.e. one of

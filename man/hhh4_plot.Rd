@@ -99,7 +99,7 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     \code{plotHHH4_fitted} passes them to \code{plotHHH4_fitted1}, which is called
     sequentially for every unit in \code{units}.\cr
     \code{plotHHH4_maps} and \code{plotHHH4_ri} pass additional arguments to
-    \code{\link{spplot}}, and \code{plotHHH4_neweights} to the
+    \code{\link[sp]{spplot}}, and \code{plotHHH4_neweights} to the
     \code{plotter}.}
   \item{units,unit}{integer or character vector specifying a single
     \code{unit} or possibly multiple \code{units} to plot.
@@ -230,7 +230,7 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
   \item{colorkey}{a Boolean indicating whether to draw the color key.
     Alternatively, a list specifying how to draw it, see
     \code{\link[lattice]{levelplot}}.}
-  \item{map}{an object inheriting from \code{"\linkS4class{SpatialPolygons}"}
+  \item{map}{an object inheriting from \code{"\linkSPclass{SpatialPolygons}"}
     with \code{row.names} covering \code{colnames(x)}.}
   \item{component}{component for which to plot the estimated
     region-specific random intercepts. Must partially match one of
@@ -238,9 +238,9 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
   \item{labels}{determines if and how regions are labeled, see
     \code{\link{layout.labels}}.}
   \item{sp.layout}{optional list of additional layout items, see
-    \code{\link{spplot}}.}
+    \code{\link[sp]{spplot}}.}
   \item{gpar.missing}{list of graphical parameters for
-    \code{\link{sp.polygons}}, applied to regions
+    \code{\link[sp]{sp.polygons}}, applied to regions
     with missing random intercepts, i.e., not included in the model.
     Such extra regions won't be plotted if
     \code{!is.list(gpar.missing)}.}
@@ -249,7 +249,7 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     factor variable). It is called as
     \code{plotter(Weight ~ Distance, ...)} and defaults to
     \code{\link{boxplot}}. A useful alternative is, e.g.,
-    \code{\link{stripplot}} from package \pkg{lattice}.}
+    \code{\link[lattice]{stripplot}} from package \pkg{lattice}.}
   \item{exclude}{vector of neighbourhood orders to be excluded from
     plotting (passed to \code{\link{factor}}).
     By default, the neighbourhood weight for order 0 is not
@@ -277,11 +277,11 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
   dominant eigenvalue of the \eqn{\Lambda_t} matrix for all time points
   \eqn{t} of \code{x$stsObj}.\cr
   \code{plotHHH4_maps} returns a \code{\link[lattice]{trellis.object}} if
-  \code{length(which) == 1} (a single \code{\link{spplot}}), and
+  \code{length(which) == 1} (a single \code{\link[sp]{spplot}}), and
   otherwise uses \code{\link[gridExtra]{grid.arrange}} from the
   \pkg{gridExtra} package to arrange all \code{length(which)}
-  \code{\link{spplot}}s on a single page.
-  \code{plotHHH4_ri} returns the generated \code{\link{spplot}}, i.e.,
+  \code{\link[sp]{spplot}}s on a single page.
+  \code{plotHHH4_ri} returns the generated \code{\link[sp]{spplot}}, i.e.,
   a \code{\link[lattice]{trellis.object}}.\cr
   \code{plotHHH4_neweights} eventually calls \code{plotter} and
   thus returns whatever is returned by that function.
@@ -356,12 +356,15 @@ if (requireNamespace("gridExtra")) {
 }
 
 ## estimated random intercepts of the endemic component
-fixef(measlesFit)["end.ri(iid)"]     # global intercept (log-scale)
-ranef(measlesFit, tomatrix = TRUE)   # zero-mean deviations
-ranef(measlesFit, intercept = TRUE)  # sum of the above
-exp(ranef(measlesFit))               # multiplicative effects
+round(nu0    <- fixef(measlesFit)["end.ri(iid)"],   4) # global intercept
+round(ranefs <- ranef(measlesFit, tomatrix = TRUE), 4) # zero-mean deviations
+stopifnot(all.equal(
+    nu0 + ranefs,
+    ranef(measlesFit, intercept = TRUE) # local intercepts (log-scale)
+))
 plot(measlesFit, type="ri", component="end",
      main="deviations around the endemic intercept (log-scale)")
+exp(ranef(measlesFit))  # multiplicative effects, plotted below
 plot(measlesFit, type="ri", component="end", exp=TRUE,
      main="multiplicative effects",
      labels=list(font=3, labels="GEN"))

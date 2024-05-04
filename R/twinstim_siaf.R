@@ -1,6 +1,6 @@
 ################################################################################
 ### Spatial interaction functions for twinstim's epidemic component.
-### Specific implementations are in seperate files (e.g.: Gaussian, power law).
+### Specific implementations are in separate files (e.g.: Gaussian, power law).
 ###
 ### Copyright (C) 2009-2015,2017 Sebastian Meyer
 ###

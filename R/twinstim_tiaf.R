@@ -1,6 +1,6 @@
 ################################################################################
 ### Temporal interaction functions for twinstim's epidemic component.
-### Specific implementations are in seperate files (e.g.: exponential, step).
+### Specific implementations are in separate files (e.g.: exponential, step).
 ###
 ### Copyright (C) 2009-2014 Sebastian Meyer
 ###

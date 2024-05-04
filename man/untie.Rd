@@ -57,7 +57,7 @@ untie(x, amount, ...)
     for model fitting or if a different \code{qmatrix} is supplied.
   }
   \item{constraint}{
-    an object of class \code{"\linkS4class{SpatialPolygons}"}
+    an object of class \code{"\linkSPclass{SpatialPolygons}"}
     representing the domain which the points of the matrix should belong
     to -- before and after jittering.
   }

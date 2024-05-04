@@ -21,9 +21,9 @@ Count Number of Instances of Points
 
 \arguments{
   \item{x}{
-    a \code{"\linkS4class{Spatial}"} object (we only need a
-    \code{\link{coordinates}}-method), e.g. of class
-    \code{"\linkS4class{SpatialPoints}"}. 
+    a \code{"\linkSPclass{Spatial}"} object (we only need a
+    \code{\link[sp]{coordinates}}-method), e.g. of class
+    \code{"\linkSPclass{SpatialPoints}"}.
   }
 }
 

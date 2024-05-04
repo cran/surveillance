@@ -20,13 +20,13 @@ simEndemicEvents(object, tiles)
     \code{object <- \link[=update.twinstim]{update}(object, model = TRUE)}).
   }
   \item{tiles}{
-    an object inheriting from \code{"\linkS4class{SpatialPolygons}"},
+    an object inheriting from \code{"\linkSPclass{SpatialPolygons}"},
     which represents the tiles of the original data's \code{stgrid}
     (see, e.g., \code{levels(environment(object)$gridTiles)}).
   }
 }
 \value{
-  a \code{\linkS4class{SpatialPointsDataFrame}}
+  a \code{"\linkSPclass{SpatialPointsDataFrame}"}
 }
 \author{
   Sebastian Meyer

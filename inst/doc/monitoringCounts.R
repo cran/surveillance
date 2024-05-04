@@ -131,7 +131,7 @@ combineSTS <- function(stsList) {
 }
 
 ## ----alarmplot, fig.width=8, fig.height=4, out.width="\\linewidth", echo=FALSE-----
-# Make an artifical object containing two columns - one with the boda output
+# Make an artificial object containing two columns - one with the boda output
 # and one with the farrington output
 cam.surv <- combineSTS(list(boda.covars=boda.covars,boda=boda,bayes=bayes,
                             farrington=far,farringtonFlexible=farflex))

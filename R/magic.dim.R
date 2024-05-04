@@ -67,7 +67,7 @@ primeFactors <- function(x){
 ######################################################################
 # Given a prime number factorization of a number, e.g. 36
 # yields x=c(2,2,3,3)
-# and parition x into two groups, such that the product of the numbers
+# and partition x into two groups, such that the product of the numbers
 # in group one is as similar as possible to the product
 # of the numbers of group two. This is useful in magic.dim
 #

@@ -22,7 +22,7 @@ unionSpatialPolygons(SpP, method = c("sf", "polyclip"), ...)
     an object of class
     \code{"\link[sp:SpatialPolygons-class]{SpatialPolygons}"}.
     For the \pkg{polyclip} \code{method} only, all polygon classes for
-    which an \code{\link{xylist}}-method exists should work as input.
+    which an \code{\link[polyCub]{xylist}}-method exists should work as input.
   }
   \item{method}{
     polygon clipping machinery to use. Default is to call

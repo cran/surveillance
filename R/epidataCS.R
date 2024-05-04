@@ -2,7 +2,7 @@
 ### Data structure for CONTINUOUS SPATIO-temporal infectious disease case data
 ### and a spatio-temporal grid of endemic covariates
 ###
-### Copyright (C) 2009-2018,2021 Sebastian Meyer
+### Copyright (C) 2009-2018,2021,2024 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -41,8 +41,8 @@
 
 obligColsNames_events <- c("time", "tile", "type", "eps.t", "eps.s")
 obligColsNames_stgrid <- c("start", "stop", "tile", "area")
-reservedColsNames_events <- c(".obsInfLength", ".sources", ".bdist",
-                              ".influenceRegion", "BLOCK", "start")
+dotNames_events <- c(".obsInfLength", ".sources", ".bdist", ".influenceRegion")
+reservedColsNames_events <- c(dotNames_events, "BLOCK", "start")
 reservedColsNames_stgrid <- c("BLOCK")
 
 as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
@@ -65,6 +65,7 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
     } else {
         check_stgrid(stgrid, T, verbose = verbose)
     }
+    T <- tail(stgrid$stop, 1L)
 
     # Check class of W and consistency of area
     if (verbose) cat("Checking 'W' ...\n")
@@ -100,61 +101,11 @@ as.epidataCS <- function (events, stgrid, W, qmatrix = diag(nTypes),
              "inside 'W'")
     }
 
-    # Some basic quantities
-    nEvents <- length(events)
-    timeRange <- with(stgrid, c(start[1], stop[length(stop)]))
-
-    # Are events covered by stgrid?
-    if (verbose) {
-        cat("Checking if all events are covered by 'stgrid' ...\n")
-        ## surveillance > 1.16.0: prehistory events are allowed => BLOCK is NA
-        if (events$time[1L] <= timeRange[1L]) {
-            cat("  Note: ", sum(events$time <= timeRange[1L]),
-                " prehistory events (time <= ", timeRange[1L], ")\n", sep = "")
-        }
-    }
-    if (events$time[nEvents] > timeRange[2L]) {
-        stop("found ", sum(events$time > timeRange[2L]),
-             " events beyond 'stgrid' (time > ", timeRange[2L], ")")
-    }
-
-    # Are all events$tile references really part of the stgrid?
-    .events.tile <- factor(events$tile, levels = levels(stgrid$tile))
-    if (missingSCellIdx <- match(NA, .events.tile, nomatch = 0L)) {
-        stop("the 'events$tile' entry \"", events$tile[missingSCellIdx], "\"",
-             " is not a valid level of 'stgrid$tile'")
-    }
-    events$tile <- .events.tile
-
-    # Map events to corresponding grid cells
-    ## FIXME: could use plapply() but then also need a .parallel argument
-    if (verbose) cat("Mapping events to 'stgrid' cells ...\n")
-    withPB <- verbose && interactive()
-    gridcellsOfEvents <- integer(nEvents)
-    if (withPB) pb <- txtProgressBar(min=0, max=nEvents, initial=0, style=3)
-    for (i in seq_len(nEvents)) {
-        gridcellsOfEvents[i] <- gridcellOfEvent(events$time[i], events$tile[i], stgrid)
-        if (withPB) setTxtProgressBar(pb, i)
-    }
-    if (withPB) close(pb)
-
-    # Attach endemic covariates from stgrid to events
-    if (verbose) cat("Attaching endemic covariates from 'stgrid' to 'events' ...\n")
-    stgridIgnoreCols <- match(setdiff(obligColsNames_stgrid, "start"), names(stgrid))
-    copyCols <- setdiff(seq_along(stgrid), stgridIgnoreCols)
-    reservedColsIdx <- na.omit(match(names(stgrid)[copyCols], names(events@data),
-                                     nomatch=NA_integer_))
-    if (length(reservedColsIdx) > 0L) {
-        warning("in 'events@data', the existing columns with names of endemic ",
-                "covariates from 'stgrid' (",
-                paste0("'", names(events@data)[reservedColsIdx], "'", collapse=", "),
-                ") have been replaced")
-        events@data <- events@data[-reservedColsIdx]
-    }
-    events@data <- cbind(events@data, stgrid[gridcellsOfEvents, copyCols])
-
-    # Calculate observed infection length = min(T-time, eps.t) for use in log-likelihood
-    events$.obsInfLength <- with(events@data, pmin(timeRange[2]-time, eps.t))
+    # Attach spatio-temporal grid data to events
+    events@data <- merge_stgrid(events@data, stgrid, verbose = verbose)
+    
+    # Calculate observed infection length for log-likelihood
+    events$.obsInfLength <- pmin(T - events$time, events$eps.t)
 
     # Determine potential source events (infective individuals) of each event
     if (verbose) cat("Determining potential event sources ...\n")
@@ -271,7 +222,7 @@ check_events <- function (events, dropTypes = TRUE, verbose = TRUE)
 
 ### CHECK FUNCTION FOR stgrid ARGUMENT IN as.epidataCS
 
-check_stgrid <- function (stgrid, T, verbose = TRUE)
+check_stgrid <- function (stgrid, T, verbose = TRUE, warn = TRUE)
 {
     # Check class
     stopifnot(inherits(stgrid, "data.frame"))
@@ -292,13 +243,9 @@ check_stgrid <- function (stgrid, T, verbose = TRUE)
     }
 
     # Check other columns on reserved names
-    reservedColsIdx <- na.omit(match(reservedColsNames_stgrid, names(stgrid),
-                                     nomatch=NA_integer_))
-    if (length(reservedColsIdx) > 0L) {
-        warning("in 'stgrid', the existing columns with reserved names (",
-                paste0("'", names(stgrid)[reservedColsIdx], "'", collapse=", "),
-                ") have been replaced")
-        stgrid <- stgrid[-reservedColsIdx]
+    if (warn && length(reservedCols <- intersect(reservedColsNames_stgrid, names(stgrid)))) {
+        warning("replacing existing columns in 'stgrid' which have reserved names: ",
+                paste0("'", reservedCols, "'", collapse=", "))
     }
 
     # Transform tile into a factor variable
@@ -331,7 +278,7 @@ check_stgrid <- function (stgrid, T, verbose = TRUE)
 
     if (!autostop) {
         # Check start/stop consistency
-        if (verbose) cat("\tChecking start/stop consisteny ...\n")
+        if (verbose) cat("\tChecking start/stop consistency ...\n")
         if (any(histIntervals[,2L] <= histIntervals[,1L])) {
             stop("stop times must be greater than start times")
         }
@@ -369,6 +316,66 @@ check_stgrid <- function (stgrid, T, verbose = TRUE)
 
     # Done.
     return(stgrid)
+}
+
+
+### MERGE stgrid DATA INTO events@data
+## Note: 'events' below refers to the data slot
+
+merge_stgrid <- function (events, stgrid, verbose = TRUE)
+{
+    # Some basic quantities
+    nEvents <- nrow(events)
+    timeRange <- with(stgrid, c(start[1], stop[length(stop)]))
+
+    # Are events covered by stgrid?
+    if (verbose) {
+        cat("Checking if all events are covered by 'stgrid' ...\n")
+        ## surveillance > 1.16.0: prehistory events are allowed => BLOCK is NA
+        if (events$time[1L] <= timeRange[1L]) {
+            cat("  Note: ", sum(events$time <= timeRange[1L]),
+                " prehistory events (time <= ", timeRange[1L], ")\n", sep = "")
+        }
+    }
+    if (events$time[nEvents] > timeRange[2L]) {
+        stop("found ", sum(events$time > timeRange[2L]),
+             " events beyond 'stgrid' (time > ", timeRange[2L], ")")
+    }
+
+    # Are all events$tile references really part of the stgrid?
+    .events.tile <- factor(events$tile, levels = levels(stgrid$tile))
+    if (missingSCellIdx <- match(NA, .events.tile, nomatch = 0L)) {
+        stop("the 'events$tile' entry \"", events$tile[missingSCellIdx], "\"",
+             " is not a valid level of 'stgrid$tile'")
+    }
+    events$tile <- .events.tile
+
+    # Map events to corresponding grid cells
+    ## FIXME: could use plapply() but then also need a .parallel argument
+    if (verbose) cat("Mapping events to 'stgrid' cells ...\n")
+    withPB <- verbose && interactive()
+    gridcellsOfEvents <- integer(nEvents)
+    if (withPB) pb <- txtProgressBar(min=0, max=nEvents, initial=0, style=3)
+    for (i in seq_len(nEvents)) {
+        gridcellsOfEvents[i] <- gridcellOfEvent(events$time[i], events$tile[i], stgrid)
+        if (withPB) setTxtProgressBar(pb, i)
+    }
+    if (withPB) close(pb)
+
+    # Attach endemic covariates from stgrid to events
+    if (verbose) cat("Attaching endemic covariates from 'stgrid' to 'events' ...\n")
+    endemicVars <- setdiff(names(stgrid),
+                           c(reservedColsNames_stgrid, obligColsNames_stgrid))
+    copyCols <- c("BLOCK", "start", endemicVars)
+    if (length(replaceCols <- intersect(copyCols, names(events)))) {
+        warning("replacing existing columns in 'events' data with ",
+                "variables from 'stgrid': ",
+                paste0("'", replaceCols, "'", collapse=", "))
+        events[replaceCols] <- NULL  # ensure endemic vars are _appended_
+    }
+    events <- cbind(events, stgrid[gridcellsOfEvents, copyCols])
+
+    return(events)
 }
 
 

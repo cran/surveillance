@@ -463,7 +463,8 @@ twinSIR <- function (formula, data, weights, subset,
   } else {
     optim.args$par <- c(rep.int(1, px), rep.int(0, pz))
   }
-  message("Initial parameter vector:  ", paste(optim.args$par, collapse=" "))
+  message("Initial parameter vector:  ",
+          paste(format(optim.args$par, trim=TRUE), collapse=" "))
 
   ## Set names for theta
   names(optim.args$par) <- c(colnames(X), colnames(Z))

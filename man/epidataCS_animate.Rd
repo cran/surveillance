@@ -98,8 +98,8 @@ Spatio-Temporal Animation of a Continuous-Time Continuous-Space Epidemic
     the animation is produced within \code{\link[animation]{saveHTML}}
     or similar.}
   \item{\dots}{
-    further graphical parameters passed to the plot-method of the
-    \code{\link{SpatialPolygons-class}}.
+    further graphical parameters passed to the \code{plot} method for
+    \code{"\linkSPclass{SpatialPolygons}"}.
   }
 }
 

@@ -139,7 +139,7 @@ epidataCSplot_time <- function (x, subset, by = type,
         plot(histdata, freq = freq, add = TRUE, col = col[typesEffective[1L]], ...)
     )
     if (!add)  # doesn't work as expected when adding to plot with cumulative axis
-        box()  # because white filling of bars might overdraw the inital box
+        box()  # because white filling of bars might overdraw the initial box
 
     ## add type-specific sub-histograms
     for (typeIdx in seq_along(typesEffective)[-1L]) {

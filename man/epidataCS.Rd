@@ -58,7 +58,7 @@ getSourceDists(object, dimension = c("space", "time"))
 
 \arguments{
   \item{events}{
-    a \code{"\linkS4class{SpatialPointsDataFrame}"} of cases with the
+    a \code{"\linkSPclass{SpatialPointsDataFrame}"} of cases with the
     following obligatory columns (in the \code{events@data}
     \code{data.frame}): 
     \describe{
@@ -116,7 +116,7 @@ getSourceDists(object, dimension = c("space", "time"))
       \item{area}{area of the spatial region (\code{tile}).
 	Be aware that the unit of this area (e.g., square km) must be consistent
 	with the units of \code{W} and \code{events} (as specified in
-	their \code{\link{proj4string}}s).}
+	their \code{\link[sp]{proj4string}}s).}
     }
     The remaining columns are endemic covariates.
     Note that the column name \code{"BLOCK"} is reserved
@@ -125,7 +125,7 @@ getSourceDists(object, dimension = c("space", "time"))
   }
 
   \item{W}{
-    an object of class \code{"\linkS4class{SpatialPolygons}"}
+    an object of class \code{"\linkSPclass{SpatialPolygons}"}
     representing the observation region.
     It must have the same \code{proj4string} as \code{events}
     and all events must be within \code{W}.
@@ -157,7 +157,7 @@ getSourceDists(object, dimension = c("space", "time"))
   \item{clipper}{polygon clipping engine to use for calculating the
     \code{.influenceRegion}s of events (see the Value section below).
     Default is the \CRANpkg{polyclip} package (called via
-    \code{\link{intersect.owin}} from package \CRANpkg{spatstat.geom}).
+    \code{\link[spatstat.geom]{intersect.owin}} from package \CRANpkg{spatstat.geom}).
     In \pkg{surveillance} <= 1.6-0, package \pkg{gpclib} was used;
     this is no longer supported, neither is \pkg{rgeos}.}
 
@@ -177,7 +177,7 @@ getSourceDists(object, dimension = c("space", "time"))
 
   \item{i,j,drop}{
     arguments passed to the
-    \code{\link[=[,SpatialPointsDataFrame-method]{[-method}} for
+    \code{\link[sp:SpatialPointsDataFrame-class]{[-method}} for
     \code{SpatialPointDataFrame}s for subsetting the \code{events} while
     retaining \code{stgrid} and \code{W}.\cr
     If \code{drop=TRUE} (the default), event types that completely
@@ -228,7 +228,7 @@ getSourceDists(object, dimension = c("space", "time"))
 \value{
   An object of class \code{"epidataCS"} is a list containing the
   following components: 
-  \item{events}{a \code{"\linkS4class{SpatialPointsDataFrame}"} (see the
+  \item{events}{a \code{"\linkSPclass{SpatialPointsDataFrame}"} (see the
     description of the argument). 
     The input \code{events} are checked for requirements and sorted
     chronologically. The columns are in the following
@@ -256,7 +256,7 @@ getSourceDists(object, dimension = c("space", "time"))
     The spatio-temporal grid of endemic covariates is sorted by time
     interval (indexed by the added variable \code{BLOCK}) and region
     (\code{tile}). It is a full \code{BLOCK} x \code{tile} grid.}
-  \item{W}{a \code{"\linkS4class{SpatialPolygons}"} object representing
+  \item{W}{a \code{"\linkSPclass{SpatialPolygons}"} object representing
     the observation region.}
   \item{qmatrix}{see the above description of the argument. The
     \code{\link{storage.mode}} of the indicator matrix is set to logical

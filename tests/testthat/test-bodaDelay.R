@@ -18,7 +18,7 @@ test_that("The absence of reporting triangle throws an error",{
   data("salmNewport")
   expect_error(bodaDelay(salmNewport, controlDelay),"You have to")
 })
-test_that("The function spots uncorrect reporting triangles",{
+test_that("The function spots incorrect reporting triangles",{
   stsFake <- salmAllOnset
   stsFake@control$reportingTriangle$n <- head(stsFake@control$reportingTriangle$n,n=10)
   expect_error(bodaDelay(stsFake, controlDelay),"The reporting triangle number")

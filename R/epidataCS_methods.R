@@ -2,7 +2,7 @@
 ### Standard S3-methods for "epidataCS" objects, which represent
 ### CONTINUOUS SPATIO-temporal infectious disease case data
 ###
-### Copyright (C) 2009-2015,2017-2019 Sebastian Meyer
+### Copyright (C) 2009-2015,2017-2019,2024 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -15,13 +15,37 @@
 nobs.epidataCS <- function (object, ...) length(object$events)
 
 
-### UPDATE eps.s, eps.t, qmatrix OR nCircle2Poly IN AN EXISTING epidataCS OBJECT
-
+### UPDATE
 # all arguments but 'object' are optional, the ... argument is unused
-update.epidataCS <- function (object, eps.t, eps.s, qmatrix, nCircle2Poly, ...)
+
+update.epidataCS <- function (object, eps.t, eps.s, qmatrix, nCircle2Poly,
+                              stgrid, ...)
 {
     nEvents <- nobs(object)
 
+    # Update spatio-temporal grid data
+    if (!missing(stgrid)) {
+        oldT <- tail(object$stgrid$stop, 1L)
+        if (inherits(stgrid, "SpatialPolygons"))
+            stgrid <- tiles2stgrid(stgrid, start = 0, T = oldT)
+        stgrid <- check_stgrid(stgrid, T = oldT,
+                               verbose = FALSE, warn = FALSE)
+        ## cannot update tiles because events are linked to these
+        stopifnot(identical(levels(stgrid$tile), levels(object$stgrid$tile)))
+        nTiles <- nlevels(object$stgrid$tile)
+        if ((oldA <- sum(head(object$stgrid$area, nTiles))) !=
+            (newA <- sum(head(       stgrid$area, nTiles))))
+            warning("total tile area has changed: ", paste(oldA, "->", newA))
+        ## merge new spatio-temporal grid data into events@data
+        object$events@data <- cbind(
+            merge_stgrid(marks(object, coords = FALSE),
+                         stgrid, # possibly with dropped/added endemic vars
+                         verbose = FALSE),
+            object$events@data[dotNames_events]
+        )
+        object$stgrid <- stgrid
+    }
+    
     # Check and update eps.t
     if (!missing(eps.t)) {
         stopifnot(is.numeric(eps.t), eps.t > 0)
@@ -60,13 +84,13 @@ update.epidataCS <- function (object, eps.t, eps.s, qmatrix, nCircle2Poly, ...)
     }
 
     # Check qmatrix
-    if (!missing(qmatrix)) object$qmatrix <- checkQ(qmatrix, levels(object$events$type))
+    if (!missing(qmatrix))
+        object$qmatrix <- checkQ(qmatrix, levels(object$events$type))
 
-    #hoehle @ 16 Apr 2011 - bug fix. .obsInfLength was not handled
     # Update length of infection time, i.e. length = min(T-time, eps.t)
-    if (!missing(eps.t)) {
-      timeRange <- with(object$stgrid, c(start[1], stop[length(stop)]))
-      object$events$.obsInfLength <- with(object$events@data, pmin(timeRange[2]-time, eps.t))
+    if (!missing(eps.t) || !missing(stgrid)) {
+        ..T <- tail(object$stgrid$stop, 1L)
+        object$events$.obsInfLength <- with(object$events@data, pmin(..T - time, eps.t))
     }
 
     # Update .sources

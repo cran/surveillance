@@ -609,7 +609,7 @@ Up to now, the model assumed that the epidemic can only arrive from directly
 adjacent districts ($w_{ji} = \ind(j\sim i)$),
 and that all districts have the same ability $\phi$ to import cases from
 neighboring regions.
-Given that humans travel further and preferrably to metropolitan
+Given that humans travel further and preferably to metropolitan
 areas, both assumptions seem overly simplistic
 and should be tuned toward a ``gravity'' model for human interaction.
 First, to reflect commuter-driven spread %\citep[Section~6.3.3.1]{Keeling.Rohani2008}

@@ -1,4 +1,4 @@
-## generate random adjancency matrix
+## generate random adjacency matrix
 ## radjmat <- function (n) {
 ##     adjmat <- matrix(0L, n, n, dimnames=list(letters[1:n],letters[1:n]))
 ##     adjmat[lower.tri(adjmat)] <- sample(0:1, n*(n-1)/2, replace=TRUE)

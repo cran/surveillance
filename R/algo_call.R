@@ -4,7 +4,7 @@
 
 
 # 'algo.quality' calculates quality values
-# like specifity, sensitivity for a surveillance method
+# like specificity, sensitivity for a surveillance method
 #
 # Parameters:
 #      survResObj: object of class survRes, which includes the state chain and
@@ -137,7 +137,7 @@ xtable.algoQV <- function(x, caption = NULL, label = NULL, align = NULL,
 #       disProgObj: object of class survRes, which includes the state chain, the observed
 #       control: specifies which surveillance systems should be used with their parameters.
 #                The parameter funcName and range must be specified where funcName must be
-#                the apropriate function (without 'algo.')
+#                the appropriate function (without 'algo.')
 #       range (in control): positions in observed which should be computed
 
 

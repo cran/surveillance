@@ -43,7 +43,7 @@ stKtest(object, eps.s = NULL, eps.t = NULL, B = 199,
   }
   \item{poly}{
     the polygonal observation region of the events (as an object handled
-    by \code{\link{xylist}}). The default \code{object$W} might not work
+    by \code{\link[polyCub]{xylist}}). The default \code{object$W} might not work
     since package \pkg{splancs} does not support multi-polygons. In this
     case, the \code{poly} argument can be used to specify a substitute.
   }

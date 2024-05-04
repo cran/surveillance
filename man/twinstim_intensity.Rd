@@ -62,14 +62,14 @@ intensity.twinstim(x,
     type or a subset of event types.
 }
   \item{tiles}{
-    object of class \code{\linkS4class{SpatialPolygons}} representing
+    object of class \code{"\linkSPclass{SpatialPolygons}"} representing
     the decomposition of \eqn{\bold{W}} into different regions (as used
     in the corresponding \code{stgrid} of the \code{"\link{epidataCS}"}.
     This is only needed for \code{aggregate = "space"}.
 }
   \item{tiles.idcol}{
     either a column index for \code{tiles@data} (if \code{tiles} is a
-    \code{\linkS4class{SpatialPolygonsDataFrame}}), or \code{NULL}
+    \code{"\linkSPclass{SpatialPolygonsDataFrame}"}), or \code{NULL}
     (default), which refers to the \code{"ID"} slot of the polygons,
     i.e., \code{row.names(tiles)}.
     The ID's must correspond to the factor levels of
@@ -105,7 +105,7 @@ intensity.twinstim(x,
     modified.
   }
   \item{sgrid}{
-    either an object of class \code{"\linkS4class{SpatialPixels}"} (or
+    either an object of class \code{"\linkSPclass{SpatialPixels}"} (or
     coercible to that class) representing the locations where to
     evaluate \code{which}, or a scalar representing the approximate
     number of points of a grid constructed on the bounding box of
@@ -116,14 +116,14 @@ intensity.twinstim(x,
 }
   \item{polygons.args}{
     if a list, its elements are passed as arguments to
-    \code{\link{sp.polygons}}, which will add \code{tiles} to the plot
+    \code{\link[sp]{sp.polygons}}, which will add \code{tiles} to the plot
     if \code{aggregate = "space"} (it is unused for the temporal plot).
     By default, the fill \code{col}our of the tiles is set to
     \code{"darkgrey"}.
 }
   \item{points.args}{
     if a list, its elements are passed as arguments to
-    \code{\link{sp.points}}, which will add the event locations to the plot
+    \code{\link[sp]{sp.points}}, which will add the event locations to the plot
     if \code{aggregate = "space"} (it is unused for the temporal plot).
     By default, the plot symbol is set to \code{pch=1}. The sizes
     of the points are determined as the product of the argument \code{cex}
@@ -142,7 +142,7 @@ intensity.twinstim(x,
 }
   \item{\dots}{
     further arguments passed to \code{plot} or \code{lines} (if
-    \code{aggregate = "time"}), or to \code{\link{spplot}} (if
+    \code{aggregate = "time"}), or to \code{\link[sp]{spplot}} (if
     \code{aggregate = "space"}).\cr
     For \code{intensityplot.simEpidataCS}, arguments passed to
     \code{intensityplot.twinstim}.

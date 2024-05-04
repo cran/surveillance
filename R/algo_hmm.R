@@ -33,7 +33,7 @@ algo.hmm <- function(disProgObj, control = list(range=range, Mtilde=-1, noStates
   #Repeat for each time point to monitor on-line
   ############################################## 
   for (i in 1:length(control$range)) {
-    #Function is so slow some sort of perfomance indicator is usually necessary
+    #Function is so slow some sort of performance indicator is usually necessary
     cat(paste("i=",i," (out of ",length(control$range),")\n",sep=""))
     #Initialize observations for each round -- can be done sequentally
     first <- ifelse(control$Mtilde== -1, 1, max(control$range[i]-control$Mtilde+1,1))

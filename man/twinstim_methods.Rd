@@ -21,7 +21,7 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
   \code{\link{nobs}}. This
   also enables the use of, e.g., \code{\link{confint}} and
   \code{\link{AIC}}. The model \code{summary} can be exported to LaTeX
-  by the corresponding \code{\link{toLatex}} or \code{\link{xtable}}
+  by the corresponding \code{\link{toLatex}} or \code{\link[xtable]{xtable}}
   methods.
 }
 
@@ -85,7 +85,7 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
   \item{withAIC}{logical indicating if the AIC and the log-likelihood of
     the model should be included below the table of coefficients in the
     LaTeX tabular.}
-  \item{caption,label,align,display}{see \code{\link{xtable}}.}
+  \item{caption,label,align,display}{see \code{\link[xtable]{xtable}}.}
   \item{ci.level,ci.fmt,ci.to}{the confidence intervals are calculated
     at level \code{ci.level} and printed using \code{\link{sprintf}}
     with format \code{ci.fmt} and separator \code{ci.to}.}
@@ -146,11 +146,11 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
   \code{"Latex"}, each element containing one line of LaTeX code (see
   \code{\link{print.Latex}}).
   The \code{xtable} method returns an object of class
-  \code{"\link{xtable}"}. Note that the column name of the confidence
+  \code{"\link[xtable]{xtable}"}. Note that the column name of the confidence
   interval, e.g. \dQuote{95\% CI}, contains the percent symbol that may
   need to be escaped when printing the \code{"xtable"} in the output
   format (see \code{sanitize.text.function} in
-  \code{\link{print.xtable}}). This may also hold for row names.
+  \code{\link[xtable]{print.xtable}}). This may also hold for row names.
 }
 
 \author{

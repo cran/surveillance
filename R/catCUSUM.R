@@ -47,7 +47,7 @@ catcusum.LLRcompute <- function(y, pi0, pi1, h, dfun, n, calc.at=TRUE,...) {
         ##Note: U[t+1] Can be higher than corresponding n_t.
         if (U[t+1]>n[t]) U[t+1] <- NA
       } else {
-        #Compute the value at by trying all values betweeen 0 and n_t. If
+        #Compute the value at by trying all values between 0 and n_t. If
         #no alarm, then we know the value for an alarm must be larger than y_t
         if (S[t+1]>h) {
           ay <- rbind(seq(0,y[1,t],by=1),n[t]-seq(0,y[1,t],by=1))

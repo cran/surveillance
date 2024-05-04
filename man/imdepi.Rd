@@ -33,7 +33,7 @@ data("imdepi")
   \code{stgrid}, \code{W}, and \code{qmatrix} of \code{imdepi} in
   greater detail.
 
-  \code{imdepi$events} is a \code{"\linkS4class{SpatialPointsDataFrame}"}
+  \code{imdepi$events} is a \code{"\linkSPclass{SpatialPointsDataFrame}"}
   object (ETRS89 projection, i.e. EPSG code 3035, with unit \sQuote{km})
   containing 636 events, each with the following entries:
   \describe{
@@ -94,7 +94,7 @@ data("imdepi")
   time trends and seasonality (in this discretized time).
   
   The entry \code{W} contains the observation window as a
-  \code{"\linkS4class{SpatialPolygons}"} object, in this case the
+  \code{"\linkSPclass{SpatialPolygons}"} object, in this case the
   boundaries of Germany (\code{stateD}). It was obtained as the
   \dQuote{UnaryUnion} of Germany's districts (\code{districtsD}) as at
   2009-01-01, simplified by the \dQuote{modified Visvalingam} algorithm

@@ -28,7 +28,7 @@ data. Therefore range needs to be a numerical vector of indexes from 1 to length
 \item{alarmSuffix}{A latex compatible suffix string wrapped around a table cell iff there is an alarm;i.e. alarm[i,j] = TRUE}
 \item{ubColumnLabel}{The label of the upper bound column; default is
   \"UB\".}
-\item{\dots}{further arguments passed to \code{\link{print.xtable}}.}
+\item{\dots}{further arguments passed to \code{\link[xtable]{print.xtable}}.}
 }
 
 \value{

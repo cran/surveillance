@@ -62,7 +62,7 @@ siaf.powerlawL <- function (nTypes = 1, validpars = NULL, engine = "C")
 
     ## derivative of f wrt logpars
     ## CAVE: the derivative of f wrt logsigma is mathematically NaN at x=sigma
-    ## this non-differentiability at the treshhold causes false convergence
+    ## this non-differentiability at the threshold causes false convergence
     ## warnings by nlminb but is otherwise not relevant (could use slow and
     ## robust Nelder-Mead instead)
     deriv <- function (s, logpars, types = NULL) {}

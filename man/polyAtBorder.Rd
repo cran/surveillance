@@ -3,7 +3,7 @@
 \title{Indicate Polygons at the Border}
 
 \description{
-Determines which polygons of a \code{"\linkS4class{SpatialPolygons}"}
+Determines which polygons of a \code{"\linkSPclass{SpatialPolygons}"}
 object are at the border, i.e. have coordinates in common with the
 spatial union of all polygons (constructed using
 \code{\link{unionSpatialPolygons}}).
@@ -16,7 +16,7 @@ polyAtBorder(SpP, snap = sqrt(.Machine$double.eps),
 
 \arguments{
   \item{SpP}{
-    an object of class \code{"\linkS4class{SpatialPolygons}"}.
+    an object of class \code{"\linkSPclass{SpatialPolygons}"}.
   }
   \item{snap}{
     tolerance used to consider coordinates as identical.

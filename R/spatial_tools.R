@@ -1,7 +1,7 @@
 ################################################################################
 ### Auxiliary functions for operations on spatial data
 ###
-### Copyright (C) 2009-2015,2018,2021-2023  Sebastian Meyer
+### Copyright (C) 2009-2015,2018,2021-2024  Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -239,28 +239,20 @@ layout.scalebar <- function (obj, corner = c(0.05, 0.95), scale = 1,
     rightLL[,1L] - focusLL[,1L]
 }
 
-## internal wrapper for sp::is.projected to catch its (future) sf dependence
+## internal wrapper for sp::is.projected to catch its sf dependence
 is.projected <- function (obj, warn = FALSE)
 {
-    res <- tryCatch(sp::is.projected(obj), error = identity)
-    if (inherits(res, "error")) {
-        pkg <- if (inherits(res, "packageNotFoundError"))
-                   res$package
-               else if (startsWith(res$message, "sf required"))
-                   ## FIXME: temporarily used by "sp" with evolution status 2
-                   "sf"
-               else stop(res)
+    res <- tryCatch(sp::is.projected(obj), packageNotFoundError = identity)
+    ## should no longer be needed as the sp version has kept the no-sf fallback:
+    if (inherits(res, "packageNotFoundError")) {
         ## fallback: grep for longlat in (deprecated) Proj.4 representation
         p4s <- as.character(obj@proj4string@projargs)
-        if (is.na(p4s) || !nzchar(p4s)) {
-            if (warn)
-                warning("could not determine projection status; package ",
-                        sQuote(pkg), " is missing")
-            NA
-        } else {
-            !grepl("longlat", p4s, fixed = TRUE)
-        }
-    } else res
+        res <- if (is.na(p4s) || !nzchar(p4s)) NA
+               else !grepl("longlat", p4s, fixed = TRUE)
+    }
+    if (is.na(res) && warn)
+        warning("could not determine projection status")
+    res
 }
 
 ## internal replacement for sp::mapasp using the above is.projected wrapper

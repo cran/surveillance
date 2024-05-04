@@ -22,7 +22,7 @@
 
 \title{Getting started with outbreak detection}
 \author{
-Michael H{\"o}hle\thanks{Author of correspondance: Department of Statistics, University of Munich, Ludwigstr.\ 33, 80539 M{\"u}nchen, Germany, Email: \texttt{hoehle@stat.uni-muenchen.de}} , Andrea Riebler and Michaela Paul\\
+Michael H{\"o}hle\thanks{Author of correspondence: Department of Statistics, University of Munich, Ludwigstr.\ 33, 80539 M{\"u}nchen, Germany, Email: \texttt{hoehle@stat.uni-muenchen.de}} , Andrea Riebler and Michaela Paul\\
 Department of Statistics\\
 University of Munich\\
 Germany }
@@ -172,7 +172,7 @@ counts, see Figure~\ref{fig:hmm}.
   \label{fig:hmm}
 \end{figure}
 
-The state $X_t$ is a homogenous Markov chain with transition matrix
+The state $X_t$ is a homogeneous Markov chain with transition matrix
 \begin{center}
   \begin{tabular}{c|cc}
   $X_t\backslash X_{t+1}$ &  0      & 1\\

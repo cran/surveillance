@@ -85,7 +85,7 @@ res <- plapply(x, quantile, probs = 1:3/4,
 samp <- plapply(as.list(1:3), runif, .seed = 1)
 
 ## parallel lapply()
-res <- plapply(x, quantile, probs = 1:3/4, .parallel = 2)
+res <- plapply(x, quantile, probs = 1:3/4, .parallel = 2, .verbose = FALSE)
 
 ## using a predefined cluster
 library("parallel")

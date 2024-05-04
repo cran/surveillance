@@ -1,7 +1,7 @@
 ######################################################################
 # Takes a data frame with dates of individual
 # cases and create an aggregated sts time series object for these
-# data with aggregation occuring at the desired scale.
+# data with aggregation occurring at the desired scale.
 #
 # Parameters:
 #  linelist - a data frame containing individual case information, one per line

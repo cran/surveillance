@@ -60,15 +60,6 @@
       time. See \code{\link{stsplot_space}} for optional arguments,
       details and examples.
     }
-    \item{\code{observed ~ 1 | unit}}{old version of the map plot,
-      via the deprecated \code{\link{stsplot_spacetime}} function.
-      Use \code{type = observed ~ unit} instead.
-    }
-
-    \item{\code{observed ~ 1 | unit * time}}{old version for animated
-      maps via the deprecated \code{\link{stsplot_spacetime}} function.
-      Use the \code{\link[=animate.sts]{animate}} method instead.
-    }
   }
 }
 

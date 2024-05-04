@@ -60,7 +60,7 @@ inside.gpc.poly(x, y = NULL, polyregion, mode.checked = FALSE)
 }
 \details{
   The trivial function \code{compMatrix.writeTable} is no longer used
-  (it did nothing more than generating an \code{\link{xtable}} of its input).
+  (it did nothing more than generating an \code{\link[xtable]{xtable}} of its input).
   
   The ancient test function \code{makePlot} is no longer used,
   nor are functions \code{readData} (the datasets are still available

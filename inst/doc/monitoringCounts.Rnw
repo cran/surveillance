@@ -734,7 +734,7 @@ combineSTS <- function(stsList) {
 \begin{figure}
 \centering
 <<alarmplot, fig.width=8, fig.height=4, out.width="\\linewidth", echo=FALSE>>=
-# Make an artifical object containing two columns - one with the boda output
+# Make an artificial object containing two columns - one with the boda output
 # and one with the farrington output
 cam.surv <- combineSTS(list(boda.covars=boda.covars,boda=boda,bayes=bayes,
                             farrington=far,farringtonFlexible=farflex))
@@ -824,7 +824,7 @@ do.call("plot",modifyList(plotOpts,list(x=salmGlrnb,ylim=c(0,y.max))))
 The implementation of \code{glrnb} on individual time series was already thoroughly explained in \citet{hoehle-mazick-2010}. Our objective in the present document is rather to provide practical tips
 for the implementation of this function on huge amounts of data in public health surveillance applications. Issues of computational speed become very significant in such a context. Our proposal
 to reduce the computational burden incurred by this algorithm is
-to compute the \textit{in-control} model for each time serie (pathogen, subtype, subtype in a given location, etc.) only once a year and to use this estimation for the computation of a threshold for each time series.
+to compute the \textit{in-control} model for each time series (pathogen, subtype, subtype in a given location, etc.) only once a year and to use this estimation for the computation of a threshold for each time series.
  An idea to avoid starting with an initial value of zero in the CUSUM is to use either $\left(\frac{1}{2}\right)\cdot\mathtt{c.ARL}$ as a starting value (fast initial response
  CUSUM as presented in~\citet{lucas1982fast}) or to let surveillance run with the new \textit{in-control} model during
  a buffer period and use the resulting CUSUM as an initial value. One could also choose the maximum of these two possible starting values as a starting value.

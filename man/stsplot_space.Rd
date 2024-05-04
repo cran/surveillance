@@ -8,7 +8,7 @@
 This is the \code{plot} variant of \code{type=observed~unit} for
 \code{"\linkS4class{sts}"} objects, i.e.,
 \code{plot(stsObj, type=observed~unit, ...)} calls the function
-documented below. It produces an \code{\link{spplot}}
+documented below. It produces an \code{\link[sp]{spplot}}
 where regions are color-coded according to disease incidence
 (either absolute counts or relative to population) over a given
 time period.
@@ -41,7 +41,7 @@ stsplot_space(x, tps = NULL, map = x@map, population = NULL,
     time period \code{1:nrow(x)}.
   }
   \item{map}{
-    an object inheriting from \code{"\linkS4class{SpatialPolygons}"}
+    an object inheriting from \code{"\linkSPclass{SpatialPolygons}"}
     representing the \code{ncol(x)} regions. By default
     the \code{map} slot of \code{x} is queried (which might be
     empty and is not applicable if \code{x} is a matrix of counts).
@@ -77,7 +77,7 @@ stsplot_space(x, tps = NULL, map = x@map, population = NULL,
     see \code{\link{layout.labels}}.
   }
   \item{\dots}{
-    further arguments for \code{\link{spplot}},
+    further arguments for \code{\link[sp]{spplot}},
     for example \code{col = "white"} for white polygon lines.
   }
   \item{at}{
@@ -113,11 +113,11 @@ stsplot_space(x, tps = NULL, map = x@map, population = NULL,
     \code{total.args=list()} will use all of them.
   }
   \item{gpar.missing}{list of graphical parameters for
-    \code{\link{sp.polygons}} applied to the regions of \code{map},
+    \code{\link[sp]{sp.polygons}} applied to the regions of \code{map},
     which are not part of \code{x}. Such extra regions won't be plotted
     if \code{!is.list(gpar.missing)}.}
   \item{sp.layout}{
-    optional list of additional layout items, see \code{\link{spplot}}.
+    optional list of additional layout items, see \code{\link[sp]{spplot}}.
   }
   %% currently hard-coded for simplicity (rarely needed):
   %% \item{aspect}{the aspect ratio, see \code{\link[lattice]{levelplot}}.
@@ -128,7 +128,7 @@ stsplot_space(x, tps = NULL, map = x@map, population = NULL,
 \value{
   a lattice plot of class
   \code{"\link[lattice:trellis.object]{trellis}"}, but see
-  \code{\link{spplot}}.
+  \code{\link[sp]{spplot}}.
 }
 
 \author{

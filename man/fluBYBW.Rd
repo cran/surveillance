@@ -23,7 +23,7 @@
   Office of Germany.
   
   The \code{map} slot contains an object of class
-  \code{"\linkS4class{SpatialPolygonsDataFrame}"}.
+  \code{"\linkSPclass{SpatialPolygonsDataFrame}"}.
 }
 
 \source{

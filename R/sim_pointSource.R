@@ -5,7 +5,7 @@
 # Programme to simulate epidemies which were
 # introduced by point sources.
 # The basis of this proagramme is a combination of
-# a Hidden Markov Modell (to get random dates
+# a Hidden Markov Model (to get random dates
 # for outbreaks) and a simple Model to simulate
 # the epidemy.
 #
@@ -24,7 +24,7 @@
 # frequency - frequency of the sinus, default = 1.
 # state - a eventually given markov chain,
 #               which defines the status at this time (outbreak or not)
-# K - additional weigth for an outbreak
+# K - additional weight for an outbreak
 
 sim.pointSource <- function(p = 0.99, r = 0.01, length = 400, A = 1, alpha = 1, beta = 0,
                                 phi = 0, frequency = 1, state = NULL, K){
@@ -46,7 +46,7 @@ sim.pointSource <- function(p = 0.99, r = 0.01, length = 400, A = 1, alpha = 1, 
     }
   }
 
-  # go sure to have the rigth length as parameter
+  # go sure to have the right length as parameter
   length <- length(state)
   observed <-sim.seasonalNoise(A, alpha, beta, phi, length, frequency, state, K)$seasonalBackground
 

@@ -6,7 +6,7 @@
 #  linelist_truth - data.frame containing the linelist of cases/reports
 #  dEventCol - name of the column containing the time of event (as Date)
 #  dReportCol - name of the column containing the time of report receipt (as Date)
-#  aggrgate.by - aggregation level (se function linelist2sts)
+#  aggregate.by - aggregation level (see function linelist2sts)
 #  nowcasts - a list of nowcasts (if NULL then they are generated on the fly - Note: This is currently not implemented!)
 #  method - which method to animate. Has to be part of the individual nowcast objects in 'nowcasts'
 #  control - control object for controlling how the plotting is done
@@ -108,7 +108,7 @@ animate_nowcasts <- function(nowcasts,linelist_truth,
     if (!(method %in% nowcasts[[as.character(curDate)]]@control$method)) {
       stop("Method ",method," not in nowcasts!")
     }
-    ##Exract the used safePredictLag
+    ##Extract the used safePredictLag
     control$safePredictLag <- sts.nowcast@control$now - max(sts.nowcast@control$when)
 
     ##Fill upperbound and CI slots with output of that method (not pretty code: ToDo Improve!!)
@@ -188,7 +188,7 @@ animate_nowcasts <- function(nowcasts,linelist_truth,
     axis(1,at=0:1e3,tick=TRUE,lwd.ticks=0,labels=rep("",1e3+1))
     axis(1,at=0:1e3,tick=TRUE,lwd.ticks=1,tcl=-0.2,labels=rep("",1e3+1))
 
-    ##Hilight the mondays
+    ##Highlight the mondays
     is.monday <- format(range.dates,"%w") == 1
     axis(1,at=(1:length(range.dates))[is.monday],labels=format(range.dates[is.monday],"%a %d %b"),las=2,cex.axis=control$cex.names)
 

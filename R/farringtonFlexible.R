@@ -671,7 +671,7 @@ epochAsDate) {
 
 			vectorLengthOfBlocks <- rep(lengthOfBlocks,p-1)
 
-			# share the rest of the Euclidian division among the first blocks
+			# share the rest of the Euclidean division among the first blocks
 
 			add <- seq_len(rest)
 			vectorLengthOfBlocks[add] <-    vectorLengthOfBlocks[add]+1
@@ -802,7 +802,7 @@ algo.farrington.glm <- function(dataGLM,timeTrend,populationOffset,factorsBool,
 	######################################################################
 
 	#Check whether to include time trend, to do this we need to check whether
-	#1) wtime is signifcant at the 95lvl
+	#1) wtime is significant at the 95lvl
 	#2) the predicted value is not larger than any observed value
 	#3) the historical data span at least 3 years.
 	doTrend <- NULL

@@ -647,7 +647,7 @@ summary.epidata <- function (object, ...)
     # Combine the three event types into one data.frame
     eventTable <- rbind(Rtimes, Stimes, Itimes)
       # need this order for the counters below in the case of SIS:
-      # pseudo-R-event occures infinitesimally before S
+      # pseudo-R-event occurs infinitesimally before S
     names(eventTable)[2L] <- "time"
     eventTable <- eventTable[order(eventTable[["id"]], eventTable[["time"]]), ]
     eventTable[["type"]] <- factor(eventTable[["type"]], levels=c("S","I","R"))

@@ -111,7 +111,7 @@ algo.glrnb <- function(disProgObj,
           } else { # standard, not window limited
         	res <- .C(C_glr_cusum,as.integer(x),as.double(mu0),length(x),as.integer(control$Mtilde),as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),cases=as.double(numeric(length(x))),as.integer(dir),as.integer(ret))
           }
-        } else { #negbin. This is direcly the window limited version, does M=-1 work here?
+        } else { #negbin. This is directly the window limited version, does M=-1 work here?
           res <- .C(C_glr_nb_window,x=as.integer(x),mu0=as.double(mu0),alpha=as.double(control$alpha),lx=length(x),Mtilde=as.integer(control$Mtilde),M=as.integer(control$M),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),dir=as.integer(dir))
           ##hoehle - 2016-01-17. Try out calculating upper bound in terms of cases
           if (control$ret == "cases") {
@@ -126,7 +126,7 @@ algo.glrnb <- function(disProgObj,
               myx <- x
               gotAlarm <- (res$N <= pos) #already got an alarm at the position?
               direction <- ifelse(gotAlarm, -1, 1) #go up or down?
-              alarmChange <- FALSE #have we suceeded in changing x such that the alarm status changed?
+              alarmChange <- FALSE #have we succeeded in changing x such that the alarm status changed?
 
               #Loop over values until one is such that an alarm at (or before!) the time point is given
               while (!alarmChange & (myx[pos] <= control$xMax) & (myx[pos] >=1)) {

@@ -297,7 +297,7 @@ stsplot_alarm <- function(
     }
   }
 
-  #Draw lines seperating the levels
+  #Draw lines separating the levels
   m <- c(-0.5,cumsum(as.numeric(table(lvl))))
   sapply(m, function(i) lines(c(0.5,nrow(x@alarm)+0.5),c(i+0.5,i+0.5),lwd=2))
 

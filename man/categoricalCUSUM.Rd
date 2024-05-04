@@ -77,7 +77,10 @@ categoricalCUSUM(stsObj,control = list(range=NULL,h=5,pi0=NULL,
   \bold{70} (10), 1-35. \doi{10.18637/jss.v070.i10}
 }
 \examples{
-if (require("gamlss")) {
+\dontshow{## IGNORE_RDIFF_BEGIN}
+have_GAMLSS <- require("gamlss")
+\dontshow{## IGNORE_RDIFF_END}
+if (have_GAMLSS) {
   ###########################################################################
   #Beta-binomial CUSUM for a small example containing the time-varying
   #number of positive test out of a time-varying number of total

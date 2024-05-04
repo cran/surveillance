@@ -43,7 +43,7 @@ epitest(model, data, tiles, method = "time", B = 199,
   }
   \item{tiles}{
     (only used by \code{method = "simulate"})
-    a \code{"\linkS4class{SpatialPolygons}"} representation of the
+    a \code{"\linkSPclass{SpatialPolygons}"} representation of the
     \code{tile}s in \code{data$stgrid}.
   }
   \item{method}{

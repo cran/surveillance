@@ -130,7 +130,7 @@ tiaf.exponential(nTypes = 1, validpars = NULL)
   \item{engine}{
     character string specifying the implementation to use.
     Prior to \pkg{surveillance} 0.14.0, the \code{intrfr} functions for
-    \code{\link{polyCub.iso}} were evaluated in \R (and this
+    \code{\link[polyCub]{polyCub.iso}} were evaluated in \R (and this
     implementation is available via \code{engine = "R"}).
     The new C-implementation, \samp{LinkingTo} the newly exported
     \code{polyCub_iso} C-implementation in \pkg{polyCub} 0.6.0,

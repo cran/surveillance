@@ -50,10 +50,10 @@ disc3 <- discpoly(c(0,0), 5, npoly=64, class = "gpc.poly")  # may warn
 print(disc1)
 plot(disc1, axes=TRUE, main="", border=2)
 
-print(disc2)
+str(disc2)
 lines(disc2, col=3)
 
-print(disc3)  # a list or a formal "gpc.poly" (if gpclib is available)
+str(disc3)  # a list or a formal "gpc.poly" (if gpclib is available)
 if (is(disc3, "gpc.poly")) {
   plot(disc3, add=TRUE, poly.args=list(border=4))
 } else {

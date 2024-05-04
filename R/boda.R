@@ -93,7 +93,7 @@ boda <- function(sts, control=list(range=NULL, X=NULL, trend=FALSE, season=FALSE
  # sampling method for the parameters
  samplingMethod <- match.arg(control$samplingMethod, c('joint','marginals'))
 
-  # setting for threshold calcuation
+  # setting for threshold calculation
   if(is.null(control[["alpha",exact=TRUE]])){ control$alpha <- 0.05 }
   if(control$alpha <= 0 | control$alpha >= 1){
     stop("The significance level 'alpha' has to be a probability, and thus has to be between 0 and 1.")
