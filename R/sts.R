@@ -34,10 +34,11 @@ sts <- function (observed,
                  start = c(2000, 1), frequency = 52, # prototype values
                  epoch = NULL, # defaults to 1:nrow(observed), can be Date
                  population = NULL, # an alias for "populationFrac"
+                 map = NULL, # allow sf input for the map slot
                  ...) # further named arguments representing "sts" slots
 {
     slots <- list(observed = observed, start = start, freq = frequency,
-                  epoch = epoch, ...)
+                  epoch = epoch, map = map, ...)
 
     if (!is.null(population)) {
         if ("populationFrac" %in% names(slots))
@@ -51,6 +52,17 @@ sts <- function (observed,
         ##     slots$start <- unlist(isoWeekYear(epoch[1L]), use.names = FALSE)
         slots$epoch <- as.integer(epoch)
         slots$epochAsDate <- TRUE
+    }
+
+    if (inherits(map, "sf")) {
+        if (!requireNamespace("sf", quietly = TRUE)) {
+            stop("'map' is of class \"sf\" but package 'sf' is not installed.\n",
+                 "  Alternatively, use a map of class \"SpatialPolygons\" (from 'sp').")
+        }
+        ## allow "sf" input and transform it to "SpatialPolygons*"
+        slots$map <- sf::as_Spatial(map)
+    } else if (!is.null(map) && !inherits(map, "SpatialPolygons")) {
+        stop("'map' must inherit from \"sf\" or \"SpatialPolygons\"")
     }
 
     ## call the standard generator function with explicitly set slots

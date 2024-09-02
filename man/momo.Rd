@@ -42,17 +42,20 @@ plot(momo[year(momo) >= 2000,], ylab = "", xlab = "Time (weeks)",
      xaxis.labelFreq = list("\%G"=atChange), xaxis.labelFormat = "\%G")
 surveillance.options(oopts)
 
-\dontshow{if (surveillance.options("allExamples")) \{}
+
+if (surveillance.options("allExamples")) {
+
 ## stratified monitoring from 2007-W40 using the Farrington algorithm
 phase2 <- which(epoch(momo) >= "2007-10-01")
 momo2 <- farrington(momo, control = list(range=phase2, alpha=0.01, b=5, w=4))
-colSums(alarms(momo2))
+print(colSums(alarms(momo2)))
 plot(momo2, col = c(8, NA, 4), same.scale = FALSE)
 
 ## stripchart of alarms (Figure 5 in Hoehle and Mazick, 2010)
 plot(momo2, type = alarm ~ time, xlab = "Time (weeks)", main = "",
      alarm.symbol = list(pch=3, col=1, cex=1.5))
-\dontshow{\}}
+
+}
 }
 \references{
   \enc{Höhle}{Hoehle}, M. and Mazick, A. (2010). Aberration detection in R

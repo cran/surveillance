@@ -172,7 +172,6 @@ plot(imdepi, "time", by = NULL, main = "Aggregated over both event types")
 ## show the distribution in space
 plot(imdepi, "space", lwd = 2, col = "lavender")
 
-\dontshow{if (surveillance.options("allExamples")) \{}
 ## with the district-specific population density in the background,
 ## a scale bar, and customized point style
 load(system.file("shapes", "districtsD.RData", package = "surveillance"))
@@ -189,7 +188,6 @@ plot(imdepi, "space", tiles = districtsD, pop = "log10popdens",
      at = seq(1.3, 3.7, by=0.05),
      colorkey = list(labels=list(at=log10(keylabels), labels=keylabels),
                      title=expression("Population density per " * km^2)))
-\dontshow{\}}
 }
 
 \keyword{hplot}

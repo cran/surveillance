@@ -37,7 +37,8 @@ mycontrol <- makeControl(
     ne = list(normalize = TRUE),
     verbose = TRUE)
 str(mycontrol)
-\dontshow{if (surveillance.options("allExamples"))}
+
+if (surveillance.options("allExamples"))
 ## fit this model
 fit <- hhh4(fluBYBW, mycontrol)
 }

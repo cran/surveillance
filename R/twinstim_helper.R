@@ -1,7 +1,7 @@
 ################################################################################
 ### Internal helper functions for "twinstim"
 ###
-### Copyright (C) 2009-2016,2018,2021 Sebastian Meyer
+### Copyright (C) 2009-2016,2018,2021,2024 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -35,7 +35,7 @@ determineSources1 <- function (i, eventTimes, removalTimes, distvec, eps.s,
     unname(sources)
 }
 
-## interface to new C++ implementation (including a loop over all events)
+## interface to new C implementation (including a loop over all events)
 determineSources <- function (eventTimes, eps.t,
                               eventCoords, eps.s,
                               eventTypes, qmatrix)
@@ -49,18 +49,19 @@ determineSources <- function (eventTimes, eps.t,
               nrow(qmatrix) == ncol(qmatrix))
     N <- length(eventTimes)
     stopifnot(nrow(eventCoords) == N, length(eventTypes) == N)
+    nTypes <- nrow(qmatrix)
     if (is.factor(eventTypes)) {
-        stopifnot(nlevels(eventTypes) <= nrow(qmatrix))
+        stopifnot(nlevels(eventTypes) <= nTypes)
     } else {
         stopifnot(is.vector(eventTypes, mode = "integer"),
-                  max(eventTypes) <= nrow(qmatrix))
+                  max(eventTypes) <= nTypes)
     }
 
-    ## call C++ function
+    ## call C function
     .Call(C_determineSources,
           eventTimes, rep_len(eps.t, N),
           eventCoords, rep_len(eps.s, N),
-          as.integer(eventTypes), qmatrix)
+          as.integer(eventTypes) - 1L, qmatrix, as.integer(nTypes))
 }
 
 ## determine the .sources for an epidataCS object

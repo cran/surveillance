@@ -1,11 +1,6 @@
 ## refer to all C routines by their name prefixed by C_
 useDynLib(surveillance, .registration = TRUE, .fixes = "C_")
 
-importFrom(Rcpp, evalCpp) # see vignette("Rcpp-package", package="Rcpp")
-## although Rcpp is only used on C-level we need to "ensure that Rcpp is loaded
-## so any dynamic linking to its code can be resolved.  (There may be none, but
-## there could be, now or in future.)" (B. Ripley, 2013-09-08)
-
 ###############
 ### IMPORTS ###
 ###############

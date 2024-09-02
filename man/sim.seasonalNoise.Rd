@@ -25,7 +25,7 @@ sim.seasonalNoise(A = 1, alpha = 1, beta = 0, phi = 0,
   \item{frequency}{factor to determine the oscillation-frequency, default = 1.}
   \item{state}{if a state chain is entered the outbreaks will be additional
     weighted by K.}
-  \item{K}{additional weigth for an outbreak which influences the distribution
+  \item{K}{additional weight for an outbreak which influences the distribution
     parameter mu, default = 0.}
 }
 \value{

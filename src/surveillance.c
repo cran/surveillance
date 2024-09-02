@@ -42,14 +42,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <R.h>
 
 /* header */
 /* void lr_cusum(int* ,double* , int *, double *, double *,int *, double *) ;
 void glr_cusum(int* ,double* , int *, int *, double *,int *, double *, int *, int *, int *) ; */
 
 /* Helper function for x^2 */
-static R_INLINE double sqr(double x) {
+static inline double sqr(double x) {
   return(x*x);
 }
 
@@ -447,7 +446,7 @@ void glr_cusum_window(int* x,double* mu0, int *lx_R, int *M_R, int *Mtilde_R, do
 /*Helper functions*/
 
 /* Score function */
-static R_INLINE double score(double phi, int *x, double *xm1, double *mu0, int k, int n) {
+static inline double score(double phi, int *x, double *xm1, double *mu0, int k, int n) {
   register int i;
   double sum = 0;
   /*printf("[1] ");*/
@@ -459,7 +458,7 @@ static R_INLINE double score(double phi, int *x, double *xm1, double *mu0, int k
 }
 
 /*fisher information*/
-static R_INLINE double fisher(double phi,int *x,double *xm1, double *mu0, int k,int n,double scorephi) {
+static inline double fisher(double phi,int *x,double *xm1, double *mu0, int k,int n,double scorephi) {
   register int i;
   double sum = 0;
   for (i=k; i<=n; i++) {
@@ -694,7 +693,7 @@ void lr_cusum_nb(int* x, double* mu0, double* alpha_R, int *lx_R, double *kappa_
 */
 
 /* Score function for intercept chart*/
-static R_INLINE double nbScore(double kappa, int *x, double *mu0, double alpha, int k, int n) {
+static inline double nbScore(double kappa, int *x, double *mu0, double alpha, int k, int n) {
   register int i;
   double sum = 0;
   /*printf("[1] ");*/
@@ -707,7 +706,7 @@ static R_INLINE double nbScore(double kappa, int *x, double *mu0, double alpha, 
 
 
 /*fisher information for intercept chart -- its minus the hesse */
-static R_INLINE double nbFisher(double kappa,int *x, double *mu0, double alpha, int k,int n) {
+static inline double nbFisher(double kappa,int *x, double *mu0, double alpha, int k,int n) {
   register int i;
   double sum = 0;
   for (i=k; i<=n; i++) {
@@ -717,7 +716,7 @@ static R_INLINE double nbFisher(double kappa,int *x, double *mu0, double alpha, 
 }
 
 /* Formula to compute a single l_{n,k} for the intercept chart */
-static R_INLINE double nblnk(double kappa,int *x, double *mu0, double alpha, int k,int n) {
+static inline double nblnk(double kappa,int *x, double *mu0, double alpha, int k,int n) {
   register int i;
   double lnk = 0;
 
@@ -874,18 +873,18 @@ void glr_nb_window(int* x,double* mu0, double* alpha_R, int *lx_R, int *Mtilde_R
 /********** Epidemic Chart ***********/
 
 /* alternative \mu_{1,t}(theta) */
-static R_INLINE double mu1(int i, double theta, double *mu0, double *xm1) {
+static inline double mu1(int i, double theta, double *mu0, double *xm1) {
   return( mu0[i] + exp(theta) * xm1[i]);
 }
 /* first derivative */
 /*
-static R_INLINE double d1mu1(int i, double theta, double *mu0, double *xm1) {
+static inline double d1mu1(int i, double theta, double *mu0, double *xm1) {
   return( exp(theta) * xm1[i]);
 }
 */
 /* second derivative */
 /*
-static R_INLINE double d2mu1(int i, double theta, double *mu0, double *xm1) {
+static inline double d2mu1(int i, double theta, double *mu0, double *xm1) {
   return( exp(theta) * xm1[i]);
 }
 */
@@ -894,30 +893,30 @@ static R_INLINE double d2mu1(int i, double theta, double *mu0, double *xm1) {
 /********** Intercept Chart (only upwards) ***********/
 
 /* /\* alternative \mu_{1,t}(theta) *\/ */
-/* static R_INLINE double mu1(int i, double theta, double *mu0, double *xm1) { */
+/* static inline double mu1(int i, double theta, double *mu0, double *xm1) { */
 /*   return( mu0[i] * exp(exp(theta))) ; */
 /* } */
 /* /\* first derivative *\/ */
-/* static R_INLINE double d1mu1(int i, double theta, double *mu0, double *xm1) { */
+/* static inline double d1mu1(int i, double theta, double *mu0, double *xm1) { */
 /*   return( mu0[i] * exp(theta + exp(theta))); */
 /* } */
 /* /\* second derivative *\/ */
-/* static R_INLINE double d2mu1(int i, double theta, double *mu0, double *xm1) { */
+/* static inline double d2mu1(int i, double theta, double *mu0, double *xm1) { */
 /*   return( mu0[i] * ( exp(theta + exp(theta)) + exp(2*theta + exp(theta)))); */
 /* } */
 
 /********** Intercept Chart (only upwards) regular parameterization requiring a fmax***********/
 
 /* alternative \mu_{1,t}(theta) */
-/* static R_INLINE double mu1(int i, double theta, double *mu0, double *xm1) { */
+/* static inline double mu1(int i, double theta, double *mu0, double *xm1) { */
 /*   return( mu0[i] * exp(theta)) ; */
 /* } */
 /* /\* first derivative *\/ */
-/* static R_INLINE double d1mu1(int i, double theta, double *mu0, double *xm1) { */
+/* static inline double d1mu1(int i, double theta, double *mu0, double *xm1) { */
 /*   return( mu0[i] * exp(theta)); */
 /* } */
 /* /\* second derivative *\/ */
-/* static R_INLINE double d2mu1(int i, double theta, double *mu0, double *xm1) { */
+/* static inline double d2mu1(int i, double theta, double *mu0, double *xm1) { */
 /*   return( mu0[i] * exp(theta)); */
 /* } */
 
@@ -927,7 +926,7 @@ static R_INLINE double d2mu1(int i, double theta, double *mu0, double *xm1) {
 
 /* Score function for the general negative binomial chart*/
 /*
-static R_INLINE double nbGeneralScore(double theta, int *x, double *xm1, double *mu0, double alpha, int k, int n) {
+static inline double nbGeneralScore(double theta, int *x, double *xm1, double *mu0, double alpha, int k, int n) {
   register int i;
   double sum = 0;
   double mu1i = 0, d1mu1i = 0;
@@ -942,7 +941,7 @@ static R_INLINE double nbGeneralScore(double theta, int *x, double *xm1, double 
 
 /*fisher information for the general chart -- its minus the hesse */
 /*
-static R_INLINE double nbGeneralFisher(double theta,int *x, double *xm1, double *mu0, double alpha, int k,int n) {
+static inline double nbGeneralFisher(double theta,int *x, double *xm1, double *mu0, double alpha, int k,int n) {
   register int i;
   double sum = 0;
   double mu1i = 0, d1mu1i = 0, d2mu1i;
@@ -959,7 +958,7 @@ static R_INLINE double nbGeneralFisher(double theta,int *x, double *xm1, double 
 */
 
 /* Formula to compute a single l_{n,k} for the general chart */
-static R_INLINE double nbGeneralLnk(double theta,int *x, double *xm1,  double *mu0, double alpha, int k,int n) {
+static inline double nbGeneralLnk(double theta,int *x, double *xm1,  double *mu0, double alpha, int k,int n) {
   register int i;
   double lnk = 0, mu1i=0;
 

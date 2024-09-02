@@ -1,8 +1,8 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.23.0
-Date: 2024-05-03
+Version: 1.23.1
+Date: 2024-09-02
 Authors@R: c(
     MH = person("Michael", "Hoehle",
                 email = "hoehle@math.su.se",
@@ -21,6 +21,7 @@ Authors@R: c(
     person("Mathias", "Hofmann", role = "ctb"),
     person("Christian", "Lang", role = "ctb"),
     person("Juliane", "Manitz", role = "ctb"),
+    person("Sophie", "Reichert", role = "ctb"),
     person("Andrea", "Riebler", role = "ctb"),
     person("Daniel", "Sabanes Bove", role = "ctb"),
     MS = person("Maelle", "Salmon", role = "ctb"),
@@ -35,9 +36,8 @@ Authors@R: c(
     )
 Depends: R (>= 3.6.0), methods, grDevices, graphics, stats, utils, sp
         (>= 1.0-15), xtable (>= 1.7-0)
-Imports: Rcpp (>= 0.11.1), polyCub (>= 0.8.0), MASS, Matrix, nlme,
-        spatstat.geom
-LinkingTo: Rcpp, polyCub
+Imports: polyCub (>= 0.8.0), MASS, Matrix, nlme, spatstat.geom
+LinkingTo: polyCub
 Suggests: parallel, grid, gridExtra (>= 2.0.0), lattice (>= 0.20-44),
         colorspace, scales, animation, msm, spc, coda, runjags, INLA,
         spdep, numDeriv, maxLik, gsl, fanplot, hhh4contacts, quadprog,
@@ -80,7 +80,7 @@ URL: https://surveillance.R-Forge.R-project.org/
 Additional_repositories: https://inla.r-inla-download.org/R/stable/
 VignetteBuilder: utils, knitr
 NeedsCompilation: yes
-Packaged: 2024-05-03 14:07:02 UTC; smeyer
+Packaged: 2024-09-02 14:51:39 UTC; smeyer
 Author: Michael Hoehle [aut, ths] (<https://orcid.org/0000-0002-0423-6702>),
   Sebastian Meyer [aut, cre] (<https://orcid.org/0000-0002-1791-9449>),
   Michaela Paul [aut],
@@ -90,6 +90,7 @@ Author: Michael Hoehle [aut, ths] (<https://orcid.org/0000-0002-0423-6702>),
   Mathias Hofmann [ctb],
   Christian Lang [ctb],
   Juliane Manitz [ctb],
+  Sophie Reichert [ctb],
   Andrea Riebler [ctb],
   Daniel Sabanes Bove [ctb],
   Maelle Salmon [ctb],
@@ -102,4 +103,4 @@ Author: Michael Hoehle [aut, ths] (<https://orcid.org/0000-0002-0423-6702>),
     from base R)
 Maintainer: Sebastian Meyer <seb.meyer@fau.de>
 Repository: CRAN
-Date/Publication: 2024-05-04 05:50:02 UTC
+Date/Publication: 2024-09-02 17:00:02 UTC

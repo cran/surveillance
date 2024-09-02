@@ -101,7 +101,7 @@ epitest(model, data, tiles, method = "time", B = 199,
     parallel operation, i.e., \code{.parallel} as well as
     \code{.seed} to make the results reproducible.\cr
     For the \code{plot}-method, further arguments passed to
-    \code{\link{truehist}}.\cr
+    \code{\link[MASS]{truehist}}.\cr
     Ignored by the \code{coef}-method.
   }
   \item{object,x}{
@@ -167,7 +167,7 @@ epitest(model, data, tiles, method = "time", B = 199,
   approach (via \code{\link{permute.epidataCS}}) and therefore relies on
   a space-time separable endemic model component.
   
-  The \code{plot}-method shows a \code{\link{truehist}} of
+  The \code{plot}-method shows a \code{\link[MASS]{truehist}} of
   the simulated null distribution together with the observed value.
   The \code{coef}-method extracts the parameter estimates from the \code{B}
   \code{permfits} (by default for the full model \code{which = "m1"}).

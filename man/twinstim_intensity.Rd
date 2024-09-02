@@ -202,7 +202,7 @@ text(2500, 0.08, labels="endemic", col=2, pos=2, font=2)
 
 
 ## spatial shape of the intensity (aggregated over time)
-\dontshow{if (surveillance.options("allExamples")) \{}
+
   ## load borders of Germany's districts
   load(system.file("shapes", "districtsD.RData", package="surveillance"))
 
@@ -222,7 +222,6 @@ text(2500, 0.08, labels="endemic", col=2, pos=2, font=2)
   })
   plot(maps_epiprop[[1]], split=c(1,1,2,1), more=TRUE)
   plot(maps_epiprop[[2]], split=c(2,1,2,1))
-\dontshow{\}}
 }
 
 \keyword{hplot}

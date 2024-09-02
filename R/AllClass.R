@@ -53,7 +53,9 @@
             ## if a map is provided, it must cover all colnames(observed):
             if (length(object@map) > 0 && # i.e., not the empty prototype
                 !all(namesObserved %in% row.names(object@map)))
-                "'map' is incomplete; ensure that all(colnames(observed) %in% row.names(map))",
+                paste("'map' is incomplete.",
+                      "  Ensure that 'all(colnames(observed) %in% row.names(map))'.",
+                      sep = "\n"),
             ## check booleans
             if (length(object@epochAsDate) != 1 || is.na(object@epochAsDate))
                 "'epochAsDate' must be either TRUE or FALSE",

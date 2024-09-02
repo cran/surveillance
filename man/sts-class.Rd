@@ -46,20 +46,20 @@
   The \code{"sts"} class supersedes the informal \code{"disProg"} class
   used in early versions of package \pkg{surveillance}. Converters are
   available, see \code{\link{disProg2sts}}.
-  
-  For areal time series, the class can also capture the spatial layout
-  of the regions, where the data originate from.
+
   The constructor function \code{sts} can be used to setup an
-  \code{"sts"} object. Conversion of simple time-series objects
-  (of class \code{"\link{ts}"}) is also possible.
-  The slots of the \code{"sts"} class and available methods are
-  described below.
+  \code{"sts"} object.
+  For areal time series, it can also capture a \code{map}
+  of the regions, where the counts originate from.
+  See Section \dQuote{Slots} below for a description of all class
+  components, and Section \dQuote{Methods} for a list of extraction,
+  conversion and visualization methods.
 
 }
 
 \usage{
 sts(observed, start = c(2000, 1), frequency = 52,
-    epoch = NULL, population = NULL, ...)
+    epoch = NULL, population = NULL, map = NULL, ...)
 }
 
 \arguments{
@@ -87,6 +87,10 @@ sts(observed, start = c(2000, 1), frequency = 52,
     \code{population} argument is an alias for the corresponding slot
     \code{populationFrac}. The default \code{NULL} value sets
     equal population fractions across all units.}
+  \item{map}{optional spatial data representing the regions, either of
+    class \code{"\linkSPclass{SpatialPolygons}"}
+    (or \code{"\linkSPclass{SpatialPolygonsDataFrame}"}) or of class
+    \code{"\link[sf]{sf}"} (requires package \CRANpkg{sf}).}
   \item{\dots}{further named arguments with names corresponding to slot
     names (see the list below). For instance, in the public health surveillance context,
     the \code{state} slot is used to indicate outbreaks (default:
@@ -127,7 +131,7 @@ sts(observed, start = c(2000, 1), frequency = 52,
       with dimensions \code{dim(observed)}.}
     \item{\code{map}:}{object of class \code{"\linkSPclass{SpatialPolygons}"}
       (or \code{"\linkSPclass{SpatialPolygonsDataFrame}"})
-      providing a shape of the areas which are monitored.}
+      providing a shape of the areas which are monitored or modelled.}
     \item{\code{control}:}{\code{\link{list}} of settings; this is a
       rather free data type to be returned by the surveillance algorithms.}
     \item{\code{epochAsDate}:}{a Boolean indicating

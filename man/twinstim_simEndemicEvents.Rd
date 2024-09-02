@@ -50,14 +50,12 @@ summary(s1@data)
 plot(imdepi$W, lwd = 2, asp = 1)  % to avoid sp -> sf
 plot(s1, col = s1$type, cex = 0.5, add = TRUE)
 
-\dontshow{if (surveillance.options("allExamples")) \{}
-## the general simulation method takes longer
+## Compare with the generic simulation method (slower)
 s0 <- simulate(m_noepi, seed = 1, data = imdepi, tiles = districtsD)
 class(s0)  # gives a full "simEpidataCS" with several methods applicable
 methods(class = "epidataCS")
 plot(s0, "time")
 plot(s0, "space", points.args = list(pch = 3), lwd = 2)
-\dontshow{\}}
 }
 \keyword{datagen}
 \keyword{models}

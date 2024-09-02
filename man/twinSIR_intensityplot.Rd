@@ -138,7 +138,6 @@ head(epi)
 ende <- plot(fit, which = "endemic", add = TRUE, col = 2)
 legend("topleft", legend = "endemic proportion", lty = 1, col = 2, bty = "n")
 
-\dontshow{if (surveillance.options("allExamples")) \{}
 # individual intensities
 tmp <- plot(fit, which = "total", aggregate = FALSE,
     col = rgb(0, 0, 0, alpha = 0.1),
@@ -154,7 +153,6 @@ matplot(x = tmp[,1], y = tmp[,1+c(3,99)], type = "S",
                           lambda[3](t) * " and " * lambda[99](t)))
 legend("topright", legend = paste("Individual", c(3,99)),
        col = 1:2, lty = 1:2)
-\dontshow{\}}
 }
 
 \keyword{hplot}

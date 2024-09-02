@@ -87,13 +87,11 @@ stsplot_spacetime(x, type, legend = NULL, opts.col = NULL, labels = TRUE,
 data("ha.sts")
 print(ha.sts)
 
-\dontshow{if (surveillance.options("allExamples")) \{}
-## map of total counts by district (compare old vs. new implementation)
-plot(ha.sts, type = observed ~ 1 | unit)
-plot(ha.sts, type = observed ~ unit, labels = TRUE)
-\dontshow{\}}
-
 \dontrun{
+# map of total counts by district (compare old vs. new implementation)
+plot(ha.sts, type = observed ~ 1 | unit) # deprecated
+plot(ha.sts, type = observed ~ unit, labels = TRUE)
+
 # space-time animation
 plot(aggregate(ha.sts,nfreq=13), type = observed ~ 1 | unit * time)
 

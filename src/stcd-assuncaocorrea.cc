@@ -8,7 +8,7 @@
 #include "stcd-assuncaocorrea.h"
 
 #include <cmath>
-#include <iostream>
+//#include <iostream>
 
 using namespace std;
 

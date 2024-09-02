@@ -114,16 +114,16 @@ set.seed(123)
 x <- rpois(520,lambda=1)
 stsObj <- sts(observed=x, frequency=52)
 
-\dontshow{if (surveillance.options("allExamples")) \{}
+if (surveillance.options("allExamples")) {
 #Compare timing of the two possible fitters for algo.farrington
-range <- 312:520
-system.time( sts1 <- farrington(stsObj, control=list(range=range,
-                       fitFun="algo.farrington.fitGLM.fast"), verbose=FALSE))
-system.time( sts2 <- farrington(stsObj, control=list(range=range,
-                       fitFun="algo.farrington.fitGLM"), verbose=FALSE))
-#Check if results are the same
-stopifnot(upperbound(sts1) == upperbound(sts2))
-\dontshow{\}}
+  range <- 312:520
+  system.time( sts1 <- farrington(stsObj, control=list(range=range,
+                         fitFun="algo.farrington.fitGLM.fast"), verbose=FALSE))
+  system.time( sts2 <- farrington(stsObj, control=list(range=range,
+                         fitFun="algo.farrington.fitGLM"), verbose=FALSE))
+  #Check if results are the same
+  stopifnot(upperbound(sts1) == upperbound(sts2))
+}
 }
 
 \author{M. \enc{Höhle}{Hoehle}}

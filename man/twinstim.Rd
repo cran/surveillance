@@ -459,16 +459,16 @@ summary(R0(m0, trimmed=FALSE))
 ## plot the path of the fitted total intensity
 plot(m0, "total intensity", tgrid=500)
 
-\dontshow{if (surveillance.options("allExamples")) \{}
+if (surveillance.options("allExamples")) {
 ## extract "residual process" integrating over space (takes some seconds)
 res <- residuals(m0)
 # if the model describes the true CIF well _in the temporal dimension_,
 # then this residual process should behave like a stationary Poisson
 # process with intensity 1
 plot(res, type="l"); abline(h=c(0, length(res)), lty=2)
-# easier, with CI and serial correlation -> checkResidualProcess()
+# easier, with CI and serial correlation:
 checkResidualProcess(m0)
-\dontshow{\}}
+}
 
 \dontrun{
   ## NB: in contrast to nlminb(), optim's BFGS would miss the
@@ -509,7 +509,9 @@ rug(imdepiC_infeps$events$time[s$nSources == 0], col = 2, lwd = 3)
 m_epi <- twinstim(epidemic = ~1, data = imdepiC_infeps, t0 = 31, T = 638)
 summary(m_epi)
 
-\dontshow{if (surveillance.options("allExamples")) withAutoprint(\{}
+
+if (surveillance.options("allExamples")) withAutoprint({
+
 ### full model with interaction functions (time-consuming)
 ## estimate an exponential temporal decay of infectivity
 m1_tiaf <- update(m0, tiaf=tiaf.exponential())
@@ -539,7 +541,8 @@ summary(m2)
   
 ## look at estimated R0 values by event type
 tapply(R0(m2), imdepi$events@data[names(R0(m2)), "type"], summary)
-\dontshow{\})}
+
+})
 }
 
 \keyword{models}

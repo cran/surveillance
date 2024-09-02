@@ -57,7 +57,7 @@ algo.outbreakP(disProgObj, control = list(range = range, k=100,
 
  In case \code{control$ret == "cases"} then a brute force numerical
  search for the number needed before alarm (NNBA) is performed. That
- is, given the past observations, whats the minimum number which would
+ is, given the past observations, what's the minimum number which would
  have caused an alarm? Note: Computing this might take a while because
  the search is done by sequentially increasing/decreasing the last
  observation by one for each time point in \code{control$range} and

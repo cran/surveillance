@@ -53,7 +53,7 @@ such that it works for a very large class of distributions.
     length variable.}
   \item{cdf}{Cumulative density function (up to length \eqn{T}) of the run
     length variable.}
-  \item{arl}{If the model is time homogenous (i.e. if \eqn{T==1}) then
+  \item{arl}{If the model is time homogeneous (i.e. if \eqn{T==1}) then
     the ARL is computed based on the stationary distribution of the
     Markov chain. See the eqns in the reference for details. Note: If
     the model is not time homogeneous then the function returns
@@ -109,19 +109,17 @@ arls <- sapply(h.grid, function(h) {
 })
 plot(h.grid, arls,type="l",xlab="threshold h",ylab=expression(ARL[0]))
 
-\dontshow{if (surveillance.options("allExamples")) \{}
 ######################################################
 #Run length of a time varying negative binomial CUSUM
 ######################################################
 
-mu0 <- matrix(5*sin(2*pi/52 * 1:200) + 10,ncol=1)
+mu0 <- matrix(5*sin(2*pi/52 * 1:150) + 10,ncol=1)
 
 rl <- LRCUSUM.runlength( mu=t(mu0), mu0=t(mu0), mu1=kappa*t(mu0), h=2,
   dfun = dY, n=rep(100,length(mu0)), alpha=alpha,g=20)
 
 plot(1:length(mu0),rl$pmf,type="l",xlab="t",ylab="PMF")
 plot(1:length(mu0),rl$cdf,type="l",xlab="t",ylab="CDF")
-\dontshow{\}}
 
 ########################################################
 # Further examples contain the binomial, beta-binomial

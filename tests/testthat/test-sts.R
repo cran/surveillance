@@ -93,3 +93,28 @@ test_that("epoch() finds Monday of 'start' week (ISO)", {
     ## failed in surveillance 1.18.0, where epoch(x, as.Date=TRUE)
     ## used %W to interpret the 'start' week, so here returned "2020-02-03"
 })
+
+test_that("expected error message is produced", {
+    expect_error(sts(1:3, map = 1:3), "must inherit from")
+})
+
+test_that("\"sf\" input gets transformed to \"SpatialPolygons\"", if (requireNamespace("sf")) {
+    data("measlesWeserEms")
+    sts_from_sp <- sts(observed(measlesWeserEms), map = measlesWeserEms@map)
+    ## convert the map to "sf" and retry sts() construction based on that
+    map_sf <- sf::st_as_sf(measlesWeserEms@map)
+    expect_inherits(map_sf, "sf")
+    sts_from_sf <- sts(observed(measlesWeserEms), map = map_sf)
+    expect_inherits(sts_from_sf@map, "SpatialPolygonsDataFrame")
+    ## it is checked that the map covers all regions
+    expect_error(sts(observed(measlesWeserEms), map = map_sf[1:3,]), "incomplete")
+    ## test equivalence of map slots
+    attr_from_sp <- attributes(sts_from_sp@map)
+    attr_from_sf <- attributes(sts_from_sf@map)
+    nms <- c("bbox", "proj4string", "data", "class") # ignoring "plotOrder"
+    expect_identical(attr_from_sp[nms], attr_from_sp[nms])
+    ## sub-polygons get reordered in sf conversion, so only test area
+    area_from_sp <- surveillance:::areaSpatialPolygons(sts_from_sp@map, byid=TRUE)
+    area_from_sf <- surveillance:::areaSpatialPolygons(sts_from_sf@map, byid=TRUE)
+    expect_equal(area_from_sp, area_from_sf)
+})

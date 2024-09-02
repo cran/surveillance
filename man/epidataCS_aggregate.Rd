@@ -132,7 +132,6 @@ plot(imdepi, "time")
 plot(imdsts, type = observed ~ time)
 par(opar)
 
-\dontshow{if (surveillance.options("allExamples"))}
 ## plot number of cases by district
 plot(imdsts, type = observed ~ unit)
 

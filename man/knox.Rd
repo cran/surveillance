@@ -14,7 +14,7 @@ thresholds defining what \dQuote{close} means, the function
 The corresponding p-value can be calculated either by the Poisson
 approximation or by a Monte Carlo permutation approach (Mantel, 1967)
 with support for parallel computation via \code{\link{plapply}}.
-There is a simple \code{plot}-method showing a \code{\link{truehist}} of
+There is a simple \code{plot}-method showing a \code{\link[MASS]{truehist}} of
 the simulated null distribution together with the expected and observed
 values.
 This implementation of the Knox test is due to Meyer et al. (2016).
@@ -61,7 +61,7 @@ knox(dt, ds, eps.t, eps.s, simulate.p.value = TRUE, B = 999, ...)
     By default, no parallelization is performed (\code{.parallel = 1}),
     and a progress bar is shown (\code{.verbose = TRUE}).\cr
     For the \code{plot}-method, further arguments passed to
-    \code{\link{truehist}}.
+    \code{\link[MASS]{truehist}}.
   }
   \item{x}{
     an object of class \code{"knox"} as returned by the
@@ -152,7 +152,7 @@ knox(dt, ds, eps.t, eps.s, simulate.p.value = TRUE, B = 999, ...)
 data("imdepi")
 imdepiB <- subset(imdepi, type == "B")
 
-## Perfom the Knox test using the Poisson approximation
+## Perform the Knox test using the Poisson approximation
 knoxtest <- knox(
     dt = dist(imdepiB$events$time), eps.t = 30,
     ds = dist(coordinates(imdepiB$events)), eps.s = 50,

@@ -27,7 +27,7 @@ permutationTest(score1, score2, nPermutation = 9999,
     number of Monte Carlo replicates.
   }
   \item{plot}{
-    logical indicating if a \code{\link{truehist}} of the \code{nPermutation}
+    logical indicating if a \code{\link[MASS]{truehist}} of the \code{nPermutation}
     permutation test statistics should be plotted with a vertical line
     marking the observed difference of the means.
     To customize the histogram, \code{plot} can also be a list of

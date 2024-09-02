@@ -107,7 +107,7 @@ nowcast(now, when, data, dEventCol="dHospital", dReportCol="dReport",
   \code{m.interpretation="hoehle_anderheiden2014"} (Default) then the
   sliding window is defined as a horizontal cut in the reporting
   triangle, i.e. the values for the delay estimation originate from
-  reports occuring during \code{(now-m):now}. This means that the estimation of long delays is
+  reports occurring during \code{(now-m):now}. This means that the estimation of long delays is
   based on fewer observations than the estimation of the short delays,
   hence, the long delay estimates are subject to more variability. If
   for example \eqn{m=D} then the estimate for a delay of \eqn{d=D} is
@@ -121,7 +121,7 @@ nowcast(now, when, data, dEventCol="dHospital", dReportCol="dReport",
   estimated based on the same number of observations (\eqn{m+1}). This
   means that in order to estimate the delay for \eqn{d} days, a
   sliding rectangle of length \eqn{m+1} containing the reports which
-  occured during \code{(now-m-d):now}. See Fig. 2 in Lawless (1994) for
+  occurred during \code{(now-m-d):now}. See Fig. 2 in Lawless (1994) for
   details. Note: A warning is given is
   \code{method="lawless"}, but \code{m.interpretation} is not.}
   \item{control}{A list with named arguments controlling the
@@ -170,7 +170,7 @@ nowcast(now, when, data, dEventCol="dHospital", dReportCol="dReport",
   one to include, e.g., day of the week effects or holidays.}
 	  \item{\code{logLambda}}{Prior on the spline. One of
 	    \code{c("iidLogGa","tps","rw1","rw2")}.}
-	  \item{\code{respDistr}}{Reponse distribution of \eqn{n_{t,d}}
+	  \item{\code{respDistr}}{Response distribution of \eqn{n_{t,d}}
   in the reporting triangle. Default is \code{"poisson"}. An
   experimental alternative is to use \code{"negbin"}.}
 	  \item{\code{tau.gamma}}{}

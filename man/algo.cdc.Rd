@@ -66,8 +66,9 @@ algo.cdc(disProgObj, control = list(range = 400:500,alpha=0.025))
 \keyword{classif}
 \references{
 Stroup, D., G. Williamson, J. Herndon, and J. Karon (1989). Detection
-of aberrations in the occurence of notifiable diseases surveillance data.
-Statistics in Medicine 8, 323-329. 
+of aberrations in the occurrence of notifiable diseases surveillance data.
+\emph{Statistics in Medicine} 8, 323--329.
+\doi{10.1002/sim.4780080312}
 
 Farrington, C. and N. Andrews (2003). Monitoring the Health of
 Populations, Chapter Outbreak Detection: Application to Infectious

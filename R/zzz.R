@@ -30,8 +30,13 @@
 ###########################
 
 
-### determines multiplicities in a matrix (or data frame)
+### Determines multiplicities in a matrix (or data frame)
 ### and returns unique rows with appended column of counts
-### using spatstat's multiplicity methods
+### using spatstat.geom's multiplicity methods
 
 countunique <- function (x) unique(cbind(x, COUNT = multiplicity(x)))
+
+
+### Checks if an R object is scalar, i.e., a numeric vector of length 1
+
+isScalar <- function (x) length(x) == 1L && is.vector(x, mode = "numeric")

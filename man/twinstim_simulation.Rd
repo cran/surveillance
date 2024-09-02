@@ -322,19 +322,19 @@ data("imdepi", "imdepifit")
 ## https://gdz.bkg.bund.de/), simplified by the "modified Visvalingam"
 ## algorithm (level=6.6\%) using MapShaper.org (v. 0.1.17):
 load(system.file("shapes", "districtsD.RData", package="surveillance"))
-\dontshow{if (surveillance.options("allExamples")) \{}
-plot(districtsD)
-plot(stateD, add=TRUE, border=2, lwd=2)
-\dontshow{\}}
+if (surveillance.options("allExamples")) {
+  plot(districtsD)
+  plot(stateD, add=TRUE, border=2, lwd=2)
+}
 
 ## simulate 2 realizations (over a short period, for speed)
 ## considering events from data(imdepi) before t=31 as prehistory
-\dontshow{## IGNORE_RDIFF_BEGIN}
+## IGNORE_RDIFF_BEGIN
 mysims <- simulate(imdepifit, nsim=2, seed=1, data=imdepi,
                    tiles=districtsD, newcoef=c("e.typeC"=-1),
                    t0=31, T=if (interactive()) 180 else 45, # for CRAN
                    simplify=TRUE)
-\dontshow{## IGNORE_RDIFF_END}
+## IGNORE_RDIFF_END
 \dontshow{
     ## check construction and selection from "simEpidataCSlist"
     local({
@@ -360,11 +360,12 @@ mysim2 <- mysims[[2]]
 summary(mysim2)
 plot(mysim2, aggregate="space")
 
-\dontshow{if (surveillance.options("allExamples")) \{}
-### compare the observed _cumulative_ number of cases during the
-### first 90 days to 20 simulations from the fitted model
 
-sims <- simulate(imdepifit, nsim=20, seed=1, data=imdepi, t0=0, T=90,
+### compare the observed _cumulative_ number of cases in the first 90 days to
+nsim <- 20
+### simulations from the fitted model
+\dontshow{if (!interactive()) nsim <- 2}% faster checks
+sims <- simulate(imdepifit, nsim=nsim, seed=1, data=imdepi, t0=0, T=90,
                  tiles=districtsD, simplify=TRUE)
 
 ## extract cusums
@@ -386,12 +387,10 @@ plot(c(0,90), c(0,35), type="n", xlab="Time [days]",
 plotcsums(csums_observed, col=c(2,4), lwd=3)
 legend("topleft", legend=levels(imdepi$events$type), col=c(2,4), lwd=1)
 invisible(lapply(csums_simulated, plotcsums,
-                 col=adjustcolor(c(2,4), alpha=0.5)))
-\dontshow{\}}
+                 col=adjustcolor(c(2,4), alpha.f=0.5)))
 
 
 \dontrun{
-
 ### Experimental code to generate 'nsim' simulations of 'nm2add' months
 ### beyond the observed time period:
 nm2add <- 24

@@ -35,7 +35,7 @@ extern void twins(int *x_ptr, int *n_ptr, int *I_ptr,
                   double *alpha_psi_ptr, double *beta_psi_ptr,	int *nu_trend_ptr);
 
 /* .Call calls */
-extern SEXP determineSources(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP determineSources(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP eq3a(SEXP, SEXP, SEXP);
 extern SEXP pKS2(SEXP, SEXP);
 extern SEXP pKolmogorov2x(SEXP, SEXP);
@@ -55,7 +55,7 @@ static const R_CMethodDef CEntries[] = {
 };
 
 static const R_CallMethodDef CallEntries[] = {
-    {"determineSources", (DL_FUNC) &determineSources, 6},
+    {"determineSources", (DL_FUNC) &determineSources, 7},
     {"eq3a",             (DL_FUNC) &eq3a,             3},
     {"pKS2",             (DL_FUNC) &pKS2,             2},
     {"pKolmogorov2x",    (DL_FUNC) &pKolmogorov2x,    2},

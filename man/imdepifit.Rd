@@ -29,8 +29,9 @@ data("imdepi", "imdepifit")
 
 ## how this fit was obtained
 imdepifit$call
-\dontshow{if (surveillance.options("allExamples"))}
+\dontshow{if (surveillance.options("allExamples"))
 ## reproduce "imdepifit"
 stopifnot(all.equal(imdepifit, eval(imdepifit$call)))
+}
 }
 \keyword{datasets}

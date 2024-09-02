@@ -1,3 +1,21 @@
+# surveillance 1.23.1 (2024-09-02)
+
+## Package Infrastructure
+
+- **Rcpp** is no longer used. Only two small helper functions (for
+  `backprojNP(eq3a.method="C")` and `as.epidataCS()`) were using it
+  (inefficiently) and have been replaced by C implementations.
+  This also reduces the size of the installed package.
+
+## New Features
+
+- The `sts()` constructor now also accepts an `"sf"` object as `map` input;
+  it is internally converted to `"SpatialPolygons"` as required by the
+  `"sts"` class.  (Based on a patch by Sophie Reichert.)
+
+- `as.epidataCS()` is faster in determining potential event sources.
+
+
 # surveillance 1.23.0 (2024-05-03)
 
 ## New Features

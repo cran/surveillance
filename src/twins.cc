@@ -25,13 +25,11 @@
  * to enable better programming, but this will probably be speedwise slower.
  *******************************************************************/
 
-#include <iostream>
+//#include <iostream>
 #include <fstream>
 
 /*New C++ uses header iostream (without the .h) followed by a namespace*/
 using namespace std;
-
-#include <math.h>
 
 /* Replaced calls to GSL with functions from the R API */
 #include <R.h>
@@ -356,8 +354,8 @@ void alphaupdate(DoubleVector& gamma, DoubleVector& alpha, DoubleVector& beta, D
 	}
       myneu=myneu+xreg[i]*taualpha;
       myneu=myneu/tauneu;
-      double akzw=0.5*log(tauneu/(2*PI))-0.5*tauneu*(alphaneu-myneu)*(alphaneu-myneu); /* log Proposalw. alt|neu*/
-      akzw -= ((0.5*log(tau/(2*PI))-0.5*tau*(alpha[i]-my)*(alpha[i]-my))); /* log Proposalw. neu|alt*/
+      double akzw=0.5*log(tauneu/(2*M_PI))-0.5*tauneu*(alphaneu-myneu)*(alphaneu-myneu); /* log Proposalw. alt|neu*/
+      akzw -= ((0.5*log(tau/(2*M_PI))-0.5*tau*(alpha[i]-my)*(alpha[i]-my))); /* log Proposalw. neu|alt*/
       akzw += (-0.5*taualpha*(alpha[i]-xreg[i])*(alpha[i]-xreg[i]));
       akzw -= (-0.5*taualpha*(alphaneu-xreg[i])*(alphaneu-xreg[i]));
       for (int t=2; t<=n; t++)
@@ -1628,8 +1626,8 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
 	{
 	  for (int t=2; t<=(n+1); t++)
 	    {
-	      xcov[i*2-1][t]=sin(2*PI*(t-1)*i/T); //schwingung um einen Zeitpunkt nach hinten verschoben. beginnt bei t=2
-	      xcov[i*2][t]=cos(2*PI*(t-1)*i/T);
+	      xcov[i*2-1][t]=sin(2*M_PI*(t-1)*i/T); //schwingung um einen Zeitpunkt nach hinten verschoben. beginnt bei t=2
+	      xcov[i*2][t]=cos(2*M_PI*(t-1)*i/T);
 	      
 	    } 
 	  // cout << endl;
@@ -1657,8 +1655,8 @@ void bplem_estimate(int verbose, ofstream &logfile, ofstream &logfile2, ofstream
 	{
 	  for (int t=2; t<=(n+1); t++)
 	    {
-	      xcov[i*2-1][t]=sin(2*PI*(t-1)*i/T); //schwingung um einen Zeitpunkt nach hinten verschoben. beginnt bei t=2
-	      xcov[i*2][t]=cos(2*PI*(t-1)*i/T);
+	      xcov[i*2-1][t]=sin(2*M_PI*(t-1)*i/T); //schwingung um einen Zeitpunkt nach hinten verschoben. beginnt bei t=2
+	      xcov[i*2][t]=cos(2*M_PI*(t-1)*i/T);
 	      
 	    } 
 	  //cout << endl;

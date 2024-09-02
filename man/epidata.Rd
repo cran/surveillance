@@ -195,7 +195,7 @@ as.epidata(data, ...)
     Euclidean distance via the function \code{\link{dist}}) and
     the result converted to a matrix via \code{\link{as.matrix}},
     or a pre-computed distance matrix with \code{dimnames} containing
-    the individual ids (a classed \code{"\linkS4class{Matrix}"} is supported).
+    the individual ids (a classed \code{"\link[Matrix:Matrix-class]{Matrix}"} is supported).
   }
   \item{keep.cols}{
     logical indicating if all columns in \code{data}
@@ -330,7 +330,7 @@ head(as.data.frame(myEpi))  # "epidata" has event history format
 summary(myEpi)              # see 'summary.epidata'
 plot(myEpi)                 # see 'plot.epidata' and also 'animate.epidata'
 
-\dontshow{if (surveillance.options("allExamples")) \{}
+
 ## add distance- and covariate-based weights for the force of infection
 ## in a twinSIR model, see vignette("twinSIR") for a description
 myEpi <- update(myEpi,
@@ -345,7 +345,6 @@ myEpi <- update(myEpi,
 )
 ## this is now identical to the prepared hagelloch "epidata"
 stopifnot(all.equal(myEpi, hagelloch))
-\dontshow{\}}
 
 \dontshow{if (surveillance.options("allExamples")) {
 ## test with precomputed distance matrix D
