@@ -784,7 +784,7 @@ getSeason <- function(x, component = c("end", "ar", "ne"), unit = 1,
 # compute dominant eigenvalue of Lambda_t
 # CAVE: no support for Lambda_it
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-getMaxEV_season <- function (x, period = x$stsObj@freq)
+getMaxEV_season <- function (x, period = frequency(x$stsObj))
 {
     stopifnot(inherits(x, "hhh4"))
     nUnits <- x$nUnit

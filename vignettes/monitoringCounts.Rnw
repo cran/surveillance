@@ -407,11 +407,11 @@ there is only one period defined per year, the reference window around $t_0$ and
 
 \begin{figure}
 \subfloat[$\texttt{noPeriods}=2$]{
-\includegraphics[width=0.45\textwidth]{monitoringCounts-cache/fPlot1.pdf}
+\includegraphics[width=0.45\textwidth]{monitoringCounts-fPlot1.pdf}
 }
 \qquad
 \subfloat[$\texttt{noPeriods}=3$]{
-\includegraphics[width=0.45\textwidth]{monitoringCounts-cache/fPlot2.pdf}
+\includegraphics[width=0.45\textwidth]{monitoringCounts-fPlot2.pdf}
 }
 
 \caption{Construction of the noPeriods-level factor to account for seasonality, depending on the value of the half-window size $w$ and of the freq of the
@@ -1436,8 +1436,8 @@ Other \proglang{R} packages can be worth of interest to \pkg{surveillance} users
 \pkg{qcc}~\citep{qcc}. The package \pkg{strucchange} allows detecting structural changes in general parametric models including GLMs~\citep{strucchange}, while the package
 \pkg{tscount} provides methods for regression and (retrospective) intervention analysis for count time series based on GLMs~\citep{tscount, liboschik_tscount_2015} . For epidemic modelling and
 outbreaks, packages such as \pkg{EpiEstim}~\citep{EpiEstim}, \pkg{outbreaker}~\citep{outbreaker} and \pkg{OutbreakTools}~\citep{OutbreakTools} offer good functionalities
-for investigating outbreaks that may for instance have been detected through to the use of \pkg{surveillance}. They are listed on the website of the \textit{\proglang{R}-epi project}
-(\url{https://sites.google.com/site/therepiproject}) that was initiated for compiling information about \proglang{R} tools useful for infectious diseases epidemiology. Another software of interest for aberration detection is \pkg{SaTScan}~\citep{SaTScan} which allows the detection of spatial, temporal and space-time clusters of events -- note that it is not a \proglang{R} package.
+for investigating outbreaks that may for instance have been detected through to the use of \pkg{surveillance}. They are listed on the website of the \textit{R Epidemics Consortium}
+(\url{https://www.repidemicsconsortium.org/}) that was initiated for compiling information about \proglang{R} tools useful for infectious diseases epidemiology. Another software of interest for aberration detection is \pkg{SaTScan}~\citep{SaTScan} which allows the detection of spatial, temporal and space-time clusters of events -- note that it is not a \proglang{R} package.
 
 Code contributions to the package are very welcome as well as feedback and suggestions for improving the package.
 

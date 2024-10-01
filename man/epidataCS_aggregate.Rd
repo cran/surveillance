@@ -132,8 +132,9 @@ plot(imdepi, "time")
 plot(imdsts, type = observed ~ time)
 par(opar)
 
-## plot number of cases by district
-plot(imdsts, type = observed ~ unit)
+## plot number of cases by district in Bavaria (municipality keys 09xxx)
+imd09 <- imdsts[, grep("^09", colnames(imdsts), value = TRUE), drop = TRUE]
+plot(imd09, type = observed ~ unit)
 
 ## also test conversion to an SIS event history ("epidata") of the "tiles"
 if (requireNamespace("intervals")) {

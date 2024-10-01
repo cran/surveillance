@@ -2,6 +2,7 @@
 %\VignetteEngine{knitr::knitr}
 %% additional dependencies beyond what is required for surveillance anyway:
 %\VignetteDepends{surveillance, grid, sf, polyclip, memoise, colorspace}
+%% 'sf' is not strictly required: sp:::is.projectedCRS() still has a fallback
 
 <<setup, cache = FALSE, include = FALSE, purl = FALSE>>=
 ## purl=FALSE => not included in the tangle'd R script

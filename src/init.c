@@ -27,12 +27,6 @@ extern void SRspacetime(double *x, double *y, double *t, int *n, double *radius,
                         double *epsilon, double *areaA, double *areaAcapBk,
                         int *cusum, double *threshold, 
                         double *Rarray, int *idxFirstAlarm, int *idxClusterCenter);
-extern void twins(int *x_ptr, int *n_ptr, int *I_ptr,
-                  char **logFile_ptr, char **logFile2_ptr, 
-                  int *burnin_ptr, int *filter_ptr, int *sampleSize_ptr, 
-                  double *alpha_xi_ptr, double *beta_xi_ptr, 
-                  int *T_ptr, int *nfreq_ptr, double *psiRWSigma_ptr,
-                  double *alpha_psi_ptr, double *beta_psi_ptr,	int *nu_trend_ptr);
 
 /* .Call calls */
 extern SEXP determineSources(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -50,7 +44,6 @@ static const R_CMethodDef CEntries[] = {
     {"lr_cusum_nb",          (DL_FUNC) &lr_cusum_nb,          10},
     {"siaf_polyCub1_iso",    (DL_FUNC) &siaf_polyCub1_iso,    12},
     {"SRspacetime",          (DL_FUNC) &SRspacetime,          13},
-    {"twins",                (DL_FUNC) &twins,                16},
     {NULL, NULL, 0}
 };
 

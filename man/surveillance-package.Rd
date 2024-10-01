@@ -51,9 +51,6 @@
   Held (2014). See \code{vignette("hhh4")} for a general introduction
   and \code{vignette("hhh4_spacetime")} for a discussion and
   illustration of spatial \code{hhh4} models.
-  Furthermore, the fully Bayesian approach for univariate
-  time series of counts from Held et al. (2006) is implemented as
-  function \code{\link{algo.twins}}.
   Self-exciting point processes are modeled through endemic-epidemic
   conditional intensity functions.
   \code{\link{twinSIR}} (H\enc{ö}{oe}hle, 2009) models the

@@ -1,11 +1,39 @@
-# surveillance 1.23.1 (2024-09-02)
+# surveillance 1.24.0 (2024-10-01)
+
+## New Features
+
+- `residuals.hhh4()` can now also compute `type = "pearson"` residuals.
+
+- The standard `frequency()` and `start()` generics can now be used to
+  extract the respective slots from an `"sts"` object.
+
+- When indexing a spatial `"sts"` object that contains a map by region names,
+  i.e., `<sts>[,<character>]`, the additional argument `drop = TRUE` can
+  now be used to subset the map accordingly.
 
 ## Package Infrastructure
 
-- **Rcpp** is no longer used. Only two small helper functions (for
-  `backprojNP(eq3a.method="C")` and `as.epidataCS()`) were using it
-  (inefficiently) and have been replaced by C implementations.
-  This also reduces the size of the installed package.
+- **sp** version 2.1-4 is now required, mainly to skip versions that
+  produce misleading/obsolete startup messages or throw unnecessary
+  warnings when **sf** is not available.
+
+## Deprecated & Defunct
+
+- The experimental `algo.twins()` implementation of
+  [Held et al. (2006)](https://doi.org/10.1093/biostatistics/kxj016)
+  has been removed from the package. The source code has been migrated
+  to a separate R package, `twins`, which is archived at
+  <https://codeberg.org/EE-hub/twins>.
+
+## Bug Fixes
+
+- `update.hhh4(S =)` can now be used for a previously disabled model
+  component, when it simply uses `f = ~1` and adds the requested number
+  of harmonics (but gives a warning as the specification may need to be
+  tweaked, e.g., for an offset).
+
+
+# surveillance 1.23.1 (2024-09-02)
 
 ## New Features
 
@@ -14,6 +42,13 @@
   `"sts"` class.  (Based on a patch by Sophie Reichert.)
 
 - `as.epidataCS()` is faster in determining potential event sources.
+
+## Package Infrastructure
+
+- **Rcpp** is no longer used. Only two small helper functions (for
+  `backprojNP(eq3a.method="C")` and `as.epidataCS()`) were using it
+  (inefficiently) and have been replaced by C implementations.
+  This also reduces the size of the installed package.
 
 
 # surveillance 1.23.0 (2024-05-03)
@@ -143,7 +178,7 @@
 - `plotHHH4_season()` gained a `period` argument to support harmonics
   with periods longer than the frequency of the `"sts"` object.
 
-- `stsplot_space()` now supports passing a `col` argument to `spplot()`
+- `stsplot_space()` now supports passing a `col` argument to `sp::spplot()`
   to change the colour of the polygon lines.
 
 - `plotHHH4_fitted()` can now handle time series with missing values.
@@ -230,7 +265,7 @@
 
 - The `CRS` of `data(imdepi)` and
   `data(measlesWeserEms)` have been updated via
-  `sp`'s `rebuild_CRS()` to avoid warnings when **rgdal**
+  `sp::rebuild_CRS()` to avoid warnings when **rgdal**
   is loaded with new PROJ and GDAL libraries.
 
 - `simEpidataCS()` now internally resets the CRS
@@ -318,7 +353,7 @@
 
 - `simEndemicEvents()` and thus
   `epitest(..., method="simulate")` are no longer slowed down by
-  intermediate `CRS()` computations.
+  intermediate `sp::CRS()` computations.
 
 ## Package Infrastructure
 
@@ -1290,7 +1325,7 @@
   weights in `hhh4()` models.
 
 - New auxiliary function `layout.scalebar()` for use as part
-  of `sp.layout` in `spplot()` or in the traditional
+  of `sp.layout` in `sp::spplot()` or in the traditional
   graphics system.
 
 ### New features for `"epidataCS"`
@@ -1302,7 +1337,7 @@
 
 - The spatial plot of `"epidataCS"` gained the arguments
   `tiles`, `pop` and `sp.layout`, and can now produce
-  an `spplot()` with the tile-specific population levels behind
+  an `sp::spplot()` with the tile-specific population levels behind
   the point pattern.
 
 - New function `permute.epidataCS()` to randomly permute
@@ -1468,7 +1503,7 @@
   seasonality using `addSeason2formula()`.
 
 - The new auxiliary function `layout.labels()` generates an
-  `sp.layout` item for `spplot()` in order to draw labels.
+  `sp.layout` item for `sp::spplot()` in order to draw labels.
 
 - When generating the `pit()` histogram with a single
   predictive CDF `pdistr`, the `...` arguments can now be
@@ -1706,7 +1741,7 @@
 - `oneStepAhead()`:
 
   -   Added support for parallel computation of predictions using
-      `mclapply()` from package **parallel**.
+      `parallel::mclapply()`.
 
   -   New argument `type` with a new `type`
       `"first"` to base all subsequent one-step-ahead predictions
@@ -2611,7 +2646,7 @@
 # surveillance 1.2-2
 
 - Replaced the deprecated `getSpPPolygonsLabptSlots()` calls
-  by `coordinates()` when plotting the map slot.
+  by `sp::coordinates()` when plotting the map slot.
 
 - Minor proof-reading of the documentation.
 

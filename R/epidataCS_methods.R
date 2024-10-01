@@ -3,6 +3,7 @@
 ### CONTINUOUS SPATIO-temporal infectious disease case data
 ###
 ### Copyright (C) 2009-2015,2017-2019,2024 Sebastian Meyer
+### (except where otherwise noted)
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -152,14 +153,14 @@ update.epidataCS <- function (object, eps.t, eps.s, qmatrix, nCircle2Poly,
 }
 
 
-## The subset method for epidataCS-objects is adapted from
-## base::subset.data.frame (authored by Peter
-## Dalgaard and Brian Ripley, Copyright (C) 1995-2012
-## The R Core Team) with slight modifications only
-## (we just replace 'x' by 'x$events@data' for evaluation of subset and select)
+## The subset method for "epidataCS" objects is adapted from
+## base::subset.data.frame
+## Copyright (C) 1995-2023 The R Core Team
+## [replaced 'x' by 'x$events@data' when evaluating 'subset' and 'select']
 
 subset.epidataCS <- function (x, subset, select, drop = TRUE, ...)
 {
+    chkDots(...)
     if (missing(subset))
         r <- TRUE
     else {
@@ -179,9 +180,10 @@ subset.epidataCS <- function (x, subset, select, drop = TRUE, ...)
 }
 
 
-## Subset epidataCS object using head and tail methods (which use [.epidataCS)
-## adapted from the corresponding matrix-methods, which have
+## Subset an "epidataCS" object via head() and tail() using [.epidataCS
+## Code adapted from earlier versions of the matrix-specific methods
 ## Copyright (C) 1995-2012 The R Core Team
+## [amended stopifnot(), replaced nrow() by nobs(), omitted 'addrownums']
 
 head.epidataCS <- function (x, n = 6L, ...)
 {

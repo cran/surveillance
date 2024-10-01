@@ -469,7 +469,7 @@ data("measlesWeserEms")
 ## fit an endemic-only "hhh4" model
 ## with time covariates and a district-specific offset
 hhh4fit <- hhh4(measlesWeserEms, control = list(
-    end = list(f = addSeason2formula(~1 + t, period = measlesWeserEms@freq),
+    end = list(f = addSeason2formula(~1 + t, period = frequency(measlesWeserEms)),
                offset = population(measlesWeserEms)),
     ar = list(f = ~-1), ne = list(f = ~-1), family = "NegBin1",
     subset = 1:nrow(measlesWeserEms)
@@ -496,8 +496,10 @@ stopifnot(
     all.equal(1/coef(hhh4fit)[["overdisp"]], glmnbfit$theta, tolerance = 1e-6),
     all.equal(coef(hhh4fit)[1:4], coef(glmnbfit),
               tolerance = 1e-6, check.attributes = FALSE),
-    all.equal(c(residuals(hhh4fit)), residuals(glmnbfit),
-              tolerance = 1e-6, check.attributes = FALSE)
+    sapply(c("deviance", "pearson", "response"), function (type)
+        all.equal(c(residuals(hhh4fit, type = type)),
+                  residuals(glmnbfit, type = type),
+                  tolerance = 5e-6, check.attributes = FALSE))
 )
 }
 }

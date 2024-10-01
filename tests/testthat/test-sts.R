@@ -58,10 +58,10 @@ test_that("\"sts\" conversion to a (tidy) data frame works consistently", {
 
 test_that("we can subset epochs of an \"sts\" object", {
     expect_identical(mysts[TRUE,TRUE], mysts)
-    expect_identical(mysts[2,]@start, c(1959, 3))
+    expect_identical(start(mysts[2,]), c(1959, 3))
     ## negative and 0 indices produced wrong "start" in surveillance <= 1.16.2
     expect_identical(mysts[-1,], mysts[2:10,])
-    expect_identical(mysts[0,]@start, mysts@start)
+    expect_identical(start(mysts[0,]), start(mysts))
 })
 
 test_that("colnames need to be identical (only for multivariate data)", {

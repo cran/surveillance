@@ -3,6 +3,7 @@
 ### vcov, logLik, print, summary, plot, R0, residuals, update, terms, all.equal
 ###
 ### Copyright (C) 2009-2019,2022 Sebastian Meyer
+### (except where otherwise noted)
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -720,8 +721,6 @@ profile.twinstim <- function (fitted, profile, alpha = 0.05,
 ### update-method for the twinstim-class
 ## stats::update.default would also work but is not adapted to the specific
 ## structure of twinstim: optim.args (use modifyList), two formulae, model, ...
-## However, this specific method is inspired by and copies small parts of the
-## update.default method from the stats package developed by The R Core Team
 
 update.twinstim <- function (object, endemic, epidemic,
                              control.siaf, optim.args, model,
@@ -785,7 +784,9 @@ update.twinstim <- function (object, endemic, epidemic,
         call$start[names(newstart)] <- newstart
         extras$start <- NULL
     }
-    ## CAVE: the remainder is copied from stats::update.default (as at R-2.15.0)
+
+    ## Handle remaining 'extras' as in stats::update.default
+    ## Copyright (C) 1995-2020 The R Core Team
     if(length(extras)) {
 	existing <- !is.na(match(names(extras), names(call)))
 	## do these individually to allow NULL to remove entries.
@@ -795,6 +796,7 @@ update.twinstim <- function (object, endemic, epidemic,
 	    call <- as.call(call)
 	}
     }
+
     if(evaluate) eval(call, parent.frame())
     else call
 }

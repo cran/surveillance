@@ -720,16 +720,16 @@ using the function \code{nbOrder}. See the corresponding help pages or
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 <<createVacc, echo=FALSE>>=
-data(MMRcoverageDE)
+data("MMRcoverageDE")
 cardVac1 <- MMRcoverageDE[1:16,3:4]
 
-adjustVac <- function(cardVac, p=0.5,nrow=1){
+adjustVac <- function(cardVac, p=0.5, nrow=1){
   card <- cardVac[,1]
   vac <- cardVac[,2]
   vacAdj <- vac*card + p*vac*(1-card)
   return(matrix(vacAdj,nrow=nrow, ncol=length(vacAdj), byrow=TRUE))
 }
-vac0 <- 1-adjustVac(cardVac1,p=0.5,nrow=measles2w@freq*3)
+vac0 <- 1 - adjustVac(cardVac1, p=0.5, nrow=frequency(measles2w)*3)
 colnames(vac0) <- colnames(measles2w)
 @
 
@@ -742,7 +742,7 @@ as explanatory variable in a model for the bi-weekly aggregated measles data.
 See \citet{herzog-etal-2010} for further details.
 
 Vaccination coverage levels for the year 2006 are available in the dataset
-\code{data(MMRcoverageDE)}. This dataset can be used to compute
+\code{MMRcoverageDE}. This dataset can be used to compute
 the $\Sexpr{nrow(vac0)}\times \Sexpr{ncol(vac0)}$ matrix \code{vac0} with adjusted
 proportions of unvaccinated school starters in each state $i$ used by
 \citet{herzog-etal-2010}.

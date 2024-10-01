@@ -1,7 +1,8 @@
 ################################################################################
 ### Initialization and other basic methods for the S4 class "sts"
 ###
-### Copyright (C) 2007-2014 Michael Hoehle, 2012-2019,2021,2023 Sebastian Meyer
+### Copyright (C) 2007-2014 Michael Hoehle
+### Copyright (C) 2012-2019,2021,2023,2024 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -134,8 +135,10 @@ init.sts <- function(.Object, ..., # also for slots of classes extending "sts"
     }
 
     ## time-constant population fractions can be provided as a single vector
-    if (is.vector(populationFrac, mode="numeric") &&
-        length(populationFrac) == nUnit) {
+    if (is.vector(populationFrac, mode = "numeric")) {
+        if (length(populationFrac) != nUnit)
+            stop("population vector has length ", length(populationFrac),
+                 " but ", nUnit, " units are 'observed'", call. = FALSE)
         populationFrac <- matrix(populationFrac, nTime, nUnit, byrow=TRUE)
     }
 
@@ -280,8 +283,17 @@ setMethod("aggregate", signature(x="sts"), aggregate.sts)
 
 setMethod("dim", "sts", function (x) dim(x@observed))
 setMethod("dimnames", "sts", function (x) dimnames(x@observed))
+setMethod("frequency", "sts", function (x, ...) x@freq)
+setMethod("start", "sts", function (x, ...) x@start)
 
-#Extract which observation within year we have
+## ## time() method to extract fractional year index (not really needed)
+## setMethod("time", "sts", function (x, ...) {
+##     tsp1 <- x@start[1L] + (x@start[2L] - 1)/x@freq
+##     seq.int(tsp1, by = 1/x@freq, length.out = length(x@epoch))
+## })
+
+## Extract which observation within year we have
+## (this could have been named "cycle", for consistency with "ts")
 setMethod("epochInYear", "sts", function(x,...) {
   if (x@epochAsDate && x@freq %in% c(12, 52, 365)) {
     epochStr <- switch(as.character(x@freq),
@@ -309,7 +321,7 @@ setMethod("year", "sts", function(x,...) {
 #[-method for truncating the time series and/or selecting units
 #####################################################################
 
-setMethod("[", "sts", function(x, i, j, ..., drop) {
+setMethod("[", "sts", function(x, i, j, ..., drop = FALSE) {
   nTimeOriginal <- nrow(x@observed)
   if (missing(i)) { # set default value
     i <- seq_len(nTimeOriginal)
@@ -328,6 +340,7 @@ setMethod("[", "sts", function(x, i, j, ..., drop) {
   ## if(missing(j)) j <- seq_len(ncol(x@observed))   # redundant
   if (!missing(j) && anyNA(j))
     stop("missing column index values are not supported")
+  ## FIXME: should probably warn about duplicated column indices
 
   ## check if i is a regular integer sequence (not invalidating freq)
   if (any(diff(i) != 1))
@@ -377,6 +390,15 @@ setMethod("[", "sts", function(x, i, j, ..., drop) {
   ## Note: We do not automatically subset the map according to j, since
   ##       identical(row.names(map), colnames(observed))
   ##       is not a property of the sts-class; Unmonitored regions are allowed.
+  ##       The map can also be empty (protoype value).
+  if (drop && !missing(j)) {
+      if (!is.character(j))
+          stop("'drop = TRUE' requires character-type column indices")
+      if (length(x@map))
+          x@map <- x@map[j,]
+      else
+          warning("nothing to drop; object has no map")
+  }
 
   #Done
   return(x)

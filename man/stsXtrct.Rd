@@ -9,14 +9,17 @@
   using row (time) and column (unit) indices.
 }
 \usage{
-\S4method{[}{sts}(x, i, j, ..., drop)
+\S4method{[}{sts}(x, i, j, ..., drop = FALSE)
 }
 \arguments{
   \item{x}{an object of class \code{"\linkS4class{sts}"}.}
-  \item{i}{row index (integer or logical vector).}
-  \item{j}{column index (character, integer, or logical vector).}
-  \item{\dots,drop}{unused (arguments of the generic).\cr
+  \item{i}{optional row index (integer or logical vector).}
+  \item{j}{optional column index (character, integer, or logical vector).}
+  \item{drop}{logical: Should subsetting by \code{j} be applied to
+    the map as well? This requires a \emph{character} index and is
+    disabled by default. It does not affect the other slots:
     Dimensions are never dropped.}
+  \item{\dots}{ignored.}
 }
 \value{
   an object of class \code{"sts"}.
@@ -42,13 +45,18 @@
 
 \examples{
 data("ha.sts")
-haagg <- aggregate(ha.sts, nfreq=13)
 
-plot(haagg[, 3])       # Single series
-plot(haagg[1:30, 3])   # Somewhat shorter
+# Show a (subset of a) single time series
+plot(ha.sts[,7])
+plot(ha.sts[year(ha.sts)==2006, 7])
 
-#Counts at time 20
-plot(haagg[20, ], type = observed ~ unit)
+# Map a single time point
+plot(ha.sts[5*52+26,], type=observed~unit)
+plot(ha.sts,           type=observed~unit, tps=5*52+26) # same -> ?stsplot_space
+
+# Restrict the data (and the map) to a subset of the districts
+plot(ha.sts[,c("pank","lich")],           type=observed~unit, labels=TRUE)
+plot(ha.sts[,c("pank","lich"),drop=TRUE], type=observed~unit, labels=TRUE)
 }
 
 \keyword{methods}

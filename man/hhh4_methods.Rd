@@ -47,7 +47,7 @@ see \code{vignette("hhh4_spacetime")}.
 \method{confint}{hhh4}(object, parm, level = 0.95, 
         reparamPsi = TRUE, idx2Exp = NULL, amplitudeShift = FALSE, ...)
 
-\method{residuals}{hhh4}(object, type = c("deviance", "response"), ...)
+\method{residuals}{hhh4}(object, type = c("deviance", "pearson", "response"), ...)
 }
 
 \arguments{
@@ -98,7 +98,8 @@ see \code{vignette("hhh4_spacetime")}.
     are considered.}
   \item{level}{the confidence level required.}
   \item{type}{the type of residuals which should be returned. The
-    alternatives are \code{"deviance"} (default) and \code{"response"}.}
+    alternatives are \code{"deviance"} (default), \code{"pearson"},
+    and \code{"response"}.}
 }
 
 \value{
@@ -131,7 +132,8 @@ see \code{vignette("hhh4_spacetime")}.
   intervals (assuming asymptotic normality).
 
   The \code{\link{residuals}}-method extracts raw (\code{"response"}) or
-  scaled (\code{"deviance"}) residuals from the model fit similar to
+  \code{"deviance"} or standardized (\code{"pearson"})
+  residuals from the model fit similar to
   \code{\link{residuals.glm}} for Poisson or NegBin GLM's.
 }
 

@@ -25,15 +25,17 @@ xPeriods <- c(15,67,117,15+26,67+26)
 p <- ggplot() +
 # white
   theme_void() +
-  geom_segment(aes(x = 0, y = -20, xend = 200, yend = 10), size=2,
+  geom_segment(aes(x = 0, y = -20, xend = 200, yend = 10), linewidth = 2,
                arrow = arrow(length = unit(0.5, "cm")), colour ='white')   +
 # time arrow
-  geom_segment(aes(x = 0, y = 0, xend = 150, yend = 0), size=1,
+  geom_segment(aes(x = 0, y = 0, xend = 150, yend = 0), linewidth = 1,
                arrow = arrow(length = unit(0.5, "cm")))   +
 # ticks
-  geom_segment(aes(x = xTicks, y = yTicksEnd2, xend = xTicks, yend = yTicksStart ), arrow = arrow(length = unit(0.3, "cm")),size=1) +
+  geom_segment(aes(x = xTicks, y = yTicksEnd2, xend = xTicks, yend = yTicksStart ),
+               arrow = arrow(length = unit(0.3, "cm")), linewidth = 1) +
 # big ticks
-  geom_segment(aes(x = xBigTicks, y = yTicksBigStart, xend = xBigTicks, yend = yTicksBigEnd*2), size=1) +
+  geom_segment(aes(x = xBigTicks, y = yTicksBigStart, xend = xBigTicks, yend = yTicksBigEnd*2),
+               linewidth = 1) +
 # time label
   annotate("text", label = "Time", x = 170, y = 0, size = 8, colour = "black",
            family="serif") +
@@ -42,7 +44,7 @@ p <- ggplot() +
            y = yTicksEnd - 10, size = 8,family="serif",parse=T)
 
 ## noPeriods = 2
-pdf("fPlot1.pdf", width = 7, height = 3, colormodel = "gray")
+pdf("monitoringCounts-fPlot1.pdf", width = 7, height = 3, colormodel = "gray")
 p +
 # periods labels
 annotate('text',label=c("A","A","A","B","B"),x = xPeriods,
@@ -54,9 +56,10 @@ yTicksBigEnd2 <- rep(0,4)
 yTicksBigStart2 <- rep(heightTick,4)
 newX <- c(xTicks[1:2]+widthRectangles/2+52-widthRectangles,xTicks[1:2]+52/2)
 xPeriods <- c(15,67,117,15+16,67+16,15+35,67+35)
-pdf("fPlot2.pdf", width = 7, height = 3, colormodel = "gray")
+pdf("monitoringCounts-fPlot2.pdf", width = 7, height = 3, colormodel = "gray")
 p +
-  geom_segment(aes(x = newX, y = yTicksBigStart2, xend = newX, yend = yTicksBigEnd2), size=1) +
+  geom_segment(aes(x = newX, y = yTicksBigStart2, xend = newX, yend = yTicksBigEnd2),
+               linewidth = 1) +
 # periods labels
 annotate('text',label=c("A","A","A","B","B","C","C"),x = xPeriods,
          y = rep(6,7), size = 8,family="serif",parse=T)

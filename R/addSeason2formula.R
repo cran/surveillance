@@ -21,8 +21,10 @@ addSeason2formula <- function (
               isScalar(period))
     
     ## return unchanged formula if S = 0
-    if (max(S) == 0)
+    if (max(S) == 0) {
+        environment(f) <- .GlobalEnv  # as documented
         return(f)
+    }
 
     ## character representation of old formula
     ftext <- paste0(deparse(f), collapse = "")

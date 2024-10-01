@@ -385,14 +385,13 @@ eventsData <- marks(imdepi)
 ## b) as a Spatial object via the coerce-method
 events <- as(imdepi, "SpatialPointsDataFrame")
 
-## plot observation region with events (may require package 'sf')
-if (requireNamespace("sf")) {% https://github.com/r-spatial/evolution/issues/10
-  plot(stateD, axes=TRUE); title(xlab="x [km]", ylab="y [km]")
-  points(events, pch=unclass(events$type), cex=0.5, col=unclass(events$type))
-  legend("topright", legend=levels(events$type), title="Type", pch=1:2, col=1:2)
+## plot observation region with events
+% might load 'sf' but should succeed without (<https://github.com/r-spatial/evolution/issues/10>)
+plot(stateD, axes=TRUE); title(xlab="x [km]", ylab="y [km]")
+points(events, pch=unclass(events$type), cex=0.5, col=unclass(events$type))
+legend("topright", legend=levels(events$type), title="Type", pch=1:2, col=1:2)
 
-  summary(events)
-}
+summary(events)
 
 ## space-time grid with endemic covariates
 head(stgrid <- imdepi$stgrid[,-1])

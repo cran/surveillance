@@ -2,6 +2,7 @@
 ### Simulate from a HHH4 model
 ###
 ### Copyright (C) 2012 Michaela Paul, 2013-2016,2018,2021 Sebastian Meyer
+### (except where otherwise noted)
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,

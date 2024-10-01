@@ -57,7 +57,7 @@ plotHHH4_season(..., components = NULL, intercept = FALSE,
                 par.settings = list(), matplot.args = list(),
                 legend = NULL, legend.args = list(),
                 refline.args = list(), unit = 1, period = NULL)
-getMaxEV_season(x, period = x$stsObj@freq)
+getMaxEV_season(x, period = frequency(x$stsObj))
 
 plotHHH4_maxEV(...,
                matplot.args = list(), refline.args = list(),

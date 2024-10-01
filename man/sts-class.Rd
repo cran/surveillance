@@ -12,6 +12,8 @@
 \alias{control<-,sts-method}
 \alias{epoch,sts-method}
 \alias{epoch<-,sts-method}
+\alias{frequency,sts-method}
+\alias{start,sts-method}
 \alias{observed,sts-method}
 \alias{observed<-,sts-method}
 \alias{population,sts-method}
@@ -90,7 +92,9 @@ sts(observed, start = c(2000, 1), frequency = 52,
   \item{map}{optional spatial data representing the regions, either of
     class \code{"\linkSPclass{SpatialPolygons}"}
     (or \code{"\linkSPclass{SpatialPolygonsDataFrame}"}) or of class
-    \code{"\link[sf]{sf}"} (requires package \CRANpkg{sf}).}
+    \code{"\link[sf]{sf}"} (requires package \CRANpkg{sf}).
+    Its \code{row.names()} must contain the region IDs to be matched
+    against \code{colnames(observed)}.}
   \item{\dots}{further named arguments with names corresponding to slot
     names (see the list below). For instance, in the public health surveillance context,
     the \code{state} slot is used to indicate outbreaks (default:
@@ -147,9 +151,10 @@ sts(observed, start = c(2000, 1), frequency = 52,
 
   \subsection{Extraction of slots}{
   There is an extraction (and replacement) method for almost every slot.
-  The name of the method corresponds to the slot name, with two exceptions:
-  the \code{populationFrac} slot is addressed by a \code{population} method,
-  and the \code{alarm} slot is addressed by an \code{alarms} method.
+  The name of the method corresponds to the slot name, with three exceptions:
+  the \code{freq} slot can be extracted by \code{frequency()},
+  the \code{populationFrac} slot is accessed by \code{population()},
+  and the \code{alarm} slot is accessed by \code{alarms()}.
 
   \describe{
     \item{epoch}{\code{signature(x = "sts")}:
@@ -164,6 +169,10 @@ sts(observed, start = c(2000, 1), frequency = 52,
       \code{freq} and will return the first day of each month
       (\code{freq=12}) and the Monday of each week (\code{freq=52}),
       respectively.}
+    \item{frequency}{\code{signature(x = "sts")}:
+      extract the \code{freq} slot.}
+    \item{start}{\code{signature(x = "sts")}:
+      extract the \code{start} slot.}
     \item{observed}{\code{signature(x = "sts")}:
       extract the \code{observed} slot.}
     \item{alarms}{\code{signature(x = "sts")}:

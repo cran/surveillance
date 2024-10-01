@@ -51,7 +51,7 @@ if (require("ggplot2")) {
 
 ## ----measlesModel_basic------------------------------------------------------------
 measlesModel_basic <- list(
-  end = list(f = addSeason2formula(~1 + t, period = measlesWeserEms@freq),
+  end = list(f = addSeason2formula(~1 + t, period = frequency(measlesWeserEms)),
              offset = population(measlesWeserEms)),
   ar = list(f = ~1),
   ne = list(f = ~1, weights = neighbourhood(measlesWeserEms) == 1),

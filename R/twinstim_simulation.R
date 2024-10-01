@@ -4,6 +4,7 @@
 ### algorithm (cf. Daley & Vere-Jones, 2003, Algorithm 7.5.V.).
 ###
 ### Copyright (C) 2010-2018,2021 Sebastian Meyer
+### (except where otherwise noted)
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,

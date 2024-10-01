@@ -30,10 +30,13 @@
     way of changing the number of harmonics in the \code{f}ormulae of
     the model components \code{"ar"}, \code{"ne"} and \code{"end"} (to be
     used as names of the list). Non-specified components are not touched.
-    Updating the \code{i}'th component's \code{f}ormula works by first
+    Updating the \code{f}ormula of component \code{\var{comp}} works by first
     dropping all sine and cosine terms and then applying
-    \code{addSeason2formula} with arguments \code{S = S[[i]]} and
-    \code{period = object$stsObj@freq}. Note that this step of updating
+    \code{addSeason2formula} with arguments \code{S = S[[\var{comp}]]} and
+    \code{period = frequency(object$stsObj)}, unless the component was
+    originally disabled (\code{f = ~ -1}) when the harmonics are added
+    to a simple intercept model and a warning is given.\cr
+    Note that this step of updating
     seasonality is processed after modification of the \code{control}
     list by the \code{\dots} arguments.
   }
@@ -84,9 +87,17 @@ salmonella <- disProg2sts(salmonella.agona)
 
 ## fit a basic model
 fit0 <- hhh4(salmonella,
-            list(ar = list(f = ~1), end = list(f = addSeason2formula(~t))))
+            list(ar = list(f = ~1), end = list(f = addSeason2formula(~1))))
 
-## update: Poisson -> NegBin1, component seasonality
+## the same, updating the minimal endemic-only model via 'S' (with a warning):
+fit0.2 <- update(hhh4(salmonella), # has no AR component
+                 S = list(ar = 0, end = 1))
+local({
+  fit0$control$start <- fit0.2$control$start <- NULL # obviously different
+  stopifnot(all.equal(fit0, fit0.2))
+})
+
+## multiple updates: Poisson -> NegBin1, more harmonics
 fit1 <- update(fit0, family = "NegBin1", S = list(end=2, ar=2))
 
 ## compare fits

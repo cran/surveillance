@@ -314,16 +314,16 @@ meanSc.B2[c("logs", "rps")]
 ###################################################
 ### code chunk number 33: createVacc
 ###################################################
-data(MMRcoverageDE)
+data("MMRcoverageDE")
 cardVac1 <- MMRcoverageDE[1:16,3:4]
 
-adjustVac <- function(cardVac, p=0.5,nrow=1){
+adjustVac <- function(cardVac, p=0.5, nrow=1){
   card <- cardVac[,1]
   vac <- cardVac[,2]
   vacAdj <- vac*card + p*vac*(1-card)
   return(matrix(vacAdj,nrow=nrow, ncol=length(vacAdj), byrow=TRUE))
 }
-vac0 <- 1-adjustVac(cardVac1,p=0.5,nrow=measles2w@freq*3)
+vac0 <- 1 - adjustVac(cardVac1, p=0.5, nrow=frequency(measles2w)*3)
 colnames(vac0) <- colnames(measles2w)
 
 
