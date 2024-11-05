@@ -1,8 +1,9 @@
 \name{create.disProg}
 \alias{create.disProg}
+%\alias{create.disProg-deprecated}
 \title{Creating an object of class \code{disProg} (DEPRECATED)}
 \description{
-  Creating objects of the legacy class \code{disProg} is deprecated;
+  Creating objects of the legacy class \code{disProg} is \emph{deprecated};
   use \code{\link{sts}} instead.
   
   An object of class \code{disProg} takes a vector with the weeknumber

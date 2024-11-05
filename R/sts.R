@@ -390,7 +390,7 @@ setMethod("[", "sts", function(x, i, j, ..., drop = FALSE) {
   ## Note: We do not automatically subset the map according to j, since
   ##       identical(row.names(map), colnames(observed))
   ##       is not a property of the sts-class; Unmonitored regions are allowed.
-  ##       The map can also be empty (protoype value).
+  ##       The map can also be empty (prototype value).
   if (drop && !missing(j)) {
       if (!is.character(j))
           stop("'drop = TRUE' requires character-type column indices")

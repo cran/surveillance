@@ -167,7 +167,7 @@ counts, see Figure~\ref{fig:hmm}.
 
 \begin{figure}[htb]
   \centering
-  \includegraphics[width=.75\textwidth]{surveillance-hmm}
+  \includegraphics[width=.75\textwidth]{figures/HMM}
 \caption{The Hidden Markov Model}
   \label{fig:hmm}
 \end{figure}

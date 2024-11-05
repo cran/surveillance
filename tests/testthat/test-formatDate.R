@@ -50,8 +50,8 @@ test_that("atMedian function works for %Y", expect_identical(
     atMedian(x,xm1),
     c(26L, 79L, 131L, 183L, 235L, 287L)))
 
-test_that("at2ndChange function works for %Y", expect_identical(
-    dates[at2ndChange(x,xm1)],
+test_that("at2ndChange function works for %Y", expect_equal(
+    dates[at2ndChange(x,xm1)], # possibly integer-valued (r87284)
     as.Date(c("2007-01-01","2009-01-05","2011-01-03"))))
 
 

@@ -4,7 +4,7 @@
 # Code removed from vignette to drop ggplot2 dependency
 library(ggplot2)
 
-# for rectanges
+# for rectangles
 widthRectangles <- 10
 # dimensions for the ticks
 heightTick <- 4
@@ -44,7 +44,7 @@ p <- ggplot() +
            y = yTicksEnd - 10, size = 8,family="serif",parse=T)
 
 ## noPeriods = 2
-pdf("monitoringCounts-fPlot1.pdf", width = 7, height = 3, colormodel = "gray")
+pdf("fPeriods2.pdf", width = 7, height = 3, colormodel = "gray")
 p +
 # periods labels
 annotate('text',label=c("A","A","A","B","B"),x = xPeriods,
@@ -56,7 +56,7 @@ yTicksBigEnd2 <- rep(0,4)
 yTicksBigStart2 <- rep(heightTick,4)
 newX <- c(xTicks[1:2]+widthRectangles/2+52-widthRectangles,xTicks[1:2]+52/2)
 xPeriods <- c(15,67,117,15+16,67+16,15+35,67+35)
-pdf("monitoringCounts-fPlot2.pdf", width = 7, height = 3, colormodel = "gray")
+pdf("fPeriods3.pdf", width = 7, height = 3, colormodel = "gray")
 p +
   geom_segment(aes(x = newX, y = yTicksBigStart2, xend = newX, yend = yTicksBigEnd2),
                linewidth = 1) +

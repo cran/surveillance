@@ -1,3 +1,9 @@
+# surveillance 1.24.1 (2024-11-05)
+
+This maintenance release adjusts a test of `formatDate()`
+to be compatible with recent changes in R-devel.
+
+
 # surveillance 1.24.0 (2024-10-01)
 
 ## New Features
@@ -22,7 +28,7 @@
 - The experimental `algo.twins()` implementation of
   [Held et al. (2006)](https://doi.org/10.1093/biostatistics/kxj016)
   has been removed from the package. The source code has been migrated
-  to a separate R package, `twins`, which is archived at
+  to a separate R package, **twins**, which is archived at
   <https://codeberg.org/EE-hub/twins>.
 
 ## Bug Fixes
@@ -71,6 +77,8 @@
 
 # surveillance 1.22.1 (2023-11-27)
 
+## Bug Fixes
+
 - The `pit()` plot could lack some tick marks on the y-axis (for R >= 4.2.0).
 
 
@@ -93,8 +101,8 @@
 
 # surveillance 1.21.1 (2023-05-16)
 
-- This is a maintenance release, fixing encoding-related portability
-  issues and increasing test coverage for rarely used functionality.
+This is a maintenance release, fixing encoding-related portability
+issues and increasing test coverage for rarely used functionality.
 
 
 # surveillance 1.21.0 (2023-03-14)
@@ -129,6 +137,8 @@
 
 
 # surveillance 1.20.3 (2022-11-14)
+
+## Package Infrastructure
 
 - `vignette("monitoringCounts")` now uses **knitr** as its engine
   to work around [Bug 18318](https://bugs.R-project.org/show_bug.cgi?id=18318).
@@ -1142,6 +1152,11 @@
 
 
 # surveillance 1.10-0 (2015-11-04)
+
+This package is now maintained by Sebastian Meyer, who has been an active
+co-author since version 1.3. We thank Michael H&ouml;hle for 10 years of
+maintenance ever since he created **surveillance** and published the
+package on CRAN in November 2005 for R 2.2.0.
 
 ## New Features
 

@@ -16,6 +16,8 @@
 \alias{inside.gpc.poly}
 \alias{intersectPolyCircle.gpc.poly}
 \alias{scale.gpc.poly}
+\alias{algo.twins}
+\alias{plot.atwins}
 \description{
   The functions listed here are no longer part of \pkg{surveillance}.
 }
@@ -57,6 +59,14 @@ inside.gpc.poly(x, y = NULL, polyregion, mode.checked = FALSE)
 \method{intersectPolyCircle}{gpc.poly}(object, center, radius, npoly = 32,
                    useGEOS = FALSE, ...)
 \method{scale}{gpc.poly}(x, center = c(0,0), scale = c(1,1))
+
+## Removed in surveillance 1.24.0
+algo.twins(disProgObj, control=list(
+               burnin=1000, filter=10, sampleSize=2500,
+               noOfHarmonics=1, alpha_xi=10, beta_xi=10,
+               psiRWSigma=0.25, alpha_psi=1, beta_psi=0.1,
+               nu_trend=FALSE, logFile="twins.log"))
+\method{plot}{atwins}(x, which=c(1,4,6,7), ask=TRUE, ...)
 }
 \details{
   The trivial function \code{compMatrix.writeTable} is no longer used
@@ -87,8 +97,9 @@ inside.gpc.poly(x, y = NULL, polyregion, mode.checked = FALSE)
 
   Long unused methods for \code{"gpc.poly"} objects have been removed;
   the corresponding package \pkg{gpclib} has been unmaintained on CRAN.
-}
-\seealso{
-  \code{\link{Defunct}}
+
+  The experimental and since unused \code{algo.twins} implementation of
+  Held et al. (2006) has been removed; it is archived at
+  \url{https://codeberg.org/EE-hub/twins}.
 }
 \keyword{internal}

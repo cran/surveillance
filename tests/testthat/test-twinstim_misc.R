@@ -17,9 +17,11 @@ stopifnot(# verify update-method
 )
 
 ## automatic start value is robust against -Inf offset
+tools::assertWarning(# infinite logLik
 fit0 <- twinstim(endemic = ~offset(log(popdensity)) + I(start/365),
                  data = imdepi0, model = TRUE,
-                 optim.args = list(fixed = TRUE))
+                 optim.args = list(fixed = TRUE), verbose = FALSE)
+)
 ## beta0 was initialized at Inf in surveillance <= 1.22.1
 stopifnot(is.finite(coef(fit0)), is.character(fit0$converged),
           is.infinite(logLik(fit0))) # because of events in 0-pop tiles
@@ -32,7 +34,7 @@ stopifnot(length(districts_h0) > 0, startsWith(districts_h0, "01"))
 
 ## intensityplot works for an endemic-only model
 fit_end <- twinstim(endemic = ~1, data = imdepi, model = TRUE,
-                    optim.args = list(fixed = TRUE))
+                    optim.args = list(fixed = TRUE), verbose = FALSE)
 intensityplot(fit_end, "total", "space", tiles = districtsD) -> .plotobj
 ## produced an error in surveillance <= 1.22.1:
 ##   unable to find an inherited method for function 'coordinates' for signature '"NULL"'

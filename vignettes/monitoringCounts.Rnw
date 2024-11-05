@@ -407,11 +407,11 @@ there is only one period defined per year, the reference window around $t_0$ and
 
 \begin{figure}
 \subfloat[$\texttt{noPeriods}=2$]{
-\includegraphics[width=0.45\textwidth]{monitoringCounts-fPlot1.pdf}
+\includegraphics[width=0.45\textwidth]{figures/fPeriods2.pdf}
 }
 \qquad
 \subfloat[$\texttt{noPeriods}=3$]{
-\includegraphics[width=0.45\textwidth]{monitoringCounts-fPlot2.pdf}
+\includegraphics[width=0.45\textwidth]{figures/fPeriods3.pdf}
 }
 
 \caption{Construction of the noPeriods-level factor to account for seasonality, depending on the value of the half-window size $w$ and of the freq of the

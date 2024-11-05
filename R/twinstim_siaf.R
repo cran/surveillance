@@ -200,60 +200,57 @@ checksiaf <- function (siaf, pargrid, type = 1, tolerance = 1e-5,
 
     ## Check 'F'
     if (!is.null(siaf$F)) {
-        cat("'F' vs. cubature using method = \"", method ,"\" ... ", sep="")
+        message("'F' vs. cubature using method = \"", method, "\" ... ", appendLF=FALSE)
         comp.F <- checksiaf.F(siaf$F, siaf$f, pargrid, type=type,
                               method=method, ...)
-        cat(attr(comp.F, "all.equal") <-
+        message(attr(comp.F, "all.equal") <-
             all.equal(comp.F[,1], comp.F[,2],
-                      check.attributes=FALSE, tolerance=tolerance),
-            "\n")
+                      check.attributes=FALSE, tolerance=tolerance))
     }
 
     ## Check 'Fcircle'
     if (!is.null(siaf$Fcircle)) {
-        cat("'Fcircle' vs. cubature using method = \"",method,"\" ... ", sep="")
+        message("'Fcircle' vs. cubature using method = \"", method, "\" ... ", appendLF=FALSE)
         comp.Fcircle <- checksiaf.Fcircle(siaf$Fcircle, siaf$f, pargrid,
                                           type=type, method=method, ...)
-        cat(attr(comp.Fcircle, "all.equal") <-
+        message(attr(comp.Fcircle, "all.equal") <-
             all.equal(comp.Fcircle[,1], comp.Fcircle[,2],
-                      check.attributes=FALSE, tolerance=tolerance),
-            "\n")
+                      check.attributes=FALSE, tolerance=tolerance))
     }
 
     ## Check 'deriv'
     if (!is.null(siaf$deriv)) {
-        cat("'deriv' vs. numerical derivative ... ")
+        message("'deriv' vs. numerical derivative ... ", appendLF=FALSE)
         if (requireNamespace("maxLik", quietly=TRUE)) {
             maxRelDiffs.deriv <- checksiaf.deriv(siaf$deriv, siaf$f, pargrid,
                                                  type=type)
-            cat(attr(maxRelDiffs.deriv, "all.equal") <-
+            message(attr(maxRelDiffs.deriv, "all.equal") <-
                 if (any(maxRelDiffs.deriv > tolerance))
-                paste("maxRelDiff =", max(maxRelDiffs.deriv)) else TRUE,
-                "\n")
-        } else cat("Failed: need package", sQuote("maxLik"), "\n")
+                paste("maxRelDiff =", max(maxRelDiffs.deriv)) else TRUE)
+        } else message("Failed: need package", sQuote("maxLik"))
     }
 
     ## Check 'Deriv'
     if (!is.null(siaf$Deriv)) {
-        cat("'Deriv' vs. cubature using method = \"", method ,"\" ... ", sep="")
+        message("'Deriv' vs. cubature using method = \"", method, "\" ... ", appendLF=FALSE)
         comp.Deriv <- checksiaf.Deriv(siaf$Deriv, siaf$deriv, pargrid,
                                       type=type, method=method, ...)
-        if (siaf$npars > 1) cat("\n")
+        if (siaf$npars > 1) message() #= LF
         attr(comp.Deriv, "all.equal") <-
             sapply(seq_len(siaf$npars), function (j) {
-                if (siaf$npars > 1) cat("\tsiaf parameter ", j, ": ", sep="")
+                if (siaf$npars > 1) message("\tsiaf parameter ", j, ": ", appendLF=FALSE)
                 ae <- all.equal(comp.Deriv[,j], comp.Deriv[,siaf$npars+j],
                                 check.attributes=FALSE, tolerance=tolerance)
-                cat(ae, "\n")
+                message(ae)
                 ae
             })
     }
 
     ## Check 'simulate'
     if (interactive() && !is.null(siaf$simulate)) {
-        cat("Simulating ... ")
+        message("Simulating ... ", appendLF=FALSE)
         checksiaf.simulate(siaf$simulate, siaf$f, pargrid[1,], type=type)
-        cat("(-> check the plot)\n")
+        message("(-> check the plot)")
     }
 
     ## invisibly return check results

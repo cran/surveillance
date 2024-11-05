@@ -1,11 +1,15 @@
 \encoding{latin1}
 \name{stsplot_spacetime}
 \alias{stsplot_spacetime}
+%\alias{stsplot_spacetime-deprecated}
 \title{
   Animated Map of Disease Incidence (DEPRECATED)
 }
 
 \description{
+  \code{stsplot_spacetime} is \emph{deprecated};
+  use the \code{\link[=animate.sts]{animate}} method instead.
+
   For each period (row) or for the overall period of the
   \code{observed} matrix of the \code{"\linkS4class{sts}"} object, a map
   showing the counts by region is produced.
@@ -71,11 +75,6 @@ stsplot_spacetime(x, type, legend = NULL, opts.col = NULL, labels = TRUE,
 
 \author{
   Michael H\enc{ö}{oe}hle
-}
-
-\note{
-  The \code{\link{animate.sts}} method provides a
-  re-implementation and supersedes this function!
 }
 
 \seealso{
