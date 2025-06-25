@@ -37,19 +37,26 @@ ks.plot.unif <- function (U, conf.level = 0.95, exact = NULL,
     }
     if (is.null(exact)) exact <- (n < 100) && !TIES
 
-    ## Helper function to invert the K-S test. The function
+    ## Helper function to invert the two-sided K-S test. The function
     ## pKolmogorov2x is the CDF of the Kolmogorov test statistic (x).
     f <- if (exact) {
         function (x, p) {
             PVAL <- 1 - .Call(C_pKolmogorov2x, x, n)
+            ## == stats:::pkolmogorov_two_exact(x, n, lower.tail = FALSE)
             PVAL - p
         }
     } else {
         function (x, p) {
             PVAL <- if (x == 0) 1 else 1 - .Call(C_pKS2, sqrt(n) * x, tol = 1e-6)
+            ## == stats:::pkolmogorov_two_asymp(x, n, lower.tail = FALSE)
+            ## == stats:::psmirnov_asymp(x, c(2*n, 2*n), lower.tail = FALSE)
+            ## == stats::psmirnov(x, c(2*n, 2*n), exact = FALSE, lower.tail = FALSE)
             PVAL - p
         }
     }
+    ## Alternatively, in R >= 4.4.0:
+    ## f <- function (x, p)
+    ##     stats:::pkolmogorov(x, n, exact = exact, lower.tail = FALSE) - p
 
     ## Test inversion
     Dconf <- sapply(conf.level, function (level) {

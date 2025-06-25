@@ -74,21 +74,23 @@ algo.glrpois(disProgObj, control = list(range=range, c.ARL=5,
         i.e. \eqn{c_{\gamma}}{c_gamma}}
     \item{\code{Mtilde}}{number of observations needed before we
         have a full rank the typical setup for the
-        "\code{intercept}" and "\code{epi}" charts is \code{Mtilde=1}}
+        \code{"intercept"} and \code{"epi"} charts is \code{Mtilde=1}}
     \item{\code{M}}{number of time instances back in time in the
         window-limited approach, i.e. the last value
         considered is \eqn{\max{1,n-M}}. To always look back
         until the first observation use \code{M=-1}.}
     \item{\code{change}}{a string specifying the type of the
         alternative. Currently the two choices are
-        \code{intercept} and \code{epi}. See the SFB
+        \code{"intercept"} and \code{"epi"}. See the SFB
         Discussion Paper 500 for details.}
-    \item{\code{theta}}{if \code{NULL} then the GLR scheme is
-        used. If not \code{NULL} the prespecified value for
-        \eqn{\kappa} or \eqn{\lambda} is used in a recursive
-        LR scheme, which is faster.  }
-    \item{\code{dir}}{a string specifying the direction of testing in
-        GLR scheme. With \code{"inc"} only increases in \eqn{x} are
+    \item{\code{theta}}{if \code{NULL} (default), the \emph{GLR scheme}
+        is used (with direction \code{dir}).
+        If not \code{NULL} and \code{change="intercept"}, the
+        given \eqn{\code{theta} = \kappa > 0} is used in
+        a \emph{recursive LR scheme}, which is faster
+        (but always assumes an \emph{inc}rease).}
+    \item{\code{dir}}{a string specifying the direction of testing in the
+        \emph{GLR scheme}. With \code{"inc"} (default), only increases in \eqn{x} are
         considered in the GLR-statistic, with \code{"dec"} decreases
         are regarded. }
     \item{\code{ret}}{a string specifying the type of
@@ -155,7 +157,7 @@ time before time point \eqn{t}. If no alarm is sounded by \code{xMax}, a return 
 of 1e99 is given. Similarly, if an alarm was sounded by time \eqn{t} the
 function counts down instead. Note: This is slow experimental code!
 
-At the moment, window limited ``\code{intercept}'' charts have not been
+At the moment, window-limited \code{"intercept"} charts have not been
 extensively tested and are at the moment not supported. As speed is
 not an issue here this doesn't bother too much. Therefore, a value of
 \code{M=-1} is always used in the intercept charts.

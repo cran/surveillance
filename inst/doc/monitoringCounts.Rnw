@@ -617,7 +617,7 @@ seasonality and a simple linear trend.
 library("INLA")
 rangeBoda <- which(epoch(cam.sts) >= as.Date("2007-01-01"))
 control.boda <- list(range = rangeBoda, X = NULL, trend = TRUE,
-                     season = TRUE, prior = "iid", alpha = 0.025,
+                     season = TRUE, prior = "rw1", alpha = 0.025,
                      mc.munu = 10000, mc.y = 1000,
                      samplingMethod = "marginals")
 boda <- boda(cam.sts, control = control.boda)
@@ -625,8 +625,10 @@ boda <- boda(cam.sts, control = control.boda)
 
 <<boda-cache, echo = FALSE, results='hide'>>=
 if (computeALL) {
-##hoehle 2018-07-18: changed code to use NICELOOKINGboda, but that's iid. Reason:
-##The option 'rw1' currently crashes INLA.
+## The original results were produced using version 0.0-1458166556,
+## and version 0.0-1485844051 from 2017-01-31 also worked. However:
+## hoehle 2018-07-18: changed to prior="iid" as "rw1" crashes INLA >= 17.06.20.
+## smeyer 2025-06-24: restored prior="rw1", working again with INLA 25.06.07.
 <<boda>>
 save(list = c("boda", "control.boda", "rangeBoda"),
      file = "monitoringCounts-cache/boda.RData")
@@ -667,16 +669,13 @@ We plot \code{boda.covars} in Figure~\ref{fig:b} and compare the alarms of the t
 Figure~\ref{fig:alarmplot} (plot \code{type = alarm ~ time}).
 
 \fbox{\vbox{
-Note (2018-07-19):
-We currently have to use the argument \code{prior = "iid"} in both calls
-of the \code{boda} function, because the procedure crashes when using
-recent versions of \pkg{INLA} (\code{>= 17.06.20}) with argument
-\code{prior = "rw1"}.
-%(the original results were produced using version 0.0-1458166556,
-%and version 0.0-1485844051 from 2017-01-31 also works)
-This means results in this vignette deviate from the results reported in
-the JSS paper -- in particular we do not get any alarms when using the
-\code{boda} procedure with covariates. We are looking into the problem.
+\underline{Notes:} In the original publication, the code for \code{control.boda} showed
+\code{prior="iid"} even though the results were produced with
+\code{prior="rw1"}. The latter crashed later versions of \pkg{INLA},
+but seems to work again with version 25.06.07.
+Furthermore, results in this vignette deviate from the results reported in
+the JSS paper due to changes in \pkg{INLA}; full reproducibility would also
+require disabling parallelization in \code{inla()}.
 }}
 
 Note here that the \code{bayes}

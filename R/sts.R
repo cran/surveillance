@@ -2,7 +2,7 @@
 ### Initialization and other basic methods for the S4 class "sts"
 ###
 ### Copyright (C) 2007-2014 Michael Hoehle
-### Copyright (C) 2012-2019,2021,2023,2024 Sebastian Meyer
+### Copyright (C) 2012-2019,2021,2023-2025 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -409,52 +409,42 @@ setMethod("[", "sts", function(x, i, j, ..., drop = FALSE) {
 ## Plot method ... the type argument specifies what type of plot to make
 ##
 ## plot as multivariate time series:  type = observed ~ time | unit
-## plot as map object aggregated over time: type = observed ~ 1 | unit
-## new map implementation via: type = observed ~ unit
+## plot overall time series:          type = observed ~ time
+## plot as map aggregated over time:  type = observed ~ unit
 ## the specific plot functions are in separate files (stsplot_*.R)
 ########################################################################
 
 plot.sts <- function (x, type = observed ~ time | unit, ...)
 {
-  # catch new implementation of time-aggregate map plot
-  if (isTRUE(all.equal(observed ~ unit, type)))
-      return(stsplot_space(x, ...))
+    ## Valid formula?
+    stopifnot(inherits(type, "formula"))
+    LHS <- if ((length(type) == 2) || type[[2]] == "observed") "observed"
+           else if (type[[2]] == "alarm") "alarm"
+           else stop("'type' must have LHS 'observed', 'alarm' or empty")
+    RHS <- type[[length(type)]]
+    RHS_elts <- all.names(RHS)
+    valid <- RHS_elts %in% c("1","unit","|","time")  # 1 is deprecated
+    if (!all(valid))
+        stop("not a valid plot 'type'")
 
-  #Valid formula?
-  valid <- lapply(as.list(type[[3]]), function(i)
-                  is.na(pmatch(i,c("1","unit","|","time","*","+"))))
-  valid <- all(!unlist(valid))
-  obsOk <- (type[[2]] == "observed")
-  alarmOk <- (type[[2]] == "alarm")
-  if (!valid || !(obsOk | alarmOk))
-      stop("Not a valid plot type")
-
-  #Parse the formula, i.e. extract components
-  map   <- (length(type[[3]])==3) && (type[[3]][[1]] == "|") && (type[[3]][[2]] == "1")
-  time  <- pmatch("time",type[[3]]) > 0
-  #All-in-one if type=time+unit -> no, use argument "as.one" for stsplot_time
-  #as.one <- all(!is.na(pmatch(c("time","unit"),type[[3]] ))) && is.na(pmatch("|",type[[3]]))
-
-  #No unit dimension?
-  justTime <- type[[3]] == "time"
-
-  #space-time plots
-  if (map) {
-    stsplot_spacetime(x, type, ...)
-    return(invisible())
-  }
-  #time plots
-  if (time) {
-    if (obsOk) {
-      #In case observed ~ time, the units are aggregated
-      stsplot_time(if(justTime) aggregate(x,by="unit") else x, ...)
-      return(invisible())
+    if ("time" %in% RHS_elts) {
+        ## Temporal plots
+        if (LHS == "alarm") {
+            ## no auto-aggregation: alarm~time == alarm~time|unit
+            stsplot_alarm(x, ...)
+        } else {
+            if (RHS == "time" && ncol(x) > 1)
+                x <- aggregate(x, by = "unit")
+            stsplot_time(x, ...)
+        }
+    } else {
+        ## Spatial plots
+        if (RHS != "unit") # was stsplot_spacetime(x, type, ...)
+            warning(sprintf("plot type '%s' is defunct; using '%s'",
+                            paste(deparse(type), collapse = ""),
+                            "observed ~ unit"), call. = FALSE)
+        stsplot_space(x, ...)
     }
-    if (alarmOk) {
-      stsplot_alarm(x, ...)
-      return(invisible())
-    }
-  }
 }
 
 setMethod("plot", signature(x="sts", y="missing"), plot.sts)

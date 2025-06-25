@@ -38,11 +38,14 @@ boda(sts, control = list(
       \item{\code{range}}{Specifies the index of all timepoints which
 	should be tested. If range is \code{NULL} all possible
 	timepoints are used.} 
-      \item{\code{X}}{}
+      \item{\code{X}}{Data frame (or matrix) of covariates with as many
+        rows as there are time points, i.e., \code{nrow(sts)}.}
       \item{\code{trend}}{Boolean indicating whether a linear trend term should be
 	included in the model for the expectation the log-scale}
       \item{\code{season}}{Boolean to indicate whether a cyclic spline
 	should be included.}
+      \item{\code{prior}}{Model for temporal smoothing using an
+        \code{f(time, model)} term in the \code{inla} formula.}
       \item{\code{alpha}}{The threshold for declaring an observed count as
 	an aberration is the \eqn{(1-\alpha)\cdot 100\%}{(1-alpha)*100\%}
 	quantile of the predictive posterior.}

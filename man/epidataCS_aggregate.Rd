@@ -129,12 +129,12 @@ stopifnot(all.equal(colSums(observed(imdsts)),
 ## compare plots of monthly number of cases
 opar <- par(mfrow = c(2, 1))
 plot(imdepi, "time")
-plot(imdsts, type = observed ~ time)
+plot(imdsts, ~time)
 par(opar)
 
 ## plot number of cases by district in Bavaria (municipality keys 09xxx)
 imd09 <- imdsts[, grep("^09", colnames(imdsts), value = TRUE), drop = TRUE]
-plot(imd09, type = observed ~ unit)
+plot(imd09, ~unit)
 
 ## also test conversion to an SIS event history ("epidata") of the "tiles"
 if (requireNamespace("intervals")) {

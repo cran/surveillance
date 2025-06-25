@@ -33,11 +33,7 @@ algo.glrnb <- function(disProgObj,
     control$ret <- "value"
   if(is.null(control[["xMax",exact=TRUE]]))
     control$xMax <- 1e4
-  if(!is.null(control[["theta",exact=TRUE]])) {
-    if(control[["theta",exact=TRUE]] == 1) {
-      stop("Error: theta has to be larger than 1!")
-    }
-  }
+
   ##Set alpha to null as default. Not necessary, coz it would be taken from
   ##glrnb output.
   ##if(is.null(control[["alpha",exact=TRUE]])) control$alpha <- 0
@@ -54,6 +50,13 @@ algo.glrnb <- function(disProgObj,
   control$mu0Model <- NULL
   control$dir <- match.arg(control$dir, c("inc","dec"))
   dir <- ifelse(control$dir=="inc",1,-1)
+  if (!is.null(control[["theta"]])) {
+    if (dir != 1)
+      warning("'dir' is ignored: only *increases* are implemented for fixed 'theta'")
+    if (control[["theta"]] <= 0)
+      warning("'theta' should be positive (reflecting an increase)")
+  }
+
   control$ret <- match.arg(control$ret, c("value","cases"))
   ret <- pmatch(control$ret,c("value","cases"))
   mod <- list()
@@ -154,6 +157,8 @@ algo.glrnb <- function(disProgObj,
     } else { ################### Epidemic chart #######################
       if (control$change == "epi") {
         if (control$alpha == 0) { #pois
+          if (dir != 1) # TODO ...
+            warning("'dir' is ignored: only *increases* are implemented for epidemic Poisson")
           res <- .C(C_glr_epi_window,as.integer(x),as.double(mu0),length(x),as.integer(control$Mtilde),as.integer(control$M),as.double(xm10),as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))))
         } else {
           res <- .C(C_glr_nbgeneral_window,as.integer(x),as.double(mu0),alpha=as.double(control$alpha),lx=length(x),Mtilde=as.integer(control$Mtilde),M=as.integer(control$M),xm10=as.double(xm10),c.ARL=as.double(control$c.ARL),N=as.integer(0),val=as.double(numeric(length(x))),dir=as.integer(dir))

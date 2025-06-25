@@ -313,11 +313,7 @@ formals(xtable.twinstim) <- formals(xtable.summary.twinstim)
 plot.twinstim <- function (x, which, ...)
 {
     cl <- match.call()
-    which <- match.arg(which, choices =
-                       c(eval(formals(intensityplot.twinstim)$which),
-                         eval(formals(iafplot)$which)))
-    FUN <- if (which %in% eval(formals(intensityplot.twinstim)$which))
-        "intensityplot" else "iafplot"
+    FUN <- if (which %in% c("siaf", "tiaf")) "iafplot" else "intensityplot"
     cl[[1]] <- as.name(FUN)
     if (FUN == "iafplot") names(cl)[names(cl) == "x"] <- "object"
     eval(cl, envir = parent.frame())

@@ -2,7 +2,7 @@
 ### Endemic-epidemic modelling for univariate or multivariate
 ### time series of infectious disease counts (data class "sts")
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2012-2016,2019-2023 Sebastian Meyer
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2016,2019-2025 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -165,6 +165,12 @@ setControl <- function (control, stsObj)
   nTime <- nrow(stsObj)
   nUnit <- ncol(stsObj)
   if(nTime <= 2) stop("too few observations")
+
+  ## epidemic components are disabled by default: warn if settings lack 'f'
+  for (comp in c("ar", "ne"))
+      if (length(control[[comp]]) && !hasName(control[[comp]], "f"))
+          warning("settings for component \"", comp, "\" lack a formula; ",
+                  "it is disabled by default")
 
   ## arguments in 'control' override any corresponding default arguments
   defaultControl <- eval(formals(hhh4)$control)

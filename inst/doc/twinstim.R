@@ -21,8 +21,8 @@ stgrid <- imdepi$stgrid[,-1]
 load(system.file("shapes", "districtsD.RData", package = "surveillance"))
 
 ## ----imdepi_construct, results="hide", eval=FALSE----------------------------------
-#  imdepi <- as.epidataCS(events = events, W = stateD, stgrid = stgrid,
-#    qmatrix = diag(2), nCircle2Poly = 16)
+# imdepi <- as.epidataCS(events = events, W = stateD, stgrid = stgrid,
+#   qmatrix = diag(2), nCircle2Poly = 16)
 
 ## ----imdepi_events_echo, results="hide"--------------------------------------------
 summary(events)
@@ -52,9 +52,9 @@ plot(imdepi, "space", lwd = 2,
 layout.scalebar(imdepi$W, scale = 100, labels = c("0", "100 km"), plot = TRUE)
 
 ## ----imdepi_animate_saveHTML, eval=FALSE-------------------------------------------
-#  animation::saveHTML(
-#    animate(subset(imdepi, type == "B"), interval = c(0, 365), time.spacing = 7),
-#    nmax = Inf, interval = 0.2, loop = FALSE, title = "First year of type B")
+# animation::saveHTML(
+#   animate(subset(imdepi, type == "B"), interval = c(0, 365), time.spacing = 7),
+#   nmax = Inf, interval = 0.2, loop = FALSE, title = "First year of type B")
 
 ## ----imdepi_untied-----------------------------------------------------------------
 eventDists <- dist(coordinates(imdepi$events))
@@ -69,8 +69,8 @@ imdepi_untied_infeps <- update(imdepi_untied, eps.s = Inf)
 imdsts <- epidataCS2sts(imdepi, freq = 12, start = c(2002, 1), tiles = districtsD,
                         neighbourhood = NULL) # skip adjacency matrix (needs spdep)
 par(las = 1, lab = c(7,7,7), mar = c(5,5,1,1))
-plot(imdsts, type = observed ~ time)
-plot(imdsts, type = observed ~ unit, population = districtsD$POPULATION / 100000)
+plot(imdsts, ~time)
+plot(imdsts, ~unit, population = districtsD$POPULATION / 100000)
 
 ## ----endemic_formula---------------------------------------------------------------
 (endemic <- addSeason2formula(~offset(log(popdensity)) + I(start / 365 - 3.5),
@@ -84,8 +84,8 @@ imdfit_endemic <- twinstim(endemic = endemic, epidemic = ~0,
 summary(imdfit_endemic)
 
 ## ----imdfit_Gaussian, results="hide", eval=COMPUTE---------------------------------
-#  imdfit_Gaussian <- update(imdfit_endemic, epidemic = ~type + agegrp,
-#    siaf = siaf.gaussian(), cores = 2 * (.Platform$OS.type == "unix"))
+# imdfit_Gaussian <- update(imdfit_endemic, epidemic = ~type + agegrp,
+#   siaf = siaf.gaussian(), cores = 2 * (.Platform$OS.type == "unix"))
 
 ## ----tab_imdfit_Gaussian, echo=FALSE, results="asis"-------------------------------
 print(xtable(imdfit_Gaussian,
@@ -99,16 +99,16 @@ R0_events <- R0(imdfit_Gaussian)
 tapply(R0_events, marks(imdepi_untied)[names(R0_events), "type"], mean)
 
 ## ----imdfit_exponential, results="hide", eval=COMPUTE, include=FALSE---------------
-#  imdfit_exponential <- update(imdfit_Gaussian, siaf = siaf.exponential())
+# imdfit_exponential <- update(imdfit_Gaussian, siaf = siaf.exponential())
 
 ## ----imdfit_powerlaw, results="hide", eval=COMPUTE, include=FALSE------------------
-#  imdfit_powerlaw <- update(imdfit_Gaussian, siaf = siaf.powerlaw(),
-#    data = imdepi_untied_infeps,
-#    start = c("e.(Intercept)" = -6.2, "e.siaf.1" = 1.5, "e.siaf.2" = 0.9))
+# imdfit_powerlaw <- update(imdfit_Gaussian, siaf = siaf.powerlaw(),
+#   data = imdepi_untied_infeps,
+#   start = c("e.(Intercept)" = -6.2, "e.siaf.1" = 1.5, "e.siaf.2" = 0.9))
 
 ## ----imdfit_step4, results="hide", eval=COMPUTE, include=FALSE---------------------
-#  imdfit_step4 <- update(imdfit_Gaussian,
-#    siaf = siaf.step(exp(1:4 * log(100) / 5), maxRange = 100))
+# imdfit_step4 <- update(imdfit_Gaussian,
+#   siaf = siaf.step(exp(1:4 * log(100) / 5), maxRange = 100))
 
 ## ----imdfit_siafs, fig.cap="Various estimates of spatial interaction (scaled by the epidemic intercept $\\gamma_0$).", fig.pos="!ht", echo=FALSE----
 par(mar = c(5,5,1,1))
@@ -145,19 +145,16 @@ imdfit_powerlaw <- update(imdfit_powerlaw, model = TRUE)
 
 ## ----imdfit_powerlaw_intensityplot_time, fig.cap="Fitted ``ground'' intensity process aggregated over space and both types.", fig.pos="ht", echo=FALSE----
 par(mar = c(5,5,1,1), las = 1)
-intensity_endprop <- intensityplot(imdfit_powerlaw, aggregate="time",
-                                   which="endemic proportion", plot=FALSE)
-intensity_total <- intensityplot(imdfit_powerlaw, aggregate="time",
-                                 which="total", tgrid=501, lwd=2,
-                                 xlab="Time [days]", ylab="Intensity")
-curve(intensity_endprop(x) * intensity_total(x), add=TRUE, col=2, lwd=2, n=501)
-#curve(intensity_endprop(x), add=TRUE, col=2, lty=2, n=501)
+intensityplot(imdfit_powerlaw, "total intensity", tgrid=501, lwd=2,
+              xlab="Time [days]", ylab="Intensity")
+intensityplot(imdfit_powerlaw, "endemic intensity", tgrid=501, lwd=2,
+              add=TRUE, col=2)
 text(2500, 0.36, labels="total", col=1, pos=2, font=2)
 text(2500, 0.08, labels="endemic", col=2, pos=2, font=2)
 
 ## ----echo=FALSE, eval=FALSE--------------------------------------------------------
-#  meanepiprop <- integrate(intensityplot(imdfit_powerlaw, which="epidemic proportion"),
-#                           50, 2450, subdivisions=2000, rel.tol=1e-3)$value / 2400
+# meanepiprop <- integrate(intensityplot(imdfit_powerlaw, which="epidemic proportion"),
+#                          50, 2450, subdivisions=2000, rel.tol=1e-3)$value / 2400
 
 ## ----imdfit_powerlaw_intensityplot_space, fig.cap="Epidemic proportion of the fitted intensity process accumulated over time by type.", fig.subcap=c("Type B.", "Type C."), fig.width=5, fig.height=5, out.width="0.47\\linewidth", fig.pos="p", echo=FALSE----
 for (.type in 1:2) {
@@ -165,8 +162,7 @@ for (.type in 1:2) {
                         types=.type, tiles=districtsD, sgrid=1000,
                         # scales=list(draw=TRUE), # default (sp>=2 uses 'sf', with a fallback)
                         xlab="x [km]", ylab="y [km]", at=seq(0,1,by=0.1),
-                        col.regions=rev(hcl.colors(10,"Reds")),
-                        colorkey=list(title="Epidemic proportion")))
+                        col.regions=rev(hcl.colors(10,"Reds"))))
 }
 
 ## ----imdfit_checkResidualProcess, fig.cap="\\code{checkResidualProcess(imdfit\\_powerlaw)}. The left-hand plot shows the \\code{ecdf} of the transformed residuals with a 95\\% confidence band obtained by inverting the corresponding Kolmogorov-Smirnov test (no evidence for deviation from uniformity). The right-hand plot suggests absence of serial correlation.", results="hide", fig.pos="p", echo=FALSE----

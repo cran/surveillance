@@ -15,8 +15,8 @@ map <- measlesWeserEms@map
 populationFrac <- measlesWeserEms@populationFrac
 
 ## ----measlesWeserEms_neighbourhood, eval=FALSE-------------------------------------
-#  weserems_adjmat <- poly2adjmat(map)
-#  weserems_nbOrder <- nbOrder(weserems_adjmat)
+# weserems_adjmat <- poly2adjmat(map)
+# weserems_nbOrder <- nbOrder(weserems_adjmat)
 
 ## ----echo=FALSE--------------------------------------------------------------------
 weserems_nbOrder <- measlesWeserEms@neighbourhood
@@ -40,14 +40,14 @@ if (require("ggplot2")) {
 } else plot(measlesWeserEms, units = which(colSums(observed(measlesWeserEms)) > 0))
 
 ## ----measlesWeserEms_animation, eval=FALSE-----------------------------------------
-#  animation::saveHTML(
-#    animate(measlesWeserEms, tps = 1:52, total.args = list()),
-#    title = "Evolution of the measles epidemic in the Weser-Ems region, 2001",
-#    ani.width = 500, ani.height = 600)
+# animation::saveHTML(
+#   animate(measlesWeserEms, tps = 1:52, total.args = list()),
+#   title = "Evolution of the measles epidemic in the Weser-Ems region, 2001",
+#   ani.width = 500, ani.height = 600)
 
 ## ----echo=FALSE, eval=FALSE--------------------------------------------------------
-#  ## to perform the following analysis using biweekly aggregated measles counts:
-#  measlesWeserEms <- aggregate(measlesWeserEms, by = "time", nfreq = 26)
+# ## to perform the following analysis using biweekly aggregated measles counts:
+# measlesWeserEms <- aggregate(measlesWeserEms, by = "time", nfreq = 26)
 
 ## ----measlesModel_basic------------------------------------------------------------
 measlesModel_basic <- list(
@@ -97,19 +97,19 @@ SmodelGrid <- expand.grid(end = Soptions, ar = Soptions)
 row.names(SmodelGrid) <- do.call("paste", c(SmodelGrid, list(sep = "|")))
 
 ## ----measlesFits_vacc, eval=COMPUTE------------------------------------------------
-#  measlesFits_vacc <- apply(X = SmodelGrid, MARGIN = 1, FUN = function (options) {
-#    updatecomp <- function (comp, option) switch(option, "unchanged" = list(),
-#      "Soffset" = list(offset = comp$offset * Sprop),
-#      "Scovar" = list(f = update(comp$f, ~. + log(Sprop))))
-#    update(measlesFit_basic,
-#      end = updatecomp(measlesFit_basic$control$end, options[1]),
-#      ar = updatecomp(measlesFit_basic$control$ar, options[2]),
-#      data = list(Sprop = Sprop))
-#    })
+# measlesFits_vacc <- apply(X = SmodelGrid, MARGIN = 1, FUN = function (options) {
+#   updatecomp <- function (comp, option) switch(option, "unchanged" = list(),
+#     "Soffset" = list(offset = comp$offset * Sprop),
+#     "Scovar" = list(f = update(comp$f, ~. + log(Sprop))))
+#   update(measlesFit_basic,
+#     end = updatecomp(measlesFit_basic$control$end, options[1]),
+#     ar = updatecomp(measlesFit_basic$control$ar, options[2]),
+#     data = list(Sprop = Sprop))
+#   })
 
 ## ----aics_vacc, eval=COMPUTE-------------------------------------------------------
-#  aics_vacc <- do.call(AIC, lapply(names(measlesFits_vacc), as.name),
-#    envir = as.environment(measlesFits_vacc))
+# aics_vacc <- do.call(AIC, lapply(names(measlesFits_vacc), as.name),
+#   envir = as.environment(measlesFits_vacc))
 
 ## ----------------------------------------------------------------------------------
 aics_vacc[order(aics_vacc[, "AIC"]), ]
@@ -180,7 +180,7 @@ measlesFit_ri <- update(measlesFit_powerlaw,
   ne  = list(f = update(formula(measlesFit_powerlaw)$ne,  ~. + ri() - 1)))
 
 ## ----measlesFit_ri_summary_echo, eval=FALSE----------------------------------------
-#  summary(measlesFit_ri, amplitudeShift = TRUE, maxEV = TRUE)
+# summary(measlesFit_ri, amplitudeShift = TRUE, maxEV = TRUE)
 
 ## ----------------------------------------------------------------------------------
 head(ranef(measlesFit_ri, tomatrix = TRUE), n = 3)
@@ -229,8 +229,8 @@ measlesScores1 <- lapply(measlesPreds1, scores, which = SCORES, individual = TRU
 t(sapply(measlesScores1, colMeans, dims = 2))
 
 ## ----measlesPreds2, eval=COMPUTE, results="hide"-----------------------------------
-#  measlesPreds2 <- lapply(mget(models2compare), oneStepAhead,
-#    tp = tp, type = "rolling", which.start = "final")
+# measlesPreds2 <- lapply(mget(models2compare), oneStepAhead,
+#   tp = tp, type = "rolling", which.start = "final")
 
 ## ----measlesPreds2_plot, fig.cap = "Fan charts of rolling one-week-ahead forecasts during the second quarter of 2002, as produced by the random effects model \\code{measlesFit\\_ri}, for the five most affected districts.", out.width="\\linewidth", echo=-1----
 par(mfrow = sort(n2mfrow(length(districts2plot))), mar = c(4.5,4.5,2,1))
@@ -250,7 +250,7 @@ sapply(SCORES, function (score) permutationTest(
   nPermutation = 999))
 
 ## ----measlesPreds2_calibrationTest_echo, eval=FALSE--------------------------------
-#  calibrationTest(measlesPreds2[["measlesFit_ri"]], which = "rps")
+# calibrationTest(measlesPreds2[["measlesFit_ri"]], which = "rps")
 
 ## ----measlesPreds2_pit, fig.width=8, fig.height=2.5, out.width="0.93\\linewidth", fig.cap="PIT histograms of competing models to check calibration of the one-week-ahead predictions during the second quarter of 2002.", echo=-1, fig.pos="hbt"----
 par(mfrow = sort(n2mfrow(length(measlesPreds2))), mar = c(4.5,4.5,2,1), las = 1)

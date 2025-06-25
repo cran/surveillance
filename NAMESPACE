@@ -33,7 +33,7 @@ importFrom(utils, head, tail, toLatex)
 ##                   poisson, ppois, qpois, predict.glm, summary.glm, quasipoisson,
 ##                   glm.fit) ## and many more...
 importFrom(utils, packageName, packageVersion,
-                  modifyList, capture.output, read.table, data,
+                  modifyList, capture.output, read.table, data, hasName,
                   setTxtProgressBar, txtProgressBar, sessionInfo, head.matrix,
                   str, flush.console, write.table, as.roman, tail.matrix,
                   methods)
@@ -201,7 +201,6 @@ exportMethods(reportingTriangle,delayCDF,score,predint)
 export(stsplot_space)
 export(stsplot_time, stsplot_time1, stsplot_alarm)
 export(addFormattedXAxis, atChange, at2ndChange, atMedian) #for time axis formatting
-export(stsplot_spacetime) # old implementation of (animated) map
 S3method(animate, sts)    # S3-method for an S4 class, see ?Methods_for_S3
 export(autoplot.sts)
 S3method(ggplot2::autoplot, sts)  # delayed registration

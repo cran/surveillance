@@ -175,12 +175,11 @@ print(res,digits=3)
 
 ## import shapefile as "SpatialPolygonsDataFrame"
 shp <- system.file("shapes/berlin.shp",package="surveillance")
-if (requireNamespace("maptools")) { # archived on 2023-10-16
-    map <- maptools::readShapePoly(shp, IDvar = "SNAME")
-} else { # replacement code
-    map <- sf::as_Spatial(sf::st_read(shp, stringsAsFactors = TRUE, quiet = TRUE))
-    row.names(map) <- as.character(map$SNAME)
-}
+##map <- maptools::readShapePoly(shp, IDvar = "SNAME")
+## package 'maptools' was archived on 2023-10-16; replacement code:
+map <- sf::as_Spatial(sf::st_read(shp, stringsAsFactors = TRUE, quiet = TRUE))
+row.names(map) <- as.character(map$SNAME)
+
 ## convert to "sts" class
 ha.sts <- disProg2sts(ha, map = map)
 ## or simply load the prepared object from the package: data("ha.sts")

@@ -27,12 +27,12 @@ plot(measlesDE)
 
 ## aggregate to bi-weekly intervals
 measles2w <- aggregate(measlesDE, nfreq = 26)
-plot(measles2w, type = observed ~ time)
+plot(measles2w, ~time)
 
 ## use a date index for nicer x-axis plotting
 epoch(measles2w) <- seq(as.Date("2005-01-03"), by = "2 weeks",
                         length.out = nrow(measles2w))
-plot(measles2w, type = observed ~ time)
+plot(measles2w, ~time)
 }
 \references{
   Herzog, S. A., Paul, M. and Held, L. (2011):

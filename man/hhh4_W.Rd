@@ -106,7 +106,7 @@ W_np(maxlag, truncate = TRUE, normalize = TRUE,
 data("measlesWeserEms")
 
 ## data contains adjaceny orders as required for parametric weights
-plot(measlesWeserEms, type = observed ~ unit, labels = TRUE)
+plot(measlesWeserEms, ~unit, labels = TRUE)
 neighbourhood(measlesWeserEms)[1:6,1:6]
 max(neighbourhood(measlesWeserEms))  # max order is 5
 
@@ -147,13 +147,14 @@ measlesFit2 <- hhh4(measlesWeserEms, measlesModel2)
 ## omitting the separate AR component simplifies model extensions/selection
 ## and interpretation of covariate effects (only two predictors left)
 
-plot(measlesFit2, type = "neweights", exclude = NULL, xlab = "adjacency order")
+plot(measlesFit2, type = "neweights", xlab = "adjacency order")
 ## strong decay, again mostly within-district transmission
 ## (one could also try a purely autoregressive model)
 plot(measlesFit2, total = TRUE,
      legend.args = list(legend = c("epidemic", "endemic")))
 ## almost the same RMSE as with separate AR and NE effects
-c(rmse1 = sqrt(mean(residuals(measlesFit, "response")^2)),
+c(rmse1 = sqrt(mean( residuals(measlesFit, "response")^2 )),
+      # = sqrt(mean( scores(measlesFit, "ses")           ))
   rmse2 = sqrt(mean(residuals(measlesFit2, "response")^2)))
 
 }

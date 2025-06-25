@@ -1,7 +1,7 @@
 ################################################################################
 ### Plot the temporal or spatial evolution of the estimated intensity
 ###
-### Copyright (C) 2012-2015, 2022  Sebastian Meyer
+### Copyright (C) 2012-2015, 2022, 2025  Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -76,6 +76,7 @@ intensity.twinstim <- function (x, aggregate = c("time", "space"),
     hIntFUN <- if (modelenv$hash) {
         if (aggregate == "time") {
             function (tp) {
+                ## FIXME: make a stepfun() ?
                 stopifnot(isScalar(tp))
                 if (tp == t0) {
                     hInt[1L]
@@ -154,15 +155,19 @@ intensity.twinstim <- function (x, aggregate = c("time", "space"),
 
 
 
-intensityplot.twinstim <- function (x,
-    which = c("epidemic proportion", "endemic proportion", "total intensity"),
+intensityplot.twinstim <- function (x, which = "epidemic proportion",
     aggregate, types, tiles, tiles.idcol, # arguments of intensity.twinstim;
                                           # defaults are set below
     plot = TRUE, add = FALSE, tgrid = 101, rug.opts = list(),
     sgrid = 128, polygons.args = list(), points.args = list(),
     cex.fun = sqrt, ...)
 {
-    which <- match.arg(which)
+    ## new options cannot be partially matched
+    ## (for back-compatibility, "epidemic" must resolve to the proportion)
+    if (!which %in% c("epidemic intensity", "endemic intensity"))
+        which <- match.arg(which,
+                           c("epidemic proportion", "endemic proportion",
+                             "total intensity"))
 
     ## set up desired intensities
     cl <- match.call()
@@ -183,7 +188,9 @@ intensityplot.twinstim <- function (x,
             eGrid <- apply(coords, 1, components$eFUN)
             )
     body2 <- switch(which,
+                    "epidemic intensity" = expression(eGrid),
                     "epidemic proportion" = expression(eGrid / (hGrid + eGrid)),
+                    "endemic intensity" = expression(hGrid),
                     "endemic proportion" = expression(hGrid / (hGrid + eGrid)),
                     "total intensity" = expression(hGrid + eGrid))
     body(FUN) <- as.call(c(as.name("{"), c(body1, body2)))
@@ -210,9 +217,8 @@ intensityplot.twinstim <- function (x,
         if(! "xlab" %in% nms) dotargs$xlab <- "time"
         if(! "ylab" %in% nms) dotargs$ylab <- which
         if(! "type" %in% nms) dotargs$type <- "l"
-        if(! "ylim" %in% nms) dotargs$ylim <- {
-            if (which == "total intensity") c(0,max(yvals)) else c(0,1)
-        }
+        if(! "ylim" %in% nms) dotargs$ylim <-
+            if (endsWith(which, "intensity")) c(0,max(yvals)) else c(0,1)
         do.call(if (add) "lines" else "plot", args=c(alist(x=tgrid, y=yvals), dotargs))
         if (is.list(rug.opts)) {
             if (is.null(rug.opts$ticksize)) rug.opts$ticksize <- 0.02
@@ -275,12 +281,16 @@ intensityplot.twinstim <- function (x,
 
         ## plotit
         if (add) message("'add'ing is not possible with 'aggregate=\"space\"'")
+        if ((! "colorkey" %in% nms) || isTRUE(dotargs$colorkey)) {
+            dotargs$colorkey <- list(title = which)
+        } else if (is.list(dotargs$colorkey))
+            dotargs$colorkey <- modifyList(list(title = which), dotargs$colorkey)
         if (! "xlim" %in% nms) dotargs$xlim <- bbox(tiles)[1,]
         if (! "ylim" %in% nms) dotargs$ylim <- bbox(tiles)[2,]
         if (! "aspect" %in% nms) dotargs$aspect <- "iso"  # always projected
         if (! "scales" %in% nms) dotargs$scales <- list(draw = TRUE)
-        do.call("spplot", args=c(alist(sgridy, zcol="yvals", sp.layout=lobjs,
-                          checkEmptyRC=FALSE), dotargs))
+        do.call("spplot", args=c(alist(sgridy, zcol="yvals", sp.layout=lobjs),
+                                 dotargs))
     }
 }
 

@@ -96,7 +96,7 @@ hmm <- function(sts, control=list(range=NULL, noStates=2, trend=TRUE, noHarmonic
 
 
 #Cusum wrapper
-cusum <- function(sts,  control = list(range=range, k=1.04, h=2.26, m=NULL, trans="standard",alpha=NULL),...) {
+cusum <- function(sts, control = list(range=range, k=1.04, h=2.26, m=NULL, trans="standard", alpha=NULL, reset=FALSE), ...) {
   wrap.algo(sts,algo="algo.cusum",control=control,...)
 }
 

@@ -317,58 +317,29 @@ spatio-temporal conditional intensity models also to simulated data.
 \examples{
 data("imdepi", "imdepifit")
 
-## load borders of Germany's districts (originally obtained from
-## the German Federal Agency for Cartography and Geodesy,
-## https://gdz.bkg.bund.de/), simplified by the "modified Visvalingam"
-## algorithm (level=6.6\%) using MapShaper.org (v. 0.1.17):
+## simulation needs the district polygons ('tiles')
 load(system.file("shapes", "districtsD.RData", package="surveillance"))
 if (surveillance.options("allExamples")) {
   plot(districtsD)
   plot(stateD, add=TRUE, border=2, lwd=2)
 }
 
-## simulate 2 realizations (over a short period, for speed)
-## considering events from data(imdepi) before t=31 as prehistory
-## IGNORE_RDIFF_BEGIN
-mysims <- simulate(imdepifit, nsim=2, seed=1, data=imdepi,
-                   tiles=districtsD, newcoef=c("e.typeC"=-1),
-                   t0=31, T=if (interactive()) 180 else 45, # for CRAN
-                   simplify=TRUE)
-## IGNORE_RDIFF_END
-\dontshow{
-    ## check construction and selection from "simEpidataCSlist"
-    local({
-        mysim_from_list <- mysims[[1]]
-        capture.output(mysim_single <- eval("[[<-"(attr(mysims, "call"), "nsim", 1)))
-        mysim_from_list$runtime <- mysim_single$runtime <- NULL
-        stopifnot(all.equal(mysim_single, mysim_from_list,
-                            check.attributes = FALSE))
-    })
-    ## check equivalence of Lambdag from simulation and residuals via twinstim
-    stopifnot(all.equal(
-        residuals(mysims[[1]]),
-        suppressMessages(surveillance:::residuals.twinstim(surveillance:::as.twinstim.simEpidataCS(mysims[[1]])))
-    ))
-}
-
-## plot both simulations using the plot-method for simEpidataCSlist's
-mysims
-plot(mysims, aggregate="time")
-
-## extract the second realization -> object of class simEpidataCS
-mysim2 <- mysims[[2]]
-summary(mysim2)
-plot(mysim2, aggregate="space")
-
-
-### compare the observed _cumulative_ number of cases in the first 90 days to
-nsim <- 20
-### simulations from the fitted model
+### simulate from the fitted model, only over the first 90 days (for speed)
+nsim <- 10
 \dontshow{if (!interactive()) nsim <- 2}% faster checks
-sims <- simulate(imdepifit, nsim=nsim, seed=1, data=imdepi, t0=0, T=90,
+sims <- simulate(imdepifit, nsim=nsim, seed=1, data=imdepi, T=90,
                  tiles=districtsD, simplify=TRUE)
+sims
 
-## extract cusums
+## plot event times for a random selection of 4 simulations
+plot(sims, aggregate="time")
+
+## extract the second realization -> object of class "simEpidataCS"
+sim2 <- sims[[2]]
+summary(sim2)
+plot(sim2, aggregate="space")
+
+## extract _cumulative_ number of events (simulated vs. observed)
 getcsums <- function (events) {
     tapply(events$time, events@data["type"],
            function (t) cumsum(table(t)), simplify=FALSE)

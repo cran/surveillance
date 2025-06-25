@@ -1,3 +1,40 @@
+# surveillance 1.25.0 (2025-06-24)
+
+## New Features
+
+- `algo.cusum()` gains a `reset` option: if enabled, the CUSUM statistic
+  restarts from 0 after an alarm.  (Wish of Ann Christin Vietor.)
+
+- `intensityplot.twinstim()` in its spatial variant now automatically
+  labels the color key.
+
+- `intensityplot.twinstim()` now also supports plotting the component
+  intensities, not just their proportions.
+
+- `plotHHH4_neweights()` now only excludes distance 0 by default when the
+  model has an AR component.
+
+- `plot.sts()` now allows `type = ~time` and `type = ~unit` as short forms
+  of `type = observed ~ time` and `type = observed ~ unit`, respectively.
+
+## Bug Fixes
+
+- `algo.glrnb()` warns about unimplemented `dir`ection settings.
+
+- `intensityplot.twinstim(..., aggregate = "space")` no longer disables
+  `checkEmptyRC` when it calls `sp::spplot()`, so grids with
+  horizontal or vertical gaps are now plotted without artifacts.
+
+- `plot.hhh4()` can now be called with an *unnamed* `type` argument and
+  additional named arguments of specific methods.
+
+## Deprecated & Defunct
+
+- The deprecated function `stsplot_spacetime()` has been removed.
+  `plot.sts()` with the old `type = observed ~ 1 | unit` now uses
+  `stsplot_space()` with a warning.
+
+
 # surveillance 1.24.1 (2024-11-05)
 
 This maintenance release adjusts a test of `formatDate()`

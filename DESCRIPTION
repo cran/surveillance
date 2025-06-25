@@ -1,8 +1,8 @@
 Package: surveillance
 Title: Temporal and Spatio-Temporal Modeling and Monitoring of Epidemic
         Phenomena
-Version: 1.24.1
-Date: 2024-11-05
+Version: 1.25.0
+Date: 2025-06-24
 Authors@R: c(
     MH = person("Michael", "Hoehle",
                 role = c("aut", "ths"),
@@ -31,8 +31,8 @@ Authors@R: c(
     person("Wei", "Wei", role = "ctb"),
     person("Valentin", "Wimmer", role = "ctb"),
     person("R Core Team", role = "ctb",
-           comment = paste("A few code segments are modified",
-                           "versions of code from base R"))
+           comment = c(ROR = "02zz1nj61",
+                       "src/ks.c and a few code fragments of standard S3 methods"))
     )
 Depends: R (>= 3.6.0), methods, grDevices, graphics, stats, utils, sp
         (>= 2.1-4), xtable (>= 1.7-0)
@@ -42,7 +42,7 @@ Suggests: parallel, grid, gridExtra (>= 2.0.0), lattice (>= 0.20-44),
         colorspace, scales, animation, msm, spc, coda, runjags, INLA,
         spdep, numDeriv, maxLik, gsl, fanplot, hhh4contacts, quadprog,
         memoise, polyclip, intervals, splancs, gamlss, MGLM (>= 0.1.0),
-        sf, tinytest (>= 1.2.4), knitr
+        sf, tinytest (>= 1.4.1), knitr
 Enhances: xts, ggplot2
 Description: Statistical methods for the modeling and monitoring of time series
     of counts, proportions and categorical data, as well as for the modeling
@@ -80,11 +80,14 @@ URL: https://surveillance.R-Forge.R-project.org/
 Additional_repositories: https://inla.r-inla-download.org/R/stable/
 VignetteBuilder: utils, knitr
 NeedsCompilation: yes
-Packaged: 2024-11-05 12:46:04 UTC; smeyer
-Author: Michael Hoehle [aut, ths] (<https://orcid.org/0000-0002-0423-6702>),
-  Sebastian Meyer [aut, cre] (<https://orcid.org/0000-0002-1791-9449>),
+Packaged: 2025-06-24 15:30:38 UTC; smeyer
+Author: Michael Hoehle [aut, ths] (ORCID:
+    <https://orcid.org/0000-0002-0423-6702>),
+  Sebastian Meyer [aut, cre] (ORCID:
+    <https://orcid.org/0000-0002-1791-9449>),
   Michaela Paul [aut],
-  Leonhard Held [ctb, ths] (<https://orcid.org/0000-0002-8686-5325>),
+  Leonhard Held [ctb, ths] (ORCID:
+    <https://orcid.org/0000-0002-8686-5325>),
   Howard Burkom [ctb],
   Thais Correa [ctb],
   Mathias Hofmann [ctb],
@@ -99,8 +102,8 @@ Author: Michael Hoehle [aut, ths] (<https://orcid.org/0000-0002-0423-6702>),
   Mikko Virtanen [ctb],
   Wei Wei [ctb],
   Valentin Wimmer [ctb],
-  R Core Team [ctb] (A few code segments are modified versions of code
-    from base R)
+  R Core Team [ctb] (ROR: <https://ror.org/02zz1nj61>, src/ks.c and a few
+    code fragments of standard S3 methods)
 Maintainer: Sebastian Meyer <seb.meyer@fau.de>
 Repository: CRAN
-Date/Publication: 2024-11-05 14:10:02 UTC
+Date/Publication: 2025-06-25 12:20:02 UTC

@@ -333,8 +333,8 @@ nowcast <- function(now, when, data, dEventCol="dHospital", dReportCol="dReport"
   ######################################################################
 
   #Check if support of N.tInf is large enough
-  if (2*control$N.tInf.max < max(observed(sts),na.rm=TRUE)) {
-    warning("N.tInf.max appears too small. Largest observed value is more than 50% of N.tInf.max, which -- in case this number is extrapolated -- might cause problems.\n")
+  if (control$N.tInf.max < 4*max(observed(sts),na.rm=TRUE)) {
+    warning(paste0("N.tInf.max value of ", control$N.tInf.max, " appears too small. Largest observed value in time series is more than 25% of N.tInf.max, which -- in case this number is extrapolated -- might cause problems.\n"))
   }
   #Create a vector representing the support of N.tInf
   N.tInf.support <- 0:control$N.tInf.max

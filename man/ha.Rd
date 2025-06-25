@@ -37,8 +37,8 @@ plot(aggregate(ha))
 ## new-style "sts" object
 data("ha.sts")
 ha.sts
-plot(ha.sts, type = observed ~ time)  # = plot(aggregate(ha.sts, by = "unit"))
-plot(ha.sts, type = observed ~ unit, labels = TRUE)
+plot(ha.sts, ~time)  # = plot(aggregate(ha.sts, by = "unit"))
+plot(ha.sts, ~unit, labels = TRUE)
 }
 
 \keyword{datasets}

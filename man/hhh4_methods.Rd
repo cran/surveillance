@@ -135,6 +135,9 @@ see \code{vignette("hhh4_spacetime")}.
   \code{"deviance"} or standardized (\code{"pearson"})
   residuals from the model fit similar to
   \code{\link{residuals.glm}} for Poisson or NegBin GLM's.
+  Note that the squared Pearson residual is equivalent to the
+  \emph{normalized squared error score}, which can be computed from the
+  fitted model using \code{\link[=scores.hhh4]{scores}(object, "nses")}.
 }
 
 \seealso{

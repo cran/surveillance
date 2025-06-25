@@ -11,7 +11,7 @@
 }
 \usage{
 algo.cusum(disProgObj, control = list(range = range, k = 1.04, h = 2.26, 
-           m = NULL, trans = "standard", alpha = NULL))
+           m = NULL, trans = "standard", alpha = NULL, reset = FALSE))
 }
 \arguments{
         \item{disProgObj}{object of class disProg (including the observed and the state chain)}
@@ -50,6 +50,14 @@ algo.cusum(disProgObj, control = list(range = range, k = 1.04, h = 2.26,
                 }
               }
               \item{\code{alpha}}{parameter of the negative binomial distribution, s.t. the variance is \eqn{m+\alpha *m^2} }
+              \item{\code{reset}}{
+                logical: Should the CUSUM statistic be reset to 0
+                immediately after an alarm? This is the traditional form
+                of the chart as used in industrial process control,
+                but not the default choice in outbreak detection when
+                continuous periods of abnormal disease activity should
+                be flagged.
+              }
         }
       }
 }
@@ -61,10 +69,11 @@ algo.cusum(disProgObj, control = list(range = range, k = 1.04, h = 2.26,
     class \code{"disProg"}.
 
     The \code{upperbound} entry shows for each time instance the number of diseased individuals
-    it would have taken the cusum to signal. Once the CUSUM signals no resetting is applied, i.e.
-    signals occurs until the CUSUM statistic again returns below the threshold.
+    it would have taken the CUSUM to signal. Once the CUSUM signals, it
+    is \emph{not} \code{reset} by default, i.e.,
+    signals occur until the CUSUM statistic again returns below the threshold.
 
-    In case \code{control$m="glm"} was used, the returned
+    In case \code{m="glm"} was used, the returned
     \code{control$m.glm} entry contains the fitted \code{"glm"} object.
 }
 \note{This implementation is experimental, but will not be developed further.}

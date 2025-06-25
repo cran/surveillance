@@ -142,7 +142,8 @@ for (.type in 1:2) {
     print(intensityplot(imdfit_powerlaw, aggregate = "space", which = "epidemic proportion",
                         types = .type, tiles = districtsD, sgrid = 5000,
                         col.regions = grey(seq(1,0,length.out = 10)), at = seq(0,1,by = 0.1)))
-    grid::grid.text("Epidemic proportion", x = 1, rot = 90, vjust = -1)
+    ##M: the color key gets an automatic title in surveillance >= 1.25.0
+    ##grid::grid.text("Epidemic proportion", x = 1, rot = 90, vjust = -1)
 }
 
 par(mar = c(5, 5, 1, 1))

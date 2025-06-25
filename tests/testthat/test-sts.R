@@ -98,7 +98,7 @@ test_that("expected error message is produced", {
     expect_error(sts(1:3, map = 1:3), "must inherit from")
 })
 
-test_that("\"sf\" input gets transformed to \"SpatialPolygons\"", if (requireNamespace("sf")) {
+test_that("\"sf\" input gets transformed to \"SpatialPolygons\"", if (requireNamespace("sf", quietly = TRUE) && packageVersion("sf") >= "1.0-6") { # earlier versions needed 'rgeos'
     data("measlesWeserEms")
     sts_from_sp <- sts(observed(measlesWeserEms), map = measlesWeserEms@map)
     ## convert the map to "sf" and retry sts() construction based on that

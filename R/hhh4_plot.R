@@ -1,7 +1,7 @@
 ################################################################################
 ### Plot method(s) for fitted "hhh4" models
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2012-2023 Sebastian Meyer
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2025 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -14,13 +14,11 @@ plot.hhh4 <- function (x,
                        ...)
 {
     stopifnot(x$convergence)
-    cl <- sys.call()  # not match.call() because plotHHH4_season() has no 'x'
+    cl <- match.call()
+    ## "season" and "maxEV" have no 'x'
+    names(cl)[2] <- ""
     ## remove the type argument from the call
-    if (is.null(names(cl)) && nargs() > 1L) { # unnamed call plot(x, type)
-        cl[[3L]] <- NULL  # remove the second argument
-    } else {
-        cl$type <- NULL
-    }
+    cl$type <- NULL
     cl[[1L]] <- as.name(paste("plotHHH4", match.arg(type), sep="_"))
     eval(cl, envir = parent.frame())
 }
@@ -878,7 +876,8 @@ getSeasonStart <- function (object)
 ###
 
 plotHHH4_neweights <- function (x, plotter = boxplot, ...,
-                                exclude = 0, maxlag = Inf)
+                                exclude = if (isTRUE(x$control$ar$inModel)) 0,
+                                maxlag = Inf)
 {
     plotter <- match.fun(plotter)
 

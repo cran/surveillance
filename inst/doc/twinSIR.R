@@ -40,16 +40,16 @@ legend(x = "topleft", pch = 15, legend = c(1, 4, 8), pt.cex = sqrt(c(1, 4, 8)),
 hagellochFit <- twinSIR(~household + c1 + c2 + nothousehold, data = hagelloch)
 
 ## ----hagellochFit_summary_echo, eval=FALSE-----------------------------------------
-#  set.seed(1)
-#  summary(hagellochFit)
+# set.seed(1)
+# summary(hagellochFit)
 
 ## ----hagellochFit_confint----------------------------------------------------------
 exp(confint(hagellochFit, parm = "cox(logbaseline)"))
 
 ## ----hagellochFit_profile, results='hide', eval=COMPUTE----------------------------
-#  prof <- profile(hagellochFit,
-#    list(c(match("c1", names(coef(hagellochFit))), NA, NA, 25),
-#         c(match("c2", names(coef(hagellochFit))), NA, NA, 25)))
+# prof <- profile(hagellochFit,
+#   list(c(match("c1", names(coef(hagellochFit))), NA, NA, 25),
+#        c(match("c2", names(coef(hagellochFit))), NA, NA, 25)))
 
 ## ----------------------------------------------------------------------------------
 prof$ci.hl

@@ -75,12 +75,14 @@ axis(4, at = seq(0, 2500, by = 500), labels = seq(0, 50, by = 10))
 
 ## ----boda-cache, echo = FALSE, results='hide'--------------------------------------
 if (computeALL) {
-##hoehle 2018-07-18: changed code to use NICELOOKINGboda, but that's iid. Reason:
-##The option 'rw1' currently crashes INLA.
+## The original results were produced using version 0.0-1458166556,
+## and version 0.0-1485844051 from 2017-01-31 also worked. However:
+## hoehle 2018-07-18: changed to prior="iid" as "rw1" crashes INLA >= 17.06.20.
+## smeyer 2025-06-24: restored prior="rw1", working again with INLA 25.06.07.
 library("INLA")
 rangeBoda <- which(epoch(cam.sts) >= as.Date("2007-01-01"))
 control.boda <- list(range = rangeBoda, X = NULL, trend = TRUE,
-                     season = TRUE, prior = "iid", alpha = 0.025,
+                     season = TRUE, prior = "rw1", alpha = 0.025,
                      mc.munu = 10000, mc.y = 1000,
                      samplingMethod = "marginals")
 boda <- boda(cam.sts, control = control.boda)
@@ -295,25 +297,25 @@ alarmDates <- epoch(surv)[which(alarms(surv)[,1])]
 format(alarmDates,"%b %Y")
 
 ## ----CATCUSUMMC,echo=FALSE,eval=FALSE----------------------------------------------
-#  #Number of MC samples
-#  nSamples <- 1e4
-#  
-#  #Do MC
-#  simone.stop <- function(sts, control) {
-#    phase2Times <- seq(nrow(sts))[phase2]
-#    #Generate new phase2 data from the fitted in control model
-#    y <- sapply(1:length(phase2Times), function(i) {
-#      rmultinom(n=1, prob=pi0[,i],size=population(sts)[phase2Times[i],1])
-#    })
-#    observed(sts)[phase2Times,] <- t(y)
-#    one.surv <- categoricalCUSUM(sts, control=control)
-#    #compute P(S<=length(phase2))
-#    return(any(alarms(one.surv)[,1]>0))
-#  }
-#  
-#  set.seed(1233)
-#  rlMN <- replicate(nSamples, simone.stop(rotaBB, control=control))
-#  mean(rlMN)  # 0.5002
+# #Number of MC samples
+# nSamples <- 1e4
+# 
+# #Do MC
+# simone.stop <- function(sts, control) {
+#   phase2Times <- seq(nrow(sts))[phase2]
+#   #Generate new phase2 data from the fitted in control model
+#   y <- sapply(1:length(phase2Times), function(i) {
+#     rmultinom(n=1, prob=pi0[,i],size=population(sts)[phase2Times[i],1])
+#   })
+#   observed(sts)[phase2Times,] <- t(y)
+#   one.surv <- categoricalCUSUM(sts, control=control)
+#   #compute P(S<=length(phase2))
+#   return(any(alarms(one.surv)[,1]>0))
+# }
+# 
+# set.seed(1233)
+# rlMN <- replicate(nSamples, simone.stop(rotaBB, control=control))
+# mean(rlMN)  # 0.5002
 
 ## ----------------------------------------------------------------------------------
 m0.dm <- MGLMreg(as.matrix(rotaBB.df[phase1, 1:5]) ~ -1 + X[phase1, ],
@@ -342,8 +344,8 @@ control <- list(range = seq(nrow(rotaBB))[phase2], h = h,
 surv.dm <- categoricalCUSUM(rotaBB, control = control)
 
 ## ----echo=FALSE,eval=FALSE---------------------------------------------------------
-#  matplot(alpha0/rowSums(alpha0),type="l",lwd=3,lty=1,ylim=c(0,1))
-#  matlines(alpha1/rowSums(alpha1),type="l",lwd=1,lty=2)
+# matplot(alpha0/rowSums(alpha0),type="l",lwd=3,lty=1,ylim=c(0,1))
+# matlines(alpha1/rowSums(alpha1),type="l",lwd=1,lty=2)
 
 ## ----ctPlot-simple, echo = FALSE, fig.keep = 'none'--------------------------------
 par(mfrow = c(1,2))

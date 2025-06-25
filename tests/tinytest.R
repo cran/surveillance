@@ -2,8 +2,8 @@
 ### Copyright (C) 2020-2022 Sebastian Meyer
 
 if (!requireNamespace("tinytest", quietly = TRUE)
-    || packageVersion("tinytest") < "1.2.4") {
-    message("this test suite requires package 'tinytest' (>= 1.2.4)")
+    || packageVersion("tinytest") < "1.4.1") {
+    message("this test suite requires package 'tinytest' (>= 1.4.1)")
     q("no")
 }
 

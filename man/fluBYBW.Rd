@@ -40,10 +40,10 @@
 data("fluBYBW")
 
 # Count time series plot
-plot(fluBYBW, type = observed ~ time)
+plot(fluBYBW, ~time)
 
 # Map of disease incidence (per 100000 inhabitants) for the year 2001
-plot(fluBYBW, type = observed ~ unit, tps = 1:52, total.args = list(),
+plot(fluBYBW, ~unit, tps = 1:52, total.args = list(),
      population = fluBYBW@map$X31_12_01 / 100000)
 # the overall rate for 2001 shown in the bottom right corner is
 sum(observed(fluBYBW[1:52,])) / sum(fluBYBW@map$X31_12_01) * 100000

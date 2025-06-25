@@ -1,7 +1,7 @@
 ## miscellaneous regression tests for twinstim()
+
 data("imdepi")
-load(system.file("shapes", "districtsD.RData", package = "surveillance"),
-     verbose = TRUE)
+load(system.file("shapes", "districtsD.RData", package = "surveillance"))
 
 
 ## let some districts have no population

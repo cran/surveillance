@@ -2,7 +2,7 @@
 ### chunk number 1: 
 ###################################################
 
-algo.cusum <- function(disProgObj, control = list(range=range, k=1.04, h=2.26, m=NULL, trans="standard",alpha=NULL)){
+algo.cusum <- function(disProgObj, control = list(range=range, k=1.04, h=2.26, m=NULL, trans="standard", alpha=NULL, reset=FALSE)) {
 
   # Set the default values if not yet set
   if(is.null(control$k))
@@ -15,6 +15,8 @@ algo.cusum <- function(disProgObj, control = list(range=range, k=1.04, h=2.26, m
   if(is.null(control$alpha))
     control$alpha <- 0.1
   alpha <- control$alpha
+
+  reset <- isTRUE(control[["reset"]])
 
   observed <- disProgObj$observed
   timePoint <- control$range[1]
@@ -71,13 +73,17 @@ algo.cusum <- function(disProgObj, control = list(range=range, k=1.04, h=2.26, m
   cusum <- matrix(0,nrow=(length(control$range)+1), ncol=1)
   alarm <- matrix(data = 0, nrow = (length(control$range)+1), ncol = 1)
 
-  for (t in 1:length(control$range)){    
+  for (t in seq_along(control$range)) {
     # compute cumulated sums of standardized observations corrected with the
     # reference value k for all time points in range
     cusum[t+1]<- max(0, cusum[t]+(standObs[t]-control$k))
     
     # give alarm if the cusum is larger than the decision boundary h
     alarm[t+1] <- cusum[t+1] >= control$h
+
+    # optionally reset to zero after an alarm (industrial "repair & restart")
+    if (reset && alarm[t+1])
+      cusum[t+1] <- 0
   }
   
   #Backtransform
@@ -123,7 +129,7 @@ algo.cusum <- function(disProgObj, control = list(range=range, k=1.04, h=2.26, m
   # return alarm and upperbound vectors
   result <- list(alarm = alarm, upperbound = upperbound, disProgObj=disProgObj,control=control, cusum=cusum)
 
-  class(result) = "survRes" # for surveillance system result
+  class(result) <- "survRes" # for surveillance system result
   return(result)
 }
 

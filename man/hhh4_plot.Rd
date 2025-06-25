@@ -76,7 +76,8 @@ plotHHH4_ri(x, component, exp = FALSE,
             ...)
 
 plotHHH4_neweights(x, plotter = boxplot, ...,
-                   exclude = 0, maxlag = Inf)
+                   exclude = if (isTRUE(x$control$ar$inModel)) 0,
+                   maxlag = Inf)
 }
 
 \arguments{
@@ -252,8 +253,8 @@ plotHHH4_neweights(x, plotter = boxplot, ...,
     \code{\link[lattice]{stripplot}} from package \pkg{lattice}.}
   \item{exclude}{vector of neighbourhood orders to be excluded from
     plotting (passed to \code{\link{factor}}).
-    By default, the neighbourhood weight for order 0 is not
-    shown, which is usually zero anyway.}
+    By default, the neighbourhood weight for order 0 is excluded
+    if the model contains an AR component (when it will usually be zero).}
   \item{maxlag}{maximum order of neighbourhood to be assumed when
     computing the \code{\link{nbOrder}} matrix. This additional step is
     necessary iff \code{neighbourhood(x$stsObj)} only specifies a binary

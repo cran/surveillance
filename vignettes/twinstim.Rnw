@@ -675,8 +675,8 @@ We can also use \class{sts} visualizations, e.g.\ (Figure~\ref{fig:imdsts_plot})
 imdsts <- epidataCS2sts(imdepi, freq = 12, start = c(2002, 1), tiles = districtsD,
                         neighbourhood = NULL) # skip adjacency matrix (needs spdep)
 par(las = 1, lab = c(7,7,7), mar = c(5,5,1,1))
-plot(imdsts, type = observed ~ time)
-plot(imdsts, type = observed ~ unit, population = districtsD$POPULATION / 100000)
+plot(imdsts, ~time)
+plot(imdsts, ~unit, population = districtsD$POPULATION / 100000)
 @
 
 
@@ -1000,17 +1000,14 @@ the fitted ``ground'' intensity
 $\sum_{k=1}^2 \int_{\bm{W}} \hat\lambda(\bm{s},t,k) \dif \bm{s}$:
 %aggregated over both event types:
 <<eval=FALSE, purl=FALSE>>=
-intensityplot(imdfit_powerlaw, which = "total", aggregate = "time", types = 1:2)
+intensityplot(imdfit_powerlaw, which = "total", types = 1:2)
 @
 <<imdfit_powerlaw_intensityplot_time, fig.cap="Fitted ``ground'' intensity process aggregated over space and both types.", fig.pos="ht", echo=FALSE>>=
 par(mar = c(5,5,1,1), las = 1)
-intensity_endprop <- intensityplot(imdfit_powerlaw, aggregate="time",
-                                   which="endemic proportion", plot=FALSE)
-intensity_total <- intensityplot(imdfit_powerlaw, aggregate="time",
-                                 which="total", tgrid=501, lwd=2,
-                                 xlab="Time [days]", ylab="Intensity")
-curve(intensity_endprop(x) * intensity_total(x), add=TRUE, col=2, lwd=2, n=501)
-#curve(intensity_endprop(x), add=TRUE, col=2, lty=2, n=501)
+intensityplot(imdfit_powerlaw, "total intensity", tgrid=501, lwd=2,
+              xlab="Time [days]", ylab="Intensity")
+intensityplot(imdfit_powerlaw, "endemic intensity", tgrid=501, lwd=2,
+              add=TRUE, col=2)
 text(2500, 0.36, labels="total", col=1, pos=2, font=2)
 text(2500, 0.08, labels="endemic", col=2, pos=2, font=2)
 @
@@ -1045,8 +1042,7 @@ for (.type in 1:2) {
                         types=.type, tiles=districtsD, sgrid=1000,
                         # scales=list(draw=TRUE), # default (sp>=2 uses 'sf', with a fallback)
                         xlab="x [km]", ylab="y [km]", at=seq(0,1,by=0.1),
-                        col.regions=rev(hcl.colors(10,"Reds")),
-                        colorkey=list(title="Epidemic proportion")))
+                        col.regions=rev(hcl.colors(10,"Reds"))))
 }
 @
 

@@ -120,6 +120,13 @@ test_that("automatic and manual normalization are equivalent", {
                  tolerance = 1e-6) # increased to pass on 32-bit Windows
 })
 
+test_that("unnamed plot() 'type' argument is not passed down", {
+    expect_length(plot(measlesFit, "neweights", plotter = list), 1)
+    ## failed in surveillance <= 1.24.1; actual use case:
+    ## R> plot(measlesFit, "neweights", exclude = NULL)
+    ## Error in get(as.character(FUN), mode = "function", envir = envir) :
+    ##   object 'neweights' of mode 'function' was not found
+})
 
 measlesWeserEms2 <- measlesWeserEms
 neighbourhood(measlesWeserEms2) <- neighbourhood(measlesWeserEms2) + 1L

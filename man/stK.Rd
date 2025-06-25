@@ -120,7 +120,7 @@ if (requireNamespace("splancs")) {
     B <- 19  # limited here for speed
     \dontshow{if (!interactive()) B <- 4} % for faster checks
     imdBstKtest <- stKtest(imdepiB, eps.s = SGRID, eps.t = TGRID, B = B,
-                           cores = 2, seed = 1, poly = list(mainpoly))
+                           poly = list(mainpoly))
     print(imdBstKtest)
     plot(imdBstKtest)
 }

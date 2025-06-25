@@ -8,7 +8,7 @@
 
 \description{
 \code{\link{intensityplot}} method to plot the evolution of the total infection
-intensity, its epidemic proportion or its endemic proportion over time
+intensity, or its epidemic or endemic components/proportions over time
 or space (integrated over the other dimension) of fitted
 \code{\link{twinstim}} models (or \code{\link{simEpidataCS}}).
 The \code{"simEpidataCS"}-method is just a wrapper around
@@ -22,8 +22,7 @@ location (integrated over the other dimension).
 }
 
 \usage{
-\method{intensityplot}{twinstim}(x,
-    which = c("epidemic proportion", "endemic proportion", "total intensity"),
+\method{intensityplot}{twinstim}(x, which = "epidemic proportion",
     aggregate = c("time", "space"), types = 1:nrow(x$qmatrix),
     tiles, tiles.idcol = NULL, plot = TRUE, add = FALSE,
     tgrid = 101, rug.opts = list(),
@@ -42,11 +41,11 @@ intensity.twinstim(x,
     an object of class \code{"twinstim"} or \code{"simEpidataCS"}, respectively.
 }
   \item{which}{
-    \code{"epidemic proportion"}, \code{"endemic proportion"},
-    or \code{"total intensity"}.  Partial matching is applied.  Determines
-    whether to plot the path of the total intensity or its 
-    epidemic or endemic proportions over time or space (\code{which})
-    aggregated over the other dimension and \code{types}.
+    \code{"epidemic proportion"} (default), \code{"endemic proportion"},
+    or \code{"total intensity"} (partially matched), or
+    \code{"epidemic intensity"} or \code{"endemic intensity"}.  Determines
+    whether to plot the total or component-specific intensities or their 
+    proportions as a function of \code{aggregate}.
 }
   \item{aggregate}{
     One of \code{"time"} or \code{"space"}. The former results in a plot
@@ -64,7 +63,7 @@ intensity.twinstim(x,
   \item{tiles}{
     object of class \code{"\linkSPclass{SpatialPolygons}"} representing
     the decomposition of \eqn{\bold{W}} into different regions (as used
-    in the corresponding \code{stgrid} of the \code{"\link{epidataCS}"}.
+    in the corresponding \code{stgrid} of the \code{"\link{epidataCS}"}).
     This is only needed for \code{aggregate = "space"}.
 }
   \item{tiles.idcol}{
@@ -118,8 +117,7 @@ intensity.twinstim(x,
     if a list, its elements are passed as arguments to
     \code{\link[sp]{sp.polygons}}, which will add \code{tiles} to the plot
     if \code{aggregate = "space"} (it is unused for the temporal plot).
-    By default, the fill \code{col}our of the tiles is set to
-    \code{"darkgrey"}.
+    The default border \code{col}our of the polygons is \code{"darkgrey"}.
 }
   \item{points.args}{
     if a list, its elements are passed as arguments to
@@ -183,20 +181,18 @@ intensityplot(imdepifit, which="total intensity",
 plot(imdepi, "time", breaks=100)
 par(opar)
 
-## time course of the epidemic proportion by event
-intensityplot(imdepifit, which="epidemic proportion",
-              aggregate="time", tgrid=500, types=1)
-intensityplot(imdepifit, which="epidemic proportion",
-              aggregate="time", tgrid=500, types=2, add=TRUE, col=2)
+## time course of the epidemic proportion (default) by event
+intensityplot(imdepifit, tgrid=500, types=1)
+intensityplot(imdepifit, tgrid=500, types=2,
+              add=TRUE, col=2, rug.opts=list(col=2))
 legend("topright", legend=levels(imdepi$events$type), lty=1, col=1:2,
        title = "event type")
 
 ## endemic and total intensity in one plot
-intensity_endprop <- intensityplot(imdepifit, which="endemic proportion",
-                                   aggregate="time", plot=FALSE)
-intensity_total <- intensityplot(imdepifit, which="total intensity",
-                                 aggregate="time", tgrid=501, lwd=2)
-curve(intensity_endprop(x) * intensity_total(x), add=TRUE, col=2, lwd=2, n=501)
+intensityplot(imdepifit, which="total intensity", tgrid=501, lwd=2,
+              ylab="intensity")
+intensityplot(imdepifit, which="endemic intensity", tgrid=501, lwd=2,
+              add=TRUE, col=2, rug.opts=NULL)
 text(2500, 0.36, labels="total", col=1, pos=2, font=2)
 text(2500, 0.08, labels="endemic", col=2, pos=2, font=2)
 
@@ -221,7 +217,7 @@ if (surveillance.options("allExamples")) {% ~as in vignette("twinstim")
                     main=rownames(imdepifit$qmatrix)[type],
                     scales=list(draw=FALSE), at=seq(0,1,by=0.1),
                     col.regions=rev(hcl.colors(10,"YlOrRd")),
-                    colorkey=list(title=list("Epidemic proportion", cex=1)))
+                    par.settings=list(par.title.text=list(cex=1)))
   })
   plot(maps_epiprop[[1]], split=c(1,1,2,1), more=TRUE)
   plot(maps_epiprop[[2]], split=c(2,1,2,1))
