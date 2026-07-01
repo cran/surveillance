@@ -31,7 +31,7 @@
 
 ## mainly a maintainer-level switch driven by _R_SURVEILLANCE_ALL_EXAMPLES_
 .Options$allExamples <- list(
-    default = TRUE,  # maybe disabled by .onAttach()
+    default = TRUE,  # maybe disabled by .onLoad()
     check = function(x) is.logical(x) && length(x) == 1L,
     valid = "a single logical value"
     )

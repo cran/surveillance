@@ -1,7 +1,7 @@
 ################################################################################
 ### Conveniently add sine-cosine terms to a model formula
 ###
-### Copyright (C) 2010 Michaela Paul, 2013-2015 Sebastian Meyer
+### Copyright (C) 2010 Michaela Paul, 2013-2015,2025 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -21,10 +21,8 @@ addSeason2formula <- function (
               isScalar(period))
     
     ## return unchanged formula if S = 0
-    if (max(S) == 0) {
-        environment(f) <- .GlobalEnv  # as documented
+    if (max(S) == 0)
         return(f)
-    }
 
     ## character representation of old formula
     ftext <- paste0(deparse(f), collapse = "")
@@ -47,5 +45,5 @@ addSeason2formula <- function (
     }
 
     ## convert back to a formula
-    as.formula(ftext, env = .GlobalEnv)
+    as.formula(ftext, env = if (missing(f)) parent.frame() else environment(f))
 }

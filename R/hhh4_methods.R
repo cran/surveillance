@@ -1,7 +1,7 @@
 ################################################################################
 ### Standard methods for "hhh4" fits
 ###
-### Copyright (C) 2010-2012 Michaela Paul, 2012-2024 Sebastian Meyer
+### Copyright (C) 2010-2012 Michaela Paul, 2012-2025 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -387,7 +387,7 @@ update.hhh4 <- function (object, ..., S = NULL, subset.upper = NULL,
                     warning("newly enabled \"", name, "\" component; ",
                             "you might want to tweak its offset etc.",
                             call. = FALSE)
-                    ~1
+                    evalq(~1, .GlobalEnv)
                 }, period = object$stsObj@freq, S = S)
             comp
         }, names(S), control[names(S)], S, SIMPLIFY=FALSE, USE.NAMES=FALSE)

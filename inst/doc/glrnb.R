@@ -183,5 +183,3 @@ surv3 <- algo.glrnb(disProgObj=shadar,control=control)
 ###################################################
 getOption("SweaveHooks")[["fig"]]()
 plot(surv3, col=c(8,NA,4))
-
-

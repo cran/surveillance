@@ -32,21 +32,13 @@ toLatex.sts <- function(object, caption = "",label=" ", columnLabels = NULL,
   #  An object of class Latex
   
   # Error Handling
-  isEmpty <- function(o) is.null(o)
-  if (isEmpty(object))
-    stop("object must not be null or NA.")
-  
+  loadNamespace("xtable") # fail early if unavailable
   if (is.list(object))
     stop("supplying a list of sts has been removed from the api. Sorry.")
-  
-  if (!isS4(object) || !is(object, "sts"))
-    stop("object must be of type sts from the surveillance package.")
-  
+  stopifnot(is(object, "sts"))
+
   if (!is.character(caption))
     stop("caption must be a character.")
-  
-  if (!isEmpty(labels) && length(labels) != length(object))
-    stop("number of labels differ from the number of sts objects.")
     
   # derive default values
   
@@ -129,7 +121,7 @@ toLatex.sts <- function(object, caption = "",label=" ", columnLabels = NULL,
   } else {
     colnames(dataTable) <- newColNames
   }
-  xDataTable <- xtable(dataTable, label = tableLabel, caption = tableCaption, digits = c(0))
+  xDataTable <- xtable::xtable(dataTable, label = tableLabel, caption = tableCaption, digits = c(0))
   toLatex(xDataTable, ...) 
 }
 

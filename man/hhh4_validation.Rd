@@ -230,7 +230,7 @@ Sebastian Meyer and Michaela Paul
 }
 
 \seealso{
-\code{vignette("hhh4")} and \code{vignette("hhh4_spacetime")}
+\vignette{hhh4} and \vignette{hhh4_spacetime}
 }
 
 \examples{

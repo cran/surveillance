@@ -345,5 +345,3 @@ model.A0 <- list(ar = list(f = ~ 1 + logVac0),
 # fit the model
 result.A0 <- hhh4(measles2w, model.A0)
 summary(result.A0, amplitudeShift = TRUE)
-
-

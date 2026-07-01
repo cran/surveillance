@@ -91,6 +91,8 @@ print.disProg <- function(x, ...) {
 
   #cat("\nhead of neighbourhood:\n")
   #print( head(x$neighbourhood,n))
+
+  invisible(x)
 }
 
 

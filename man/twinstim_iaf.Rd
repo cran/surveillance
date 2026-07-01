@@ -27,7 +27,7 @@
   package already predefines some common dispersal kernels returned by
   the constructor functions documented here.
   See Meyer and Held (2014) for various spatial interaction functions,
-  and Meyer et al. (2017, Section 3, available as \code{vignette("twinstim")})
+  and Meyer et al. (2017, Section 3, available as \vignette{twinstim})
   for an illustration of the implementation.
 }
 

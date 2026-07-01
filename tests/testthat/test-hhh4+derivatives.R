@@ -48,6 +48,17 @@ test_that("neighbourhood weights array yields the same results", {
                  tolerance = 1e-6)  # triggered by 64-bit win-builder
 })
 
+test_that("generalized power-law weights give equivalent results", {
+    measlesFitD <- update(measlesFit,
+                          ne = list(weights = surveillance:::W_powerlawD(),
+                                    normalize = TRUE),
+                          use.estimates = FALSE)
+    expect_equal(logLik(measlesFitD), logLik(measlesFit))
+    expect_equal(fitted(measlesFitD), fitted(measlesFit))
+    expect_equivalent(coefW(measlesFitD), coefW(measlesFit), # names differ
+                      tolerance = 1e-6)
+})
+
 test_that("score vector and Fisher info agree with numerical approximations", if (requireNamespace("numDeriv")) {
     test <- function (neweights) {
         Wname <- deparse(substitute(neweights))
@@ -64,6 +75,9 @@ test_that("score vector and Fisher info agree with numerical approximations", if
     test(W_powerlaw(maxlag = 5, normalize = FALSE, log = FALSE))
     ## normalized PL with maxlag < max(nbmat) failed in surveillance < 1.9.0:
     test(W_powerlaw(maxlag = 3, normalize = TRUE, log = TRUE))
+    ## check generalized (metric) power-law weights
+    test(surveillance:::W_powerlawD(log = FALSE))
+    test(surveillance:::W_powerlawD(log = TRUE))
     ## check unconstrained weights
     test(W_np(maxlag = 5, truncate = TRUE, normalize = FALSE))
     test(W_np(maxlag = 3, truncate = FALSE, normalize = TRUE))

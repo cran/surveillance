@@ -1,0 +1,11 @@
+%% work around jss.cls incompatibility with hyperref 7.01q (2026-04-24)
+%% for jss versions 3.2 -- 3.4 as bundled in R 4.1.0 -- 4.6.0
+\@ifclasslater{jss}{2020/12/09}{%
+  \@ifclasslater{jss}{2026/04/28}{}{%
+    \@ifpackagelater{hyperref}{2026/04/24}{%
+      %% this NeedsTeXFormat 2020/10/01 so we have the hooks
+      \RemoveFromHook{begindocument}[maketitle]%
+      \AddToHook{begindocument/end}[maketitle]{\maketitle}%
+    }{}%
+  }
+}{}

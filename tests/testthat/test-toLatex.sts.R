@@ -1,3 +1,5 @@
+exit_if_not(requireNamespace("xtable"))
+
 data("ha.sts")
 data("salmonella.agona")
 

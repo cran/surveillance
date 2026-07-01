@@ -30,7 +30,7 @@
   spatio-temporal endemic-epidemic intensity models with the function
   \code{\link{twinstim}} (Meyer et al., 2012).
   The implementation is described in Meyer et al. (2017, Section 3),
-  see \code{vignette("twinstim")}.
+  see \vignette{twinstim}.
 }
 
 \usage{
@@ -318,7 +318,7 @@ getSourceDists(object, dimension = c("space", "time"))
 }
 
 \seealso{
-  \code{vignette("twinstim")}.
+  \vignette{twinstim}
 
   \code{\link{plot.epidataCS}} for plotting, and
   \code{\link{animate.epidataCS}} for the animation of such an epidemic.

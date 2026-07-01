@@ -11,7 +11,7 @@
   marked spatio-temporal point process data. This constitutes a
   regression approach for conditional intensity function modelling.
   The implementation is illustrated in Meyer et al. (2017, Section 3),
-  see \code{vignette("twinstim")}.
+  see \vignette{twinstim}.
 }
 
 \usage{
@@ -411,7 +411,7 @@ twinstim(endemic, epidemic, siaf, tiaf, qmatrix = data$qmatrix, data,
 }
 
 \seealso{
-  \code{vignette("twinstim")}.
+  \vignette{twinstim}
   
   There is a \code{\link{simulate.twinstim}} method,
   which simulates the point process based on the fitted \code{twinstim}.

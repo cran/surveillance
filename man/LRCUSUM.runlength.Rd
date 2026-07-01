@@ -113,7 +113,7 @@ plot(h.grid, arls,type="l",xlab="threshold h",ylab=expression(ARL[0]))
 #Run length of a time varying negative binomial CUSUM
 ######################################################
 
-mu0 <- matrix(5*sin(2*pi/52 * 1:150) + 10,ncol=1)
+mu0 <- matrix(5*sin(2*pi/52 * 1:104) + 10,ncol=1)
 
 rl <- LRCUSUM.runlength( mu=t(mu0), mu0=t(mu0), mu1=kappa*t(mu0), h=2,
   dfun = dY, n=rep(100,length(mu0)), alpha=alpha,g=20)

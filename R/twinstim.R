@@ -688,9 +688,9 @@ twinstim <- function (
                 sInt <- nTypes*exp(beta0) * .hIntTW(beta)
                 sEventsSum - unname(sInt)
             }) else if (nbeta0 > 1L) local({ # type-specific intercepts
-                ind <- sapply(seq_len(nTypes),
+                ind <- vapply(seq_len(nTypes),
                               function (type) eventTypes[includes] == type,
-                              simplify=TRUE, USE.NAMES=FALSE) # logical Nin x nTypes matrix
+                              logical(Nin), USE.NAMES=FALSE) # logical Nin x nTypes matrix
                 sEvents <- if (hase) {
                         ind * hEvents / lambdaEvents
                     } else ind
@@ -790,9 +790,9 @@ twinstim <- function (
         # for beta
         hScoreEvents <- if (hash) {
             scoreEvents_beta0 <- if (nbeta0 > 1L) local({ # type-specific intercepts
-                ind <- sapply(seq_len(nTypes),
+                ind <- vapply(seq_len(nTypes),
                               function (type) eventTypes[includes] == type,
-                              simplify=TRUE, USE.NAMES=FALSE) # logical Nin x nTypes matrix
+                              logical(Nin), USE.NAMES=FALSE) # logical Nin x nTypes matrix
                 if (hase) {
                     ind * hEvents / lambdaEvents
                 } else ind
@@ -876,7 +876,7 @@ twinstim <- function (
         eInts <- if (hase) { # epidemic component
                 siafInt <- do.call("..siafInt", .siafInt.args) # N-vector
                 gs <- gammapred * siafInt # N-vector
-                sapply(includes, function (i) {
+                vapply(X=includes, FUN=function (i) {
                     timeSources <- determineSources1(i, eventTimes, removalTimes,
                         0, Inf, NULL)
                     nSources <- length(timeSources)
@@ -886,7 +886,7 @@ twinstim <- function (
                         gsources <- tiaf$g(tdiff, tiafpars, eventTypes[timeSources])
                         sum(qSum[timeSources] * gs[timeSources] * gsources)
                     }
-                }, simplify=TRUE, USE.NAMES=FALSE)   # Nin-vector
+                }, FUN.VALUE=0, USE.NAMES=FALSE)   # Nin-vector
             } else 0
         lambdaEventsIntW <- hInts + eInts   # Nin-vector
 
@@ -1365,11 +1365,11 @@ twinstim <- function (
         if (cores != 1L) cumCIF.pb <- FALSE
         if (cumCIF.pb) pb <- txtProgressBar(min=0, max=Nin, initial=0, style=3)
         heIntEvents <- if (cores == 1L) {
-            sapply(seq_len(Nin), function (i) {
+            vapply(X=seq_len(Nin), FUN=function (i) {
                 if (cumCIF.pb) setTxtProgressBar(pb, i)
                 heIntTWK(beta0, beta, gammapred, siafpars, tiafpars,
                          eventTimes[includes[i]])
-            }, simplify=TRUE, USE.NAMES=FALSE)
+            }, FUN.VALUE=c(0,0), USE.NAMES=FALSE)
         } else {                        # cannot use progress bar
             simplify2array(parallel::mclapply(
                 X=eventTimes[includes], FUN=heIntTWK,

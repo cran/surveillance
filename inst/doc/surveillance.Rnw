@@ -68,8 +68,8 @@ to the package: this includes various endemic-epidemic modelling frameworks
 for surveillance data (\texttt{hhh4}, \texttt{twinSIR}, and
 \texttt{twinstim}), as well as more outbreak detection methods
 (\texttt{glrnb}, \texttt{boda}, and \texttt{farringtonFlexible}).
-These new features are described in detail in \citet{meyer.etal2014} and
-\citet{salmon.etal2014}, respectively.
+These new features are described in detail in \citet{meyer.etal2017} and
+\citet{salmon.etal2016}, respectively.
 %and corresponding vignettes are included in the package;
 %see \texttt{vignette(package = "surveillance")} for an overview.
 Note in particular that use of the new \texttt{S4} class \texttt{sts}
@@ -550,6 +550,6 @@ support from the Collaborative Research Centre SFB 386 funded by the
 German research foundation (DFG).
 
 
-\bibliography{references}
+\bibliography{references,\Sexpr{find.package("surveillance")}/REFERENCES}
 
 \end{document}

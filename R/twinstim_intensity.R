@@ -76,7 +76,6 @@ intensity.twinstim <- function (x, aggregate = c("time", "space"),
     hIntFUN <- if (modelenv$hash) {
         if (aggregate == "time") {
             function (tp) {
-                ## FIXME: make a stepfun() ?
                 stopifnot(isScalar(tp))
                 if (tp == t0) {
                     hInt[1L]
@@ -91,6 +90,14 @@ intensity.twinstim <- function (x, aggregate = c("time", "space"),
                     }
                 }
             }
+            ## NOTE: the following would be faster and vectorized, but unnamed
+            ## sfun <- stepfun(x = histIntervals$stop, y = c(hInt, NA_real_),
+            ##                 right = TRUE) # CIF is left-continuous
+            ## function (tp) {
+            ##     val <- sfun(tp)
+            ##     is.na(val) <- tp < t0
+            ##     val
+            ## }
         } else {
             if (!is.null(tiles.idcol)) {
                 stopifnot(is(tiles, "SpatialPolygonsDataFrame"))

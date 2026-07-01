@@ -1,7 +1,7 @@
 %\VignetteIndexEntry{twinSIR: Individual-level epidemic modeling for a fixed population with known distances}
 %\VignetteEngine{knitr::knitr}
 %% additional dependencies beyond what is required for surveillance anyway:
-%\VignetteDepends{surveillance, quadprog}
+%\VignetteDepends{surveillance, xtable, quadprog}
 
 <<setup, cache = FALSE, include = FALSE, purl = FALSE>>=
 ## purl=FALSE => not included in the tangle'd R script
@@ -16,6 +16,7 @@ options(prompt = "R> ", continue = "+  ", useFancyQuotes = FALSE)  # JSS
 options(width = 85, digits = 4)
 options(scipen = 1)  # so that 1e-4 gets printed as 0.0001
 ## xtable settings
+library("xtable")
 options(xtable.booktabs = TRUE, xtable.size = "small",
         xtable.sanitize.text.function = identity,
         xtable.comment = FALSE)
@@ -23,6 +24,7 @@ options(xtable.booktabs = TRUE, xtable.size = "small",
 
 
 \documentclass[nojss,nofooter,article]{jss}
+\usepackage{fixjss}
 
 \title{%
   \vspace{-1.5cm}
@@ -30,7 +32,7 @@ options(xtable.booktabs = TRUE, xtable.size = "small",
       This introduction to the \code{twinSIR} modeling framework of the
       \proglang{R}~package \pkg{surveillance} is based on a publication in the
       \textit{Journal of Statistical Software} --
-      \citet[Section~4]{meyer.etal2014} -- which is the suggested reference
+      \citet[Section~4]{meyer.etal2017} -- which is the suggested reference
       if you use the \code{twinSIR} implementation in your own work.}}\\[1cm]
   \code{twinSIR}: Individual-level epidemic modeling for a fixed population with known distances}
 \Plaintitle{twinSIR: Individual-level epidemic modeling for a fixed population with known distances}
@@ -126,7 +128,7 @@ if (!COMPUTE) load("twinSIR-cache.RData", verbose = TRUE)
 
 
 The spatio-temporal point process regression model ``\code{twinstim}''
-(\citealp{meyer.etal2011}, illustrated in \code{vignette("twinstim")})
+(\citealp{meyer.etal2012}, illustrated in \code{vignette("twinstim")})
 is indexed in a continuous spatial domain, i.e., the set of
 possible event locations %(the susceptible ``population'')
 consists of the whole observation region and is thus infinite.
@@ -516,7 +518,8 @@ refer to \code{help("simulate.twinSIR")}.
 % BIBLIOGRAPHY
 %--------------
 
-\bibliography{references}
+% also using the installed bibliography (shared with the Rd system)
+\bibliography{references,\Sexpr{find.package("surveillance")}/REFERENCES}
 
 
 

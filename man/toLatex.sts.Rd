@@ -7,7 +7,7 @@
 
 \description{
 Convert \code{"\linkS4class{sts}"} objects to a
-character vector with LaTeX markup.
+character vector with \LaTeX markup using \CRANpkg{xtable}.
 }
 
 \usage{
@@ -51,6 +51,7 @@ control <- list(range=(260:312),
                 thresholdMethod="delta",alpha=0.1)
 salm <- farringtonFlexible(salm,control=control)
 
+\dontshow{if (requireNamespace("xtable"))}
 toLatex(salm, sanitize.text.function=identity, comment=FALSE)
 }
 

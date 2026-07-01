@@ -317,14 +317,8 @@ farringtonFlexible <- function(sts, control = list(
 ################################################################################
 algo.farrington.referencetimepoints <- function(dayToConsider,b=control$b,freq=freq,epochAsDate,epochStr){
 
-
-	if (epochAsDate) {
-		referenceTimePoints <- as.Date(seq(as.Date(dayToConsider,
-										origin="1970-01-01"),
-										length.out=(b+1), by="-1 year"))
-	} else {
-		referenceTimePoints <- seq(dayToConsider, length.out=(b+1), by=-freq)
-	}
+	referenceTimePoints <- seq(dayToConsider, length.out = (b+1),
+	                           by = if (epochAsDate) "-1 year" else -freq)
 
 	if (epochStr == "week") {
 
@@ -348,11 +342,10 @@ algo.farrington.referencetimepoints <- function(dayToConsider,b=control$b,freq=f
 		# For each year choose the closest Monday/Tuesday/etc
 		# The order of referenceTimePoints is NOT important
 
-		AB <- cbind(referenceTimePointsA,referenceTimePointsB)
 		ABnumeric <- cbind(as.numeric(referenceTimePointsA),as.numeric(referenceTimePointsB))
 		distMatrix <- abs(ABnumeric-as.numeric(referenceTimePoints))
 		idx <- (distMatrix[,1]>distMatrix[,2])+1
-		referenceTimePoints <- as.Date(AB[cbind(1:dim(AB)[1],idx)],origin="1970-01-01")
+		referenceTimePoints <- as.Date(ABnumeric[cbind(1:nrow(ABnumeric),idx)],origin="1970-01-01")
 
 	}
 
@@ -384,28 +377,20 @@ algo.farrington.referencetimepoints <- function(dayToConsider,b=control$b,freq=f
 # populationOffset and factorsBool
 
 formulaGLM <- function(populationOffset=FALSE,timeBool=TRUE,factorsBool=FALSE){
-    # Description
-    # Args:
-    #     populationOffset: ---
-    # Returns:
-    #     Vector of X
-
     # Smallest formula
     formulaString <- "response ~ 1"
 
     # With time trend?
-    if (timeBool){
-    formulaString <- paste(formulaString,"+wtime",sep ="")}
+    if (timeBool)
+        formulaString <- paste(formulaString,"wtime",sep="+")
 
     # With population offset?
-
-    if(populationOffset){
-    formulaString <- paste(formulaString,"+offset(log(population))",sep ="")}
-
+    if(populationOffset)
+        formulaString <- paste(formulaString,"offset(log(population))",sep="+")
 
     # With factors?
-    if(factorsBool){
-    formulaString <- paste(formulaString,"+seasgroups",sep ="")}
+    if(factorsBool)
+        formulaString <- paste(formulaString,"seasgroups",sep="+")
 
     # Return formula as a string
     return(formulaString)
@@ -425,64 +410,44 @@ algo.farrington.fitGLM.flexible <- function(dataGLM,
 timeTrend,populationOffset,factorsBool,reweight,weightsThreshold,glmWarnings,verbose,control,...) {
 
     # Model formula depends on whether to include a time trend or not.
-
-    theModel <- formulaGLM(populationOffset,timeBool=timeTrend,factorsBool)
+    theModel <- formulaGLM(populationOffset,timeTrend,factorsBool)
 
     # Fit it -- this is slow. An improvement would be to use glm.fit here.
-    # This would change the syntax, however.
-    if (glmWarnings) {
-        model <- glm(formula(theModel),data=dataGLM,family = quasipoisson(link="log"))
-    } else {
-        model <- suppressWarnings(glm(formula(theModel),data=dataGLM,family = quasipoisson(link="log")))
+    # This would change the syntax and require manual setup of season dummies.
+    fitit <- if (glmWarnings) function (...) {
+        glm(formula(theModel),data=dataGLM,family=quasipoisson(link="log"),...)
+    } else function (...) {
+        suppressWarnings(
+            glm(formula(theModel),data=dataGLM,family=quasipoisson(link="log"),...)
+        )
     }
+    model <- fitit()
+
     #Check convergence - if no convergence we return empty handed.
-
+    if (!model$converged && timeTrend) {
+        if (verbose)
+            cat("Warning: No convergence with timeTrend -- trying without.\n")
+        theModel <- formulaGLM(populationOffset,FALSE,factorsBool)
+        model <- fitit()
+    }
     if (!model$converged) {
-        #Try without time dependence
-
-        if (timeTrend) {
-			theModel <- formulaGLM(populationOffset,timeBool=F,factorsBool)
-			if (glmWarnings) {
-				model <- glm(as.formula(theModel), data=dataGLM,
-												family = quasipoisson(link="log"))
-			} else {
-				model <- suppressWarnings(glm(as.formula(theModel), data=dataGLM,
-											family = quasipoisson(link="log")))
-			}
-			if (verbose) {cat("Warning: No convergence with timeTrend -- trying without.\n")}
-        }
-
-        if (!model$converged) {
         if (verbose) {cat("Warning: No convergence in this case.\n")}
         if (verbose) {print(dataGLM[,c("response","wtime"),exact=TRUE])}
         return(NULL)
-        }
     }
 
     #Overdispersion parameter phi
-
-    phi <- max(summary(model)$dispersion,1)
+    phi <- max(algo.farrington.estimate.dispersion(model), 1)
 
     #In case reweighting using Anscome residuals is requested
-
     if (reweight) {
         s <- anscombe.residuals(model,phi)
         omega <- algo.farrington.assign.weights(s,weightsThreshold)
-        if (glmWarnings) {
-        model <- glm(as.formula(theModel),data=dataGLM,
-                                        family=quasipoisson(link="log"),
-                                        weights=omega)
-        } else {
-	    model <- suppressWarnings(glm(as.formula(theModel),data=dataGLM,
-                                                                        family=quasipoisson(link="log"),
-                                                                        weights=omega))
-        }
-
+        model <- fitit(weights=omega)
         #Here, the overdispersion often becomes small, so we use the max
         #to ensure we don't operate with quantities less than 1.
-        phi <- max(summary(model)$dispersion,1)
+        phi <- max(algo.farrington.estimate.dispersion(model), 1)
     } # end of refit.
-
 
     #Add wtime, response and phi to the model
     model$phi <- phi

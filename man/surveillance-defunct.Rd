@@ -77,9 +77,9 @@ algo.twins(disProgObj, control=list(
   via \code{data(\link{m1})} etc) and \code{correct53to52} /
   \code{enlargeData} (which both only worked for old \code{"disProg"}
   objects with non-matrix elements). \code{enlargeData} is still
-  exemplified in the old \code{vignette("surveillance")}.
+  exemplified in the old \vignette{surveillance}.
   \code{test} calls of outbreak detection algorithms applied to the old
-  SurvStat datasets can be found in \code{vignette("surveillance")},
+  SurvStat datasets can be found in \vignette{surveillance},
   and \code{testSim} is provided as an example
   in \code{help("\link{sim.pointSource}")}.
 

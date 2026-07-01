@@ -52,7 +52,7 @@ reset.surveillance.options()
         this option defaults to \code{TRUE}. Otherwise, long examples
         will only be run if the environment variable
         \env{_R_SURVEILLANCE_ALL_EXAMPLES_} is set (to any value different
-        from \code{""}) when attaching the \pkg{surveillance} package.
+        from \code{""}) when loading the \pkg{surveillance} package.
         This is to avoid long computations during (daily) CRAN checks.
       }
     }

@@ -1,3 +1,23 @@
+# surveillance 1.26.0 (2026-06-30)
+
+## New Features
+
+- `W_powerlaw()` now names its parameter `"d"` or `"logd"`, depending
+  on the `log` argument, to clarify `hhh4()` coefficient summaries.
+
+- `addSeason2formula()` now preserves the original formula environment.
+
+## Package Infrastructure
+
+- Package **xtable** is no longer attached by default and no longer a
+  strict dependency of **surveillance**.
+
+## Bug Fixes
+
+- `plot.epidataCS()` now evaluates the optional `subset` in the
+  calling environment, fixing a scoping issue for, e.g., `time >= start`.
+
+
 # surveillance 1.25.0 (2025-06-24)
 
 ## New Features

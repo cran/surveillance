@@ -14,9 +14,6 @@ import(methods, grDevices, graphics, stats)
 ## (we "Depend" on package sp since it defines essential data classes & methods)
 import(sp)
 
-## we define own methods for generating xtable()'s, which we want to be usable
-import(xtable)
-
 
 ### required generics for own methods (that's why we "Depend" on these packages)
 
@@ -147,7 +144,7 @@ export(stcd)
 export(knox)
 S3method(print, knox)
 S3method(plot, knox)
-S3method(xtable, knox)
+S3method(xtable::xtable, knox)  # delayed registration
 S3method(toLatex, knox)
 export(stKtest)
 S3method(plot, stKtest)
@@ -251,7 +248,7 @@ export(algo.farrington.assign.weights,
 
 S3method(plot, survRes)
 S3method(print, algoQV)
-S3method(xtable, algoQV)
+S3method(xtable::xtable, algoQV)  # delayed registration
 
 
 ### conversion between old disProg and new sts classes
@@ -348,9 +345,8 @@ S3method(summary, twinstim)
 export(summary.twinstim)                # for convenience
 S3method(print, summary.twinstim)
 S3method(toLatex, summary.twinstim)
-S3method(xtable, summary.twinstim)
-export(xtable.summary.twinstim)         # for xtable.twinstim
-S3method(xtable, twinstim)
+S3method(xtable::xtable, summary.twinstim)
+S3method(xtable::xtable, twinstim)
 S3method(plot, twinstim)
 export(iafplot)
 export(intensity.twinstim)
@@ -445,6 +441,7 @@ S3method(calibrationTest, oneStepAhead)
 
 ## methods for simulations from hhh4 fits
 S3method("[", hhh4sims)
+S3method(aperm, hhh4sims)
 S3method(aggregate, hhh4sims)
 S3method(plot, hhh4sims)
 export(as.hhh4simslist)

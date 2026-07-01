@@ -1,5 +1,4 @@
 ### R code from vignette source 'Rnw/algo_farrington.Rnw'
-### Encoding: ISO8859-1
 
 ###################################################
 ### code chunk number 1: algo_farrington.Rnw:25-35
@@ -79,16 +78,21 @@ algo.farrington.fitGLM <- function(response,wtime,timeTrend=TRUE,reweight=TRUE,.
 }
 
 ######################################################################
-# The algo.farrington.fitGLM function in a version using glm.fit
-# which is faster than the call using "glm.
+# algo.farrington.fitGLM via "bare-bones" glm.fit().
 # This saves lots of overhead and increases speed.
 #
-# Author: Mikko Virtanen (@thl.fi) with minor modifications by Michael Hoehle
+# Author: Mikko Virtanen (@thl.fi) with minor modifications by
+#         Michael Hoehle and Sebastian Meyer
 # Date:   9 June 2010
 #
 # Note: Not all glm results may work on the output. But for the
 # necessary ones for the algo.farrington procedure work.
 ######################################################################
+
+algo.farrington.estimate.dispersion <- function(model) {
+    ## similar to summary.glm(), which is too expensive as a whole
+    sum(model$weights * model$residuals^2) / model$df.residual
+}
 
 algo.farrington.fitGLM.fast <- function(response,wtime,timeTrend=TRUE,reweight=TRUE, ...) {
   #Create design matrix and formula needed for the terms object
@@ -97,33 +101,32 @@ algo.farrington.fitGLM.fast <- function(response,wtime,timeTrend=TRUE,reweight=T
     design<-cbind(intercept=1,wtime=wtime)
     Formula<-response~wtime
   } else {
-    design<-matrix(1,nrow=length(wtime),dimnames=list(NULL,c("intercept")))
+    design<-cbind(intercept=rep(1,length(wtime)))
     Formula<-response~1
   }
 
   #Fit it using glm.fit which is faster than calling "glm"
   model <- glm.fit(design,response, family = quasipoisson(link = "log"))
 
-   #Check convergence - if no convergence we return empty handed.
-   if (!model$converged) {
-      #Try without time dependence
-     if (timeTrend) {
+  #Check convergence
+  if (!model$converged && timeTrend) {
        cat("Warning: No convergence with timeTrend -- trying without.\n")
        #Drop time from design matrix
        design <- design[,1,drop=FALSE]
        #Refit
        model <- glm.fit(design,response, family = quasipoisson(link = "log"))
        Formula<-response~1
-     }
+  }
+  ## if (!model$converged) # glm.fit() already warns by itself
      #No convergence and no time trend. That's not good.
-   }
+  ##   cat("Warning: No convergence in this case.\n")
 
    #Fix class of output to glm/lm object in order for anscombe.residuals to work
    #Note though: not all glm methods may work for the result
    class(model) <- c("glm","lm")
 
    #Overdispersion parameter phi
-   phi <- max(summary.glm(model)$dispersion,1)
+   phi <- max(algo.farrington.estimate.dispersion(model), 1)
 
    #In case reweighting using Anscome residuals is requested
    if (reweight) {
@@ -132,7 +135,7 @@ algo.farrington.fitGLM.fast <- function(response,wtime,timeTrend=TRUE,reweight=T
      model <- glm.fit(design,response, family = quasipoisson(link = "log"), weights = omega)
      #Here, the overdispersion often becomes small, so we use the max
      #to ensure we don't operate with quantities less than 1.
-     phi <- max(summary.glm(model)$dispersion,1)
+     phi <- max(algo.farrington.estimate.dispersion(model), 1)
    } # end of refit.
 
    model$phi <- phi
@@ -495,6 +498,3 @@ algo.farrington <- function(disProgObj, control=list(
   #Done
   return(result)
 }
-
-
-

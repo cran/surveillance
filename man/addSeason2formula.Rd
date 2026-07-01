@@ -55,13 +55,16 @@ addSeason2formula(f = ~1, S = 1, period = 52, timevar = "t")
   see \code{\link{coef.hhh4}}.
 }
 \value{
-  Returns a \code{\link{formula}} with the seasonal terms added and 
-  its environment set to \code{\link{.GlobalEnv}}.
-  Note that to use the resulting formula in \code{\link{hhh4}}, 
+  Returns a \code{\link{formula}} with the seasonal terms added.
+}
+\note{
+  To use the resulting formula in \code{\link{hhh4}}, 
   a time variable named as specified by the argument \code{timevar} must
   be available.
-}
 
+  In \pkg{surveillance} \eqn{\le} 1.25.0, the formula environment was always
+  set to \code{\link{.GlobalEnv}}; it is now preserved from the input.
+}
 \author{
 M. Paul, with contributions by S. Meyer
 }

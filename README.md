@@ -154,7 +154,7 @@ The authors acknowledge financial support from the following institutions:
   [#116776](https://data.snf.ch/grants/grant/116776),
   [#124429](https://data.snf.ch/grants/grant/124429), and
   [#137919](https://data.snf.ch/grants/grant/137919))
-- [Munich Center of Health Sciences](https://www.en.mc-health.uni-muenchen.de/)
+- Munich Center of Health Sciences
   (MC-Health, 2007--2010)
 - [German Research Foundation](https://www.dfg.de/en/) (DFG, 2003--2006)
 

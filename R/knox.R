@@ -118,21 +118,21 @@ xtable.knox <- function (x, caption = NULL, label = NULL,
         FUN <- setNames(list(sum), sumlabel)
         tab <- addmargins(tab, FUN = FUN, quiet = TRUE)
     }
-    xtable(tab, caption = caption, label = label, align = align,
-           digits = digits, display = display, ...)
+    xtable::xtable(tab, caption = caption, label = label, align = align,
+                   digits = digits, display = display, ...)
 }
 
 toLatex.knox <- function (object, dnn = names(dimnames(object$table)),
                           hline.after = NULL, sanitize.text.function = NULL, ...)
 {
-    xtab <- xtable(object, ...)
+    xtab <- xtable::xtable(object, ...)
     if (is.null(hline.after))
         hline.after <- unique(c(-1,0,2,nrow(xtab)))
     if (is.null(sanitize.text.function))
         sanitize.text.function <- function (x)
             gsub("<=", "$\\le$", gsub(">", "$>$", x, fixed = TRUE), fixed = TRUE)
-    res <- toLatex.xtable(xtab, hline.after = hline.after,
-                          sanitize.text.function = sanitize.text.function, ...)
+    res <- xtable::toLatex.xtable(xtab, hline.after = hline.after,
+                                  sanitize.text.function = sanitize.text.function, ...)
     if (is.null(dnn)) {
         res
     } else {

@@ -133,7 +133,7 @@ polyAtBorder <- function (SpP,
         warning("unionSpatialPolygons() produced >1 Polygons-components")
     Wcoords <- unique(do.call("rbind",
                               lapply(W@polygons[[1]]@Polygons, coordinates)))
-    atBorder <- sapply(SpP@polygons, function (x) {
+    atBorder <- vapply(X=SpP@polygons, FUN=function (x) {
         coords <- unique(do.call("rbind", lapply(x@Polygons, coordinates)))
         res <- FALSE
         for (i in seq_len(nrow(coords))) {
@@ -143,7 +143,7 @@ polyAtBorder <- function (SpP,
             }
         }
         res
-    })
+    }, FUN.VALUE=TRUE, USE.NAMES=FALSE)
     names(atBorder) <- row.names(SpP)
     atBorder
 }

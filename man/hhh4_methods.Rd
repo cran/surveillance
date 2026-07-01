@@ -25,7 +25,7 @@ Besides \code{print} and \code{summary} methods there are also some standard
 extraction methods defined for objects of class \code{"hhh4"} resulting
 from a call to \code{\link{hhh4}}.
 The implementation is illustrated in Meyer et al. (2017, Section 5),
-see \code{vignette("hhh4_spacetime")}.
+see \vignette{hhh4_spacetime}.
 }
 
 \usage{

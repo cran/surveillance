@@ -182,13 +182,14 @@ plot(aggregate(salmNewport,by="unit"), xlab="Time (weeks)",
 set.seed(123)
 exposureTimes <-  as.Date("2014-03-12") + sample(x=0:25,size=99,replace=TRUE)
 sts <- linelist2sts(data.frame(exposure=exposureTimes),
-                               dateCol="exposure",aggregate.by="1 day")
+                    dateCol="exposure", aggregate.by="1 day")
 ## Plot it with larger ticks for days than usual
-surveillance.options("stsTickFactors"=c("\%d"=1, "\%W"=0.33,
-                "\%V"=0.33, "\%m"=1.75, "\%Q"=1.25, "\%Y"=1.5, "\%G"=1.5))
-plot(sts,xaxis.tickFreq=list("\%d"=atChange,"\%m"=atChange),
-     xaxis.labelFreq=list("\%d"=at2ndChange),xaxis.labelFormat="\%d-\%b",
+surveillance.options(stsTickFactors = c("\%d"=1, "\%W"=0.33,
+    "\%V"=0.33, "\%m"=1.75, "\%Q"=1.25, "\%Y"=1.5, "\%G"=1.5))
+plot(sts, xaxis.tickFreq=list("\%d"=atChange,"\%m"=atChange),
+     xaxis.labelFreq=list("\%d"=at2ndChange), xaxis.labelFormat="\%d-\%b",
      xlab="Time (days)")
+\dontshow{reset.surveillance.options()}
 }
 
 \keyword{hplot}

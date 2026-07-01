@@ -1,4 +1,4 @@
-# -------------  class sts  ----------------------------------------
+### Define the S4 class "sts" (surveillance time series) and its extensions
 
 .sts <- setClass(
     "sts",

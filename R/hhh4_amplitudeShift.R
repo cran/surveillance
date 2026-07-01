@@ -13,16 +13,18 @@ sinCos2amplitudeShift <- function(params){
   index.sin <- seq(1,lengthParams,by=2)
 
   one <- function(i=1){
-    coef.sin <- params[i]
-    coef.cos <- params[i+1]
+    coef.sin <- params[[i]]
+    coef.cos <- params[[i+1]]
 
     amplitude <- sqrt(coef.cos^2+coef.sin^2)
     shift <- atan2(coef.cos, coef.sin)
-    return(c(amplitude,shift))
+    c(amplitude, shift)
   }
-  return(c(sapply(index.sin,one)))
+
+  vapply(index.sin, one, c(0,0), USE.NAMES=FALSE)
 }
 
+if (FALSE) {# unused
 amplitudeShift2sinCos <- function(params){
     lengthParams <- length(params)
     if (lengthParams %% 2 != 0)
@@ -36,7 +38,7 @@ amplitudeShift2sinCos <- function(params){
         return(c(coef.sin,coef.cos))
     }
     return(c(sapply(index.A, one)))
-
+}
 }
 
 ##############################################
@@ -52,22 +54,23 @@ jacobianAmplitudeShift <- function(params){
   index.sin <- seq(1,lengthParams,by=2)
   # function to compute jacobian of the transformation sinCos2AmplitudeShift()
   one <- function(i=1){
-    coef.sin <- params[i]
-    coef.cos <- params[i+1]
+    coef.sin <- params[[i]]
+    coef.cos <- params[[i+1]]
 
     dAmplitude.dcoef.sin <- coef.sin/sqrt(coef.cos^2+coef.sin^2)
     dAmplitude.dcoef.cos <- coef.cos/sqrt(coef.cos^2+coef.sin^2)
 
     dShift.dcoef.sin <- - coef.cos/(coef.cos^2+coef.sin^2)
     dShift.dcoef.cos <- coef.sin/(coef.cos^2+coef.sin^2)
-    return(c(dAmplitude.dcoef.sin,dShift.dcoef.sin,dAmplitude.dcoef.cos,dShift.dcoef.cos))
+
+    c(dAmplitude.dcoef.sin, dShift.dcoef.sin, dAmplitude.dcoef.cos, dShift.dcoef.cos)
   }
-  jacobi<-sapply(index.sin,one)
+  jacobi <- vapply(index.sin, one, c(0,0,0,0), USE.NAMES=FALSE)
   res <- matrix(0,nrow=lengthParams,ncol=lengthParams)
   j<-0
   for (i in index.sin){
     j<-j+1
     res[i:(i+1),i:(i+1)] <- jacobi[,j]
   }
-  return(res)
+  res
 }

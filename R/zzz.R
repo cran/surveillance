@@ -4,7 +4,11 @@
 
 .onLoad <- function (libname, pkgname)
 {
-    ## initialize options
+    ## run long examples by default in an interactive session
+    .Options$allExamples$default <- interactive() ||
+        ## or if requested for an exhaustive check run
+        nzchar(Sys.getenv("_R_SURVEILLANCE_ALL_EXAMPLES_"))
+    ## initialize option values from defaults
     reset.surveillance.options()
 }
 
@@ -15,12 +19,6 @@
                           "see ", sQuote(paste0("package?", pkgname)), " or\n",
                           "https://surveillance.R-Forge.R-project.org/",
                           " for an overview.")
-
-    if (!interactive()) { # particularly for R CMD check
-        ## skip long examples, unless:
-        allExamples <- nzchar(Sys.getenv("_R_SURVEILLANCE_ALL_EXAMPLES_"))
-        .Options$allExamples$value <- allExamples
-    }
 }
 
 

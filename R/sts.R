@@ -2,7 +2,7 @@
 ### Initialization and other basic methods for the S4 class "sts"
 ###
 ### Copyright (C) 2007-2014 Michael Hoehle
-### Copyright (C) 2012-2019,2021,2023-2025 Sebastian Meyer
+### Copyright (C) 2012-2019,2021,2023-2026 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -337,8 +337,9 @@ setMethod("[", "sts", function(x, i, j, ..., drop = FALSE) {
   } else if (any(i0 <- i == 0)) { # drop 0's (for the diff check below)
     i <- i[!i0]
   }
-  ## if(missing(j)) j <- seq_len(ncol(x@observed))   # redundant
-  if (!missing(j) && anyNA(j))
+  hasj <- !missing(j)
+  ## if(!hasj) j <- seq_len(ncol(x@observed))   # redundant
+  if (hasj && anyNA(j))
     stop("missing column index values are not supported")
   ## FIXME: should probably warn about duplicated column indices
 
@@ -351,7 +352,7 @@ setMethod("[", "sts", function(x, i, j, ..., drop = FALSE) {
   x@state <- x@state[i,j,drop=FALSE]
   x@alarm <- x@alarm[i,j,drop=FALSE]
 
-  recompute_fractions <- !missing(j) && !x@multinomialTS &&
+  recompute_fractions <- hasj && !x@multinomialTS &&
       all(rowSums(x@populationFrac) == 1)
   x@populationFrac <- x@populationFrac[i,j,drop=FALSE]
   if (isTRUE(recompute_fractions)) {
@@ -359,13 +360,16 @@ setMethod("[", "sts", function(x, i, j, ..., drop = FALSE) {
    }
   x@upperbound <- x@upperbound[i,j,drop=FALSE]
 
-  #Neighbourhood matrix
-  if (ncol(x@observed) != ncol(x@neighbourhood) &&  # selected units
-      !all(x@neighbourhood %in% c(NA,0,1))) { # no adjacency matrix
-      message("Note: selection of units could invalidate the 'neighbourhood'")
-      ## e.g., if 'neighbourhood' specifies neighbourhood orders
+  ## Neighbourhood matrix
+  if (hasj) {
+      nUnit <- ncol(x@observed) # the new value
+      if (nUnit > 1L && nUnit != ncol(x@neighbourhood) &&  # selected units
+          !all(x@neighbourhood %in% c(NA,0,1))) { # no adjacency matrix
+          message("Note: selection of units could invalidate the 'neighbourhood'")
+          ## e.g., if 'neighbourhood' specifies neighbourhood orders
+      }
+      x@neighbourhood <- x@neighbourhood[j,j,drop=FALSE]
   }
-  x@neighbourhood <- x@neighbourhood[j,j,drop=FALSE]
 
   #Fix the "start" and "epoch" entries (if necessary)
   if (any(i != 0) && i[1] != 1) {
@@ -391,7 +395,7 @@ setMethod("[", "sts", function(x, i, j, ..., drop = FALSE) {
   ##       identical(row.names(map), colnames(observed))
   ##       is not a property of the sts-class; Unmonitored regions are allowed.
   ##       The map can also be empty (prototype value).
-  if (drop && !missing(j)) {
+  if (drop && hasj) {
       if (!is.character(j))
           stop("'drop = TRUE' requires character-type column indices")
       if (length(x@map))
@@ -486,4 +490,6 @@ setMethod( "show", "sts", function( object ){
       cat("\nHead of neighbourhood:\n")
       print( head(object@neighbourhood,n))
   }
+
+  invisible(NULL)
 } )

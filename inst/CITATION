@@ -23,6 +23,3 @@ bibentry(
     pages = "1--55",
     doi = "10.18637/jss.v077.i11"
 )
-
-citFooter("References to the underlying methodological papers can be found via",
-          "'surveillance:::REFERENCES' and on the help pages of the functions.")

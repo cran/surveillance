@@ -1,7 +1,7 @@
 %\VignetteIndexEntry{Monitoring count time series in R: Aberration detection in public health surveillance}
 %\VignetteEngine{knitr::knitr}
 %% additional dependencies beyond what is required for surveillance anyway:
-%\VignetteDepends{surveillance, gamlss, MGLM}
+%\VignetteDepends{surveillance, xtable, gamlss, MGLM}
 
 <<knitr, include = FALSE, purl = FALSE>>=
 knitr::opts_chunk$set(fig.path="plots/monitoringCounts-",
@@ -12,6 +12,7 @@ options(xtable.booktabs = TRUE, xtable.comment = FALSE)
 @ 
 
 \documentclass[nojss]{jss}
+\usepackage{fixjss}
 \usepackage{amsmath,bm}
 \usepackage{booktabs}
 \usepackage{subcaption} % successor of subfig, which supersedes subfigure
@@ -101,7 +102,7 @@ Nowadays, the fight against infectious diseases does not only require treating p
 In this paper we present the \proglang{R} package \pkg{surveillance} which is available from the Comprehensive \proglang{R} Archive Network (CRAN) at
 \url{https://CRAN.R-project.org/package=surveillance}. It implements a range of methods for aberration detection in time series of counts and proportions. Statistical algorithms provide an objective and reproducible analysis of the data and allow the automation of time-consuming aspects of the monitoring process. In the recent years, a variety of such tools has flourished in the literature. Reviews of methods for aberration detection in time series of counts can be found in~\citet{Buckeridge2007}~and~\citet{Unkel2012}. However, the great variety of statistical algorithms for aberration detection can be a hurdle to practitioners wishing to find a suitable method for their data. It is our experience that ready-to-use and understandable implementation and the possibility to use the methods in a routine and automatic fashion are the criteria most important to the epidemiologists.
 
-The package offers an open-source implementation of state-of-the-art methods for the prospective detection of outbreaks in count data time series with established methods, as well as the visualization of the analysed time series. With the package, the practitioner can introduce statistical surveillance into routine practice without too much difficulty. As far as we know, the package is now used in several public health institutions in Europe: at the National Public Health Institute of Finland, at the Swedish Institute for Communicable Disease Control, at the French National Reference Centre for Salmonella, and at the Robert Koch Institute (RKI) in Berlin. The use of \pkg{surveillance} at the RKI shall be the focus of this paper. The package also provides many other functions serving epidemic modeling purposes. Such susceptible-infectious-recovered based models and their extensions towards regression based approaches are documented in other works~\citep{held-etal-2005,held_etal2006,meyer.etal2011,meyer.etal2014}.
+The package offers an open-source implementation of state-of-the-art methods for the prospective detection of outbreaks in count data time series with established methods, as well as the visualization of the analysed time series. With the package, the practitioner can introduce statistical surveillance into routine practice without too much difficulty. As far as we know, the package is now used in several public health institutions in Europe: at the National Public Health Institute of Finland, at the Swedish Institute for Communicable Disease Control, at the French National Reference Centre for Salmonella, and at the Robert Koch Institute (RKI) in Berlin. The use of \pkg{surveillance} at the RKI shall be the focus of this paper. The package also provides many other functions serving epidemic modeling purposes. Such susceptible-infectious-recovered based models and their extensions towards regression based approaches are documented in other works~\citep{held-etal-2005,held_etal2006,meyer.etal2012,meyer.etal2017}.
 
 The present paper is designed as an extension of two previous articles about the \pkg{surveillance} package published as~\citet{hoehle-2007} and~\citet{hoehle-mazick-2010}. On the one hand, the paper aims at giving an overview of the new features added to the package since the publication of the two former papers. On the other hand it intends to illustrate how well the \pkg{surveillance} package can support routine practical disease surveillance by presenting the current surveillance system of infectious diseases at the RKI.
 
@@ -464,7 +465,7 @@ The original method is widely used in public health surveillance~\citep{hulth_et
  that it does not need to be fine-tuned for each specific pathogen. It is hence easy to implement it for scanning data for many different pathogens. Furthermore, it does tackle classical issues of surveillance data: overdispersion, presence of past outbreaks that are reweighted,
 seasonality that is taken into account differently in the two methods.
 An example of use of the function is shown in Figure~\ref{fig:newportFar} with the code below.
-<<>>=
+<<far>>=
 salm.farrington <- farringtonFlexible(salmNewportGermany, con.farrington)
 salm.noufaily   <- farringtonFlexible(salmNewportGermany, con.noufaily)
 @
@@ -1424,7 +1425,7 @@ In addition, major developments in the \proglang{R} component can be shared with
 
 The \proglang{R} package \pkg{surveillance} was initially created as an implementational framework for the development and the evaluation of outbreak detection algorithms in
 routine collected public health surveillance data. Throughout the years it has more and more also become a tool for the use of surveillance in routine practice. The
-presented description aimed at showing the potential of the package for aberration detection. Other functions offered by the package for modeling~\citep{meyer.etal2014}, nowcasting~\citep{hoehle-heiden} or
+presented description aimed at showing the potential of the package for aberration detection. Other functions offered by the package for modeling~\citep{meyer.etal2017}, nowcasting~\citep{hoehle-heiden} or
 back-projection of incidence cases~\citep{becker_marschner93} are documented elsewhere and contribute to widening the scope of possible analysis in infectious disease
 epidemiology when using \pkg{surveillance}. Future areas of interest for the package are, e.g., to better take into account the multivariate and hierarchical structure of the data streams analysed. Another important topic is the adjustment for reporting delays when performing the surveillance~\citep{Maelle}. The package can be obtained from CRAN and resources for learning its use are listed in the documentation section of the project
 (\url{https://surveillance.R-Forge.R-project.org/}). As all \proglang{R} packages, \pkg{surveillance} is distributed with a manual describing each function with corresponding examples. The manual, the present article and two previous ones~\citep{hoehle-2007, hoehle-mazick-2010} form a good basis for getting started with the package. The data and analysis of the present manuscript are accessible as the vignette \texttt{"monitoringCounts.Rnw"} in the package.
@@ -1446,6 +1447,7 @@ Code contributions to the package are very welcome as well as feedback and sugge
 The authors would like to express their gratitude to all contributors to the package, in particular
 Juliane Manitz, University of G\"{o}ttingen, Germany, for her work on the \texttt{boda} code, and Angela Noufaily, The Open University, Milton Keynes, UK, for providing us with the code used in her article that we extended for \texttt{farringtonFlexible}. The work of M. Salmon was financed by a PhD grant of the RKI.
 
-\bibliography{monitoringCounts,references}
+
+\bibliography{monitoringCounts,references,\Sexpr{find.package("surveillance")}/REFERENCES}
 
 \end{document}

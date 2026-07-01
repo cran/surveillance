@@ -530,14 +530,14 @@ checkFormula <- function(f, component, data, stsObj)
       res <- cbind(res, c(
           eval(substitute(fe(x), list(x=vars[[i]])), envir=data),
           list(offsetComp=component)
-          ))
+          ), deparse.level = 0)
 
   # fixed effects
   for(i in attr(term, "specials")$fe)
       res <- cbind(res, c(
           eval(vars[[i]], envir=data),
           list(offsetComp=component)
-          ))
+          ), deparse.level = 0)
 
   res <- cbind(res, deparse.level=0) # ensure res has matrix dimensions
 
@@ -550,7 +550,7 @@ checkFormula <- function(f, component, data, stsObj)
       res <- cbind(res, c(
           eval(vars[[i]], envir=data),
           list(offsetComp=component)
-          ))
+          ), deparse.level = 0)
 
   return(res)
 }
@@ -667,7 +667,7 @@ interpretControl <- function (control, stsObj)
   }
 
   # the vector with dims of the random effects must be equal if they are correlated
-  if(length(unique(dim.re.group[dim.re.group>0]))!=1 & dim.corr>0){
+  if(dim.corr > 0 && length(unique(dim.re.group[dim.re.group>0])) != 1){
     stop("Correlated effects must have same penalty")
   }
 
@@ -1910,7 +1910,7 @@ updateParams_nlm <- function (start, ll, sc, fi, ..., control)
         negloglik
     }
     ## run the optimization
-    res <- do.call("nlm", args=c(alist(p=start, f=negllscfi, ...), control))
+    res <- do.call("nlm", args=c(alist(p=start, f=negllscfi), quote(...), control))
     ## Done
     list(par=setNames(res$estimate, names(start)), ll=-res$minimum,
          rel.tol=getRelDiff(res$estimate, start),

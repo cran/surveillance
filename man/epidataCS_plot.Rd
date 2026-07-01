@@ -168,6 +168,7 @@ data("imdepi")
 ## show the occurrence of events along time
 plot(imdepi, "time", main = "Histogram of event time points")
 plot(imdepi, "time", by = NULL, main = "Aggregated over both event types")
+plot(imdepi, "time", subset = type == "B", main = "Only type B")
 
 ## show the distribution in space
 plot(imdepi, "space", lwd = 2, col = "lavender")

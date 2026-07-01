@@ -163,7 +163,8 @@ knoxtest
 ## the proportion of close pairs is rather small (204/56280).
 \dontshow{.opt <- options(xtable.comment = FALSE)}
 ## contingency table in LaTeX
-toLatex(knoxtest)
+if (require("xtable"))
+  toLatex(knoxtest)
 \dontshow{options(.opt)}
 
 ## Obtain the p-value via a Monte Carlo permutation test

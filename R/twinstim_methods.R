@@ -214,6 +214,7 @@ toLatex.summary.twinstim <- function (
     align = "lrrrr", booktabs = getOption("xtable.booktabs", FALSE),
     withAIC = FALSE, ...)
 {
+loadNamespace("xtable") # fail early if unavailable
 ret <- capture.output({
     cat("\\begin{tabular}{", align, "}\n",
         if (booktabs) "\\toprule" else "\\hline", "\n", sep="")
@@ -244,7 +245,8 @@ ret <- capture.output({
                 ifelse(is.na(x), "", paste0("$",x,"$")) # (test.iaf=FALSE)
             })
             cat(if (booktabs) "\\midrule" else "\\hline", "\n")
-            print(xtable(tab2), only.contents=TRUE, hline.after=NULL, comment=FALSE,
+            print(xtable::xtable(tab2),
+                  only.contents=TRUE, hline.after=NULL, comment=FALSE,
                   include.colnames=FALSE, sanitize.text.function=identity)
         }
     }
@@ -286,25 +288,12 @@ xtable.summary.twinstim <- function (x, caption = NULL, label = NULL,
                         check.names = FALSE, stringsAsFactors=FALSE)
     names(rrtab)[2] <- paste0(100*ci.level, "% CI")
 
-    ## append caption etc.
-    class(rrtab) <- c("xtable", "data.frame")
-    caption(rrtab) <- caption
-    label(rrtab) <- label
-    align(rrtab) <- align
-    digits(rrtab) <- digits
-    display(rrtab) <- display
-
-    ## Done
-    rrtab
+    xtable::xtable(rrtab, caption = caption, label = label,
+                   align = align, digits = digits, display = display)
 }
 
-xtable.twinstim <- function () {
-    cl <- match.call()
-    cl[[1]] <- as.name("xtable.summary.twinstim")
-    cl$x <- substitute(summary(x))
-    eval.parent(cl)                # => xtable.summary.twinstim must be exported
-}
-formals(xtable.twinstim) <- formals(xtable.summary.twinstim)
+xtable.twinstim <- function (x, ...)
+    xtable.summary.twinstim(summary(x), ...)
 
 
 
@@ -449,7 +438,7 @@ R0.twinstim <- function (object, newevents, trimmed = TRUE, newcoef = NULL, ...)
         }
         noCircularIR <- if (is.null(bdist)) FALSE else all(eps.s > bdist)
         if (attr(siaf, "constant")) {
-            iRareas <- sapply(influenceRegion, area.owin)
+            iRareas <- vapply(influenceRegion, area.owin, 0, USE.NAMES=FALSE)
             ## will be used by .siafInt()
         } else if (! (is.null(siaf$Fcircle) ||
                (is.null(siaf$effRange) && noCircularIR))) {

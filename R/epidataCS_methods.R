@@ -396,7 +396,7 @@ as.stepfun.epidataCS <- function (x, ...)
     eventTimes <- x$events$time
     removalTimes <- eventTimes + x$events$eps.t
     tps <- sort(unique(c(eventTimes, removalTimes[is.finite(removalTimes)])))
-    nInfectious <- sapply(tps, function(t) sum(eventTimes <= t & removalTimes > t))
+    nInfectious <- vapply(tps, function(t) sum(eventTimes <= t & removalTimes > t), 0)
     stepfun(tps, c(0,nInfectious), right = TRUE) # no ties, 'tps' is unique
 }
 

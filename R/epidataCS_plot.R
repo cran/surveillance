@@ -1,7 +1,7 @@
 ################################################################################
 ### plot-method for "epidataCS" objects
 ###
-### Copyright (C) 2009-2015 Sebastian Meyer
+### Copyright (C) 2009-2015,2025 Sebastian Meyer
 ###
 ### This file is part of the R package "surveillance",
 ### free software under the terms of the GNU General Public License, version 2,
@@ -9,13 +9,15 @@
 ################################################################################
 
 
-plot.epidataCS <- function (x, aggregate = c("time", "space"), subset,
-                            by = type, ...)
+plot.epidataCS <- function (x, aggregate = c("time", "space"),
+                            subset, by = type, ...)
 {
     aggregate <- match.arg(aggregate)
     FUN <- paste("epidataCSplot", aggregate, sep = "_")
-    do.call(FUN, args = list(x = quote(x), subset = substitute(subset),
-                             by = substitute(by), ...))
+    cl <- match.call()
+    cl$aggregate <- NULL
+    cl[[1L]] <- call("::", quote(surveillance), as.name(FUN))
+    eval(cl, parent.frame())
 }
 
 
@@ -29,15 +31,15 @@ epidataCSplot_time <- function (x, subset, by = type,
     panel.first = abline(h=axTicks(2), lty=2, col="grey"),
     legend.types = list(), ...)
 {
+    stopifnot(inherits(x, "epidataCS"))
     timeRange <- with(x$stgrid, c(start[1L], stop[length(stop)]))
-    ## subset event marks
+    ## subset event marks (subsetting the whole "epidataCS" is too expensive)
     eventMarks <- if (missing(subset)) {
         marks.epidataCS(x, coords = FALSE)
     } else {
-        do.call(base::subset, list(
-            x = quote(marks.epidataCS(x, coords = FALSE)),
-            subset = substitute(subset)
-        ))
+        eval(substitute(
+            subset.data.frame(marks.epidataCS(x, coords = FALSE), subset)
+        ), parent.frame())
     }
     if (nrow(eventMarks) == 0L) stop("no events left after 'subset'")
     ## extract the data to plot
@@ -198,13 +200,15 @@ epidataCSplot_space <- function (x, subset, by = type, tiles = x$W, pop = NULL,
     cex.fun = sqrt, points.args = list(), add = FALSE,
     legend.types = list(), legend.counts = list(), sp.layout = NULL, ...)
 {
+    stopifnot(inherits(x, "epidataCS"))
     ## extract the points to plot
     events <- if (missing(subset)) {
         x$events
     } else { # calls sp:::subset.Spatial
-        eval(substitute(base::subset(x$events, subset=.subset),
-                        list(.subset=substitute(subset))))
+        do.call(base::subset, list(x$events, substitute(subset)),
+                envir = parent.frame())
     }
+    if (length(events) == 0L) stop("no events left after 'subset'")
     ## should the plot distinguish between different event types?
     by <- substitute(by)
     events@data$type <- if (is.null(by)) { # disregard event types

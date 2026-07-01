@@ -183,8 +183,8 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     if (.idx <- match(FALSE, unpredMarks %in% markNames, nomatch=0L)) {
         stop("the unpredictable mark '", unpredMarks[.idx], "' is not returned by 'rmarks'")
     }
-    if (!all(sapply(sampleMarks[unpredMarks], function(x)
-                    inherits(x, c("integer","numeric","logical","factor"), which=FALSE))))
+    if (!all(vapply(sampleMarks[unpredMarks], inherits, TRUE,
+                    what = c("integer","numeric","logical","factor"))))
         warning("'rmarks' should return \"numeric\", \"logical\", or",
                 " \"factor\" ('epidemic') variables only")
 
@@ -909,7 +909,7 @@ simEpidataCS <- function (endemic, epidemic, siaf, tiaf, qmatrix, rmarks,
     eventData <- as.data.frame(eventMatrix[seqAlongEvents,,drop=FALSE])
 
     # rebuild factor variables
-    for (idx in which(sapply(preEventData, is.factor))) {
+    for (idx in which(vapply(preEventData, is.factor, TRUE, USE.NAMES=FALSE))) {
         origlevels <- levels(preEventData[[idx]])
         eventData[[idx]] <- factor(eventData[[idx]], levels=seq_along(origlevels), labels=origlevels)
     }

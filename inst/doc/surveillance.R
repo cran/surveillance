@@ -215,5 +215,3 @@ if (compute) { # save computed results
          file=CACHEFILE)
     tools::resaveRdaFiles(CACHEFILE)
 }
-
-

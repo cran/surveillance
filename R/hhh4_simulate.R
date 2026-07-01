@@ -1,7 +1,7 @@
 ################################################################################
 ### Simulate from a HHH4 model
 ###
-### Copyright (C) 2012 Michaela Paul, 2013-2016,2018,2021 Sebastian Meyer
+### Copyright (C) 2012 Michaela Paul, 2013-2016,2018,2021,2026 Sebastian Meyer
 ### (except where otherwise noted)
 ###
 ### This file is part of the R package "surveillance",
@@ -217,6 +217,15 @@ checkCoefs <- function (object, coefs, reparamPsi=TRUE)
     attributes(xx) <- c(attributes(xx),
                         attributes(x)[c("initial", "stsObserved", "class")])
     subset_hhh4sims_attributes(xx, i, j)
+}
+
+## Permuting dimensions (as done by 'apply') clearly invalidates the object
+## (and [.hhh4sims), but 'aperm.default' might not drop extra attributes ...
+aperm.hhh4sims <- function(a, perm, ...)
+{
+    res <- NextMethod("aperm")
+    attributes(res) <- attributes(res)[c("dim", "dimnames")]
+    res
 }
 
 subset_hhh4sims_attributes <- function (x, i, j)

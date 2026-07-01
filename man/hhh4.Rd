@@ -13,8 +13,8 @@
   Log-linear predictors of covariates and random intercepts are allowed
   in all components; see the Details below.
   A general introduction to the \code{hhh4} modelling approach and its
-  implementation is given in the \code{vignette("hhh4")}. Meyer et al
-  (2017, Section 5, available as \code{vignette("hhh4_spacetime")})
+  implementation is given in \vignette{hhh4}. Meyer et al
+  (2017, Section 5, available as \vignette{hhh4_spacetime}
   describe \code{hhh4} models for areal time series of infectious
   disease counts.
 }
@@ -267,8 +267,8 @@ hhh4(stsObj,
   examples below for how to specify unit-specific effects.
 
   Further details on the modelling approach and illustrations of its
-  implementation can be found in \code{vignette("hhh4")} and
-  \code{vignette("hhh4_spacetime")}.
+  implementation can be found in \vignette{hhh4} and
+  \vignette{hhh4_spacetime}.
 }
 
 \author{Michaela Paul, Sebastian Meyer, Leonhard Held}

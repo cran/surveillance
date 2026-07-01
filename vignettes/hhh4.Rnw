@@ -85,10 +85,10 @@ if(!compute) load("hhh4-cache.RData")
   framework for univariate and multivariate time series of infectious
   disease counts proposed by \citet{held-etal-2005}, and further extended by
   \citet{paul-etal-2008}, \citet{paul-held-2011}, \citet{held.paul2012}, and
-  \citet{meyer.held2013}. The implementation is illustrated using several
+  \citet{meyer.held2014}. The implementation is illustrated using several
   built-in surveillance data sets.
   The special case of \emph{spatio-temporal} \hhh\ models is also covered
-  in \citet[Section~5]{meyer.etal2014},
+  in \citet[Section~5]{meyer.etal2017},
   which is available as the extra \verb+vignette("hhh4_spacetime")+.
 \end{abstract}
 
@@ -107,7 +107,7 @@ The \R-package \surveillance\ provides functionality for the retrospective
 modelling and prospective aberration detection in the resulting surveillance
 time series.
 Overviews of the outbreak detection functionality of \surveillance\ are given by
-\citet{hoehle-mazick-2010} and \citet{salmon.etal2014}.
+\citet{hoehle-mazick-2010} and \citet{salmon.etal2016}.
 This document illustrates the functionality of the function \hhh\ for
 the modelling of univariate and multivariate time series of infectious
 disease counts.  It is part of the \surveillance\ package as
@@ -154,8 +154,8 @@ representing population fractions in unit $i$ at time $t$.
 
 The \sts\ data class is also described in
 \citet[Section~2.1]{hoehle-mazick-2010},
-\citet[Section~1.1]{salmon.etal2014},
-\citet[Section~5.2]{meyer.etal2014},
+\citet[Section~1.1]{salmon.etal2016},
+\citet[Section~5.2]{meyer.etal2017},
 and on the associated help page \code{help("sts")}.
 
 \subsection{Some example data sets}
@@ -353,7 +353,7 @@ on unit $i$, $w_{ji}$ are weights reflecting between-unit transmission and $e_{i
 corresponds to an offset (such as population fractions at time $t$ in region $i$).
 A simple choice for the weights is $w_{ji}=1$ if units $j$ and $i$ are adjacent
 and 0 otherwise. See \citet{paul-etal-2008} for a discussion of alternative
-weights, and \citet{meyer.held2013} for how to estimate these weights in the
+weights, and \citet{meyer.held2014} for how to estimate these weights in the
 spatial setting using a parametric power-law formulation based on the order of
 adjacency.
 
@@ -704,7 +704,7 @@ colMeans(scores(predfinal.B2, which = c("logs", "rps")))
 meanSc.B2[c("logs", "rps")]
 @
 
-Using predictive model assessments, \citet{meyer.held2013} found that
+Using predictive model assessments, \citet{meyer.held2014} found that
 power-law transmission weights more appropriately reflect the spread of
 influenza than the previously used first-order weights (which actually allow the
 epidemic to spread only to directly adjacent districts within one week).
@@ -712,7 +712,7 @@ These power-law weights can be constructed by the function \code{W\_powerlaw}
 and require the \code{neighbourhood} of the \sts\ object to contain adjacency
 orders. The latter can be easily obtained from the binary adjacency matrix
 using the function \code{nbOrder}. See the corresponding help pages or
-\citet[Section~5]{meyer.etal2014} for illustrations.
+\citet[Section~5]{meyer.etal2017} for illustrations.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -783,7 +783,7 @@ heterogeneity in incidence levels and disease transmission.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \bibliographystyle{apalike}
 \renewcommand{\bibfont}{\small}
-\bibliography{references}
+\bibliography{references,\Sexpr{find.package("surveillance")}/REFERENCES}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 

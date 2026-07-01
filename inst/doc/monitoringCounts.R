@@ -55,7 +55,7 @@ con.noufaily   <- list(
 ## ----echo=F------------------------------------------------------------------------
 con.farrington$limit54 <- con.noufaily$limit54 <- c(0,50)  # for the figure
 
-## ----------------------------------------------------------------------------------
+## ----far---------------------------------------------------------------------------
 salm.farrington <- farringtonFlexible(salmNewportGermany, con.farrington)
 salm.noufaily   <- farringtonFlexible(salmNewportGermany, con.noufaily)
 

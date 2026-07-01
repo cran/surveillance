@@ -54,8 +54,8 @@ quality # the list is printed in matrix form
 
 \dontshow{.opt <- options(xtable.comment = FALSE)}
 # Format as an "xtable", which is printed with LaTeX markup (by default)
-library("xtable")
-xtable(quality)
+if (require("xtable"))
+  xtable(quality)
 \dontshow{options(.opt)}
 }
 \keyword{misc}

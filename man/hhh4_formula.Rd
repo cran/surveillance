@@ -61,8 +61,8 @@ ri(type = c("iid","car"), corr = c("none", "all"),
 \seealso{
 \code{\link{addSeason2formula}}
 
-\code{hhh4} model specifications in \code{vignette("hhh4")},
-\code{vignette("hhh4_spacetime")} or on the help page of
+\code{hhh4} model specifications in \vignette{hhh4},
+\vignette{hhh4_spacetime} or on the help page of
 \code{\link{hhh4}}.
 }
 

@@ -2,7 +2,7 @@
 \alias{plot.twinstim}
 
 \title{
-Plot methods for fitted \code{twinstim}'s
+Plots for a Fitted \code{twinstim}
 }
 
 \description{

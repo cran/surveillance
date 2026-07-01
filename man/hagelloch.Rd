@@ -12,7 +12,7 @@
   originally collected by Dr. Albert Pfeilsticker (1863) and augmented and
   re-analysed by Dr. Heike Oesterle (1992).
   This dataset is used to illustrate the \code{twinSIR} model class in
-  \code{vignette("twinSIR")}.
+  \vignette{twinSIR}.
 }
 
 \usage{
@@ -173,5 +173,5 @@ plot(s)
   
   point process model: \code{\link{twinSIR}}
   
-  illustration with \code{hagelloch}: \code{vignette("twinSIR")}
+  illustration with \code{hagelloch}: \vignette{twinSIR}
 }

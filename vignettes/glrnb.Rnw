@@ -377,10 +377,6 @@ These parameters are necessary for the so called ''window-limited'' GLR scheme. 
 As seen, the function \verb+algo.glrnb+ allows many possibilities for doing surveillance for a time series of counts. In order to achieve fast computations, the function is implemented in C. An important issue in surveillance is the quality of the used algorithms. This can be measured by the sensitivity and the specificity of the result. The aim of our future work is to provide the possibility for computing the quality and in the next step to include a ROC-approach in order to have a more formal framework for the choice of threshold $c_{\gamma}$.
 
 
-
-%\include{extensions}
-
-%\renewcommand{\bibsection}{\section{REFERENCES}}
-\bibliography{references}
+\bibliography{references,\Sexpr{find.package("surveillance")}/REFERENCES}
 
 \end{document}

@@ -116,7 +116,7 @@ Print, Summary and Extraction Methods for \code{"twinstim"} Objects
 
   The \code{toLatex} method is essentially a
   translation of the printed summary table of coefficients to LaTeX
-  code (using \pkg{xtable}). However, the \code{xtable} method does a
+  code (using \CRANpkg{xtable}). However, the \code{xtable} method does a
   different job in that it first converts coefficients to rate ratios
   (RR, i.e., the \code{exp}-transformation) and gives confidence
   intervals for those instead of standard errors and z-values.
@@ -184,10 +184,12 @@ nobs(imdepifit)
 (s <- summary(imdepifit, correlation=TRUE, symbolic.cor=TRUE, runtime=TRUE))
 
 # create LaTeX code of coefficient table
-toLatex(s, digits=2)
+if (require("xtable"))
+  toLatex(s, digits=2)
 \dontshow{.opt <- options(xtable.comment = FALSE)}
 # or using the xtable-method (which produces rate ratios)
-xtable(s)
+if (require("xtable"))
+  xtable(s)
 \dontshow{options(.opt)}
 }
 

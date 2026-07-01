@@ -13,7 +13,7 @@ by (penalized) maximum likelihood in the point process frame work.  Optimization
 (maximization) of the (penalized) likelihood function is performed by means of 
 \code{\link{optim}}.
 The implementation is illustrated in Meyer et al. (2017, Section 4),
-see \code{vignette("twinSIR")}.
+see \vignette{twinSIR}.
 }
 
 \usage{

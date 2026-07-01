@@ -38,3 +38,15 @@ fit_end <- twinstim(endemic = ~1, data = imdepi, model = TRUE,
 intensityplot(fit_end, "total", "space", tiles = districtsD) -> .plotobj
 ## produced an error in surveillance <= 1.22.1:
 ##   unable to find an inherited method for function 'coordinates' for signature '"NULL"'
+
+
+## plot.epidataCS() should resolve 'subset' in the calling environment
+local({
+    .type <- "B"
+    opar <- par(mfrow = c(2,1))
+    plot(imdepi, "time",  subset = type == .type)
+    opar <- c(opar, par(mar = c(0,0,0,0)))
+    plot(imdepi, "space", subset = type == .type)
+    par(opar)
+})
+## surveillance <= 1.25.0 twice gave Error: object '.type' not found

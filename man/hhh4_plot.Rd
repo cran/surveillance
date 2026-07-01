@@ -30,7 +30,7 @@
     (shortest-path distance between regions), i.e., \code{w_ji ~ o_ji}.
   }
   Spatio-temporal \code{"hhh4"} models and these plots are illustrated in
-  Meyer et al. (2017, Section 5), see \code{vignette("hhh4_spacetime")}.
+  Meyer et al. (2017, Section 5), see \vignette{hhh4_spacetime}.
 }
 
 \usage{
