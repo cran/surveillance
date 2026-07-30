@@ -1,7 +1,6 @@
 \encoding{latin1}
 \name{addFormattedXAxis}
 \alias{addFormattedXAxis}
-% helper functions for time axis formatting
 \alias{atChange}
 \alias{at2ndChange}
 \alias{atMedian}
@@ -12,8 +11,8 @@ Formatted Time Axis for \code{"sts"} Objects
 
 \description{
 Add a nicely formatted x-axis to time series plots related to the
-\code{"\linkS4class{sts}"} class. This utility function is, e.g., used
-by \code{\link{stsplot_time1}} and \code{\link{plotHHH4_fitted1}}.
+\code{"\linkS4class{sts}"} class. This utility function is used
+by, e.g., \code{\link{stsplot_time1}} and \code{\link{plotHHH4_fitted1}}.
 }
 
 \usage{
@@ -22,11 +21,18 @@ addFormattedXAxis(x, epochsAsDate = FALSE,
                   xaxis.labelFreq = xaxis.tickFreq,
                   xaxis.labelFormat = "\%G\n\n\%OQ",
                   ...)
+
+## helper functions for time axis formatting
+atChange(x, xm1)
+at2ndChange(x, xm1)
+atMedian(x, xm1)
 }
 
 \arguments{
-  \item{x}{
+  \item{x, xm1}{for \code{addFormattedXAxis}, \code{x} is
     an object of class \code{"\linkS4class{sts}"}.
+    For the helper functions, \code{x} and \code{xm1} are numeric
+    vectors, see the details below.
   }
   \item{epochsAsDate}{
     a logical indicating if the old (\code{FALSE}) or the new
@@ -58,20 +64,23 @@ addFormattedXAxis(x, epochsAsDate = FALSE,
   epoch. Please note that the input to the subsetting function is converted
   using \code{as.numeric} before calling the function. Hence, the
   conversion specification needs to result in a string convertible to integer.
-  
+
   Three predefined subsetting functions exist:
   \code{atChange}, \code{at2ndChange}  and \code{atMedian}, which
   are used to make a tick at each (each 2nd for \code{at2ndChange})
   change and at the median index computed on all having the same value,
   respectively:
-  \preformatted{
-    atChange <- function(x,xm1) which(diff(c(xm1,x)) != 0)
-    at2ndChange <- function(x,xm1) which(diff(c(xm1,x) \%/\% 2) != 0)
-    atMedian <- function(x,xm1) tapply(seq_along(x), INDEX=x, quantile, prob=0.5, type=3)
-  }
+\preformatted{
+  atChange    <- function(x,xm1) which(diff(c(xm1,x)) != 0)
+
+  at2ndChange <- function(x,xm1) which(diff(c(xm1,x) \%/\% 2) != 0)
+
+  atMedian    <- function(x,xm1)
+      as.integer(tapply(seq_along(x), x, quantile, probs=0.5, type=3))
+}
   By defining own functions here, one can obtain an arbitrary degree of
   flexibility.
-  
+
   Finally, \code{xaxis.labelFormat} is a \code{\link{strftime}}
   compatible formatting string., e.g. the default value is
   \code{"\%G\\n\\n\%OQ"}, which means ISO year and quarter (in roman

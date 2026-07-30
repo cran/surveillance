@@ -1,3 +1,9 @@
+# surveillance 1.26.1 (2026-07-30)
+
+This is a maintenance release, improving documentation and updating
+deprecated `structure()` syntax in a few test scripts.
+
+
 # surveillance 1.26.0 (2026-06-30)
 
 ## New Features
@@ -197,8 +203,8 @@ issues and increasing test coverage for rarely used functionality.
 
 ## Package Infrastructure
 
-- `vignette("monitoringCounts")` now uses **knitr** as its engine
-  to work around [Bug 18318](https://bugs.R-project.org/show_bug.cgi?id=18318).
+- `vignette("monitoringCounts")` now uses **knitr** as its engine.
+  <!-- to work around R's [PR#18318](https://bugs.R-project.org/show_bug.cgi?id=18318) -->
 
 
 # surveillance 1.20.2 (2022-10-31)
@@ -2034,11 +2040,11 @@ package on CRAN in November 2005 for R 2.2.0.
   As an alternative, **rgeos** can still be chosen to do the polygon
   operations.
 
-- The **surveillance**-internal code now depends on
-  R >= 2.15.2 (for `nlminb()` `NA` fix of PR#15052,
-  consistent `rownames(model.matrix)` of PR#14992,
-  `paste0()`, `parallel::mcmapply()`). However, the
-  required recent version of **spatstat** (1.34-0, for
+- The **surveillance**-internal code now depends on R >= 2.15.2
+  (for the `nlminb()` `NA` fix from PR#15052,
+  consistent `rownames(model.matrix)` from PR#14992,
+  and the new `paste0()` and `parallel::mcmapply()`).
+  However, the required recent version of **spatstat** (1.34-0, for
   **polyclip**) actually needs R >= 3.0.2, which therefore also
   applies to **surveillance**.
 

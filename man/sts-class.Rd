@@ -32,10 +32,6 @@
 % conversion methods
 \alias{as.data.frame.sts}
 \alias{as.data.frame,sts-method}
-\alias{as.ts.sts}
-\alias{coerce,sts,ts-method}
-\alias{coerce,ts,sts-method}
-\alias{as.xts.sts}
 
 \encoding{latin1}
 
@@ -234,10 +230,12 @@ sts(observed, start = c(2000, 1), frequency = 52,
 
     \item{coerce}{\code{signature(from="sts", to="ts")} and
       \code{signature(from="ts", to="sts")},
-      to be called via \code{as(stsObj, "ts")} (or \code{as.ts(stsObj)})
+      to be called via \code{as(stsObj, "ts")} (or
+      \code{\link[=as.ts.sts]{as.ts}(stsObj)})
       and \code{as(tsObj, "sts")}, respectively.}
 
-    \item{as.xts}{convert to the \CRANpkg{xts} package format.}
+    \item{as.xts}{convert to the \CRANpkg{xts} package format,
+      see \code{\link{as.xts.sts}}.}
   }
   }
 
@@ -294,17 +292,6 @@ mymeasles <- sts(counts, start = c(2001, 1), frequency = 52,
                  population = populationFrac,
                  neighbourhood = weserems_nbOrder, map = map)
 stopifnot(identical(mymeasles, measlesWeserEms))
-
-## convert ts/mts object to sts
-z <- ts(matrix(rpois(300,10), 100, 3), start = c(1961, 1), frequency = 12)
-z.sts <- as(z, "sts")
-plot(z.sts)
-
-## conversion of "sts" objects to the quasi-standard "xts" class
-if (requireNamespace("xts")) {
-    z.xts <- as.xts.sts(z.sts)
-    plot(z.xts)
-}
 }
 
 \keyword{classes}

@@ -41,7 +41,7 @@
   class \code{\link{sts}} wrapping observations, monitoring results and
   date handling for multivariate time series.
   A recent overview of the available monitoring procedures is
-  given by Salmon et al. (2016).
+  given by \bibcitet{salmon.etal2016}.
 
   For the retrospective analysis of epidemic spread, the package
   provides three endemic-epidemic modeling frameworks with
@@ -63,7 +63,7 @@
   time-stamped geo-referenced surveillance data on infectious disease
   occurrence; see \vignette{twinstim} for an illustration.
   A recent overview of the implemented space-time modeling frameworks
-  for epidemic phenomena is given by Meyer et al. (2017).
+  for epidemic phenomena is given by \bibcitet{meyer.etal2017}.
 }
 
 %% Author information is dynamically extracted from the DESCRIPTION file
@@ -114,19 +114,12 @@
 }
 
 \section{\file{CITATION}}{
-  \Sexpr[results=hide]{
-    CITATION <- readCitationFile(find_inst_file("CITATION"))  # gives marked UTF-8 strings
-  }
   To cite the \R package \pkg{surveillance} in publications, please use:
   \describe{
-    \item{For the monitoring functions:}{%\bibshow{salmon.etal2016}
-      \Sexpr[results=rd]{tools::toRd(CITATION[grep("Salmon", CITATION$author)])}
-    }
-    \item{For the modeling frameworks:}{%\bibshow{meyer.etal2017}
-      \Sexpr[results=rd]{tools::toRd(CITATION[grep("Meyer", CITATION$author)])}
-    }
+    \item{For the monitoring functions:}{\bibshow{salmon.etal2016}}
+    \item{For the modeling frameworks:}{\bibshow{meyer.etal2017}}
   }
-  See also \code{citation("surveillance")}.
+  See also \code{\link{citation}("surveillance")}.
 }
 
 \references{
@@ -136,7 +129,6 @@
 \preformatted{
     system.file("REFERENCES.bib", package = "surveillance")
 }
-  %\bibshow{*}
 }
 
 \seealso{

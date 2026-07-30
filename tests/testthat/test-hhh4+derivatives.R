@@ -21,8 +21,8 @@ test_that("estimates and standard errors are reproducible", {
           0.121781347106564, 1.27401298230559, 0.453889365025671,
           0.281013375484401, 0.00459840327748742, 0.210642721317572,
           0.191921649336323, 1.87984346848385, 0.265016986696184),
-        .Dim = c(9L, 2L),
-        .Dimnames = list(c("ar.1", "ne.1", "ne.log(pop)", "end.1",
+        dim = c(9L, 2L),
+        dimnames = list(c("ar.1", "ne.1", "ne.log(pop)", "end.1",
             "end.t", "end.sin(2 * pi * t/52)", "end.cos(2 * pi * t/52)",
             "neweights.d", "overdisp"), c("Estimate", "Std. Error"))
     )

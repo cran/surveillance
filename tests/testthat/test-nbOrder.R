@@ -11,8 +11,8 @@ adjmat <- structure(
       1L, 1L, 0L, 0L, 1L,
       0L, 1L, 0L, 0L, 1L,
       0L, 0L, 1L, 1L, 0L),
-    .Dim = c(5L, 5L),
-    .Dimnames = rep.int(list(c("a", "b", "c", "d", "e")), 2L)
+    dim = c(5L, 5L),
+    dimnames = rep.int(list(c("a", "b", "c", "d", "e")), 2L)
     )
 
 ## validated matrix of neighbourhood orders
@@ -22,8 +22,8 @@ nbmat <- structure(
       1L, 1L, 0L, 2L, 1L,
       3L, 1L, 2L, 0L, 1L,
       2L, 2L, 1L, 1L, 0L),
-    .Dim = c(5L, 5L),
-    .Dimnames = rep.int(list(c("a", "b", "c", "d", "e")), 2L)
+    dim = c(5L, 5L),
+    dimnames = rep.int(list(c("a", "b", "c", "d", "e")), 2L)
     )
 
 test_that("nbOrder() returns the validated matrix", {

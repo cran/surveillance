@@ -914,7 +914,7 @@ text(520, 0.6, "Total number of \n reported cases", pos = 3, xpd = T,cex=cex.tex
 
 The proportion of hospitalized cases
 varies throughout the year as seen in Figure~\ref{fig:cat1}.
-One observes that in the summer the proportion of hospitalized cases is smaller than in other seasons. However, over the holidays in December the proportion of hospitalized cases increases.
+In the summer the proportion of hospitalized cases is smaller than in other seasons. However, over the holidays in December the proportion of hospitalized cases increases.
  Note that the number of non-hospitalized cases drops while the number of hospitalized cases remains constant (data not shown): this might be explained by the fact that cases that are not serious enough to go to the hospital are not seen by general practitioners because sick workers do not need
  a sick note during the holidays. Therefore, the \textit{in-control} model should contain these elements, as well as the fact that there is an
 increasing trend of the proportion because GPs prescribe less and less stool diagnoses so that more diagnoses are done on hospitalized cases.
@@ -999,14 +999,14 @@ weekdays of the holidays were particularly worker-friendly so that sick notes we
 
 The value for the threshold \code{h} can be determined following the procedures presented in \citet{hoehle-mazick-2010} for count data, and as in the code exhibited below. Two methods can be used for
 determining the probability of a false alarm within a pre-specified number of steps for a given value of the threshold \code{h}: a Monte Carlo method relying on, e.g., 1000 simulations and a Markov Chain approximation of the CUSUM. The former is much more computationally intensive than the latter:
-with the code below, the Monte Carlo method needed approximately 300 times more time than the Markov Chain method.
+for each \code{h}, the Monte Carlo method needed approximately 300 times more time than the Markov Chain method.
 Since both results are close we recommend the Markov Chain approximation for practical use. The Monte Carlo method works by sampling observed values from the estimated
 distribution and performing monitoring with \code{categoricalCUSUM} on this \code{sts} object. As observed values are estimated from the \textit{in-control} distribution every alarm thus obtained is a
 false alarm so that the simulations allow to estimate the probability of a false alarm when monitoring \textit{in-control} data over the timepoints of \code{phase2}. The Markov Chain approximation introduced by \citet{brook_evans1972} is implemented as \code{LRCUSUM.runlength}
 which is already used for \code{glrnb}. Results from both methods can be seen in Figure~\ref{fig:catDouble}(b). We chose a value of 2 for \code{h} so that the probability of a false alarm within the 56 timepoints of \code{phase2} is less than $0.1$.
 
 One first has to set the values of the threshold to be investigated and to prepare the function used for simulation, that draws observed values from the
-\textit{in-control} distribution and performs monitoring on the corresponding time series, then indicating if there was at least one alarm. Then 1000 simulations were
+\textit{in-control} distribution and performs monitoring on the corresponding time series, then indicating if there was at least one alarm. Then simulations were
 performed with a fixed seed value for the sake of reproducibility. Afterwards, we tested the Markov Chain approximation using the function \code{LRCUSUM.runlength} over the same grid
 of values for the threshold.
 
@@ -1026,11 +1026,12 @@ simone <- function(sts, h) {
       sigma = exp(m.bbin$sigma.coefficients))
   return(any(alarms(one.surv)[, 1]))
 }
-set.seed(123)
-nSims <- 1000
-pMC <- sapply(h.grid, function(h) {
+nSims <- 200  # reduced for this vignette
+.ncpu <- if (.Platform$OS.type == "unix") getOption("mc.cores", 8) else 1
+pMC <- unlist(parallel::mclapply(h.grid, function(h) {
+  set.seed(2*h)
   mean(replicate(nSims, simone(salmHospitalized.multi, h)))
-})
+}, mc.set.seed = FALSE, mc.cores = .ncpu))
 
 pMarkovChain <- sapply(h.grid, function(h) {
   TA <- LRCUSUM.runlength(mu = pi0m[1,,drop = FALSE],
@@ -1038,7 +1039,7 @@ pMarkovChain <- sapply(h.grid, function(h) {
                           mu1 = pi1m[1,,drop = FALSE],
                           n = population(salmHospitalized.multi)[phase2, ],
                           h = h, dfun = dBB.cusum,
-                          sigma = exp(m.bbin$sigma.coef))
+                          sigma = exp(m.bbin$sigma.coefficients))
   return(tail(TA$cdf, n = 1))
 })
 @

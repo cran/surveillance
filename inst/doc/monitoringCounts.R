@@ -226,11 +226,12 @@ simone <- function(sts, h) {
       sigma = exp(m.bbin$sigma.coefficients))
   return(any(alarms(one.surv)[, 1]))
 }
-set.seed(123)
-nSims <- 1000
-pMC <- sapply(h.grid, function(h) {
+nSims <- 200  # reduced for this vignette
+.ncpu <- if (.Platform$OS.type == "unix") getOption("mc.cores", 8) else 1
+pMC <- unlist(parallel::mclapply(h.grid, function(h) {
+  set.seed(2*h)
   mean(replicate(nSims, simone(salmHospitalized.multi, h)))
-})
+}, mc.set.seed = FALSE, mc.cores = .ncpu))
 
 pMarkovChain <- sapply(h.grid, function(h) {
   TA <- LRCUSUM.runlength(mu = pi0m[1,,drop = FALSE],
@@ -238,7 +239,7 @@ pMarkovChain <- sapply(h.grid, function(h) {
                           mu1 = pi1m[1,,drop = FALSE],
                           n = population(salmHospitalized.multi)[phase2, ],
                           h = h, dfun = dBB.cusum,
-                          sigma = exp(m.bbin$sigma.coef))
+                          sigma = exp(m.bbin$sigma.coefficients))
   return(tail(TA$cdf, n = 1))
 })
 save(pMC, file = "monitoringCounts-cache/pMC.RData")
